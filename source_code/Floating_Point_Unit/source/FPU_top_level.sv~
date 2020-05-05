@@ -213,22 +213,61 @@ module FPU_top_level
 		exp_determine = 1'b0;
 	end
 	end
+   //assign bothnegsub = floating_point1[31] && floating_point2[31] && cmp_out; //if both numbers are negative and first one is smaller than the second one
 
    //get the sign for two floating points
    always_comb begin: reorder_the_subtraction
    //if (bothnegsub == 0) begin
    	if (cmp_out == 0) begin //if fp1 >= fp2
-      		fp1_sign = sign_not_shifted_minus;
+      		fp1_sign = sign_not_shifted_minus; //bigger one not shifted
       		fp1_frac = frac_not_shifted_minus;
       		fp2_sign = sign_shifted_minus;
       		fp2_frac = frac_shifted_minus;
+      		/*fp1_frac_hold = fp1_frac;
+      		fp2_frac_hold = fp2_frac;
+      		fp1_sign_hold = fp1_sign;
+      		fp2_sign_hold = fp2_sign;*/
    	end else begin //(cmp_out == 1)
-      		fp1_sign = sign_shifted_minus;
-      		fp1_frac = frac_shifted_minus;
-      		fp2_sign = sign_not_shifted_minus;
-      		fp2_frac = frac_not_shifted_minus; 
+      		fp1_sign = sign_shifted_minus; //0
+      		fp1_frac = frac_shifted_minus; //1001 0110 0000 0000 0000 000 Mx
+      		fp2_sign = sign_not_shifted_minus; //0
+      		fp2_frac = frac_not_shifted_minus; //1001 1100 1000 0000 0000 000 My
+     		/*fp1_frac_hold = fp1_frac;
+      		fp2_frac_hold = fp2_frac;
+      		fp1_sign_hold = fp1_sign;
+      		fp2_sign_hold = fp2_sign;*/
    	end
+   /*end else if (bothnegsub == 1) begin
+   	if (cmp_out == 0) begin //if fp1 >= fp2
+      		fp1_sign = sign_not_shifted_minus; //bigger one not shifted
+      		fp1_frac = frac_not_shifted_minus;
+      		fp2_sign = sign_shifted_minus;
+      		fp2_frac = frac_shifted_minus;
+      		/*fp1_frac_hold = fp1_frac;
+      		fp2_frac_hold = fp2_frac;
+      		fp1_sign_hold = fp1_sign;
+      		fp2_sign_hold = fp2_sign;
+   	end else begin //(cmp_out == 1)
+      		fp1_sign = !sign_shifted_minus; 
+      		fp1_frac = frac_not_shifted_minus; //1001 0110 0000 0000 0000 000 Mx
+      		fp2_sign = !sign_not_shifted_minus; 
+      		fp2_frac = {1'b0,frac_shifted_minus[25:0]}; //1001 1100 1000 0000 0000 000 My
+     		/*fp1_frac_hold = fp1_frac;
+      		fp2_frac_hold = fp2_frac;
+      		fp1_sign_hold = fp1_sign;
+      		fp2_sign_hold = fp2_sign;
+   	end
+   end*/
    end
+	
+   /*always_comb begin:  both_neg_logic
+		if (bothnegsub == 1) begin
+			fp1_frac = fp2_frac_hold;
+			fp1_sign = 1'b0;
+			fp2_frac = fp1_frac_hold;
+			fp2_sign = 1'b0;
+		end
+	end*/
 
    always_comb begin : select_op_step1to2
       case(funct7)
@@ -246,6 +285,13 @@ module FPU_top_level
 	   nxt_step1_to_step2[33:8]  = fp2_frac;
 	   nxt_step1_to_step2[7:0]   = exp_max_minus;
 	end
+	/*SUB: begin
+	   nxt_step1_to_step2[61]    = sign_shifted_minus; //sign of the smaller fp
+	   nxt_step1_to_step2[60:35] = frac_shifted_minus; //the smaller fp significant
+	   nxt_step1_to_step2[34]    = sign_not_shifted_minus; //sign of the greater fp
+	   nxt_step1_to_step2[33:8]  = frac_not_shifted_minus; //the greater fp significant
+	   nxt_step1_to_step2[7:0]   = exp_max_minus;
+	end*/
 	MUL: begin
 	   nxt_step1_to_step2[61]    = mul_sign1;
 	   nxt_step1_to_step2[60]    = mul_sign2;
@@ -308,6 +354,17 @@ module FPU_top_level
 			      .exp_max_out(minus_exp_max),
 			      .exp_determine(exp_determine)
 			      );
+           /*ADD_step2 sub_step2 (
+			      .frac1(step1_to_step2[60:35]),    // frac_shifted
+			      .sign1(step1_to_step2[61]),       // sign_shifted
+			      .frac2(step1_to_step2[33:8]),     // frac_not_shhifted
+			      .sign2(step1_to_step2[34]),       // sign_not_shifted
+			      .exp_max_in(step1_to_step2[7:0]), // exp_max
+			      .sign_out(minus_sign_out),
+			      .sum(minus_sum),
+			      .carry_out(minus_carry_out),
+			      .exp_max_out(minus_exp_max)
+			      );*/
    // add exponents and xor sign bits 
    
          MUL_step2 mul_step2 (

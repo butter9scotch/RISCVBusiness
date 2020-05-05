@@ -25,11 +25,11 @@ module SUB_step2
       else exp_max_out = exp_max_in;
    end
 
-   /*always_comb begin : exp_determine
+   always_comb begin : exp_determine
    if (bothnegsub) begin
 	exp_determine = 1'b1;
    end
-   end*/
+   end
    //change to signed value. either {0, frac} or {0, ~frac} if sign is 1
    u_to_s change_to_signed1(
 			    .sign(sign1),
