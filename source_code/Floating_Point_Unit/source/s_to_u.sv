@@ -12,7 +12,6 @@
 
 module s_to_u(
 	input      [26:0] frac_signed,
-	input reg exp_determine,
 	output reg        sign,
 	output     [25:0] frac_unsigned
 );
@@ -22,16 +21,11 @@ reg [26:0] rfrac_signed;
 assign frac_unsigned = rfrac_signed[25:0];
    
 always_comb begin
-	if (exp_determine == 0) begin
-        	sign = 0;
-		rfrac_signed = frac_signed;
-		if(frac_signed[26] == 1) begin
-			rfrac_signed = -frac_signed;
-			sign         = 1;
-		end
-	end else if (exp_determine == 1) begin
-	  	rfrac_signed = {1'b0,frac_signed[24:0],1'b0};
-  		sign = frac_signed[26];
+        sign = 0;
+	rfrac_signed = frac_signed;
+	if(frac_signed[26] == 1) begin
+		rfrac_signed = -frac_signed;
+		sign         = 1;
 	end
 end
 endmodule

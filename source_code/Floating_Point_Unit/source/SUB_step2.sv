@@ -25,11 +25,6 @@ module SUB_step2
       else exp_max_out = exp_max_in;
    end
 
-   /*always_comb begin : exp_determine
-   if (bothnegsub) begin
-	exp_determine = 1'b1;
-   end
-   end*/
    //change to signed value. either {0, frac} or {0, ~frac} if sign is 1
    u_to_s change_to_signed1(
 			    .sign(sign1),
@@ -43,19 +38,14 @@ module SUB_step2
 			    .frac_signed(frac2_signed)
 			    );
    
+   //change the floating points to its two's complement
    c_to_cp change_to_complement(
 				.frac2_input(frac2),
 				.frac2_signedin(frac2_signed),
-				.frac2_output(frac2_complement),
-				.frac2_signedout(frac2_signedout)
+				.frac2_output(frac2_complement), //unsigned output
+				.frac2_signedout(frac2_signedout) //signed output
 				);
-	/*c_to_cp change_to_complement(
-				.frac2_input(frac2_signed),
-				//.frac2_signedin(frac2_signed),
-				.frac2_output(frac2_complement)
-				//.frac2_signedout(frac2_signedout)
-				);*/
-   
+   //perform subtraction
    sub_26b sub_signed_fracs(
 			     .exp_determine(exp_determine),
 			     .frac1({1'b0,frac1[25:0]}),
@@ -65,16 +55,8 @@ module SUB_step2
 			     .sum(sum_signed),
 			     .ovf(carry_out)
 			     );
-/*sub_26b sub_signed_fracs(
-			     .frac1({1'b0,frac1_signed[26:1]}),
-			     .frac2(frac2_complement),
-			     .sum(sum_signed),
-			     .ovf(carry_out)
-			     );*/
-  //assign sum = {sum_signed[24:0],1'b0};
-  //assign sign_out = sum_signed[26];
 
-   s_to_u change_to_unsigned(
+   s_to_u_new change_to_unsigned_new(
 			     .frac_signed(sum_signed),
 			     .sign(sign_out),
 			     .frac_unsigned(sum),

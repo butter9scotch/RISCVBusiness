@@ -10,7 +10,7 @@
 //    sign          - 1 bit sign 'frac_unsigned'
 //    frac_unsigned - 26 bit magnitude of 'frac_signed'
 
-module s_to_u(
+module s_to_u_new(
 	input      [26:0] frac_signed,
 	input reg exp_determine,
 	output reg        sign,

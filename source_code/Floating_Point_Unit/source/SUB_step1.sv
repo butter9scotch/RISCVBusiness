@@ -1,8 +1,9 @@
 //By            : Joe Nasti
-//Last updated  : 7/23/18
+//Edited by	: Xinlue Liu
+//Last updated  : 6/1/20
 //
 //Module summary:
-//    First step for addition operation in three-step pipline.
+//    First step for subtraction operation in three-step pipline.
 //    Shifts smaller fraction by difference in exponents
 //
 //Inputs:
@@ -13,6 +14,7 @@
 //    sign_not_shifted     - sign of the floating point that does not get shifted
 //    frac_not_shifted     - fraction of the floating point that does not get shifted
 //    exp_max              - max exponent of the two given floating points
+//    cmp		   - indicator of which floating point is bigger or smaller
 module SUB_step1
   (
    input 	bothnegsub,
@@ -44,7 +46,7 @@ module SUB_step1
 		floating_point2_in_temp = floating_point2_in;
    	end
    end
-   //compare the expoents of two floating points
+   //compare the exponents of two floating points
    int_compare cmp_exponents (
 			      .exp1(floating_point1_in_temp[30:23]), 
 			      .exp2(floating_point2_in_temp[30:23]),

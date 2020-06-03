@@ -29,7 +29,7 @@ module MUL_step1
    assign sign2 = fp2_in[31];
    assign exp1  = fp1_in[30:23];
    assign exp2  = fp2_in[30:23];
-
+   //multiply the two numbers
    mul_26b MUL (
 		.frac_in1({1'b1, fp1_in[22:0], 2'b00}),
 		.frac_in2({1'b1, fp2_in[22:0], 2'b00}),

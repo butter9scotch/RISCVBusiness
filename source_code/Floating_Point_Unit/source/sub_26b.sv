@@ -1,11 +1,14 @@
 //By            : Joe Nasti
-//Last Updated  : 7.16.18
+//Modified by   : Xinlue Liu
+//Last Updated  : 6/1/20
 //
 //Module Summary: 
 //    adds two signed 26 bit fraction values
 //
 //Inputs:
 //    frac1/2 - signed 26 bit values with decimal point fixed after second bit
+//    frac1_s/frac2_s - 2's complements of the two floating points
+//    exp_determine - signal indicator that indicates which subtraction operation it is going to perform
 //Outputs:
 //    sum     - output of sum operation regardless of overflow
 //    ovf     - high if an overflow has occured 
@@ -55,3 +58,5 @@ always_comb begin
   
 end
 endmodule
+
+
