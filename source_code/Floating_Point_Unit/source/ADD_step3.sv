@@ -16,6 +16,14 @@
 
 module ADD_step3
   (
+<<<<<<< HEAD
+=======
+   input 	 bothnegsub,
+   input 	 cmp_out,
+   input [31:0]  floating_point1,
+   input [31:0]  floating_point2,
+   input [6:0] 	 function_mode,
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
    input 	 ovf_in,
    input 	 unf_in,
    input 	 dz, // divide by zero flag
@@ -49,12 +57,18 @@ module ADD_step3
 			  .result(shifted_frac),
 			  .shifted_amount(shifted_amount)
 			  );
+<<<<<<< HEAD
    //// subtracts shifted amount from the exponent
    subtract SUB (
+=======
+   
+   /*subtract SUBTRACT (
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 		 .exp1(exponent_max_in),
 		 .shifted_amount(shifted_amount),
 		 .result(exp_minus_shift_amount)
-		 );
+		 );*/
+   assign exp_minus_shift_amount = exponent_max_in;
 
    
    reg [24:0] round_this;
@@ -69,7 +83,12 @@ module ADD_step3
       end
       else begin
 	 round_this = shifted_frac[24:0];
+<<<<<<< HEAD
 	 exp_out    = exp_minus_shift_amount;
+=======
+	 //temp_exp_out    = exp_minus_shift_amount;
+	exp_out    = exp_minus_shift_amount;
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 	 if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
       end
    end
@@ -95,4 +114,31 @@ module ADD_step3
 				     unf    ? 31'b0000000000000000000000000000000 :
 				     round_out[30:0];
    
+<<<<<<< HEAD
+=======
+   assign temp_sign = dummy_floating_point_out[31];
+   sign_determine sign_determine (
+					.temp_sign(temp_sign),
+					.temp_floating_point_out(dummy_floating_point_out),
+					.cmp_out(cmp_out),
+					.floating_point1(floating_point1),
+					.floating_point2(floating_point2),
+					.floating_point_out(temp_floating_point_out)
+					);
+   reg [31:0] hold_value;
+   
+   always_comb begin
+      if (function_mode == SUB) begin
+	 hold_value = temp_floating_point_out;
+      end else begin
+	 hold_value  = dummy_floating_point_out;
+      end
+   end
+
+   assign floating_point_out = bothnegsub? {~hold_value[31],hold_value[30:0]}: hold_value;
+   //assign floating_point_out = dummy_floating_point_out;
+   
+   
+   
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 endmodule

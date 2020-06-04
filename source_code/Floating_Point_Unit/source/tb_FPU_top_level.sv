@@ -43,11 +43,20 @@ module tb_FPU_top_level();
    	 //$display($bits(val2));
   //subnormal number
 	 frm       = $random() % 8;
+<<<<<<< HEAD
 	 funct7 = 7'b0100100;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
 	 if (i == 0) begin
 	 floating_point1 = 32'b01000001000111000000000000000000; //9.75
+=======
+	 */
+	 //floating_point1 = $random(); //-2367.4
+	 //floating_point2 = $random(); //-46772.414
+	 //currently works if 1st number is less than second one(if both are positive)
+	 if (i == 0) begin
+         floating_point1 = 32'b01000001000111000000000000000000; //9.75
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 	 floating_point2 = 32'b00111111000100000000000000000000; //0.5625
 	 end else if (i == 1) begin
          floating_point1 = 32'b01000010101110010110011001100110; //92.7
@@ -107,6 +116,7 @@ module tb_FPU_top_level();
 	 floating_point1 = 32'b11000010110101101101011100001010; //-107.42
 	 floating_point2 = 32'b11000111101110111110011110001110; //-96207.111
 	 end else if (i == 20) begin
+<<<<<<< HEAD
 	 floating_point1 = 32'b00111110100000000000000000000000; //.25
 	 floating_point2 = 32'b01000010110010000000000000000000; //100
 	 end else if (i == 21) begin
@@ -218,6 +228,27 @@ module tb_FPU_top_level();
 	
 */
 
+=======
+         floating_point1 = 32'b11000000011001011011001000101101; //-3.589 //3
+	 floating_point2 = 32'b11000001000001101001001100001100; //-8.4109 //8
+	 //Error: expected = 0 10000001 00110100100110100000001, 
+	 //	calculated = 0 10000010 10011010010011010000001
+	 end else if (i == 21) begin
+	 floating_point1 = 32'b11000010000011111000111101011100; //-45.89
+	 floating_point2 = 32'b11000010101010000011011111001111; //-94.109
+	 //Error: expected = 0 10000100 10000001110000001000010, 
+	 //     calculated = 0 10000101 11000000111000000100001
+	 end
+	 funct7 = 7'b0100100; //subtraction
+	 //funct7 = 7'b0100000; //addition
+	 //funct7 = 7'b0000010; //multiplication
+	 //funct7 = 7'b0001000; //division
+	 frm = funct7 % 8;
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
+
+	//error message
+	//Error: expected = 0 10000001 00010010101111010000001, 
+	     //calculated = 0 10000001 01110110101000011000000
 
 	 if(floating_point1[30:23] == 8'b11111111) 
 	   floating_point1[30:23] = 8'b11111110;
@@ -356,13 +387,20 @@ initial begin
    nrst = 1;
    i = 0;
    
+<<<<<<< HEAD
    while(i <= 40) begin
+=======
+   while(i <= 19) begin
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
       random_check();
       i = i + 1;
       //break;
       end
   /*while (1) begin
+<<<<<<< HEAD
 	i = i + 1;
+=======
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 	random_check();
   end*/
 end

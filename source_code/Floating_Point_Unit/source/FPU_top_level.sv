@@ -116,18 +116,38 @@ module FPU_top_level
    reg [25:0] fp2_frac_hold;
    reg        fp1_sign_hold;
    reg        fp2_sign_hold;
+<<<<<<< HEAD
 
         //compare two floating points and use signal cmp_out_det to indicate greater/less relationship
+=======
+   /*always_comb begin
+   	if (funct7 == SUB) begin
+		if ((floating_point1[31] == 1) && (floating_point2[31] == 1)) begin
+			floating_point2[31] = 1'b0;
+			funct7 = ADD;
+		end else begin
+			floating_point2[31] = 1'b1;
+			funct7 = SUB;
+		end
+   	end
+   end*/
+   // right shift smaller fraction by difference in exponents
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
  	int_compare cmp_exponent (
 			      .exp1(floating_point1[30:23]), 
 			      .exp2(floating_point2[30:23]),
 			      .cmp_out(cmp_out_det)
 			      );
+<<<<<<< HEAD
 //if both numbers are negative and first one is smaller than the second one
 	assign bothnegsub = (floating_point1[31] && floating_point2[31] && cmp_out_det && (funct7 == 7'b0100100)) ? 1:0; 
 
         //first step of addition. determine the exponent and fraction of the floating point that needs to be shifted
 	ADD_step1 addStep1(
+=======
+	assign bothnegsub = floating_point1[31] && floating_point2[31] && cmp_out_det; //if both numbers are negative and first one is smaller than the second one
+        ADD_step1 addStep1(
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 			   .floating_point1_in(floating_point1),
 			   .floating_point2_in(floating_point2),
 			   .sign_shifted(sign_shifted),
@@ -186,16 +206,26 @@ module FPU_top_level
       end
    end // block: check_for_invalid_op
 
+<<<<<<< HEAD
 	// add signal indicator that indicates which subtraction operation it is going to perform
 	always_comb begin: determine_exp
 	if (cmp_out == 0) begin //fp1 > fp2.
+=======
+	// add signed fractions
+	always_comb begin: determine_exp
+	if (cmp_out == 0) begin //fp1 > fp2. Looking at mantassa
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 		exp_determine = 1'b1;
 	end else if (cmp_out == 1) begin
 		exp_determine = 1'b0;
 	end
 	end
 
+<<<<<<< HEAD
    //reorder the two floating points to pass into the second block of the subtraction routine
+=======
+   //get the sign for two floating points
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
    always_comb begin: reorder_the_subtraction
    //if (bothnegsub == 0) begin
    	if (cmp_out == 0) begin //if fp1 >= fp2
@@ -263,8 +293,14 @@ module FPU_top_level
          exp_max          <= nxt_exp_max;*/
       end
    end 
+<<<<<<< HEAD
 	 //perform addition
 	  ADD_step2 add_step2 (
+=======
+	 //assign step1_to_step2[61] = bothnegsub ? ~step1_to_step2[61] : step1_to_step2[61];
+	 //assign step1_to_step2[34] = bothnegsub ? ~step1_to_step2[34] : step1_to_step2[34];
+	 ADD_step2 add_step2 (
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 			      .frac1(step1_to_step2[60:35]),    // frac_shifted
 			      .sign1(step1_to_step2[61]),       // sign_shifted
 			      .frac2(step1_to_step2[33:8]),     // frac_not_shhifted
@@ -351,11 +387,16 @@ module FPU_top_level
       if((step2_to_step3[7:0] == 8'b11111111) && (step2_to_step3[36] == 1'b0) && (step2_to_step3[8] == 0)) o = 1;
       else o = step2_to_step3[37]; 
    end
+<<<<<<< HEAD
 
    reg [31:0] negmul_floating_point_out;
    reg [31:0] add_floating_point_out;
    //round the results and perform special case checking
    SUB_step3 sub_step3 (
+=======
+   
+   ADD_step3 step3 (
+>>>>>>> fa4bb25b0b7f0da1f3fd01824f72305558abd74b
 		    .bothnegsub(bothnegsub),
 		    .cmp_out(cmp_out),
 		    .floating_point1(floating_point1),
