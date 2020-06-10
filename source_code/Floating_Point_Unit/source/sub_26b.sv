@@ -14,11 +14,17 @@
 //    ovf     - high if an overflow has occured 
  
 module sub_26b(
+	input      [26:0] frac1_orig,
+	input      [26:0] frac2_origcomp,
+	input 	   [26:0] frac1_s2,
+	input 	   cmp_out,
 	input      [26:0] frac1,
 	input      [26:0] frac2,
 	input      [26:0] frac1_s,
 	input      [26:0] frac2_s,
-	input reg exp_determine,
+	input reg n1p2,
+	input reg  bothpossub,
+	//input reg exp_determine,
 	output reg [26:0] sum, 
 	output reg        ovf
 );
@@ -27,35 +33,51 @@ module sub_26b(
    reg [26:0] 		  temp_sum;
    
 always_comb begin
-   if (exp_determine == 1) begin
-   sum = frac1 + frac2;
+   if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 0))begin
+   	sum = frac1 + frac2;
+   /*end else if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 1))begin
+	temp_sum = frac1_s2 + frac2;
+	sum = ~temp_sum + 1'b1;*/
+   end else if (n1p2 == 1) begin
+	sum = frac1_s + frac2_s;
    end else begin
-   temp_sum = frac1_s + frac2_s;
-   sum[26:0] = ~temp_sum[26:0] + 1'b1;
+   	temp_sum = frac1_s + frac2_s;
+   	sum = ~temp_sum + 1'b1;
    end
    
    ovf = 0;
+   if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 0)) begin
+     //if (bothpossub == 0) begin
+  	 if(frac1[26] == 1 && frac2[26]== 1 && sum[26] == 0) begin
+     	 	ovf = 1;
+     	 	sum[26] = 1;
+   	 end
    
-   if(frac1[26] == 1 && frac2[26]== 1 && sum[26] == 0) begin
-      ovf = 1;
-      sum[26] = 1;
-   end
+   	 if(frac1[26] == 0 && frac2[26]== 0 && sum[26] == 1) begin
+     		ovf = 1;
+     		sum[26] = 0;
+   	 end
+   /*end else if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 1))begin
+  	 if(frac1_s2[26] == 1 && frac2[26]== 1 && sum[26] == 0) begin
+     	 	ovf = 1;
+     	 	sum[26] = 1;
+   	 end
    
-   if(frac1[26] == 0 && frac2[26]== 0 && sum[26] == 1) begin
-      ovf = 1;
-      sum[26] = 0;
-   end
-
-   if(frac1_s[26] == 1 && frac2_s[26]== 1 && sum[26] == 0) begin
-      ovf = 1;
-      sum[26] = 1;
-   end
+   	 if(frac1_s2[26] == 0 && frac2[26]== 0 && sum[26] == 1) begin
+     		ovf = 1;
+     		sum[26] = 0;
+   	 end*/
+   end else begin
+   	if(frac1_s[26] == 1 && frac2_s[26]== 1 && sum[26] == 0) begin
+      		ovf = 1;
+      		sum[26] = 1;
+   	end
    
-   if(frac1_s[26] == 0 && frac2_s[26]== 0 && sum[26] == 1) begin
-      ovf = 1;
-      sum[26] = 0;
-   end
-  
+   	if(frac1_s[26] == 0 && frac2_s[26]== 0 && sum[26] == 1) begin
+      		ovf = 1;
+      		sum[26] = 0;
+   	end
+  end
 end
 endmodule
 

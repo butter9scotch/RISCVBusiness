@@ -24,16 +24,17 @@ module SUB_step1
    output [25:0] frac_shifted,
    output 	 sign_not_shifted,
    output [25:0] frac_not_shifted,
-   output [7:0]  exp_max,
-   output 	 cmp
+   output reg [7:0]  exp_max,
+   output 	 cmp,
+   output  reg  [7:0] 	 unsigned_exp_diff
    );
    reg [31:0] floating_point1_in_temp;
    reg [31:0] floating_point2_in_temp;
-   reg  [7:0] 	 unsigned_exp_diff;
+   //reg  [7:0] 	 unsigned_exp_diff;
    reg 		 cmp_out; //exp1 >= exp2 -> cmp_out == 0
                           //exp1 <  exp2 -> cmp_out == 1
-   wire [31:0] 	 floating_point_shift;
-   wire [31:0] 	 floating_point_not_shift;
+   reg  [31:0] 	 floating_point_shift;
+   reg  [31:0] 	 floating_point_not_shift;
    reg  [31:0] 	 shifted_floating_point;
    reg [22:0] 	 temp_frac_shifted;
 
@@ -55,10 +56,35 @@ module SUB_step1
 			      );
    //determine which one to shift
    //shift the smaller exponent
-   assign floating_point_shift = cmp_out ? floating_point1_in_temp : floating_point2_in_temp;
-   assign floating_point_not_shift = cmp_out ? floating_point2_in_temp : floating_point1_in_temp;
+
+	always_comb begin
+		floating_point_shift = 0;
+		if (cmp_out ==1) begin
+			floating_point_shift = floating_point1_in_temp;
+		end else begin
+			floating_point_shift = floating_point2_in_temp;
+		end
+	end
+	always_comb begin
+		floating_point_not_shift = 0;
+		if (cmp_out == 1) begin
+			floating_point_not_shift = floating_point2_in_temp;
+		end else begin
+			floating_point_not_shift = floating_point1_in_temp;
+		end
+	end
+	always_comb begin
+		exp_max = 0;
+		if (cmp_out == 1) begin
+			exp_max = floating_point2_in_temp[30:23];
+		end else begin
+			exp_max = floating_point1_in_temp[30:23];
+		end
+	end
+   //assign floating_point_shift = cmp_out ? floating_point1_in_temp : floating_point2_in_temp;
+   //assign floating_point_not_shift = cmp_out ? floating_point2_in_temp : floating_point1_in_temp;
    //set the result exponent to the bigger exponent between X and Y
-   assign exp_max = cmp_out ? floating_point2_in_temp[30:23] : floating_point1_in_temp[30:23];
+   //assign exp_max = cmp_out ? floating_point2_in_temp[30:23] : floating_point1_in_temp[30:23];
 
    //right shift the smaller fp the amount of the difference of two fps.
    //right_shift_minus shift_frac (

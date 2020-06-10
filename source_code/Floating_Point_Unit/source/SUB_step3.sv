@@ -16,6 +16,7 @@
 
 module SUB_step3
   (
+   //input 	 signout,
    input 	 bothnegsub,
    input 	 cmp_out,
    input [31:0]  floating_point1,
@@ -30,6 +31,7 @@ module SUB_step3
    input 	 sign_in,
    input [25:0]  frac_in,
    input 	 carry_out,
+   input reg     shifted_check,
    output [31:0] before_floating_point_out,
    output [4:0]  flags
    );
@@ -52,7 +54,7 @@ module SUB_step3
    
    assign {sign, exponent, frac} = before_floating_point_out;
    
-   reg [7:0] exp_minus_shift_amount;
+   //reg [7:0] exp_minus_shift_amount;
    reg [25:0] shifted_frac;
    reg [7:0]  shifted_amount;
    reg [7:0]  exp_out;
@@ -74,7 +76,7 @@ module SUB_step3
 			  .shifted_amount(shifted_amount)
 			  );
 
-   assign exp_minus_shift_amount = exponent_max_in;
+   assign 	 exp_out    = exponent_max_in;
 
    
    reg [24:0] round_this;
@@ -83,19 +85,12 @@ module SUB_step3
    always_comb begin
       ovf = 0;
       unf = 0;
-      if ((carry_out == 0) & (((floating_point1[31] == 0)&(floating_point2[31] == 0) & (cmp_out == 1)))) begin
-      //if ((carry_out == 0) | (((floating_point1[31] == 0)&(floating_point2[31] == 0) & (cmp_out == 1)))) begin
-	 //round_this = shifted_frac[24:0];
+      //if ((carry_out == 0) & (((floating_point1[31] == 0)&(floating_point2[31] == 0) & (cmp_out == 1)))) begin
+      if (carry_out == 0) begin
 	 round_this = frac_in[24:0];
-	exp_out    = exp_minus_shift_amount;
 	 if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
       end else begin
 	 round_this = frac_in[25:1];
-	 if (function_mode == 7'b0100100) begin
-		exp_out = exponent_max_in;
-	 end else begin
-		exp_out    = exponent_max_in + 1;
-	 end
 	 if((exponent_max_in == 8'b11111110) && (~unf_in)) ovf = 1;
    end
    end
@@ -104,6 +99,8 @@ module SUB_step3
    
    //round the result
    rounder_sub ROUND (
+		  .shifted_check(shifted_check),
+		  .bothnegsub(bothnegsub),
 		  .cmp_out(cmp_out),
 		  .fp1(floating_point1),
 		  .fp2(floating_point2),
@@ -136,19 +133,19 @@ module SUB_step3
    assign temp_sign = dummy_floating_point_out[31];
 
 //find the sign of the final result
-   sign_determine sign_determine (
+   /*sign_determine sign_determine (
 					.temp_sign(temp_sign),
 					.temp_floating_point_out(dummy_floating_point_out),
 					.cmp_out(cmp_out),
 					.floating_point1(floating_point1),
 					.floating_point2(floating_point2),
 					.floating_point_out(temp_floating_point_out)
-					);
+					);*/
 
    
    always_comb begin
       if (function_mode == SUB) begin
-	 hold_value = temp_floating_point_out;
+	 hold_value = {sign_in,dummy_floating_point_out[30:0]};
       end else begin
 	 hold_value  = dummy_floating_point_out;
       end
@@ -163,8 +160,8 @@ reg [31:0] neg_temp_sol_z2;
 assign neg_temp_sol_z1 = {!floating_point1[31], floating_point1[30:0]};
 assign neg_temp_sol_z2 = {!floating_point2[31], floating_point2[30:0]};
 
-assign floating_point_out_dummy = bothnegsub? {~hold_value[31],hold_value[30:0]}: hold_value;
-  
+//assign floating_point_out_dummy = bothnegsub? {~hold_value[31],hold_value[30:0]}: hold_value;
+ assign floating_point_out_dummy = hold_value;
 /*
 reg [31:0] fpout_hidBitOverflowCk;
 
