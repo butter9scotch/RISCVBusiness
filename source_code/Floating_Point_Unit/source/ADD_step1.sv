@@ -16,6 +16,7 @@
 //    exp_max              - max exponent of the two given floating points
 module ADD_step1
   (
+   input  [6:0]  funct7,
    input  [31:0] floating_point1_in,
    input  [31:0] floating_point2_in,
    output 	 sign_shifted,
@@ -30,10 +31,10 @@ module ADD_step1
                           //exp1 <  exp2 -> cmp_out == 1
    reg [31:0] 	 floating_point_shift;
    reg [31:0] 	 floating_point_not_shift;
-   reg  [31:0] 	 shifted_floating_point;
    
    //compare the exponents of two floating points
    int_compare cmp_exponents (
+			      .funct7(funct7),
 			      .exp1(floating_point1_in[30:23]), 
 			      .exp2(floating_point2_in[30:23]),
 			      .u_diff(unsigned_exp_diff),
@@ -65,10 +66,6 @@ module ADD_step1
 			exp_max = floating_point1_in[30:23];
 		end
 	end
-   //assign floating_point_shift = cmp_out ? floating_point1_in : floating_point2_in;
-   //assign floating_point_not_shift = cmp_out ? floating_point2_in : floating_point1_in;
-   //set the result exponent to the bigger exponent between X and Y
-   //assign exp_max = cmp_out ? floating_point2_in[30:23] : floating_point1_in[30:23];
    
    //right shift the smaller fp the amount of the difference of two fps.
    right_shift shift_frac_with_smaller_exp (

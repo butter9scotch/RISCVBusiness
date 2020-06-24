@@ -4,6 +4,7 @@ module sign_determine
    //input [31:0]  temp_floating_point_out,
    input 	 cmp_out,
    input reg	 same_compare,
+   input reg     frac_same,
    input [31:0]  floating_point1,
    input [31:0]  floating_point2,
    output reg signout
@@ -27,10 +28,10 @@ module sign_determine
 	       signout = 1'b1;
 	    end
 	 end else if ((floating_point1[31] == 1) & (floating_point2[31] == 1) & (same_compare == 1)) begin
-	    if ((floating_point1[22] == 1) & (floating_point2[22] == 0)) begin
-		signout = 1'b1;
-	    end else begin
+	    if (frac_same == 1'b1) begin
 		signout = 1'b0;
+	    end else begin
+		signout = 1'b1;
 	    end
 	 end else if ((floating_point1[31] == 0) & (floating_point2[31] == 0) & (same_compare == 0)) begin
 	    if (cmp_out == 1) begin
@@ -40,10 +41,10 @@ module sign_determine
 	    end
 	    // dummy  = cmp_out ? ~temp_sign : temp_sign;
 	 end else if ((floating_point1[31] == 0) & (floating_point2[31] == 0) & (same_compare == 1)) begin
-	    if ((floating_point1[22] == 1) & (floating_point2[22] == 0)) begin
-		signout = 1'b0;
-	    end else begin
+	    if (frac_same == 1'b1) begin
 		signout = 1'b1;
+	    end else begin
+		signout = 1'b0;
 	    end
 	  end
       end

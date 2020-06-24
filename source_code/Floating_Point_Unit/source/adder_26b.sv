@@ -21,7 +21,7 @@ always_comb begin
 
    sum = frac1 + frac2;
    ovf = 0;
-   //round up 1
+   
    if(frac1[26] == 1 && frac2[26]== 1 && sum[26] == 0) begin
       ovf = 1;
       sum[26] = 1;
@@ -34,3 +34,4 @@ always_comb begin
   
 end
 endmodule
+

@@ -17,6 +17,7 @@
 //    cmp		   - indicator of which floating point is bigger or smaller
 module SUB_step1
   (
+   input  [6:0]  funct7,
    input 	bothnegsub,
    input [31:0]  floating_point1_in,
    input [31:0]  floating_point2_in,
@@ -35,8 +36,6 @@ module SUB_step1
                           //exp1 <  exp2 -> cmp_out == 1
    reg  [31:0] 	 floating_point_shift;
    reg  [31:0] 	 floating_point_not_shift;
-   reg  [31:0] 	 shifted_floating_point;
-   reg [22:0] 	 temp_frac_shifted;
 
    always_comb begin: determine_input
 	if (bothnegsub == 1'b1) begin
@@ -49,6 +48,7 @@ module SUB_step1
    end
    //compare the exponents of two floating points
    int_compare cmp_exponents (
+			      .funct7(funct7),
 			      .exp1(floating_point1_in_temp[30:23]), 
 			      .exp2(floating_point2_in_temp[30:23]),
 			      .u_diff(unsigned_exp_diff),

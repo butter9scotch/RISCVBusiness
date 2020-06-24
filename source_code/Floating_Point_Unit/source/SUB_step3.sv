@@ -16,6 +16,16 @@
 
 module SUB_step3
   (
+   input reg sum_init,
+   input reg  [7:0] 	 unsigned_exp_diff,
+   input reg n1p2r,
+   input reg [2:0] wm,
+   input clk,
+   input nrst,
+   input 	   [25:0] frac_shifted_minus,
+   input reg outallzero,
+   input reg outallone,
+   input reg same_compare,
    //input 	 signout,
    input 	 bothnegsub,
    input 	 cmp_out,
@@ -31,9 +41,12 @@ module SUB_step3
    input 	 sign_in,
    input [25:0]  frac_in,
    input 	 carry_out,
-   input reg     shifted_check,
+   input reg     shifted_check_allone,
+   input reg     shifted_check_onezero,
    output [31:0] before_floating_point_out,
-   output [4:0]  flags
+   output reg ovf,
+   output reg unf,
+   output reg inexact
    );
 
    localparam quietNaN = 32'b01111111110000000000000000000000;
@@ -43,7 +56,7 @@ module SUB_step3
    localparam zero = 32'b00000000000000000000000000000000;
    localparam NegZero = 32'b10000000000000000000000000000000;
 
-   wire        inexact;
+   //reg        inexact;
    wire        sign;
    wire [7:0]  exponent;
    wire [22:0] frac;
@@ -52,20 +65,16 @@ module SUB_step3
    localparam MUL = 7'b0000010;
    localparam SUB = 7'b0100100; //add sub mode
    
-   assign {sign, exponent, frac} = before_floating_point_out;
+   //assign {sign, exponent, frac} = before_floating_point_out;
    
    //reg [7:0] exp_minus_shift_amount;
    reg [25:0] shifted_frac;
    reg [7:0]  shifted_amount;
    reg [7:0]  exp_out;
-   reg        ovf;
-   reg        unf;
-   reg [31:0] temp_floating_point_out;
+   //reg        ovf;
+   //reg        unf;
    reg 	      temp_sign;
    reg [31:0] dummy_floating_point_out;
-   reg [7:0]  temp_exp_out; 
-   reg [7:0]  temp_exp_value;
-   reg [31:0] floating_point_out_dummy;
    reg [31:0] fp_option;
    reg [31:0] hold_value;
    reg [23:0] rounded_frac;
@@ -80,26 +89,45 @@ module SUB_step3
 
    
    reg [24:0] round_this;
-   
+   reg [2:0] log_de;
 //this comb logic is for rounding mode
    always_comb begin
       ovf = 0;
       unf = 0;
+      log_de = 0;
       //if ((carry_out == 0) & (((floating_point1[31] == 0)&(floating_point2[31] == 0) & (cmp_out == 1)))) begin
       if (carry_out == 0) begin
-	 round_this = frac_in[24:0];
+	 log_de = 2'b01;
+	 round_this = frac_in[24:0] + 1'b1;
 	 if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
       end else begin
-	 round_this = frac_in[25:1];
+	 round_this = frac_in[25:1] + 1'b1;
+	 log_de = 2'b10;
 	 if((exponent_max_in == 8'b11111110) && (~unf_in)) ovf = 1;
    end
    end
 
    reg [31:0] round_out;
-   
+   wire buf_determine;
+   assign buf_determine = ovf_in | ovf | unf_in | unf;
    //round the result
    rounder_sub ROUND (
-		  .shifted_check(shifted_check),
+		  .sum_init(sum_init),
+		  .clk(clk),
+		  .nrst(nrst),
+		  .unsigned_exp_diff(unsigned_exp_diff),
+		  .frac_in(frac_in),
+		  .shifted_frac(shifted_frac),
+		  .n1p2r(n1p2r),
+		  .wm(wm),
+		  .shifted_amount(shifted_amount),
+		  .buf_determine(buf_determine),
+		  .frac_shifted_minus(frac_shifted_minus),
+		  .outallzero(outallzero),
+		  .outallone(outallone),
+		  .same_compare(same_compare),
+		  .shifted_check_onezero(shifted_check_onezero),
+		  .shifted_check_allone(shifted_check_allone),
 		  .bothnegsub(bothnegsub),
 		  .cmp_out(cmp_out),
 		  .fp1(floating_point1),
@@ -114,15 +142,9 @@ module SUB_step3
 		  .sol_frac(rounded_frac)
 		  );
    
-   assign inexact                  = ovf_in | ovf | unf_in | unf | round_flag;
-   assign flags                    = {inv, dz, (ovf | ovf_in), (unf | unf_in), inexact};
-   assign dummy_floating_point_out[31]   = round_out[31];
-   /*assign dummy_floating_point_out[30:0] = inv    ? 31'b1111111101111111111111111111111 :
-				     ovf_in ? 31'b1111111100000000000000000000000 :
-				     ovf    ? 31'b1111111100000000000000000000000 :
-				     unf_in ? 31'b0000000000000000000000000000000 :
-				     unf    ? 31'b0000000000000000000000000000000 :
-				     round_out[30:0];*/
+     assign inexact                  = ovf_in | ovf | unf_in | unf | round_flag;
+
+     assign dummy_floating_point_out[31]   = round_out[31];
      assign dummy_floating_point_out[30:0] = inv    ? signalNaN :
 				     ovf_in ? 31'b1111111100000000000000000000000 :
 				     ovf    ? 31'b1111111100000000000000000000000 :
@@ -131,308 +153,25 @@ module SUB_step3
 				     round_out[30:0];
    
    assign temp_sign = dummy_floating_point_out[31];
-
-//find the sign of the final result
-   /*sign_determine sign_determine (
-					.temp_sign(temp_sign),
-					.temp_floating_point_out(dummy_floating_point_out),
-					.cmp_out(cmp_out),
-					.floating_point1(floating_point1),
-					.floating_point2(floating_point2),
-					.floating_point_out(temp_floating_point_out)
-					);*/
-
    
    always_comb begin
+         hold_value  = dummy_floating_point_out;
       if (function_mode == SUB) begin
 	 hold_value = {sign_in,dummy_floating_point_out[30:0]};
-      end else begin
-	 hold_value  = dummy_floating_point_out;
       end
    end
 
-   
-reg [31:0] neg_temp_sol_z1;
-reg [31:0] neg_temp_sol_z2;
-
-//reg NaNlogic;
-
-assign neg_temp_sol_z1 = {!floating_point1[31], floating_point1[30:0]};
-assign neg_temp_sol_z2 = {!floating_point2[31], floating_point2[30:0]};
-
-//assign floating_point_out_dummy = bothnegsub? {~hold_value[31],hold_value[30:0]}: hold_value;
- assign floating_point_out_dummy = hold_value;
-/*
-reg [31:0] fpout_hidBitOverflowCk;
-
-always_comb begin
-	if (floating_point_out_dummy[9] == 1) begin
-		fpout_hidBitOverflowCk = {floating_point_out_dummy[31],exp_out - 1'b1, {1'b0,floating_point_out_dummy[
-end
-*/
-
-//determine special cases like operations between Infinity, negitive Infinity, zero, negative zero, quiet NaN, signaling NaN
    always_comb begin
-     if (floating_point1 == Inf) begin
-	if (floating_point2 == Inf) begin
-		if ((function_mode == ADD) | (function_mode == MUL)) begin
-			fp_option = Inf;
-		end else if (function_mode == SUB) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point2 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = quietNaN;
-		end else if (function_mode == SUB) begin
-			fp_option = Inf;
-		end else if (function_mode == MUL) begin
-			fp_option = NegInf;
-		end
-	end else if (floating_point2 == quietNaN) begin
-		fp_option = quietNaN;
-     	end else if ((floating_point1 == zero) | (floating_point2 == NegZero)) begin
-		if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end else begin
-			fp_option = Inf;
-		end
-	end else begin
-		fp_option = Inf;
-	end
-     end else if (floating_point1 == NegInf) begin
-	if (floating_point2 == Inf) begin
-		if (function_mode == ADD) begin
-			fp_option = quietNaN;
-		end else if ((function_mode == SUB) | (function_mode == MUL)) begin
-			fp_option = NegInf;
-		end
-	end else if (floating_point2 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = NegInf;
-		end else if (function_mode == SUB) begin
-			fp_option = quietNaN;
-		end else if (function_mode == MUL) begin
-			fp_option = Inf;
-		end
-	end else if (floating_point2 == quietNaN) begin
-		fp_option = quietNaN;
-	end else if ((floating_point1 == zero) | (floating_point2 == NegZero)) begin
-		if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end else begin
-			fp_option = NegInf;
-		end
-	end else begin
-		fp_option = NegInf;
-	end
-     end else if ((floating_point1 == quietNaN) | (floating_point2 == quietNaN)) begin
-	fp_option = quietNaN;
-     end else if ((floating_point1 == zero) | (floating_point1 == NegZero)) begin
-	if (floating_point2 == Inf) begin
-		if (function_mode == ADD) begin
-			fp_option = Inf;
-		end else if (function_mode == SUB) begin
-			fp_option = NegInf;
-		end else if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point2 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = NegInf;
-		end else if (function_mode == SUB) begin
-			fp_option = Inf;
-		end else if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point2 == quietNaN) begin
-		fp_option = quietNaN;
-	end /*else begin
-		if (floating_point1 == zero) begin
-			if (function_mode == MUL) begin
-				fp_option = zero;
-			end else if (function_mode == ADD) begin
-				fp_option = floating_point2;
-			end else if (function_mode == SUB) begin
-				fp_option = {~floating_point2[31],floating_point2[30:0]};
-			end
-		end else if (floating_point1 == NegZero) begin
-			if (function_mode == MUL) begin
-				fp_option = NegZero;
-			end else if (function_mode == ADD) begin
-				fp_option = floating_point2;
-			end else if (function_mode == SUB) begin
-				fp_option = {~floating_point2[31],floating_point2[30:0]};
-			end
-		end
-	end*/
-     end else begin
-  	fp_option = floating_point_out_dummy;
-     end
-
-     if (floating_point2 == Inf) begin
-	if (floating_point1 == Inf) begin
-		if ((function_mode == ADD) | (function_mode == MUL)) begin
-			fp_option = Inf;
-		end else if (function_mode == SUB) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point1 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = quietNaN;
-		end else if (function_mode == SUB) begin
-			fp_option = Inf;
-		end else if (function_mode == MUL) begin
-			fp_option = NegInf;
-		end
-	end else if (floating_point1 == quietNaN) begin
-		fp_option = quietNaN;
-     	end else if ((floating_point2 == zero) | (floating_point1 == NegZero)) begin
-		if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end else begin
-			fp_option = Inf;
-		end
-	end else begin
-		fp_option = Inf;
-	end
-     end else if (floating_point2 == NegInf) begin
-	if (floating_point1 == Inf) begin
-		if (function_mode == ADD) begin
-			fp_option = quietNaN;
-		end else if ((function_mode == SUB) | (function_mode == MUL)) begin
-			fp_option = NegInf;
-		end
-	end else if (floating_point1 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = NegInf;
-		end else if (function_mode == SUB) begin
-			fp_option = quietNaN;
-		end else if (function_mode == MUL) begin
-			fp_option = Inf;
-		end
-	end else if (floating_point1 == quietNaN) begin
-		fp_option = quietNaN;
-	end else if ((floating_point1 == zero) | (floating_point2 == NegZero)) begin
-		if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end else begin
-			fp_option = NegInf;
-		end
-	end else begin
-		fp_option = NegInf;
-	end
-     end else if ((floating_point1 == quietNaN) | (floating_point2 == quietNaN)) begin
-	fp_option = quietNaN;
-     end else if ((floating_point2 == zero) | (floating_point2== NegZero)) begin
-	if (floating_point1 == Inf) begin
-		if (function_mode == ADD) begin
-			fp_option = Inf;
-		end else if (function_mode == SUB) begin
-			fp_option = NegInf;
-		end else if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point1 == NegInf) begin
-		if (function_mode == ADD) begin
-			fp_option = NegInf;
-		end else if (function_mode == SUB) begin
-			fp_option = Inf;
-		end else if (function_mode == MUL) begin
-			fp_option = quietNaN;
-		end
-	end else if (floating_point1 == quietNaN) begin
-		fp_option = quietNaN;
-	end /*else begin
-		if (floating_point2 == zero) begin
-			if (function_mode == MUL) begin
-				fp_option = zero;
-			end else if (function_mode == ADD) begin
-				fp_option = floating_point1;
-			end else if (function_mode == SUB) begin
-				fp_option = floating_point1;
-			end
-		end else if (floating_point2 == NegZero) begin
-			if (function_mode == MUL) begin
-				fp_option = NegZero;
-			end else if (function_mode == ADD) begin
-				fp_option = floating_point1;
-			end else if (function_mode == SUB) begin
-				fp_option = floating_point1;
-			end
-		end
-	end*/
-     end else begin
-  	fp_option = floating_point_out_dummy;
-     end
-
-	if ((floating_point1 == zero) | (floating_point1 == NegZero)) begin
-		if (floating_point2 == zero) begin
-			fp_option = zero;
-		end else if (floating_point2 == Inf) begin
-			if (function_mode == ADD) begin
-				fp_option = Inf;
-			end else if (function_mode == SUB) begin
-				fp_option = NegInf;
-			end else if (function_mode == MUL) begin
-				fp_option = quietNaN;
-			end
-		end else if (floating_point2 == NegInf) begin
-			if (function_mode == ADD) begin
-				fp_option = NegInf;
-			end else if (function_mode == SUB) begin
-				fp_option = Inf;
-			end else if (function_mode == MUL) begin
-				fp_option = quietNaN;
-			end
-		end else if (floating_point2 == quietNaN) begin
-			fp_option = quietNaN;
-		end else begin
-			if (function_mode == ADD) begin
-				fp_option = floating_point2;
-			end else if (function_mode == SUB) begin
-				fp_option = neg_temp_sol_z2;
-			end else if (function_mode == MUL) begin
-				fp_option = zero;
-			end
-		end
-	end
-
-	if ((floating_point2 == zero) | (floating_point2 == NegZero)) begin
-		if ((floating_point1 == zero) | (floating_point1 == NegZero)) begin
-			fp_option = zero;
-		end else if (floating_point1 == Inf) begin
-			if (function_mode == ADD) begin
-				fp_option = Inf;
-			end else if (function_mode == SUB) begin
-				fp_option = Inf;
-			end else if (function_mode == MUL) begin
-				fp_option = quietNaN;
-			end
-		end else if (floating_point1 == NegInf) begin
-			if (function_mode == ADD) begin
-				fp_option = NegInf;
-			end else if (function_mode == SUB) begin
-				fp_option = NegInf;
-			end else if (function_mode == MUL) begin
-				fp_option = quietNaN;
-			end
-		end else if (floating_point1 == quietNaN) begin
-			fp_option = quietNaN;
-		end else begin
-			if (function_mode == ADD) begin
-				fp_option = floating_point1;
-			end else if (function_mode == SUB) begin
-				fp_option = floating_point1;
-			end else if (function_mode == MUL) begin
-				fp_option = zero;
-			end
-		end
-	end
-
-	if (fp_option[30:23] == 8'b11111111) begin
-		fp_option[23] = 8'b11111110;
-	end
+      fp_option = hold_value;
+      if (hold_value[30:23] == 8'b11111111) begin
+	if (((floating_point1 == Inf) & (floating_point2 == Inf)) | ((floating_point1 == NegInf) & (floating_point2 == NegInf))) begin
+		fp_option = hold_value;
+        end else begin
+		fp_option = {hold_value[31:23], 23'd0};
+        end
+      end
    end
-	
-assign before_floating_point_out = (fp_option == 32'b11111111011111111111111111111110) ? 32'b11111111011111111111111111111111 : fp_option;
+//determine special cases like operations between Infinity, negitive Infinity, zero, negative zero, quiet NaN, signaling NaN
+assign before_floating_point_out = fp_option;
+assign {sign, exponent, frac} = before_floating_point_out;
 endmodule

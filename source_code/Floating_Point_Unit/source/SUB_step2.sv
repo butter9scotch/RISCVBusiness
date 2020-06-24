@@ -1,6 +1,10 @@
 module SUB_step2
   (
+   input reg     shifted_check_onezero,
+   input reg     n1p2r,
    input         bothnegsub,
+   input  [31:0] fp1,
+   input  [31:0] fp2,
    input  [25:0] frac1,
    input         sign1,
    input  [25:0] frac2,
@@ -13,7 +17,11 @@ module SUB_step2
    output        sign_out,
    output [25:0] sum,
    output        carry_out,
-   output reg [7:0]  exp_max_out//
+   output reg [7:0]  exp_max_out,//
+   output reg outallone,
+   output reg outallzero,
+   output reg    [2:0]    wm,
+   output reg sum_init
    );
 
    reg [26:0] 	 frac1_signed;
@@ -50,21 +58,26 @@ module SUB_step2
 				);
    //perform subtraction
    sub_26b sub_signed_fracs(
+			     .n1p2r(n1p2r),
+			     .shifted_check_onezero(shifted_check_onezero),
+			     .fp1(fp1),
+			     .fp2(fp2),
 			     .cmp_out(cmp_out),
 	 		     .n1p2(n1p2),
 			     //.frac1({1'b0,frac1}),
 			     //.frac2({1'b0,frac2_complement}),
-			     .frac1_s({1'b0,frac1_signed[26:1]}),//26,1
-	  		     .frac1_s2(frac1_signed),
+			     .frac1_s({1'b0,frac1_signed[26:1]}),//26,1 
 			     .frac2_s(frac2_signedout),
-			     .frac1_orig({1'b0,frac1}),
-			     .frac2_origcomp(frac2_complement),
 			     .bothpossub(bothpossub),
 			     //.exp_determine(exp_determine),
 			     .frac1(frac1_signed),
 			     .frac2(frac2_signedout),
 			     .sum(sum_signed),
-			     .ovf(carry_out)
+			     .ovf(carry_out),
+			     .outallone(outallone),
+			     .outallzero(outallzero),
+		   	     .wm(wm),
+			     .sum_init(sum_init)
 			     );
 
    /*s_to_u_new change_to_unsigned_new(

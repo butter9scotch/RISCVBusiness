@@ -14,9 +14,10 @@
 //    ovf     - high if an overflow has occured 
  
 module sub_26b(
-	input      [26:0] frac1_orig,
-	input      [26:0] frac2_origcomp,
-	input 	   [26:0] frac1_s2,
+	input reg n1p2r,
+	input reg shifted_check_onezero,
+	input      [31:0] fp1,
+	input      [31:0] fp2,
 	input 	   cmp_out,
 	input      [26:0] frac1,
 	input      [26:0] frac2,
@@ -26,25 +27,33 @@ module sub_26b(
 	input reg  bothpossub,
 	//input reg exp_determine,
 	output reg [26:0] sum, 
-	output reg        ovf
+	output reg        ovf,
+	output reg        outallone,
+	output reg 	  outallzero,
+	output reg    [2:0]    wm,
+	output reg sum_init
 );
-   reg [26:0] 		  frac1_compute;
-   reg [26:0] 		  frac2_compute;
-   reg [26:0] 		  temp_sum;
-   
+   always_comb begin : check_frac1_one
+	outallone = 1'b0;
+	outallzero = 1'b0;
+	if (frac1 == 27'b111111111111111111111111111)
+		outallone = 1'b1;
+	if ((frac1 == 0) & (fp1[31] == 0) & (fp2[31] == 0)) 
+		outallzero = 1'b1;
+		  //tallzero = 1'b0;
+   end
 always_comb begin
+   wm = 0;
    if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 0))begin
    	sum = frac1 + frac2;
-   /*end else if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 1))begin
-	temp_sum = frac1_s2 + frac2;
-	sum = ~temp_sum + 1'b1;*/
-   end else if (n1p2 == 1) begin
-	sum = frac1_s + frac2_s;
+  	wm = 3'b001;
    end else begin
-   	temp_sum = frac1_s + frac2_s;
-   	sum = ~temp_sum + 1'b1;
+   	sum = frac1_s + frac2_s;
+   	//sum = ~temp_sum + 1'b1;
+        wm = 3'b010;
+	//sum 00001101010011101110001110
    end
-   
+   sum_init = sum[26];
    ovf = 0;
    if ((bothpossub == 0) & (n1p2 == 0) & (cmp_out == 0)) begin
      //if (bothpossub == 0) begin

@@ -1,21 +1,9 @@
-//By            : Joe Nasti
-//Last Updated  : 7/23/18
-//
-//Module Summary: 
-//    Third step of addition operation in three-step pipeline.
-//    Rounds result based on rounding mode (frm) and left shifts fraction if needed
-//
-//Inputs:
-//    frm              - 3 bit rounding mode
-//    exponent_max_in  - exponent of result floating point
-//    sign_in          - sign of result floating point
-//    frac_in          - fraction of result floating point
-//    carry_out        - carry out from step 2
-//Outputs:
-//    floating_point_out - final floating point
 
 module ADD_step3
   (
+   input [6:0] 	 function_mode,
+   input [31:0]  floating_point1,
+   input [31:0]  floating_point2,
    input 	 ovf_in,
    input 	 unf_in,
    input 	 dz, // divide by zero flag
@@ -26,30 +14,38 @@ module ADD_step3
    input [25:0]  frac_in,
    input 	 carry_out,
    output [31:0] add_floating_point_out,
-   output [4:0]  flags
+   output reg ovf,
+   output reg unf,
+   output reg inexact
+   //output [4:0]  flags
    );
-
-   wire        inexact;
+   localparam quietNaN = 32'b01111111110000000000000000000000;
+   localparam signalNaN = 32'b01111111101000000000000000000000;
+   localparam Inf = 32'b01111111100000000000000000000000;
+   localparam NegInf = 32'b11111111100000000000000000000000;
+   localparam zero = 32'b00000000000000000000000000000000;
+   localparam NegZero = 32'b10000000000000000000000000000000;
+   //reg        inexact;
    wire        sign;
    wire [7:0]  exponent;
    wire [22:0] frac;
    
    assign {sign, exponent, frac} = add_floating_point_out;
-   
+   reg [31:0] dummy_floating_point_out;
    reg [7:0] exp_minus_shift_amount;
    reg [25:0] shifted_frac;
    reg [7:0]  shifted_amount;
    reg [7:0]  exp_out;
-   reg        ovf;
-   reg        unf;
+   //reg        ovf;
+   //reg        unf;
    
-   // Left shifts an unsigned 26 bit value until the first '1' is the most significant bit and returns the amount shifted
+
    left_shift shift_left (
 			  .fraction(frac_in),
 			  .result(shifted_frac),
 			  .shifted_amount(shifted_amount)
 			  );
-   //// subtracts shifted amount from the exponent
+   
    subtract SUB (
 		 .exp1(exponent_max_in),
 		 .shifted_amount(shifted_amount),
@@ -58,7 +54,7 @@ module ADD_step3
 
    
    reg [24:0] round_this;
-   //determine conditions for underflow and overflow
+   
    always_comb begin
       ovf = 0;
       unf = 0;
@@ -73,9 +69,9 @@ module ADD_step3
 	 if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
       end
    end
-
+reg [31:0] fp_option;
    reg [31:0] round_out;
-   //round the results
+   
    rounder ROUND (
 		  .frm(frm),
 		  .sign(sign_in),
@@ -86,13 +82,24 @@ module ADD_step3
 		  );
    
    assign inexact                  = ovf_in | ovf | unf_in | unf | round_flag;
-   assign flags                    = {inv, dz, (ovf | ovf_in), (unf | unf_in), inexact};
-   assign add_floating_point_out[31]   = round_out[31];
-   assign add_floating_point_out[30:0] = inv    ? 31'b1111111101111111111111111111111 :
+   //assign flags                    = {inv, dz, (ovf | ovf_in), (unf | unf_in), inexact};
+   assign dummy_floating_point_out[31]   = round_out[31];
+   assign dummy_floating_point_out[30:0] = inv    ? 31'b1111111101111111111111111111111 :
 				     ovf_in ? 31'b1111111100000000000000000000000 :
 				     ovf    ? 31'b1111111100000000000000000000000 :
 				     unf_in ? 31'b0000000000000000000000000000000 :
 				     unf    ? 31'b0000000000000000000000000000000 :
 				     round_out[30:0];
-   
+
+      /*always_comb begin
+      fp_option = dummy_floating_point_out;
+        if (function_mode == 7'b0000010) begin
+          if ((exponent_max_in == 8'b11111111) & (dummy_floating_point_out[30:23] == 0)) begin
+	    if (dummy_floating_point_out[22:0] != 0) begin
+		fp_option = {sign_in, 31'b1111111100000000000000000000000};
+            end
+          end
+       end
+     end*/
+assign add_floating_point_out = dummy_floating_point_out;
 endmodule
