@@ -456,6 +456,8 @@ always_comb begin : check_shifted_frac_onezero
 		    );
 //round the results 
    ADD_step3 add_step3 (
+		    .mul_ovf(mul_ovf),
+		    .mul_carry_out(mul_carry_out),
 		    .function_mode(funct7_3[6:0]),
 		    .floating_point1(floating_point1),
 		    .floating_point2(floating_point2),

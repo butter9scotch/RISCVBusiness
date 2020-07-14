@@ -1,3 +1,4 @@
+
 `timescale 1ns/100ps
 module tb_FPU_top_level();
    reg clk = 0;
@@ -43,9 +44,7 @@ module tb_FPU_top_level();
    	 //$display($bits(val2));
          //subnormal number
 	 frm = $random() % 8;
-	 funct7 = 7'b0100100;
-         //funct7 = 7'b0100000;
-	 //funct7 = 7'b0000010;
+	 funct7 = 7'b0100000;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
 
@@ -77,7 +76,7 @@ module tb_FPU_top_level();
 	 @(negedge clk);
 	 fp_convert(.val(floating_point_out), .fp(fp_out_real));
 	 #1;
-	 assert((floating_point_out == result_binary) || (floating_point_out == result_binary + 1)) 
+	 assert((floating_point_out == result_binary) || (floating_point_out == result_binary + 1) || (floating_point_out == result_binary - 1)) 
 	   else begin
 	      j = j + 1;
 	      $error("expected = %b, calculated = %b, wrong case = %d, number = %d, fp1 is = %b, fp2 is = %b, result_real is %d", result_binary, floating_point_out, i, j, floating_point1, floating_point2, result_real);
@@ -91,15 +90,15 @@ module tb_FPU_top_level();
 	   // assert(flags[0] == 0) else $error("asdklfj;as");
 	 //end
 	 @(negedge clk);
-	 floating_point1 = 'x;
-	 floating_point2 = 'x;
-	 frm             = 'x;
-	 funct7          = 'x;
-	 result_real     = 'x;
-	 fp1_real        = 'x;
-	 fp2_real        = 'x;
-	 fp_exp          = 'x;
-	 fp_frac         = 'x;
+	 floating_point1 = '0;
+	 floating_point2 = '0;
+	 frm             = '0;
+	 funct7          = '0;
+	 result_real     = '0;
+	 fp1_real        = '0;
+	 fp2_real        = '0;
+	 fp_exp          = '0;
+	 fp_frac         = '0;
 	 @(negedge clk);
 	 
       end
@@ -179,21 +178,28 @@ module tb_FPU_top_level();
 	   fp = fp_frac * (2 ** fp_exp);
       end
    endtask // fp_convert
-   
-initial begin
-   nrst = 1;
-   @(negedge clk);
-   nrst = 0;
-   @(negedge clk);
-   nrst = 1;
-   i = 0;
 
-   /*while((i <= 62))begin
-      random_check();
-      i = i + 1;
-      //break;
-      end //*/
-   while (1) begin
+task reset_dut;
+  begin
+  nrst = 1'b0;
+
+  @(posedge clk);
+  @(posedge clk);
+
+  @(negedge clk);
+  nrst = 1'b1;
+
+  @(negedge clk);
+  @(negedge clk);
+  end
+endtask
+
+initial begin
+   reset_dut();
+   i = 0;
+random_check();
+   /*while (1) begin
+	reset_dut();
 	i = i + 1;
 	random_check();
   end //*/

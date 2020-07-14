@@ -1,6 +1,8 @@
 
 module ADD_step3
   (
+   input    reg        mul_ovf,
+   input reg         mul_carry_out,
    input [6:0] 	 function_mode,
    input [31:0]  floating_point1,
    input [31:0]  floating_point2,
@@ -17,7 +19,6 @@ module ADD_step3
    output reg ovf,
    output reg unf,
    output reg inexact
-   //output [4:0]  flags
    );
    localparam quietNaN = 32'b01111111110000000000000000000000;
    localparam signalNaN = 32'b01111111101000000000000000000000;
@@ -59,7 +60,7 @@ module ADD_step3
       ovf = 0;
       unf = 0;
       if(carry_out == 1) begin
-	 round_this = frac_in[25:1];
+	 round_this = frac_in[25:1] + 1'b1;
 	 exp_out    = exponent_max_in + 1;
 	 if((exponent_max_in == 8'b11111110) && (~unf_in)) ovf = 1;
       end
@@ -90,16 +91,14 @@ reg [31:0] fp_option;
 				     unf_in ? 31'b0000000000000000000000000000000 :
 				     unf    ? 31'b0000000000000000000000000000000 :
 				     round_out[30:0];
+ always_comb begin
+	fp_option = dummy_floating_point_out;
+	if (function_mode == 7'b0000010) begin
+	 	if ((exponent_max_in == 8'b11111111) & (mul_carry_out == 1'b1)) begin
+		fp_option = {round_out[31],31'b1111111100000000000000000000000};
+		end
+	end
+  end
 
-      /*always_comb begin
-      fp_option = dummy_floating_point_out;
-        if (function_mode == 7'b0000010) begin
-          if ((exponent_max_in == 8'b11111111) & (dummy_floating_point_out[30:23] == 0)) begin
-	    if (dummy_floating_point_out[22:0] != 0) begin
-		fp_option = {sign_in, 31'b1111111100000000000000000000000};
-            end
-          end
-       end
-     end*/
-assign add_floating_point_out = dummy_floating_point_out;
+assign add_floating_point_out = fp_option;
 endmodule

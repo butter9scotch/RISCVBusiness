@@ -11,12 +11,11 @@ include /home/ecegrid/a/ece337/Course_Prod/course_make_vars
 ##############################################################################
 # File Related Variables
 ##############################################################################
-
 # List internal component/block files here (separate the filenames with spaces)
 # (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
 # AND THE AUTOMATED GRADING SYSTEM
-COMPONENT_FILES	:= adder_8b.sv mul_26b.sv left_shift.sv subtract.sv rounder.sv rounder_sub.sv int_compare.sv right_shift.sv u_to_s.sv adder_26b.sv s_to_u.sv ADD_step1.sv ADD_step2.sv ADD_step3.sv MUL_step1.sv MUL_step2.sv SUB_step1.sv SUB_step2.sv sub_26b.sv sign_determine.sv subtracter_8b.sv c_to_cp.sv right_shift_minus.sv SUB_step3.sv s_to_u_new.sv
+COMPONENT_FILES	:= adder_8b.sv mul_26b.sv left_shift.sv subtract.sv rounder.sv rounder_sub.sv int_compare.sv right_shift.sv u_to_s.sv adder_26b.sv s_to_u.sv ADD_step1.sv ADD_step2.sv ADD_step3.sv MUL_step1.sv MUL_step2.sv SUB_step1.sv SUB_step2.sv sub_26b.sv sign_determine.sv subtracter_8b.sv c_to_cp.sv right_shift_minus.sv SUB_step3.sv int_comparesub.sv determine_frac_status.sv
 
 # Specify the name of the top level file (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
@@ -34,22 +33,6 @@ TB_HELPER_FILES	:=
 # Get the top level design and test_bench module names
 TB_MODULE		:= $(notdir $(basename $(TEST_BENCH)))
 TOP_MODULE	:= $(notdir $(basename $(TOP_LEVEL_FILE)))
-
-##############################################################################
-# Flexible Shift Register Design Related File Variables
-##############################################################################
-
-# The name of the flexible serial-to-parallel shift register design
-# (Do not include the source folder in the filename)
-STP_SR_FILE	:= flex_stp_sr.sv
-
-# The name of the flexible parallel-to-serial shift register design
-# (Do not include the source folder in the filename)
-PTS_SR_FILE	:= flex_pts_sr.sv
-
-##############################################################################
-# General Design Variables
-##############################################################################
 
 # Select the Cell Library to use with simulations
 GATE_LIB		:= $(AMI_05_LIB)
@@ -140,8 +123,8 @@ clean:
 	@rm -f analyzed/*
 	@rm -f schematic/*
 	@rm -f *.wlf *.svf transcript
-	@rm -f *.tran
-	@rm -f *.scomp *.mcomp
+	@rm -f *.*tran
+	@rm -f *.*comp
 	@rm -f do_mapping.tcl
 	@echo -e "Done\n\n"
 
@@ -151,6 +134,7 @@ veryclean:
 	@rm -f mapped/*
 	@rm -f reports/*
 	@rm -f *.log
+	@rm -f rc.*
 	@echo -e "Done\n\n"
 
 print_vars:
@@ -164,26 +148,6 @@ print_vars:
 	@echo -e "Course Library: '$(LABS_IP_LIB)'"
 	@echo -e "Source work library: '$(S_WORK_LIB)'"
 	@echo -e "Mapped work library: '$(M_WORK_LIB)'"
-
-##############################################################################
-# Custom Simulation Targets
-##############################################################################
-
-tbsim_flex_stp_sr_source: $(S_WORK_LIB) $(addprefix $(S_WORK_LIB)/, tb_flex_stp_sr $(basename $(STP_SR_FILE)) stp_sr_8_msb stp_sr_4_lsb)
-	@echo -e "Simulating Source Versions of Flexible Serial-to-Parallel Shift Register Configurations"
-	@$(SIMULATE) -i -t ps $(S_WORK_LIB).tb_flex_stp_sr
-
-tbsim_flex_stp_sr_mapped: $(M_WORK_LIB) $(addprefix $(M_WORK_LIB)/, tb_flex_stp_sr $(basename $(STP_SR_FILE)) stp_sr_8_msb stp_sr_4_lsb)
-	@echo -e "Simulating Mapped Versions of Flexible Serial-to-Parallel Shift Register Configurations"
-	@$(SIMULATE) -i -t ps $(M_WORK_LIB).tb_flex_stp_sr
-
-tbsim_flex_pts_sr_source: $(S_WORK_LIB) $(addprefix $(S_WORK_LIB)/, tb_flex_pts_sr $(basename $(PTS_SR_FILE)) pts_sr_8_msb pts_sr_4_lsb)
-	@echo -e "Simulating Source Versions of Flexible Parallel-to-Serial Shift Register Configurations"
-	@$(SIMULATE) -i -t ps $(S_WORK_LIB).tb_flex_pts_sr
-
-tbsim_flex_pts_sr_mapped: $(M_WORK_LIB) $(addprefix $(M_WORK_LIB)/, tb_flex_pts_sr $(basename $(PTS_SR_FILE)) pts_sr_8_msb pts_sr_4_lsb)
-	@echo -e "Simulating Mapped Versions of Flexible Parallel-to-Serial Shift Register Configurations"
-	@$(SIMULATE) -i -t ps $(M_WORK_LIB).tb_flex_pts_sr
 
 ##############################################################################
 # General Compilation Targets
@@ -304,8 +268,8 @@ tbsim_%_mapped: $(M_WORK_LIB)/% $(M_WORK_LIB)/tb_%
 
 # Set the default value of the clock name and clock period to an empty string so that clock timing will
 # only be activated in the SYN_CMDS definition if they were overwritten at invocation
-CLOCK_NAME 		:=
-CLOCK_PERIOD	:=
+CLOCK_NAME 		:= clk
+CLOCK_PERIOD	:= 10
 
 # Set the default value of the source files for sub modules to be an empty string so that
 # it will only be used if overwritten at invocation
@@ -398,4 +362,10 @@ syn_mapped do_mapping.tcl:
 	@echo -e '$(subst $(newline),\n,$(subst \n,\\n,${SYN_CMDS}))' > do_mapping.tcl
 	$(DC_SHELL) -x "source -echo do_mapping.tcl"
 	@echo -e "Done\n\n"
+
+
+MITROOT := /package/asicfab/MITLL_90_Dec2019/MITLL90_STDLIB_8T/2019.12.20/
+
+syn_test: 
+	@irun -gui -access +rwc +nctimescale+1ns/1ns -coverage all -covoverwrite -define MAPPED $(MITROOT)/MITLL90_STDLIB_8T.v fpu.v source/tb_FPU_top_level.sv 
 

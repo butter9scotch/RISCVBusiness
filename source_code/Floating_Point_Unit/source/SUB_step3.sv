@@ -147,9 +147,10 @@ module SUB_step3
      assign dummy_floating_point_out[31]   = round_out[31];
      assign dummy_floating_point_out[30:0] = inv    ? signalNaN :
 				     ovf_in ? 31'b1111111100000000000000000000000 :
+				     (unf & (function_mode != 7'b0100100)) ? 31'b1111111100000000000000000000000 :
 				     ovf    ? 31'b1111111100000000000000000000000 :
 				     unf_in ? 31'b0000000000000000000000000000000 :
-				     unf    ? 31'b0000000000000000000000000000000 :
+				     ((function_mode == 7'b0100100) & unf & ((round_out[30:23] == 8'b11111111) | (round_out[30:23] == 8'b11111110) | (round_out[30:23] == 8'b11111101) | (round_out[30:23] == 8'b11111100) | (round_out[30:23] == 8'b11111000) | (round_out[30:23] == 8'b11111001)))    ? 31'b0000000000000000000000000000000 :
 				     round_out[30:0];
    
    assign temp_sign = dummy_floating_point_out[31];

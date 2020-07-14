@@ -1,0 +1,9 @@
+QuestaSim-64 vlog 10.6b Compiler 2017.05 May 25 2017
+Start time: 23:37:46 on Jul 12,2020
+vlog -sv -work source_work source/left_shift.sv 
+-- Compiling module left_shift
+
+Top level modules:
+	left_shift
+End time: 23:37:46 on Jul 12,2020, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

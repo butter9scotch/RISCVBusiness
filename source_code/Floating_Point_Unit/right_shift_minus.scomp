@@ -1,0 +1,9 @@
+QuestaSim-64 vlog 10.6b Compiler 2017.05 May 25 2017
+Start time: 23:37:49 on Jul 12,2020
+vlog -sv -work source_work source/right_shift_minus.sv 
+-- Compiling module right_shift_minus
+
+Top level modules:
+	right_shift_minus
+End time: 23:37:49 on Jul 12,2020, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

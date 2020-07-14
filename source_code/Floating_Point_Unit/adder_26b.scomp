@@ -1,0 +1,9 @@
+QuestaSim-64 vlog 10.6b Compiler 2017.05 May 25 2017
+Start time: 23:37:47 on Jul 12,2020
+vlog -sv -work source_work source/adder_26b.sv 
+-- Compiling module adder_26b
+
+Top level modules:
+	adder_26b
+End time: 23:37:47 on Jul 12,2020, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

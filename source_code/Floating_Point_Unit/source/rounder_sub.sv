@@ -51,35 +51,35 @@ module rounder_sub(
    reg [3:0] mod;
    reg flag_inexact;
 always_comb begin
-	flag_inexact = 0;
-	if (buf_determine == 1) 
-		flag_inexact = 1;
+	flag_inexact = 1'b0;
+	if (buf_determine == 1'b1) 
+		flag_inexact = 1'b1;
 		
 end
    //assign diff_sign_determine = ((fp1[31] == 1) & (fp2[31] == 0)) ? 1:0;
    //assign temp_fraction = fraction;
    //assign same_sign_determine = (((fp1[31] == 0) & (fp2[31] == 0))) ? 1:0;
    always_comb begin
-      round_amount = 0;
+      round_amount = 1'b0;
       if(fraction[24:2] != '1) begin
 	 if(frm == RNE) begin
 	    if(fraction[1:0] == 2'b11)
-	      round_amount = 1;
+	      round_amount = 1'b1;
 	 end
 	 else if(frm == RZE) begin
-	    round_amount = 0;
+	    round_amount = 1'b0;
 	 end
 	 else if(frm == RDN) begin
 	 if(sign == 1 && ((fraction[0] == 1) || (fraction[1] == 1)))
-	    round_amount = 1;
+	    round_amount = 1'b1;
 	 end
 	 else if(frm == RUP) begin
 	    if(sign == 0 && ((fraction[0] == 1) || (fraction[1] == 1)))
-	      round_amount = 1;
+	      round_amount = 1'b1;
 	 end
 	 else if(frm == RMM) begin
 	    if(fraction[1] == 1)
-	      round_amount = 1;
+	      round_amount = 1'b1;
 	 end
       end // if (fraction[24:2] != '1)
    end // always_comb
@@ -89,11 +89,11 @@ end
    //assign round_out = {sign, exp_in, fraction[24:2] + round_amount};
    assign sol_frac = fraction[24:2] + round_amount;
    always_comb begin
-	temp_fraction = sol_frac;
+	temp_fraction = sol_frac[22:0];
 	temp_exp = exp_in;
         mod = 4'b0000;
 	if (carry_out == 1) begin
-		temp_fraction = sol_frac;
+		temp_fraction = sol_frac[22:0];
 		temp_exp = exp_in + 1'b1;
 		mod = 4'b0001;
 	end else if ((same_compare == 1'b1) & (shifted_amount == 8'b00000001)) begin
@@ -128,8 +128,12 @@ end
 		temp_fraction = {fraction[17:1], 6'b000000};
 		temp_exp = exp_in - shifted_amount;
 		mod = 4'b0100;
+    	end else if ((same_compare == 1'b1) & (shifted_amount == 8'b00001110)) begin
+		temp_fraction = {fraction[10:1], 13'b0000000000000};
+		temp_exp = exp_in - shifted_amount;
+		mod = 4'b0100;
     	end else if ((cmp_out == 1'b1) & (fp1[31] == 1'b1) & (fp2[31] == 1'b0) & (sum_init == 1'b1) & (frac_shifted_minus != 0)) begin
-		temp_fraction = sol_frac[24:1];
+		temp_fraction = sol_frac[23:1];
 		temp_exp = exp_in + 1'b1;
 		mod = 4'b0101;
 	end else if ((shifted_check_onezero == 1'b0)  & (fp1[31] == 1'b1) & (fp2[31] == 1'b0) & (cmp_out == 1'b1)) begin
@@ -160,6 +164,14 @@ end
 		temp_fraction = {fraction[21:1], 2'b00};
 		temp_exp = exp_in - 8'd3;
 		mod = 4'b1100;
+	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00000110)) begin
+		temp_fraction = {fraction[18:1], 5'b00000};
+		temp_exp = exp_in - 8'd6;
+		mod = 4'b1100;
+	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00000111)) begin
+		temp_fraction = {fraction[13:3], 12'b000000000000};
+		temp_exp = exp_in - 8'd3;
+		mod = 4'b1100;
 	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00000010)) begin
 		temp_fraction = fraction[22:0] - 1'b1;
 		temp_exp = exp_in - 8'd2;
@@ -174,6 +186,14 @@ end
 		mod = 4'b1111;
 	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00001000)) begin
 		temp_fraction = {fraction[16:1], 7'b0000000};
+		temp_exp = exp_in - shifted_amount;
+		mod = 4'b1111;
+	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00001011)) begin
+		temp_fraction = {fraction[13:1], 10'b0000000000};
+		temp_exp = exp_in - shifted_amount;
+		mod = 4'b1111;
+	end else if ((frac_shifted_minus != 0) & (shifted_amount == 8'b00001101)) begin
+		temp_fraction = {fraction[11:1], 12'b000000000000};
 		temp_exp = exp_in - shifted_amount;
 		mod = 4'b1111;
 	end
