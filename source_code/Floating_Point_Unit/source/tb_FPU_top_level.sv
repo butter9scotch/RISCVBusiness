@@ -9,6 +9,8 @@ module tb_FPU_top_level();
    reg [31:0] floating_point_out;
    reg [6:0]  funct7;
    reg [4:0]  flags;
+   reg start_sig;
+   reg f_ready;
    
    always begin
       clk = ~clk;
@@ -22,8 +24,10 @@ module tb_FPU_top_level();
 		      .floating_point2(floating_point2),
 		      .frm(frm),
 		      .funct7(funct7),
+		      .start_sig(start_sig),
 		      .floating_point_out(floating_point_out),
-		      .flags(flags)
+		      .flags(flags),
+		      .f_ready(f_ready)
 		      );
    
    shortreal        result_real;
@@ -39,12 +43,12 @@ module tb_FPU_top_level();
    //shortreal val2;
    task random_check;
       begin
-
          //$display($bits(val1));
    	 //$display($bits(val2));
          //subnormal number
 	 frm = $random() % 8;
 	 funct7 = 7'b0100000;
+         start_sig = 1'b1;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
 
@@ -99,6 +103,7 @@ module tb_FPU_top_level();
 	 fp2_real        = '0;
 	 fp_exp          = '0;
 	 fp_frac         = '0;
+         start_sig = 1'b0;
 	 @(negedge clk);
 	 
       end
@@ -197,12 +202,12 @@ endtask
 initial begin
    reset_dut();
    i = 0;
-random_check();
-   /*while (1) begin
+//random_check();
+   while (1) begin
 	reset_dut();
 	i = i + 1;
 	random_check();
-  end //*/
+  end //
 end
    
 endmodule // tb_FPU_top_level

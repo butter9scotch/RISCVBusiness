@@ -8,10 +8,10 @@ module FPU_all
  //input [2:0] f_start, //signal to start,where 101 signals start, and others signal show not starting
  FPU_all_if.fp fpif  //  input f_rd, f_rs1, f_rs2, frm, f_LW, f_wen, output FPU_out, f_flags, frm_out
  );
- 
+
 logic [31:0] f_rs1_data, f_rs2_data; //fp1 and fp2
 
-logic [7:0] f_funct_7;
+logic [7:0] f_funct_7; //is it necessary???
 
 FPU_top_level FPU(
 .clk(clk), 

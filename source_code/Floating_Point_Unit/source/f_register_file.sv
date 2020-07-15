@@ -46,8 +46,7 @@ module f_register_file (
       frm <= '0;
     end else if (frf_if.f_wen && frf_if.f_rd) begin //fwen write enable, rd destination register. 
       registers[frf_if.f_rd] <= frf_if.f_w_data; //put f_w_data into registers
-      frm <= frf.f_frm_in;
-    end else begin
+      frm <= frf.f_frm_in;    end else begin
       frm <= frf.f_frm_in;
     end
   end 

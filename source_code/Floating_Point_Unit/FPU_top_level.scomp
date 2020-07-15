@@ -1,9 +1,9 @@
 QuestaSim-64 vlog 10.6b Compiler 2017.05 May 25 2017
-Start time: 23:37:46 on Jul 12,2020
+Start time: 15:31:45 on Jul 14,2020
 vlog -sv -work source_work source/FPU_top_level.sv 
 -- Compiling module FPU_top_level
 
 Top level modules:
 	FPU_top_level
-End time: 23:37:46 on Jul 12,2020, Elapsed time: 0:00:00
+End time: 15:31:45 on Jul 14,2020, Elapsed time: 0:00:00
 Errors: 0, Warnings: 0
