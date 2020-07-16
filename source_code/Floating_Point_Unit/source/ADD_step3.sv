@@ -93,7 +93,7 @@ reg [31:0] fp_option;
 				     round_out[30:0];
  always_comb begin
 	fp_option = dummy_floating_point_out;
-	if (function_mode == 7'b0000010) begin
+	if (function_mode == 7'b0001000) begin
 	 	if ((exponent_max_in == 8'b11111111) & (mul_carry_out == 1'b1)) begin
 		fp_option = {round_out[31],31'b1111111100000000000000000000000};
 		end

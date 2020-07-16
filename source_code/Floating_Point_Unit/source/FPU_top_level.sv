@@ -53,9 +53,9 @@ module FPU_top_level
   assign f_ready = (cycle_count == 3'b010) ? 1'b1:1'b0;
 
    //funct7 definitions
-   localparam ADD = 7'b0100000;
-   localparam MUL = 7'b0000010;
-   localparam SUB = 7'b0100100; 
+   localparam ADD = 7'b0000000;
+   localparam MUL = 7'b0001000;
+   localparam SUB = 7'b0000100; 
    
    reg 	       sign_shifted;
    reg         sign_shifted_minus;
@@ -156,7 +156,7 @@ module FPU_top_level
 
 	always_comb begin : check_neg_size
 		bothnegsub = 0;
-		if (((floating_point1[31]==1) && (floating_point2[31]==1) && (cmp_out_det==1) && (funct7 == 7'b0100100)) | ((funct7 == 7'b0100100) & ((floating_point1[31] == 1) & (floating_point2[31] == 1) & (same_compare == 1)) 
+		if (((floating_point1[31]==1) && (floating_point2[31]==1) && (cmp_out_det==1) && (funct7 == SUB)) | ((funct7 == SUB) & ((floating_point1[31] == 1) & (floating_point2[31] == 1) & (same_compare == 1)) 
 	& (frac_same == 1))) begin
 			bothnegsub = 1;
 		end
@@ -164,21 +164,21 @@ module FPU_top_level
 
 	always_comb begin : check_pos_size
 		bothpossub = 0;
-		if ((floating_point1[31]==0) && (floating_point2[31]==0) && (cmp_out_det==1) && (funct7 == 7'b0100100)) begin
+		if ((floating_point1[31]==0) && (floating_point2[31]==0) && (cmp_out_det==1) && (funct7 == SUB)) begin
 			bothpossub = 1;
 		end
 	end
 
 always_comb begin : check_n1p2_size
 		n1p2 = 0; 
-		if (((floating_point1[31]==0) && (floating_point2[31]==1) && (cmp_out_det==1) && (funct7 == 7'b0100100))) begin
+		if (((floating_point1[31]==0) && (floating_point2[31]==1) && (cmp_out_det==1) && (funct7 == SUB))) begin
 			n1p2 = 1;
 		end
 	end
 
 always_comb begin : check_n1p2r_size
 		n1p2r = 0; 
-		if ((floating_point1[31]==1) && (floating_point2[31]==0) && (cmp_out_det==1) && (funct7 == 7'b0100100)) begin
+		if ((floating_point1[31]==1) && (floating_point2[31]==0) && (cmp_out_det==1) && (funct7 == SUB)) begin
 			n1p2r = 1;
 		end
 	end
@@ -277,14 +277,14 @@ always_comb begin : check_n1p2r_size
    end
 	always_comb begin : check_shifted_frac_allone
 		shifted_check_allone = 0;
-		if ((floating_point1[31]==1) && (floating_point2[31]== 1) && (frac_shifted_minus==0) && (funct7 == 7'b0100100)) 	begin
+		if ((floating_point1[31]==1) && (floating_point2[31]== 1) && (frac_shifted_minus==0) && (funct7 == SUB)) 	begin
 			shifted_check_allone = 1;
 		end
 	end
 
 always_comb begin : check_shifted_frac_onezero
 		shifted_check_onezero = 0;
-		if ((floating_point1[31]==1) && (floating_point2[31]== 0) && (frac_shifted_minus==0) && (funct7 == 7'b0100100)) 	begin
+		if ((floating_point1[31]==1) && (floating_point2[31]== 0) && (frac_shifted_minus==0) && (funct7 == SUB)) 	begin
 			shifted_check_onezero = 1;
 		end
 	end
@@ -504,7 +504,7 @@ always_ff @ (posedge clk, negedge nrst) begin: delay_flags
 	end
 end
 
-assign floating_point_out = (funct7 == 7'b0100100) ? negmul_floating_point_out : add_floating_point_out;
-assign flags = (funct7 == 7'b0100100) ? flag_sub : flag_add;
+assign floating_point_out = (funct7 == SUB) ? negmul_floating_point_out : add_floating_point_out;
+assign flags = (funct7 == SUB) ? flag_sub : flag_add;
 
 endmodule

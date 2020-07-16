@@ -23,8 +23,6 @@ interface FPU_if(input logic clk);
   input f_rd, f_rs1, f_rs2, frm, f_LW, f_wen, 
   output FPU_out, f_flags, frm_out
   );
-
-
   
 endinterface //FPU_if
 

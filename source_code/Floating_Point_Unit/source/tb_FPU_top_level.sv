@@ -1,4 +1,3 @@
-
 `timescale 1ns/100ps
 module tb_FPU_top_level();
    reg clk = 0;
@@ -47,7 +46,7 @@ module tb_FPU_top_level();
    	 //$display($bits(val2));
          //subnormal number
 	 frm = $random() % 8;
-	 funct7 = 7'b0100100;
+	 funct7 = 7'b0000100;
          start_sig = 1'b1;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
@@ -63,11 +62,11 @@ module tb_FPU_top_level();
 
 	 //performing real number arithemetic
 	 //
-	 if(funct7 == 7'b0100000) begin
+	 if(funct7 == 7'b0000000) begin
 	    result_real = fp1_real + fp2_real; //addition
-	 end else if (funct7 == 7'b0000010) begin
+	 end else if (funct7 == 7'b0001000) begin
 	    result_real = fp1_real * fp2_real; //multiplication
-         end else if (funct7 == 7'b0100100) begin
+         end else if (funct7 == 7'b0000100) begin
 	    result_real = fp1_real - fp2_real; //subtraction
 	 end
 	 
@@ -200,24 +199,6 @@ task reset_dut;
 endtask
 
 initial begin
-<<<<<<< HEAD
-   nrst = 1;
-   @(negedge clk);
-   nrst = 0;
-   @(negedge clk);
-   nrst = 1;
-   
-   //while(1) begin
-   //  random_check();
-   //end      
-   floating_point1 = 32'h12345678;
-   floating_point2 = 32'h12345678;
-   funct7 = 7'b0100000;
-   frm = '0;
-
-   @(negedge clk);
-
-=======
    reset_dut();
    i = 0;
 //random_check();
@@ -226,7 +207,6 @@ initial begin
 	i = i + 1;
 	random_check();
   end //
->>>>>>> FPU_branch_liu
 end
    
 endmodule // tb_FPU_top_level

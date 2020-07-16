@@ -30,7 +30,7 @@ always_comb begin
 		1'b0: cmp_out = 1'b0;
 		1'b1: begin
 		      cmp_out = 1'b1; 
-		      if (funct7 == 7'b0100100) begin
+		      if (funct7 == 7'b0000100) begin
 		      	diff = ~diff;
 		      end else begin
 			diff = -diff;
