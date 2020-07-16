@@ -11,6 +11,7 @@
 //    cmp_out - exp1 < exp2 -> 1, exp1 >= exp2 -> 0
 
 module int_compare(
+        input  [6:0]  funct7,
 	input      [7:0] exp1,
 	input      [7:0] exp2,
 	output     [7:0] u_diff,
@@ -29,7 +30,11 @@ always_comb begin
 		1'b0: cmp_out = 1'b0;
 		1'b1: begin
 		      cmp_out = 1'b1; 
-		      diff = -diff;
+		      if (funct7 == 7'b0100100) begin
+		      	diff = ~diff;
+		      end else begin
+			diff = -diff;
+		      end
 		      end
 	endcase
 end 
