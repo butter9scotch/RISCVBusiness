@@ -14,9 +14,11 @@
 //    floating_point1/2  - floating points to be operated on
 //    frm                - rounding mode
 //    funct7             - 7 bit operation code
+//    start_sig		 - signal indicates initiation of calculation
 //Outputs:
 //    floating_point_out - result of operation 
 //    flags              - 5 error flags (overflow,  underflow, divide by zero, inexact result, invalid operation)
+//    f_ready		 - asserts at the second rising edge of the clock after start_sig is asserted. indicates floating_point_out is ready
 
 module FPU_top_level
 (
