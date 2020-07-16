@@ -15,17 +15,12 @@ include /home/ecegrid/a/ece337/Course_Prod/course_make_vars
 # (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
 # AND THE AUTOMATED GRADING SYSTEM
-<<<<<<< HEAD
-COMPONENT_FILES	:= include/f_register_file_if.vh
- 
-=======
 COMPONENT_FILES	:= adder_8b.sv mul_26b.sv left_shift.sv subtract.sv rounder.sv rounder_sub.sv int_compare.sv right_shift.sv u_to_s.sv adder_26b.sv s_to_u.sv ADD_step1.sv ADD_step2.sv ADD_step3.sv MUL_step1.sv MUL_step2.sv SUB_step1.sv SUB_step2.sv sub_26b.sv sign_determine.sv subtracter_8b.sv c_to_cp.sv right_shift_minus.sv SUB_step3.sv int_comparesub.sv determine_frac_status.sv
 
->>>>>>> FPU_branch_liu
 # Specify the name of the top level file (do not include the source folder in the name)
 # NOTE: YOU WILL NEED TO SET THIS VARIABLE'S VALUE WHEN WORKING WITH HEIRARCHICAL DESIGNS
 # AND THE AUTOMATED GRADING SYSTEM
-TOP_LEVEL_FILE	:= f_register_file.sv
+TOP_LEVEL_FILE	:= FPU_top_level.sv
 
 # Specify the filepath of the test bench you want to use (ie. tb_top_level.sv)
 # (do not include the source folder in the name)
