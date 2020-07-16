@@ -1,9 +1,0 @@
-QuestaSim-64 vlog 10.6b Compiler 2017.05 May 25 2017
-Start time: 23:37:49 on Jul 12,2020
-vlog -sv -work source_work source/SUB_step3.sv 
--- Compiling module SUB_step3
-
-Top level modules:
-	SUB_step3
-End time: 23:37:49 on Jul 12,2020, Elapsed time: 0:00:00
-Errors: 0, Warnings: 0
