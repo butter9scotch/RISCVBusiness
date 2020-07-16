@@ -47,7 +47,7 @@ module tb_FPU_top_level();
    	 //$display($bits(val2));
          //subnormal number
 	 frm = $random() % 8;
-	 funct7 = 7'b0100000;
+	 funct7 = 7'b0100100;
          start_sig = 1'b1;
 	 floating_point1 = $random();
 	 floating_point2 = $random();

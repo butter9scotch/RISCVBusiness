@@ -13,6 +13,8 @@ logic [31:0] f_rs1_data, f_rs2_data; //fp1 and fp2
 
 logic [7:0] f_funct_7; //is it necessary???
 
+//i2f converter necessary or not
+
 FPU_top_level FPU(
 .clk(clk), 
 .nrst(nrst),
@@ -36,7 +38,7 @@ f_register_file(
 .f_rs2(fpif.f_rs2),
 .f_rd(fpif.f_rd),
 .f_wen(fpif.f_wen),
-.f_NV(fpif.flags[4]),
+.f_NV(fpif.flags[4]), //f_Register_file_if.vh
 .f_DZ(fpif.flags[3]),  
 .f_OF(fpif.flags[2]),
 .f_UF(fpif.flags[1]),

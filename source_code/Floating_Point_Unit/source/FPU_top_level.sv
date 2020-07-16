@@ -31,24 +31,24 @@ module FPU_top_level
  output [4:0]  flags,
  output f_ready
  );
-   reg [2:0] dummy_start;
+   reg [2:0]   cycle_count;
    reg [2:0]   frm2;
    reg [2:0]   frm3;
    reg [6:0]   funct7_2;
    reg [6:0]   funct7_3;
 
    always_ff @ (posedge clk, negedge nrst) begin: determine_num_of_edges
-	dummy_start <= 3'b000;
+	cycle_count <= 3'b000;
 	if ((nrst == 0) | (start_sig == 0)) begin
-		dummy_start <= 3'b000;
+		cycle_count <= 3'b000;
 	end else if ((nrst == 1) & (start_sig == 1)) begin
-	   if (dummy_start != 3'b011) begin
-		dummy_start <= dummy_start + 1'b1;
+	   if (cycle_count != 3'b010) begin
+		cycle_count <= cycle_count + 1'b1;
 	   end
 	end
    end
 
-  assign f_ready = (dummy_start == 3'b011) ? 1'b1:1'b0;
+  assign f_ready = (cycle_count == 3'b010) ? 1'b1:1'b0;
 
    //funct7 definitions
    localparam ADD = 7'b0100000;
