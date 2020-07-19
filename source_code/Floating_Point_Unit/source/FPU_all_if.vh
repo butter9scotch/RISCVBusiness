@@ -9,7 +9,7 @@ logic [2:0] frm, frm_out;
 logic [4:0] f_flags;
 
 modport fp(
-  input f_rd, f_rs1, f_rs2, frm, f_LW, f_wen, 
+  input f_rd, f_rs1, f_rs2, frm, f_LW, f_wen, f_SW,
   output FPU_out, f_flags, frm_out
 );
 

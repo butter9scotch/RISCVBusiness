@@ -5,11 +5,18 @@ module FPU_all
 (
  input 	       clk,
  input 	       nrst,
- FPU_all_if.fp fpif 
+ FPU_all_if.fp fpif,
+ //f_register_file_if.rf frf_if
  );
 logic [31:0] f_rs1_data, f_rs2_data;
 
 logic [7:0] f_funct_7;
+
+
+//fpu load. 2 to 1 multiplexer choose between dload_ext[31:0] and FPU_out[31:0] from fpu
+logic [31:0] f_w_data;
+assign f_w_data = fpif.f_LW ? fpif.FPU_out : dload_ext; //dload_ext is a 32 bit? value from memory. Need to add to FPU_all_if.vh
+
 
 FPU_top_level FPU(
 .clk(clk), 
@@ -25,7 +32,7 @@ FPU_top_level FPU(
 f_register_file(
 .clk(clk),
 .nrst(nrst),
-.f_w_data(fpif.FPU_out),		//TODO
+.f_w_data(f_w_data),
 .f_rs1(fpif.f_rs1), 
 .f_rs2(fpif.f_rs2),
 .f_rd(fpif.f_rd),
