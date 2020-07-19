@@ -41,7 +41,7 @@ module f_register_file (
     if (~nRST) begin
       registers <= '0;
       frm <= '0;
-    end else if (frf_if.f_wen && frf_if.f_rd) begin
+    end else if (frf_if.f_wen && frf_if.f_rd) begin // TODO: f_wen need a logic
       registers[frf_if.f_rd] <= frf_if.f_w_data;
       frm <= frf.f_frm_in;
     end else begin
@@ -52,8 +52,8 @@ module f_register_file (
   assign frf_if.f_rs1_data = registers[frf_if.f_rs1];
   assign frf_if.f_rs2_data = registers[frf_if.f_rs2];
 
-  assign frf.f_frm_out = frm;
-  assign frf.f_flags = {frf.f_NV, frf.f_DZ, frf.f_OF, frf.f_UF, frf.f_NX};
+  assign frf.f_frm_out = frm; //TODO: redundancy 
+  assign frf.f_flags = {frf.f_NV, frf.f_DZ, frf.f_OF, frf.f_UF, frf.f_NX}; //TODO: redundancy 
 
 
 endmodule
