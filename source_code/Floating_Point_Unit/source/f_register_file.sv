@@ -47,8 +47,8 @@ module f_register_file (
     end else if (frf_if.f_wen && frf_if.f_rd && f_ready && !f_SW) begin //interface need to add input f_ready signal from fpu
       registers[frf_if.f_rd] <= frf_if.f_w_data;
       frm <= frf.f_frm_in;
-    end else if (frf_if.wen && f_SW) begin
-      registers[frf_if.f_rs2] <= registers[frf_if.f_rs1 + imm]; //imm is a 12 bit offset from ALU
+    end else if (f_SW) begin
+      registers[frf_if.f_rs2] <= registers[frf_if.f_rs1];
     end else begin <= frf.f_frm_in;
     end
   end 
