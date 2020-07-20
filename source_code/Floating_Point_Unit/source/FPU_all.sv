@@ -103,7 +103,7 @@ f_register_file(
 .f_NX(frf_rf.flags[0]),
 .f_frm_in(frf_rf.f_frm_in),
 .f_ready(frf_rf.f_ready), //ready signal
-.f_SW(frf_fp.f_SW) //sw signal
+.f_SW(fpa_if.f_SW) //sw signal
 .f_frm_out(frf_rf.f_frm_out),
 .f_rs1_data(frf_rf.f_rs1_data),
 .f_rs2_data(frf_rf.f_rs2_data),
