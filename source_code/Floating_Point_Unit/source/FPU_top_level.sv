@@ -27,35 +27,36 @@ module FPU_top_level
  input  [31:0] floating_point1,
  input  [31:0] floating_point2,
  input  [2:0]  frm,
- input  [6:0]  funct7,
- input  start_sig,
+ input  [6:0]  funct7, //defult to values not add,mul,sub
+ //input  start_sig,
  output [31:0] floating_point_out,
- output [4:0]  flags,
- output f_ready
+ output [4:0]  flags
+ //output f_ready
  );
-   reg [2:0]   cycle_count;
+   //reg [2:0]   cycle_count;
    reg [2:0]   frm2;
    reg [2:0]   frm3;
    reg [6:0]   funct7_2;
    reg [6:0]   funct7_3;
 
-   always_ff @ (posedge clk, negedge nrst) begin: determine_num_of_edges
+   //funct7 definitions
+   localparam ADD = 7'b0000000;
+   localparam MUL = 7'b0001000;
+   localparam SUB = 7'b0000100; 
+
+   /*always_ff @ (posedge clk, negedge nrst) begin: determine_num_of_edges
 	cycle_count <= 3'b000;
-	if ((nrst == 0) | (start_sig == 0)) begin
+	if ((nrst == 0) | (funct7 != ADD) | (funct7 != MUL) | (funct7 != SUB)) begin
 		cycle_count <= 3'b000;
-	end else if ((nrst == 1) & (start_sig == 1)) begin
+	end else if ((nrst == 1) & ((funct7 == ADD) | (funct7 == MUL) | (funct7 == SUB))) begin
 	   if (cycle_count != 3'b010) begin
 		cycle_count <= cycle_count + 1'b1;
 	   end
 	end
    end
 
-  assign f_ready = (cycle_count == 3'b010) ? 1'b1:1'b0;
+  assign f_ready = (cycle_count == 3'b010) ? 1'b1:1'b0;*/
 
-   //funct7 definitions
-   localparam ADD = 7'b0000000;
-   localparam MUL = 7'b0001000;
-   localparam SUB = 7'b0000100; 
    
    reg 	       sign_shifted;
    reg         sign_shifted_minus;

@@ -21,13 +21,17 @@
 *   Date Created: 02/24/2020
 *   Description:  floating point register file for the FPU; based on integer reg file
 */
-
+//Modified by Xinlue Liu, Zhengsen Fu
+//Last Updated  : 7/19/20
 
 //`include "f_register_file_if.vh"
-
+`include "FPU_if.svh"
+`include "register_FPU_if.svh"
 module f_register_file (
   input CLK, nRST,
-  f_register_file_if.rf frf_if
+  FPU_if.fp fpa_if,
+  register_FPU_if.fp frf_fp
+  register_FPU_if.rf frf_rf
 );
 
 //  import rv32i_types_pkg::*;
@@ -38,28 +42,29 @@ module f_register_file (
   parameter NUM_REGS = 32;
 
   logic [31:0] [NUM_REGS-1:0] registers;
-  logic [2:0] frm;
+  //logic [2:0] frm;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       registers <= '0;
-      frm <= '0;
-    end else if (frf_if.f_wen && frf_if.f_rd && f_ready && !f_SW) begin //interface need to add input f_ready signal from fpu
-      registers[frf_if.f_rd] <= frf_if.f_w_data;
-      frm <= frf.f_frm_in;
-    end else if (f_SW) begin
-      registers[frf_if.f_rs2] <= registers[frf_if.f_rs1];
-    end else begin <= frf.f_frm_in;
+      frf_fp.frm <= '0;
+    end else if (frf_rf.f_wen && frf_rf.f_rd && frf_rf.f_ready && !fpa_if.f_SW) begin 
+      registers[frf_rf.f_rd] <= frf_rf.f_w_data;
+      frf_fp.frm <= frf_rf.f_frm_in;
+     end else begin
+      frf_fp.frm <= frf_rf.f_frm_in;
+    end
     end
   end 
 
-  assign frf_if.f_rs1_data = registers[frf_if.f_rs1];
-  assign frf_if.f_rs2_data = registers[frf_if.f_rs2];
+  assign frf_rf.f_rs1_data = registers[frf_rf.f_rs1];
+  assign frf_rf.f_rs2_data = registers[frf_rf.f_rs2];
 
-  assign frf_if.FPU_all_out = registers[frf_if.f_rs2]; //interface need to add input FPU_all_out as the output data to be stored in memory, selected by f_sw
+  assign frf_rf.f_frm_out = frf_fp.frm;
+  assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
 
-  assign frf.f_frm_out = frm;
-  assign frf.f_flags = {frf.f_NV, frf.f_DZ, frf.f_OF, frf.f_UF, frf.f_NX};
+
+  assign fpa_if.FPU_all_out = fpa_if.f_SW ? registers[frf_rf.f_rs2] : 0; 
 
 
 endmodule
