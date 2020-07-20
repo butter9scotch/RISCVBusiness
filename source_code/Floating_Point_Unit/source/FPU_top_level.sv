@@ -1,6 +1,6 @@
 //By            : Joe Nasti
-//Edited by 	: Xinlue Liu
-//Last Updated  : 6/1/2020
+//Edited by 		: Xinlue Liu, Zhengsen Fu
+//Last Updated  : 7/15/2020
 //
 //Module Summary:
 //    Three-stage floating point unit supporting operations:
