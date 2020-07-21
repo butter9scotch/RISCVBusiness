@@ -5,10 +5,9 @@ import uvm_pkg::*;
 
 class FPU_comparator extends uvm_scoreboard;
   `uvm_component_utils(FPU_comparator)
-  uvm_analysis_export #(FPU_transaction) expected_export; // receive result from predictor
-  uvm_analysis_export #(FPU_transaction) actual_export; //receive result from DUT
-  uvm_tlm_analysis_fifo #(FPU_transaction) expected_fifo;
+  uvm_analysis_export #(FPU_response) actual_export; //receive result from DUT
   uvm_tlm_analysis_fifo #(FPU_transaction) actual_fifo;
+  registerFile sim_rf;
 
   int m_matches, m_mismatches;
   function new( string name , uvm_component parent) ;
@@ -30,13 +29,14 @@ class FPU_comparator extends uvm_scoreboard;
   endfunction
 
   task run_phase(uvm_phase phase);
-    FPU_transaction expected_tx; //transaction from predictor
-    FPU_transaction actual_tx;  //transction from DUT
+    FPU_response resp;
+    logic [31:0] expected_out;
     forever begin
-      expected_fifo.get(expected_tx);
-      actual_fifo.get(actual_tx);
-      uvm_report_info("FPU Comparator", $psprintf("\nexpected:\nfp1 %h\nfp2 %h\nfunct7 %b\nfrm %b\nfp_out %h\nflag: %h\n~~~~~~~~~~~~~~~~~~\nactual:\nfp_out %h\nflag: %h\n", expected_tx.fp1, expected_tx.fp2, expected_tx.funct7, expected_tx.frm, expected_tx.fp_out, expected_tx.flags, actual_tx.fp_out, actual_tx.flags));
-      if((actual_tx.fp_out == expected_tx.fp_out) || (actual_tx.fp_out == expected_tx.fp_out + 1)) begin
+      actual_fifo.get(resp);
+      expected_out = sim_rf.read(resp.f_rs2);
+
+      uvm_report_info("FPU Comparator", $psprintf("\n%d simulated register: %h\nactual register: %h\n", resp.f_rs2, expected_out, resp.FPU_all_out));
+      if((resp.FPU_all_out == expected_out) || (resp.FPU_all_out == expected_out + 1)) begin
         m_matches++;
         uvm_report_info("FPU Comparator", "Data Match");
       end else begin

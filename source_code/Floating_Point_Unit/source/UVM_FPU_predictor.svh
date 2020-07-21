@@ -6,52 +6,46 @@ import uvm_pkg::*;
 
 class FPU_predictor extends uvm_subscriber #(FPU_transaction);
   `uvm_component_utils(FPU_predictor) 
-
-  uvm_analysis_port #(FPU_transaction) ap_pred;
+ 
+  registerFile sim_rf;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction: new
 
-  function void build_phase(uvm_phase phase);
-    ap_pred = new("ap_pred", this);
-  endfunction
-
-  function void write(FPU_transaction t);
+  function void write(FPU_transaction tx);
     localparam ADD = 7'b0100000;
     localparam MUL = 7'b0000010;
     localparam SUB = 7'b0100100;
-    FPU_transaction output_tx; //output transaction to be written to analysis port
     real real_val1; //first real operand
     real real_val2; //second real operand
     real real_result; //result of the operation
     logic [31:0] fp_result;
-    output_tx = FPU_transaction::type_id::create("output_tx", this);
-    // TODO:flags and output transaction
-    if(t.funct7 == ADD) begin
-      real_val1 = fp_to_real(t.fp1);
-      real_val2 = fp_to_real(t.fp2);
+    logic [31:0] fp1;
+    logic [31:0] fp2;
+
+    fp1 = sim_rf.read(tx.f_rs1);
+    fp2 = sim_rf.read(tx.f_rs2);
+
+    if(tx.funct7 == ADD) begin
+      real_val1 = fp_to_real(fp1);
+      real_val2 = fp_to_real(fp2);
       real_result = real_val1 + real_val2;
       fp_result = real_to_fp(real_result);
-    end else if (t.funct7 == MUL) begin
-      real_val1 = fp_to_real(t.fp1);
-      real_val2 = fp_to_real(t.fp2);
+      sim_rf.write(tx.f_rd, fp_result);
+    end else if (tx.funct7 == MUL) begin
+      real_val1 = fp_to_real(fp1);
+      real_val2 = fp_to_real(fp2);
       real_result = real_val1 * real_val2;
       fp_result = real_to_fp(real_result);
-    end else if (t.funct7 == SUB) begin
-      real_val1 = fp_to_real(t.fp1);
-      real_val2 = fp_to_real(t.fp2);
+      sim_rf.write(tx.f_rd, fp_result);
+    end else if (tx.funct7 == SUB) begin
+      real_val1 = fp_to_real(fp1);
+      real_val2 = fp_to_real(fp2);
       real_result = real_val1 - real_val2;
       fp_result = real_to_fp(real_result);
+      sim_rf.write(tx.f_rd, fp_result);
     end
-    // assigning all the values to output transaction
-    output_tx.fp1 = t.fp1;
-    output_tx.fp2 = t.fp2;
-    output_tx.frm = t.frm;
-    output_tx.funct7 = t.funct7;
-    output_tx.fp_out = fp_result;
-    // output_tx.flags = 
-    ap_pred.write(output_tx);
   endfunction: write
 
   // conversion function copied directly from the previous test bench
@@ -132,3 +126,20 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
 
 endclass: FPU_predictor
 
+
+class registerFile;
+  parameter NUM_REGS = 32;
+  logic [31:0] [NUM_REGS-1:0] registers;
+  function new();
+    
+  endfunction //new()
+
+  function write(logic[4:0]rd, logic[31:0] val);
+    registers[rd] = val;
+  endfunction
+
+  function logic[31:0] read(logic[4:0]rd);
+    return registers[rd]
+  endfunction
+
+endclass //registerFile

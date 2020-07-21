@@ -12,32 +12,46 @@ class FPU_sequence extends uvm_sequence #(FPU_transaction);
   task body();
     FPU_transaction req_item;
     req_item = FPU_transaction::type_id::create("req_item");
+    //load to register 0 and read
     start_item(req_item);
-    req_item.fp1 = '0;
-    req_item.fp2 = '0;
-    req_item.frm = '0;
-    req_item.funct7 = 7'b0100000;
-    req_item.fp_out = '0;
-    req_item.flags = '0;
+    req_item.f_LW = 1;
+    req_item.f_SW = 0;
+    req_item.f_rd = '0;
+    req_item.f_rs1 = '0;
+    req_item.f_rs2 = '0;
+    req_item.frm_in = '0;
+    req_item.f_funct_7 = '0;
+    req_item.dload_ext = 32'habcd;
     finish_item(req_item);
 
     start_item(req_item);
-    req_item.fp1 = 32'b11000010101010000011011111001111;
-    req_item.fp2 = 32'b00000000000000000000000000000000;
-    req_item.frm = '1;
-    req_item.funct7 = 7'b0100000;
-    req_item.fp_out = '1;
-    req_item.flags = '1;
+    req_item.f_LW = 0;
+    req_item.f_SW = 1;
+    req_item.f_rd = '0;
+    req_item.f_rs1 = '0;
+    req_item.f_rs2 = '0;
+    req_item.frm_in = '0;
+    req_item.f_funct_7 = '0;
+    req_item.dload_ext = 32'habcd;
     finish_item(req_item);
 
-    repeat(30) begin
-      start_item(req_item);
-      if(!req_item.randomize()) begin
-        `uvm_fatal("FPU_seq", "not able to randomize")
-      end
-      // req_item.randomize();
-      finish_item(req_item);
-    end
+    // start_item(req_item);
+    // req_item.fp1 = 32'b11000010101010000011011111001111;
+    // req_item.fp2 = 32'b00000000000000000000000000000000;
+    // req_item.frm = '1;
+    // req_item.funct7 = 7'b0100000;
+    // req_item.fp_out = '1;
+    // req_item.flags = '1;
+    // finish_item(req_item);
+
+    // repeat(30) begin
+    //   start_item(req_item);
+    //   if(!req_item.randomize()) begin
+    //     `uvm_fatal("FPU_seq", "not able to randomize")
+    //   end
+    //   // req_item.randomize();
+    //   finish_item(req_item);
+    // end
 
   endtask: body
 endclass //FPU_sequence

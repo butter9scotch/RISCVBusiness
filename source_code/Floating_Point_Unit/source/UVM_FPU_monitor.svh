@@ -32,6 +32,7 @@ class FPU_monitor extends uvm_monitor;
     super.run_phase(phase);
     forever begin
       FPU_transaction tx;
+      FPU_response resp;
       @(posedge vif.clk);
       tx = FPU_transaction::type_id::create("tx");
       tx.f_LW = vif.f_LW;
@@ -48,12 +49,13 @@ class FPU_monitor extends uvm_monitor;
         FPU_ap.write(tx);
         @(posedge vif.clk);
         @(posedge vif.clk);
-        tx.fp_out = vif.fp_out;
-        tx.flags = vif.flags;
-        FPU_result_ap.write(tx);
+        if(tx.f_SW) begin
+          resp = FPU_response::type_id::create("resp");
+          resp.FPU_all_out = vif.FPU_all_out;
+          resp.f_rs2 = vif.f_rs2;
+          FPU_result_ap.write(resp);
+        end
         prev_tx.copy(tx);
-        // uvm_report_info("FPU_MONITOR", $psprintf("\nfp1 %h\nfp2 %h\nfunct7 %b\nfrm %b\n", tx.fp1, tx.fp2, tx.funct7, tx.frm));
-        if(tx.f_SW)
       end
     end
   endtask: run_phase
