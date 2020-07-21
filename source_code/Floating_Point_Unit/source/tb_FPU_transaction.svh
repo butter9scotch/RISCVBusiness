@@ -20,7 +20,6 @@ class FPU_transaction extends uvm_sequence_item;
   `uvm_object_utils_begin(FPU_transaction)
     `uvm_field_int(f_LW, UVM_DEFAULT)
     `uvm_field_int(f_SW, UVM_DEFAULT)
-    `uvm_field_int(f_wen, UVM_DEFAULT)
     `uvm_field_int(f_rs1, UVM_DEFAULT)
     `uvm_field_int(f_rs2, UVM_DEFAULT)
     `uvm_field_int(f_rd, UVM_DEFAULT)
@@ -34,7 +33,7 @@ class FPU_transaction extends uvm_sequence_item;
   localparam SUB = 7'b0100100;
 
   constraint LW_SW {!f_LW && f_SW;}
-  constraint calculation_method {f_funct_7 == ADD || funct7 == MUL || funct7 == SUB;}
+  constraint calculation_method {f_funct_7 == ADD || f_funct_7 == MUL || f_funct_7 == SUB;}
   constraint operand {dload_ext[30:23] != 8'b11111111;}
   constraint destination {f_rd != f_rs1; f_rd != f_rs2;}
 

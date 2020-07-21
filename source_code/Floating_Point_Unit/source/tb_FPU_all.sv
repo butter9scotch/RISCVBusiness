@@ -31,7 +31,7 @@
 `include "right_shift.sv"
 `include "ADD_step1.sv"
 // TODO: finishe the inclusion
-`include "UVM_FPU_test.svh"
+`include "tb_FPU_test.svh"
 
 module tb_FPU_all ();
   import uvm_pkg::*;

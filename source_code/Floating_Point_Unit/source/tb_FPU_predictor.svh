@@ -2,7 +2,7 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 `include "FPU_if.svh"
-`include "FPU_transaction.svh"
+`include "tb_FPU_transaction.svh"
 
 class FPU_predictor extends uvm_subscriber #(FPU_transaction);
   `uvm_component_utils(FPU_predictor) 

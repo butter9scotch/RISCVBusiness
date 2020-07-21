@@ -1,10 +1,10 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "UVM_FPU_agent.svh"
+`include "tb_FPU_agent.svh"
 `include "FPU_if.svh"
-`include "UVM_FPU_comparator.svh"
-`include "UVM_FPU_predictor.svh"
-`include "UVM_FPU_transaction.svh"
+`include "tb_FPU_comparator.svh"
+`include "tb_FPU_predictor.svh"
+`include "tb_FPU_transaction.svh"
 
 class FPU_env extends uvm_env;
   `uvm_component_utils(FPU_env)

@@ -1,7 +1,7 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-`include "FPU_transaction.svh"
+`include "tb_FPU_transaction.svh"
 
 class FPU_sequence extends uvm_sequence #(FPU_transaction);
   `uvm_object_utils(FPU_sequence)
