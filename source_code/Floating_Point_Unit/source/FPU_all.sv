@@ -1,7 +1,7 @@
 
 //created by Sean Hsu
 //Modified by Xinlue Liu, Zhengsen Fu
-//Last Updated  : 7/19/20
+//Last Updated  : 7/21/20
 
 `include "FPU_if.svh"
 `include "register_FPU_if.svh"

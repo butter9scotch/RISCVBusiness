@@ -1,6 +1,6 @@
 //By            : Zhengsen Fu, Xinlue Liu
 //Description   : Interface connect top-level to FPU
-//Last Updated  : 7/14/20
+//Last Updated  : 7/21/20
 
 `ifndef FPU_IF_SVH
 `define FPU_IF_SVH
@@ -8,7 +8,7 @@ interface FPU_if(input logic n_rst, clk);
   //signals to and out of FPU and FPU register file
   logic f_LW; //load. Load from memory to register
   logic f_SW; //save. Save from rs2 to memory 
-  logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
+  //logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
 
   logic [4:0] f_rs1; //register selection 1. Select operand 1 from a register
   logic [4:0] f_rs2; //register selection 2. Select operand 2 from a register
@@ -25,7 +25,7 @@ interface FPU_if(input logic n_rst, clk);
   logic f_ready; //asserted when calculation finished by FPU
 
   modport fp ( //to FPU_all
-  input f_rd, f_rs1, f_rs2, frm, f_LW, f_SW, f_wen, f_funct_7, dload_ext,
+  input f_rd, f_rs1, f_rs2, frm, f_LW, f_SW, f_funct_7, dload_ext,
   output FPU_all_out, f_flags, f_frm_out, f_ready
   );
   

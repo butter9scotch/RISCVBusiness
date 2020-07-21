@@ -1,5 +1,4 @@
-/*
-*   Copyright 2016 Purdue University
+/*   Copyright 2016 Purdue University
 *   
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
@@ -22,10 +21,10 @@
 *   Description:  floating point register file for the FPU; based on integer reg file
 */
 //Modified by Xinlue Liu, Zhengsen Fu
-//Last Updated  : 7/19/20
+//Last Updated  : 7/21/20
 
 //`include "f_register_file_if.vh"
-`include "FPU_if.svh"
+//`include "FPU_if.svh"
 `include "register_FPU_if.svh"
 module f_register_file (
   // input CLK, nRST,
@@ -42,20 +41,33 @@ module f_register_file (
   parameter NUM_REGS = 32;
 
   logic [31:0] [NUM_REGS-1:0] registers;
+  logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
   //logic [2:0] frm;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       registers <= '0;
       frf_rf.frm <= '0;
-    end else if (frf_rf.f_wen && frf_rf.f_rd && frf_rf.f_ready && !fpa_if.f_SW) begin 
-      registers[frf_rf.f_rd] <= frf_rf.f_w_data;
+    end else if (f_wen && (!frf_rf.f_SW)) begin 
+      registers[frf_rf.f_rd] <= frf_rf.f_w_data; //f_w_data: FPU_out or dload_ext
       frf_rf.frm <= frf_rf.f_frm_in;
-     end else begin
+    end else begin
       frf_rf.frm <= frf_rf.f_frm_in;
     end
     end
   end 
+
+  always_comb begin: f_wen_logic
+	f_wen = 1'b0; //f_wen default to be 0.
+	if (!f_LW) // if f_lw is deasserted(choosing dload_ext)
+		f_wen = 1'b1; 
+	else begin //if f_lw is asserteds(choosing FPU_out)
+		if (!f_ready) //if not f_ready,
+			f_wen = 1'b0;
+		else	      //if f_ready,
+			f_wen = 1'b1;
+	end
+  end
 
   assign frf_rf.f_rs1_data = registers[frf_rf.f_rs1];
   assign frf_rf.f_rs2_data = registers[frf_rf.f_rs2];
