@@ -31,6 +31,7 @@
 `include "right_shift.sv"
 `include "ADD_step1.sv"
 // TODO: finishe the inclusion
+`include "UVM_FPU_test.svh"
 
 module tb_FPU_all ();
   import uvm_pkg::*;
@@ -50,9 +51,14 @@ module tb_FPU_all ();
 
   FPU_if FPUif(n_rst, clk);
 
-  register_FPU_if internal_if();
+  FPU_all DUT(FPUif.fp);
 
-  
+
+  initial begin
+    uvm_config_db#(virtual FPU_if)::set( null, "", "vif", FPUif);
+
+    run_test("FPU_test");
+  end
 
 
 

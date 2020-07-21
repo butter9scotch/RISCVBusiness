@@ -28,9 +28,9 @@
 `include "FPU_if.svh"
 `include "register_FPU_if.svh"
 module f_register_file (
-  input CLK, nRST,
-  FPU_if.fp fpa_if,
-  register_FPU_if.fp frf_fp
+  // input CLK, nRST,
+  // FPU_if.fp fpa_if,
+  // register_FPU_if.fp frf_fp
   register_FPU_if.rf frf_rf
 );
 
@@ -47,12 +47,12 @@ module f_register_file (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       registers <= '0;
-      frf_fp.frm <= '0;
+      frf_rf.frm <= '0;
     end else if (frf_rf.f_wen && frf_rf.f_rd && frf_rf.f_ready && !fpa_if.f_SW) begin 
       registers[frf_rf.f_rd] <= frf_rf.f_w_data;
-      frf_fp.frm <= frf_rf.f_frm_in;
+      frf_rf.frm <= frf_rf.f_frm_in;
      end else begin
-      frf_fp.frm <= frf_rf.f_frm_in;
+      frf_rf.frm <= frf_rf.f_frm_in;
     end
     end
   end 
@@ -60,11 +60,12 @@ module f_register_file (
   assign frf_rf.f_rs1_data = registers[frf_rf.f_rs1];
   assign frf_rf.f_rs2_data = registers[frf_rf.f_rs2];
 
-  assign frf_rf.f_frm_out = frf_fp.frm;
-  assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
+  assign frf_rf.f_frm_out = frf_rf.frm;
+  // assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
+  assign frf_rf.f_flags = frf_rf.flags
 
 
-  assign fpa_if.FPU_all_out = fpa_if.f_SW ? registers[frf_rf.f_rs2] : 0; 
+
 
 
 endmodule
