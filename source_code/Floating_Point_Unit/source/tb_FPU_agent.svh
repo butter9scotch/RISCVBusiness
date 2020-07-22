@@ -1,6 +1,6 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "tb_FPU_sequencer.svh"
+// `include "tb_FPU_sequencer.svh"
 `include "tb_FPU_driver.svh"
 `include "tb_FPU_monitor.svh"
 // `include "FPU_result_monitor.svh"

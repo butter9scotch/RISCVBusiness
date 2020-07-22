@@ -40,7 +40,7 @@ class FPU_monitor extends uvm_monitor;
       tx.f_rs1 = vif.f_rs1;
       tx.f_rs2 = vif.f_rs2;
       tx.f_rd = vif.f_rd;
-      tx.frm_in = vif.frm_in;
+      tx.f_frm_in = vif.f_frm_in;
       tx.f_funct_7 = vif.f_funct_7;
       tx.dload_ext = vif.dload_ext;
 

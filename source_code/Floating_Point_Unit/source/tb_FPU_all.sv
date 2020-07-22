@@ -30,6 +30,7 @@
 `include "left_shift.sv"
 `include "right_shift.sv"
 `include "ADD_step1.sv"
+`include "clock_counter.sv"
 // TODO: finishe the inclusion
 `include "tb_FPU_test.svh"
 

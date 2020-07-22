@@ -13,7 +13,7 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
     super.new(name, parent);
   endfunction: new
 
-  function void write(FPU_transaction tx);
+  function void write(FPU_transaction t);
     localparam ADD = 7'b0100000;
     localparam MUL = 7'b0000010;
     localparam SUB = 7'b0100100;
@@ -24,27 +24,27 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
     logic [31:0] fp1;
     logic [31:0] fp2;
 
-    fp1 = sim_rf.read(tx.f_rs1);
-    fp2 = sim_rf.read(tx.f_rs2);
+    fp1 = sim_rf.read(t.f_rs1);
+    fp2 = sim_rf.read(t.f_rs2);
 
-    if(tx.funct7 == ADD) begin
+    if(t.f_funct_7 == ADD) begin
       real_val1 = fp_to_real(fp1);
       real_val2 = fp_to_real(fp2);
       real_result = real_val1 + real_val2;
       fp_result = real_to_fp(real_result);
-      sim_rf.write(tx.f_rd, fp_result);
-    end else if (tx.funct7 == MUL) begin
+      sim_rf.write(t.f_rd, fp_result);
+    end else if (t.f_funct_7 == MUL) begin
       real_val1 = fp_to_real(fp1);
       real_val2 = fp_to_real(fp2);
       real_result = real_val1 * real_val2;
       fp_result = real_to_fp(real_result);
-      sim_rf.write(tx.f_rd, fp_result);
-    end else if (tx.funct7 == SUB) begin
+      sim_rf.write(t.f_rd, fp_result);
+    end else if (t.f_funct_7 == SUB) begin
       real_val1 = fp_to_real(fp1);
       real_val2 = fp_to_real(fp2);
       real_result = real_val1 - real_val2;
       fp_result = real_to_fp(real_result);
-      sim_rf.write(tx.f_rd, fp_result);
+      sim_rf.write(t.f_rd, fp_result);
     end
   endfunction: write
 
@@ -125,21 +125,3 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
   endfunction
 
 endclass: FPU_predictor
-
-
-class registerFile;
-  parameter NUM_REGS = 32;
-  logic [31:0] [NUM_REGS-1:0] registers;
-  function new();
-    
-  endfunction //new()
-
-  function write(logic[4:0]rd, logic[31:0] val);
-    registers[rd] = val;
-  endfunction
-
-  function logic[31:0] read(logic[4:0]rd);
-    return registers[rd]
-  endfunction
-
-endclass //registerFile

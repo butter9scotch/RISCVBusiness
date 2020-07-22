@@ -12,8 +12,8 @@ class FPU_transaction extends uvm_sequence_item;
   logic [4:0] f_rs2; //register selection 2. Select operand 2 from a register
   logic [4:0] f_rd; //register destination. Select which register to be written
 
-  logic [2:0] frm_in; //input rounding method.
-  logic [7:0] f_funct_7; //operation selection of FPU
+  logic [2:0] f_frm_in; //input rounding method.
+  logic [6:0] f_funct_7; //operation selection of FPU
   
   logic [31:0] dload_ext; //TODO: confirm the identifier
 
@@ -23,7 +23,7 @@ class FPU_transaction extends uvm_sequence_item;
     `uvm_field_int(f_rs1, UVM_DEFAULT)
     `uvm_field_int(f_rs2, UVM_DEFAULT)
     `uvm_field_int(f_rd, UVM_DEFAULT)
-    `uvm_field_int(frm_in, UVM_DEFAULT)
+    `uvm_field_int(f_frm_in, UVM_DEFAULT)
     `uvm_field_int(f_funct_7, UVM_DEFAULT)
     `uvm_field_int(dload_ext, UVM_DEFAULT)
   `uvm_object_utils_end
@@ -49,7 +49,7 @@ class FPU_response extends uvm_sequence_item;
   logic [31:0] FPU_all_out; //output when f_SW is asserted
   // logic [2:0] f_frm_out; //frm outputed by register file TODO: confusing
   
-  `uvm_object_utils_begin(FPU_transaction)
+  `uvm_object_utils_begin(FPU_response)
     // `uvm_field_int(f_flags, UVM_DEFAULT)
     `uvm_field_int(FPU_all_out, UVM_DEFAULT)
     `uvm_field_int(f_rs2, UVM_DEFAULT)
@@ -61,5 +61,19 @@ class FPU_response extends uvm_sequence_item;
   endfunction: new
 
 endclass //FPU_response
+
+class registerFile;
+  parameter NUM_REGS = 32;
+  logic [31:0] [NUM_REGS-1:0] registers;
+
+  function void write(logic[4:0]rd, logic[31:0] val);
+    registers[rd] = val;
+  endfunction
+
+  function logic[31:0] read(logic[4:0]rd);
+    return registers[rd];
+  endfunction
+
+endclass //registerFile
 
 `endif

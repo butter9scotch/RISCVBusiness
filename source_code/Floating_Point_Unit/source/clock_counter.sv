@@ -14,9 +14,9 @@ module clock_counter (
   reg [2:0] last_frm;
 
   logic f_ready;
-  always_ff @ (negedge nrst, posedge clk)
+  always_ff @ (negedge frf_cc.n_rst, posedge frf_cc.clk)
     begin: REG_LOGIC
-    if (!nrst) begin
+    if (!frf_cc.n_rst) begin
       STATE <= IDLE;
       last_f_rs1_data <= 0;
       last_f_rs2_data <= 0;
