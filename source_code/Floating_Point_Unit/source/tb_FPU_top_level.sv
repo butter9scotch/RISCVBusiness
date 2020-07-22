@@ -23,10 +23,8 @@ module tb_FPU_top_level();
 		      .floating_point2(floating_point2),
 		      .frm(frm),
 		      .funct7(funct7),
-		      .start_sig(start_sig),
 		      .floating_point_out(floating_point_out),
-		      .flags(flags),
-		      .f_ready(f_ready)
+		      .flags(flags)
 		      );
    
    shortreal        result_real;
@@ -47,7 +45,6 @@ module tb_FPU_top_level();
          //subnormal number
 	 frm = $random() % 8;
 	 funct7 = 7'b0000100;
-         start_sig = 1'b1;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
 
@@ -102,7 +99,6 @@ module tb_FPU_top_level();
 	 fp2_real        = '0;
 	 fp_exp          = '0;
 	 fp_frac         = '0;
-         start_sig = 1'b0;
 	 @(negedge clk);
 	 
       end

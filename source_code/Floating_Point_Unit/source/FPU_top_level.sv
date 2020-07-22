@@ -14,11 +14,9 @@
 //    floating_point1/2  - floating points to be operated on
 //    frm                - rounding mode
 //    funct7             - 7 bit operation code
-//    start_sig		 - signal indicates initiation of calculation
 //Outputs:
 //    floating_point_out - result of operation 
 //    flags              - 5 error flags (overflow,  underflow, divide by zero, inexact result, invalid operation)
-//    f_ready		 - asserts at the second rising edge of the clock after start_sig is asserted. indicates floating_point_out is ready
 
 module FPU_top_level
 (
@@ -27,11 +25,9 @@ module FPU_top_level
  input  [31:0] floating_point1,
  input  [31:0] floating_point2,
  input  [2:0]  frm,
- input  [6:0]  funct7, //defult to values not add,mul,sub
- //input  start_sig,
+ input  [6:0]  funct7,
  output [31:0] floating_point_out,
  output [4:0]  flags
- //output f_ready
  );
    //reg [2:0]   cycle_count;
    reg [2:0]   frm2;
@@ -44,18 +40,6 @@ module FPU_top_level
    localparam MUL = 7'b0001000;
    localparam SUB = 7'b0000100; 
 
-   /*always_ff @ (posedge clk, negedge nrst) begin: determine_num_of_edges
-	cycle_count <= 3'b000;
-	if ((nrst == 0) | (funct7 != ADD) | (funct7 != MUL) | (funct7 != SUB)) begin
-		cycle_count <= 3'b000;
-	end else if ((nrst == 1) & ((funct7 == ADD) | (funct7 == MUL) | (funct7 == SUB))) begin
-	   if (cycle_count != 3'b010) begin
-		cycle_count <= cycle_count + 1'b1;
-	   end
-	end
-   end
-
-  assign f_ready = (cycle_count == 3'b010) ? 1'b1:1'b0;*/
 
    
    reg 	       sign_shifted;

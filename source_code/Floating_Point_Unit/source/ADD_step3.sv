@@ -100,5 +100,5 @@ reg [31:0] fp_option;
 	end
   end
 
-assign add_floating_point_out = fp_option;
+assign add_floating_point_out = dummy_floating_point_out;
 endmodule
