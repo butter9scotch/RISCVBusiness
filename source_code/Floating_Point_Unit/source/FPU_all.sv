@@ -18,11 +18,12 @@ module FPU_all(FPU_if.fp fpu_if);
     .f_SW(fpu_if.f_SW),
     .f_flags(fpu_if.f_flags), //??
     .f_frm_out(fpu_if.f_frm_out),
-    .f_frm_in(fpu_if.f_frm_in)
+    .f_frm_in(fpu_if.f_frm_in),
+    .funct_7(fpu_if.f_funct_7)
   ); //FPU register file interface
 
 //fpu load. 2 to 1 multiplexer choose between dload_ext[31:0] and FPU_out[31:0] from fpu
-assign frf_if.f_w_data = fpu_if.f_LW ? frf_if.FPU_out : fpu_if.dload_ext;
+assign frf_if.f_w_data = fpu_if.f_LW ? fpu_if.dload_ext : frf_if.FPU_out;
 assign fpu_if.FPU_all_out = fpu_if.f_SW ? frf_if.f_rs2_data : '0; 
 // assign frf_if.f_frm_in = fpu_if.f_frm_in;
 // assign fpu_if.f_flags = frf_if.f_flags;
@@ -37,8 +38,8 @@ assign fpu_if.FPU_all_out = fpu_if.f_SW ? frf_if.f_rs2_data : '0;
 clock_counter cc(frf_if.cc);
 
 FPU_top_level FPU(
-.clk(clk), 
-.nrst(nrst),
+.clk(frf_if.clk), 
+.nrst(frf_if.n_rst),
 .floating_point1(frf_if.f_rs1_data),
 .floating_point2(frf_if.f_rs2_data),
 .frm(frf_if.frm),

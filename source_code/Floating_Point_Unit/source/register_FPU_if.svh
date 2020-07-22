@@ -12,9 +12,10 @@ interface register_FPU_if(
     input logic [4:0] f_rd, //register destination. Select which register to be written
     input logic f_LW, //load. Load from memory to register
     input logic f_SW, //save. Save from rs2 to memory 
-    input logic [4:0] f_flags, //a combination of NV, DZ, OF, UF, NX
-    input logic [2:0] f_frm_out,
-    input logic [2:0] f_frm_in
+    input logic [2:0] f_frm_in,
+    input logic [6:0] funct_7, //operation selection of FPU
+    output logic [4:0] f_flags, //a combination of NV, DZ, OF, UF, NX
+    output logic [2:0] f_frm_out
   );
   logic [31:0] f_w_data; //select between data from the memory or FPU_out
   logic [31:0] f_rs1_data; //first operand outputted from register file
@@ -27,7 +28,6 @@ interface register_FPU_if(
   logic [4:0] flags; //a combination of NV, DZ, OF, UF, NX
 
   logic f_ready; //asserted when calculation finished by FPU
-  logic [6:0] funct_7; //operation selection of FPU
 
   // signals from outside
   // logic [4:0] f_rs1; //register selection 1. Select operand 1 from a register

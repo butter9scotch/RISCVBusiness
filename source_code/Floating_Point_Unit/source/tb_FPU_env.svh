@@ -21,6 +21,7 @@ class FPU_env extends uvm_env;
 
   function void build_phase(uvm_phase phase);
     sim_rf = new();
+    sim_rf.initialize();
     FPU_agt = FPU_agent::type_id::create("FPU_agt", this);
     FPU_pred = FPU_predictor::type_id::create("FPU_pred", this);
     FPU_comp = FPU_comparator::type_id::create("FPU_comp", this);
@@ -30,7 +31,7 @@ class FPU_env extends uvm_env;
 
   function void connect_phase(uvm_phase phase);
     FPU_agt.mon.FPU_ap.connect(FPU_pred.analysis_export); //connect monitor to predictor
-    // FPU_pred.ap_pred.connect(FPU_comp.expected_export); //connect predictor to comparator
+    // FPU_pred.ap_pred.connect(FPU_comp.transaction_export); //connect predictor to comparator
     FPU_agt.mon.FPU_result_ap.connect(FPU_comp.actual_export); //connect monitor to comparator
   endfunction
 

@@ -6,17 +6,23 @@ import uvm_pkg::*;
 
 class FPU_predictor extends uvm_subscriber #(FPU_transaction);
   `uvm_component_utils(FPU_predictor) 
- 
+  // uvm_analysis_port #(FPU_transaction) ap_pred;
+  
   registerFile sim_rf;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction: new
 
+  // function void build_phase(uvm_phase phase);
+  //   ap_pred = new("ap_pred", this);
+  // endfunction
+
   function void write(FPU_transaction t);
-    localparam ADD = 7'b0100000;
-    localparam MUL = 7'b0000010;
-    localparam SUB = 7'b0100100;
+
+    localparam ADD = 7'b0000000;
+    localparam MUL = 7'b0001000;
+    localparam SUB = 7'b0000100; 
     real real_val1; //first real operand
     real real_val2; //second real operand
     real real_result; //result of the operation
@@ -27,7 +33,11 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
     fp1 = sim_rf.read(t.f_rs1);
     fp2 = sim_rf.read(t.f_rs2);
 
-    if(t.f_funct_7 == ADD) begin
+    if(t.f_LW) begin
+      sim_rf.write(t.f_rd, t.dload_ext);
+    end else if(t.f_SW) begin
+      ;
+    end else if(t.f_funct_7 == ADD) begin
       real_val1 = fp_to_real(fp1);
       real_val2 = fp_to_real(fp2);
       real_result = real_val1 + real_val2;
@@ -46,6 +56,7 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
       fp_result = real_to_fp(real_result);
       sim_rf.write(t.f_rd, fp_result);
     end
+    // ap_pred.write(t);
   endfunction: write
 
   // conversion function copied directly from the previous test bench

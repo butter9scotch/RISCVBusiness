@@ -22,11 +22,11 @@ interface FPU_if(input logic n_rst, clk);
   logic [31:0] dload_ext; //TODO: confirm the identifier
   logic [31:0] FPU_all_out; //output when f_SW is asserted
 
-  logic f_ready; //asserted when calculation finished by FPU
+  // logic f_ready; //asserted when calculation finished by FPU
 
   modport fp ( //to FPU_all
   input n_rst, clk, f_rd, f_rs1, f_rs2, f_frm_in, f_LW, f_SW, f_funct_7, dload_ext,
-  output FPU_all_out, f_flags, f_frm_out, f_ready
+  output FPU_all_out, f_flags, f_frm_out
   );
   
 endinterface //FPU_if

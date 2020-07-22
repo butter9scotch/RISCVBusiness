@@ -58,7 +58,7 @@ module f_register_file (
 
   always_comb begin: f_wen_logic
 	f_wen = 1'b0; //f_wen default to be 0.
-	if (!frf_rf.f_LW) // if f_lw is deasserted(choosing dload_ext)
+	if (frf_rf.f_LW) // if f_lw is assert(choosing dload_ext)
 		f_wen = 1'b1; 
 	else begin //if f_lw is asserteds(choosing FPU_out)
 		if (!frf_rf.f_ready) //if not f_ready,
