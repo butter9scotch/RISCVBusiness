@@ -30,7 +30,7 @@ class FPU_driver extends uvm_driver#(FPU_transaction);
       vif.f_rs1 = req_item.f_rs1;
       vif.f_rs2 = req_item.f_rs2;
       vif.f_rd = req_item.f_rd;
-      vif.frm_in = req_item.frm_in;
+      vif.f_frm_in = req_item.f_frm_in;
       vif.f_funct_7 = req_item.f_funct_7;
       vif.dload_ext = req_item.dload_ext;
 

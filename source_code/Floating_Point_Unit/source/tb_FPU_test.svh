@@ -1,6 +1,9 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "UVM_FPU_evn.svh"
+
+`include "tb_FPU_sequencer.svh"
+`include "tb_FPU_env.svh"
+
 
 class FPU_test extends uvm_test;
   `uvm_component_utils(FPU_test)

@@ -44,8 +44,8 @@ module f_register_file (
   logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
   //logic [2:0] frm;
 
-  always_ff @ (posedge CLK, negedge nRST) begin
-    if (~nRST) begin
+  always_ff @ (posedge frf_rf.clk, negedge frf_rf.n_rst) begin
+    if (~frf_rf.n_rst) begin
       registers <= '0;
       frf_rf.frm <= '0;
     end else if (f_wen && (!frf_rf.f_SW)) begin 
@@ -54,15 +54,14 @@ module f_register_file (
     end else begin
       frf_rf.frm <= frf_rf.f_frm_in;
     end
-    end
   end 
 
   always_comb begin: f_wen_logic
 	f_wen = 1'b0; //f_wen default to be 0.
-	if (!f_LW) // if f_lw is deasserted(choosing dload_ext)
+	if (frf_rf.f_LW) // if f_lw is assert(choosing dload_ext)
 		f_wen = 1'b1; 
 	else begin //if f_lw is asserteds(choosing FPU_out)
-		if (!f_ready) //if not f_ready,
+		if (!frf_rf.f_ready) //if not f_ready,
 			f_wen = 1'b0;
 		else	      //if f_ready,
 			f_wen = 1'b1;
@@ -74,10 +73,6 @@ module f_register_file (
 
   assign frf_rf.f_frm_out = frf_rf.frm;
   // assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
-  assign frf_rf.f_flags = frf_rf.flags
-
-
-
-
+  assign frf_rf.f_flags = frf_rf.flags;
 
 endmodule

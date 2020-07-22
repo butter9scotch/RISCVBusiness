@@ -1,8 +1,8 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "UVM_FPU_sequencer.svh"
-`include "UVM_FPU_driver.svh"
-`include "UVM_FPU_monitor.svh"
+// `include "tb_FPU_sequencer.svh"
+`include "tb_FPU_driver.svh"
+`include "tb_FPU_monitor.svh"
 // `include "FPU_result_monitor.svh"
 
 class FPU_agent extends uvm_agent;
