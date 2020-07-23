@@ -12,6 +12,7 @@ class FPU_comparator extends uvm_scoreboard;
   uvm_analysis_export #(FPU_response) actual_export; //receive result from DUT
   uvm_tlm_analysis_fifo #(FPU_response) actual_fifo;
   registerFile sim_rf;
+  transactionSeq tx_seq;
 
   int m_matches, m_mismatches;
   function new( string name , uvm_component parent) ;
@@ -33,7 +34,9 @@ class FPU_comparator extends uvm_scoreboard;
   endfunction
 
   task run_phase(uvm_phase phase);
+    FPU_transaction err_tx;
     FPU_response resp;
+    int index;
     // FPU_transaction tx;
     logic [31:0] expected_out;
     forever begin
@@ -47,7 +50,13 @@ class FPU_comparator extends uvm_scoreboard;
         uvm_report_info("FPU Comparator", "Data Match");
       end else begin
         m_mismatches++;
+        $info("Current time");
         uvm_report_error("FPU Comparator", "Error: Data Mismatch");
+        //print out most recent transaction that goes wrong
+        err_tx = tx_seq.search(resp.f_rs2);
+        index = tx_seq.search_index(resp.f_rs2);
+        uvm_report_info("FPU Comparator",  $psprintf("\nCurrent transaction index: %d\nTransaction that went wrong index: %d\n", tx_seq.index, index));
+        err_tx.print();
       end
     end
   endtask

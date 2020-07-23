@@ -24,6 +24,8 @@ interface FPU_if(input logic n_rst, clk);
 
   // logic f_ready; //asserted when calculation finished by FPU
 
+  int transaction_number; //waveform debug purpose
+
   modport fp ( //to FPU_all
   input n_rst, clk, f_rd, f_rs1, f_rs2, f_frm_in, f_LW, f_SW, f_funct_7, dload_ext,
   output FPU_all_out, f_flags, f_frm_out

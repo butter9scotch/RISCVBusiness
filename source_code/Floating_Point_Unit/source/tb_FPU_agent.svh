@@ -20,6 +20,7 @@ class FPU_agent extends uvm_agent;
     sqr = FPU_sequencer::type_id::create("sqr", this);
     drv = FPU_driver::type_id::create("drv", this);
     mon = FPU_monitor::type_id::create("mon", this);
+    mon.set_report_verbosity_level_hier (UVM_NONE);
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
