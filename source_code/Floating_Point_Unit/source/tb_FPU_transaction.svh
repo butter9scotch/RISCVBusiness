@@ -83,9 +83,46 @@ class registerFile;
 
   function void initialize();
     for(int lcv = 0; lcv < 32; lcv++) begin
-      registers[lcv] = 0;
+      registers[lcv] = '0;
     end
   endfunction
 endclass //registerFile
+
+class transactionSeq; //transaction sequence
+  localparam MAX_SIZE = 200;
+  FPU_transaction arr[MAX_SIZE - 1:0];
+  int index; //points to most recent transactoin
+  function new();
+    index = -1;
+  endfunction //new()
+
+  //push one transaction into the arr
+  function void push(FPU_transaction item);
+    if(index == MAX_SIZE) begin //can be implemented as a queue is needed in the future
+      $fatal("transactionSeq: sequence cannot hold more items"); 
+    end
+    index++;
+    arr[index] = item;
+  endfunction
+
+  //search for the most recent transaction that used dest as f_rd
+  function FPU_transaction search(logic[4:0] dest);
+    for(int lcv = index; lcv > 0; lcv--) begin
+      if(arr[lcv].f_rd == dest) begin
+        return arr[lcv];
+      end
+    end
+    $fatal("transaction not found!\n");
+  endfunction
+
+  function int search_index(logic[4:0] dest);
+    for(int lcv = index; lcv > 0; lcv--) begin
+      if(arr[lcv].f_rd == dest) begin
+        return lcv;
+      end
+    end
+    $fatal("transaction not found!\n");
+  endfunction
+endclass //transactionSeq
 
 `endif

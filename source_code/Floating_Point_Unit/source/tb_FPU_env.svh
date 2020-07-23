@@ -14,6 +14,7 @@ class FPU_env extends uvm_env;
   FPU_comparator FPU_comp;
 
   registerFile sim_rf; //simulated register file
+  transactionSeq tx_seq;
   
   function new(string name = "FPU_env", uvm_component parent = null);
 		super.new(name, parent);
@@ -21,12 +22,18 @@ class FPU_env extends uvm_env;
 
   function void build_phase(uvm_phase phase);
     sim_rf = new();
+    tx_seq = new();
     sim_rf.initialize();
     FPU_agt = FPU_agent::type_id::create("FPU_agt", this);
     FPU_pred = FPU_predictor::type_id::create("FPU_pred", this);
     FPU_comp = FPU_comparator::type_id::create("FPU_comp", this);
+    //connect simulated register file
     FPU_pred.sim_rf = sim_rf;
     FPU_comp.sim_rf = sim_rf;
+
+    //connect transaction queues
+    FPU_pred.tx_seq = tx_seq;
+    FPU_comp.tx_seq = tx_seq;
   endfunction
 
   function void connect_phase(uvm_phase phase);

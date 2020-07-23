@@ -9,6 +9,7 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
   // uvm_analysis_port #(FPU_transaction) ap_pred;
   
   registerFile sim_rf;
+  transactionSeq tx_seq;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -29,6 +30,7 @@ class FPU_predictor extends uvm_subscriber #(FPU_transaction);
     logic [31:0] fp_result;
     logic [31:0] fp1;
     logic [31:0] fp2;
+    tx_seq.push(t);
 
     fp1 = sim_rf.read(t.f_rs1);
     fp2 = sim_rf.read(t.f_rs2);
