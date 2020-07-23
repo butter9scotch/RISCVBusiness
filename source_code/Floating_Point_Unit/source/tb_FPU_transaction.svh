@@ -108,7 +108,7 @@ class transactionSeq; //transaction sequence
   //search for the most recent transaction that used dest as f_rd
   function FPU_transaction search(logic[4:0] dest);
     for(int lcv = index; lcv > 0; lcv--) begin
-      if(arr[lcv].f_rd == dest) begin
+      if(arr[lcv].f_rd == dest && arr[lcv].f_SW != 1) begin
         return arr[lcv];
       end
     end
@@ -117,7 +117,7 @@ class transactionSeq; //transaction sequence
 
   function int search_index(logic[4:0] dest);
     for(int lcv = index; lcv > 0; lcv--) begin
-      if(arr[lcv].f_rd == dest) begin
+      if(arr[lcv].f_rd == dest && arr[lcv].f_SW != 1) begin
         return lcv;
       end
     end
