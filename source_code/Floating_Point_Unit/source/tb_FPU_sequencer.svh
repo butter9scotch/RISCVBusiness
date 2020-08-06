@@ -245,10 +245,48 @@ class FPU_sequence extends uvm_sequence #(FPU_transaction);
     //random test case
 
     repeat(100) begin
+      logic [4:0] rs1; //register selection 1. Select operand 1 from a register
+      logic [4:0] rs2; //register selection 2. Select operand 2 from a register
+      logic [4:0] rd;  // register destination. Select which register to be written
+    
+      // load 1
       start_item(req_item);
+      req_item.mode = req_item.LOAD;
       if(!req_item.randomize()) begin
         `uvm_fatal("FPU_seq", "not able to randomize")
       end
+      rs1 = req_item.f_rd;
+      finish_item(req_item);
+
+      // load 2
+      start_item(req_item);
+      req_item.mode = req_item.LOAD;
+      while(req_item.f_rd == rs1) begin
+        if(!req_item.randomize()) begin
+          `uvm_fatal("FPU_seq", "not able to randomize")
+        end
+      end
+      rs2 = req_item.f_rd;
+      finish_item(req_item);
+
+      // operation
+      start_item(req_item);
+      req_item.mode = req_item.OP;
+      if(!req_item.randomize()) begin
+        `uvm_fatal("FPU_seq", "not able to randomize")
+      end
+      req_item.f_rs1 = rs1;
+      req_item.f_rs2 = rs2;
+      rd = req_item.f_rd;
+      finish_item(req_item);
+
+      // store
+      start_item(req_item);
+      req_item.mode = req_item.STR;
+      if(!req_item.randomize()) begin
+        `uvm_fatal("FPU_seq", "not able to randomize")
+      end
+      req_item.f_rs2 = rd;
       finish_item(req_item);
     end
 
