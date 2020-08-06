@@ -5,6 +5,11 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 class FPU_transaction extends uvm_sequence_item;
+  localparam LOAD = 2'd0;
+  localparam OP = 2'd1;
+  localparam STR = 2'd2;
+
+  logic [1:0] mode; // choose load, operation, or store
   rand logic f_LW; //load. Load from memory to register
   rand logic f_SW; //save. Save from rs2 to memory 
 
@@ -38,6 +43,7 @@ class FPU_transaction extends uvm_sequence_item;
   localparam RUP = 3'b011;
   localparam RMM = 3'b100;
 
+  constraint c_mode {mode == LOAD -> f_LW == 1; mode == OP -> (f_SW == 0 && f_LW == 0); mode == STR -> f_SW == 1;}
   constraint LW_SW {!(f_LW && f_SW);}
   constraint calculation_method {f_funct_7 == ADD || f_funct_7 == MUL || f_funct_7 == SUB;}
   constraint operand {dload_ext[30:23] != 8'b11111111;}
