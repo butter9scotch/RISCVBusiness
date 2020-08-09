@@ -2,8 +2,8 @@ module clock_counter (
   register_FPU_if.cc frf_cc
 );
   typedef enum bit[2:0] {IDLE, START, READY} stateType; //state machine to identify f_ready
-  reg [2:0] STATE;
-  reg [2:0] NXT_STATE;
+  stateType STATE;
+  stateType NXT_STATE;
   reg [31:0] nxt_f_rs1_data, nxt_f_rs2_data;
   reg [31:0] last_f_rs1_data, last_f_rs2_data;
   
@@ -60,7 +60,7 @@ module clock_counter (
     READY: begin
     frf_cc.f_ready = 1'b1;
     end
-    START: begin
+    IDLE: begin
       nxt_f_rs1_data = frf_cc.f_rs1_data;
       nxt_f_rs2_data = frf_cc.f_rs2_data;
       nxt_f_funct_7 = frf_cc.funct_7;
