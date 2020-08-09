@@ -40,19 +40,24 @@ module f_register_file (
 
   parameter NUM_REGS = 32;
 
+  logic [31:0] fcsr_reg;
   logic [31:0] [NUM_REGS-1:0] registers;
   logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
   //logic [2:0] frm;
 
   always_ff @ (posedge frf_rf.clk, negedge frf_rf.n_rst) begin
     if (~frf_rf.n_rst) begin
+      fcsr_reg <= '0;
       registers <= '0;
       frf_rf.frm <= '0;
     end else if (f_wen && (!frf_rf.f_SW)) begin 
       registers[frf_rf.f_rd] <= frf_rf.f_w_data; //f_w_data: FPU_out or dload_ext
-      frf_rf.frm <= frf_rf.f_frm_in;
+      //frf_rf.frm <= frf_rf.f_frm_in;
+      fcsr_reg[7:5] <= frf_rf.f_frm_in;
+      fcsr_reg[4:0] <= frf_rf.flags;
     end else begin
-      frf_rf.frm <= frf_rf.f_frm_in;
+      //frf_rf.frm <= frf_rf.f_frm_in;
+      fcsr_reg[7:5] <= frf_rf.f_frm_in;
     end
   end 
 
@@ -73,6 +78,6 @@ module f_register_file (
 
   assign frf_rf.f_frm_out = frf_rf.frm;
   // assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
-  assign frf_rf.f_flags = frf_rf.flags;
+  assign frf_rf.f_flags = fcsr_reg[4:0];
 
 endmodule
