@@ -76,7 +76,7 @@ module f_register_file (
   assign frf_rf.f_rs1_data = registers[frf_rf.f_rs1];
   assign frf_rf.f_rs2_data = registers[frf_rf.f_rs2];
 
-  assign frf_rf.f_frm_out = frf_rf.frm;
+  assign frf_rf.f_frm_out = fcsr_reg[7:5];
   // assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
   assign frf_rf.f_flags = fcsr_reg[4:0];
 
