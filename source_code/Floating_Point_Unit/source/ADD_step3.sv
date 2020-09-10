@@ -1,6 +1,7 @@
 
 module ADD_step3
   (
+   input reg out_of_range,
    input    reg        mul_ovf,
    input reg         mul_carry_out,
    input [6:0] 	 function_mode,
@@ -94,11 +95,14 @@ reg [31:0] fp_option;
  always_comb begin
 	fp_option = dummy_floating_point_out;
 	if (function_mode == 7'b0001000) begin
-	 	if ((exponent_max_in == 8'b11111111) & (mul_carry_out == 1'b1)) begin
+	 	/*if ((exponent_max_in == 8'b11111111) & (mul_carry_out == 1'b1)) begin
+		fp_option = {round_out[31],31'b1111111100000000000000000000000};
+		end*/ //(exponent_max_in == 8'b11111111)
+		if ((out_of_range == 1'b1)) begin
 		fp_option = {round_out[31],31'b1111111100000000000000000000000};
 		end
 	end
   end
 
-assign add_floating_point_out = dummy_floating_point_out;
+assign add_floating_point_out = fp_option;
 endmodule

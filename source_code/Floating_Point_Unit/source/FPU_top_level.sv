@@ -60,6 +60,7 @@ module FPU_top_level
    reg [7:0]   mul_exp2;
    reg [25:0]  product;
    reg         mul_carry_out;
+   reg 		   out_of_range;
    
    reg [61:0]  step1_to_step2;
    reg [61:0]  nxt_step1_to_step2;
@@ -207,7 +208,8 @@ always_comb begin : check_n1p2r_size
 			   .exp1(mul_exp1),
 			   .exp2(mul_exp2),
 			   .product(product),
-			   .carry_out(mul_carry_out)
+			   .carry_out(mul_carry_out),
+			   .out_of_range(out_of_range)
 			   );
    
    
@@ -458,6 +460,7 @@ always_comb begin : check_shifted_frac_onezero
 		    );
 //round the results 
    ADD_step3 add_step3 (
+	   		.out_of_range(out_of_range),
 		    .mul_ovf(mul_ovf),
 		    .mul_carry_out(mul_carry_out),
 		    .function_mode(funct7_3[6:0]),

@@ -244,7 +244,7 @@ class FPU_sequence extends uvm_sequence #(FPU_transaction);
     //~~~~~~~~~~~~~~~~
     //random test case
 
-    repeat(100) begin
+    repeat(5000) begin
       logic [4:0] rs1; //register selection 1. Select operand 1 from a register
       logic [4:0] rs2; //register selection 2. Select operand 2 from a register
       logic [4:0] rd;  // register destination. Select which register to be written

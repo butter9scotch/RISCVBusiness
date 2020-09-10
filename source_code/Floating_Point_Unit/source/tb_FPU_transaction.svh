@@ -95,7 +95,7 @@ class registerFile;
 endclass //registerFile
 
 class transactionSeq; //transaction sequence
-  localparam MAX_SIZE = 200;
+  localparam MAX_SIZE = 100000;
   FPU_transaction arr[MAX_SIZE - 1:0];
   int index; //points to most recent transactoin
   function new();
