@@ -42,9 +42,9 @@ module template_decode (
   assign dif.insn_claim = fpu_insn_t'((insn.funct_7 == FPU_ADD)|(insn.funct_7 == FPU_SUB)|(insn.funct_7 == FPU_MUL)|(insn.funct_7 == FPU_LD)|(insn.funct_7 == FPU_SW)); //load/store not sure
   assign dif.mem_to_reg = 1'b0; //register read, so this is 0. Not writing to memory
   //register locations
-  assign dif.rsel_s_0 = insn_float.rs1;
-  assign dif.rsel_s_1 = insn_rtype.rs2;
-  assign dif.rsel_d = insn_rtype;
+  assign dif.rsel_s_0 = insn.rs1;
+  assign dif.rsel_s_1 = insn.rs2;
+  assign dif.rsel_d = insn.rd;
 
   //decode funct. Communicate with execute which performs arithmetic operations
   assign idex.start = dif.insn_claim; //no start in crc
@@ -52,5 +52,7 @@ module template_decode (
   assign idex.sub = (insn.funct == 7'b0001000);
   assign idex.mul = (insn.funct == 7'b0000100);
   assign idex.frm = (insn.frm == 3'b000) | (insn.frm == 3'b001) | (insn.frm == 3'b010) | (insn.frm == 3'b011) | (insn.frm == 3'b100);
+  assign idex.load = (insn.lw == 1'b1);
+  assign idex.store = (insn.sw == 1'b1);
 
 endmodule
