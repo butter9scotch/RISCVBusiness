@@ -33,26 +33,47 @@ module template_decode (
   output fpu_pkg::decode_execute_t idex
 );
   import fpu_pkg::*; //import packages that has parameter decodings
+
   fpu_insn_t insn;
-  parameter OPCODE = FPU_ADDSUBMUL | FPU_LD | FPU_SW;//load store?
+
+  parameter OPCODE = FPU_OPCODE_ARI | FPU_OPCODE_LD | FPU_OPCODE_SW;//load, store, or arithmetic operation
 
   assign insn = fpu_insn_t'(dif.insn);
 
-  //prevent from accessing core ?
-  assign dif.insn_claim = fpu_insn_t'((insn.funct_7 == FPU_ADD)|(insn.funct_7 == FPU_SUB)|(insn.funct_7 == FPU_MUL)|(insn.funct_7 == FPU_LD)|(insn.funct_7 == FPU_SW)); //load/store not sure
-  assign dif.mem_to_reg = 1'b0; //register read, so this is 0. Not writing to memory
+  assign dif.insn_claim = fpu_insn_t'(insn.opcode == OPCODE); //load/store not sure
+  assign dif.mem_to_reg = 1'b0; //Not writing to memory
+  
   //register locations
   assign dif.rsel_s_0 = insn.rs1;
-  assign dif.rsel_s_1 = insn.rs2;
-  assign dif.rsel_d = insn.rd;
+  assign dif.rsel_s_1 = insn.offset_rs2;
+  assign dif.rsel_d = insn.rd_offset;
 
-  //decode funct. Communicate with execute which performs arithmetic operations
-  assign idex.start = dif.insn_claim; //no start in crc
-  assign idex.add = (insn.funct == 7'b0000000);
-  assign idex.sub = (insn.funct == 7'b0001000);
-  assign idex.mul = (insn.funct == 7'b0000100);
-  assign idex.frm = (insn.frm == 3'b000) | (insn.frm == 3'b001) | (insn.frm == 3'b010) | (insn.frm == 3'b011) | (insn.frm == 3'b100);
-  assign idex.load = (insn.lw == 1'b1);
-  assign idex.store = (insn.sw == 1'b1);
+  //execute signals.
+  assign idex.start = dif.insn_claim;
+  always_comb begin
+    idex.add = 0;
+    idex.sub = 0;
+    idex.mul = 0;
+    //idex.rs1 = '0;
+    //idex.rs2 = '0;
+    //idex.rd = '0;
+    idex.imm = '0;
+    if (OPCODE == FPU_OPCODE_LD) begin
+      idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.offset_rs2};
+      //idex.rs1 = insn.rs1;
+      //idex.rd = insn.rd;
+    end else if (OPCODE == FPU_OPCODE_SW) begin
+      idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.rd_offset};
+      //idex.rs2 = insn.rs2;
+      //idex.rs1 = insn.rs1;
+    end else if (OPCODE == FPU_OPCODE_ARI) begin
+      idex.add = ({insn.offset_funct5, insn.offset_fmt} == 7'b0000000);
+      idex.sub = ({insn.offset_funct5, insn.offset_fmt} == 7'b0001000);
+      idex.mul = ({insn.offset_funct5, insn.offset_fmt} == 7'b0000100);
+      //idex.rs2 = insn.offset_rs2;
+      //idex.rs1 = insn.rs1;
+      //idex.rd = insn.rd_offset;
+    end
+  end
 
 endmodule
