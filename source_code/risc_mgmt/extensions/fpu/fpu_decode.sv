@@ -51,28 +51,30 @@ module template_decode (
   //execute signals.
   assign idex.start = dif.insn_claim;
   always_comb begin
-    idex.add = 0;
-    idex.sub = 0;
-    idex.mul = 0;
-    //idex.rs1 = '0;
-    //idex.rs2 = '0;
-    //idex.rd = '0;
+    idex.funct7 = '1;
+    idex.load = 0;
+    idex.store = 0;
+    idex.rs1 = '0;
+    idex.rs2 = '0;
+    idex.rd = '0;
     idex.imm = '0;
+    idex.frm = '1;
     if (OPCODE == FPU_OPCODE_LD) begin
       idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.offset_rs2};
-      //idex.rs1 = insn.rs1;
-      //idex.rd = insn.rd;
+      idex.load = 1'b1;
+      idex.rs1 = insn.rs1;
+      idex.rd = insn.rd;
     end else if (OPCODE == FPU_OPCODE_SW) begin
       idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.rd_offset};
-      //idex.rs2 = insn.rs2;
-      //idex.rs1 = insn.rs1;
+      idex.store = 1'b1;
+      idex.rs2 = insn.rs2;
+      idex.rs1 = insn.rs1;
     end else if (OPCODE == FPU_OPCODE_ARI) begin
-      idex.add = ({insn.offset_funct5, insn.offset_fmt} == 7'b0000000);
-      idex.sub = ({insn.offset_funct5, insn.offset_fmt} == 7'b0001000);
-      idex.mul = ({insn.offset_funct5, insn.offset_fmt} == 7'b0000100);
-      //idex.rs2 = insn.offset_rs2;
-      //idex.rs1 = insn.rs1;
-      //idex.rd = insn.rd_offset;
+      idex.funct7 = {offset_funct5, offset_fmt};
+      idex.rs2 = insn.offset_rs2;
+      idex.rs1 = insn.rs1;
+      idex.rd = insn.rd_offset;
+      idex.frm = insn.width_rm;
     end
   end
 
