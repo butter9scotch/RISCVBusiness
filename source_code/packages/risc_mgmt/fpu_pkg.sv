@@ -41,25 +41,23 @@ package fpu_pkg;
     logic [1:0] offset_fmt;    //this may be imm[6:5] or fmt(.S will be 00)
     logic [4:0] offset_rs2;    //this may be imm[4:0] or rs2
     logic [4:0] rs1;           //register select 1
-    logic [2:0] width_rm;      //this may be width[2:0] or rm
+    logic [2:0] width_rm;      //this may be width[2:0] or rm(rounding mode)
     logic [4:0] rd_offset;     //this may be imm[4:0] or rd
     logic [6:0] opcode;        //opcode
-    logic [23:0] Reserved;     //reserved for other extension
-    logic [2:0] frm;           //rounding mode
-    logic [4:0] flags;         //flags(NV, DZ, OF, UF, NX)
     } fpu_insn_t; //32 bit instruction and 32 bit fcsr
 
   // Interface between the decode and execute stage
   // This must be named "decode_execute_t"
   typedef struct packed {
-    logic add;
-    logic sub;
-    logic mul;
-    //logic [4:0] rs1;
-    //logic [4:0] rs2;
-    //logic [4:0] rd;
+    logic [6:0] funct7;
+    logic load;
+    logic store;
+    logic [4:0] rs1;
+    logic [4:0] rs2;
+    logic [4:0] rd;
     logic [11:0] imm;
-  } decode_execute_t; //fcsr
+    logic [2:0] frm; 
+  } decode_execute_t; 
 
   // Interface between the execute and memory stage
   // This must be named "execute_memory_t"
