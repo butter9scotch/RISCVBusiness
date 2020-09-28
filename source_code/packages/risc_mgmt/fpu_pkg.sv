@@ -55,9 +55,9 @@ package fpu_pkg;
     logic add;
     logic sub;
     logic mul;
-    logic [4:0] rs1;
-    logic [4:0] rs2;
-    logic [4:0] rd;
+    //logic [4:0] rs1;
+    //logic [4:0] rs2;
+    //logic [4:0] rd;
     logic [11:0] imm;
   } decode_execute_t; //fcsr
 
