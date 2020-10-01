@@ -57,6 +57,9 @@ package fpu_pkg;
     logic [4:0] rd;
     logic [11:0] imm;
     logic [2:0] frm; 
+    logic [31:0] fpu_result;
+    logic [4:0] flags_result;
+    logic [2:0] frm_result;
   } decode_execute_t; 
 
   // Interface between the execute and memory stage
