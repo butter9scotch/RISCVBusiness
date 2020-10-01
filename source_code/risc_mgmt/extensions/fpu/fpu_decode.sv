@@ -25,7 +25,7 @@
 
 `include "risc_mgmt_decode_if.vh"
 
-module template_decode (
+module fpu_decode (
   input logic CLK, nRST,
   //risc mgmt connection
   risc_mgmt_decode_if.ext dif,
