@@ -25,7 +25,7 @@
 
 `include "risc_mgmt_memory_if.vh"
 
-module fpu_memory (
+module rv32f_memory (
   input logic CLK, nRST,
   //risc mgmt connection
   risc_mgmt_memory_if.ext mif,

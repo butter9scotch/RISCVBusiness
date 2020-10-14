@@ -25,7 +25,7 @@
 
 `include "risc_mgmt_execute_if.vh"
 
-module fpu_execute (
+module rv32f_execute (
   input logic CLK, nRST,
   //risc mgmt connection
   risc_mgmt_execute_if.ext eif,
