@@ -21,4 +21,5 @@ microarch_params:
 # RISC-MGMT Extension Configuration
 risc_mgmt_params:
   standard_extensions:
+      - name: "fpu"
   nonstandard_extensions:
