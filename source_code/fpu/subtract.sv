@@ -7,8 +7,8 @@ module subtract
  output [7:0] result
 );
 
-   reg [8:0]  u_exp1 = {1'b0, exp1};
-   reg [8:0]  u_shifted_amount = {1'b0,shifted_amount};
+   reg [8:0]  u_exp1;
+   reg [8:0]  u_shifted_amount;
    reg [8:0]  u_result;
    
 always_comb   begin

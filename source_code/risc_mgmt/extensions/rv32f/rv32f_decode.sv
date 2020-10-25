@@ -49,7 +49,7 @@ module rv32f_decode (
   assign dif.rsel_d = '0; // Never writing to integer register file -- for now
 
   //execute signals.
-  assign idex.start = dif.insn_claim;
+  //assign idex.start = dif.insn_claim;
   always_comb begin
     idex.funct7 = '1;
     idex.load = 0;
@@ -59,17 +59,17 @@ module rv32f_decode (
     idex.rd = '0;
     idex.imm = '0;
     idex.frm = '1;
-    if (OPCODE == FPU_OPCODE_LD) begin
+    if (insn.opcode == FPU_OPCODE_LD) begin
       idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.offset_rs2};
       idex.load = 1'b1;
       idex.rs1 = insn.rs1;
-      idex.rd = insn.rd;
-    end else if (OPCODE == FPU_OPCODE_SW) begin
+      idex.rd = insn.rd_offset;
+    end else if (insn.opcode == FPU_OPCODE_SW) begin
       idex.imm = {insn.offset_funct5, insn.offset_fmt, insn.rd_offset};
       idex.store = 1'b1;
-      idex.rs2 = insn.rs2;
+      idex.rs2 = insn.offset_rs2;
       idex.rs1 = insn.rs1;
-    end else if (OPCODE == FPU_OPCODE_ARI) begin
+    end else if (insn.opcode == FPU_OPCODE_ARI) begin
       idex.funct7 = {insn.offset_funct5, insn.offset_fmt};
       idex.rs2 = insn.offset_rs2;
       idex.rs1 = insn.rs1;

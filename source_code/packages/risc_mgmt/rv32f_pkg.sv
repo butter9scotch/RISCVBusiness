@@ -57,15 +57,20 @@ package rv32f_pkg;
         logic [4:0] rd;
         logic [11:0] imm;
         logic [2:0] frm; 
-        logic [31:0] fpu_result;
-        logic [4:0] flags_result;
-        logic [2:0] frm_result;
     } decode_execute_t; 
 
     // Interface between the execute and memory stage
     // This must be named "execute_memory_t"
     typedef struct packed {
-        logic signal;
+        logic [6:0] funct7;
+        logic load;
+        logic store;
+        logic [4:0] rs1;
+        logic [4:0] rs2;
+        logic [4:0] rd;
+        logic [11:0] imm;
+        logic [2:0] frm; 
+        logic [31:0] address;
     } execute_memory_t; //doesn't output. Take leftover signals from execute. Load or store/bypass and go to memory . reg_w should be 0
 
 

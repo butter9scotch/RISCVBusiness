@@ -35,44 +35,21 @@ module rv32f_execute (
 );
     import rv32f_pkg::*;
 
-    logic [31:0] fpu_result_temp;
-    logic [4:0] flags_result_temp;
-    logic [2:0] frm_result_temp;
-    FPU_all fpu_all ( //not imported yet maybe
-        .n_rst(nRST),
-        .clk(CLK),
-        .f_rd(idex.rd),
-        .f_rs1(idex.rs1),
-        .f_rs2(idex.rs2),
-        .f_frm_in(idex.frm),
-        .f_LW(idex.load),
-        .f_SW(idex.store),
-        .f_funct_7(idex.funct7),
-        .fload_ext(eif.rdata_s_0),
-        .FPU_all_out(fpu_result_temp),
-        .f_flags(flags_result_temp),
-        .f_frm_out(frm_result_temp)
-    );
-
-    always_ff @ (posedge CLK, negedge nRST) begin //not sure
-        if (~nRST) begin
-            exmem.fpu_result <= '0;
-            exmem.flags_result <= '0;
-            exmem.frm_result <= '0;
-        end if (eif.start == 1'b1) begin
-            exmem.fpu_result <= fpu_result_temp;
-            exmem.flags_result <= flags_result_temp;
-            exmem.frm_result <= frm_result_temp;
-        end
-    end
-
     assign eif.exception = 1'b0;
     assign eif.branch_jump = 1'b0;
 
-    assign eif.busy = 1'b0; //should I output f_ready(to stop)
+    assign eif.busy = 1'b0;
 
     //should I write data now or later
-    assign eif.reg_w = 1'b1;
-    assign eif.reg_wdata = fpu_result_temp; //but we have three outputs(fpu_out, flags, and frm)
+    assign eif.reg_w = 1'b0;
+    assign eif.reg_wdata = '0; //but we have three outputs(fpu_out, flags, and frm)
+    assign exmem.funct7 = idex.funct7;
+    assign exmem.load = idex.load;
+    assign exmem.store = idex.store;
+    assign exmem.rs1 = idex.rs2;
+    assign exmem.rd = idex.rd;
+    assign exmem.imm = idex.imm;
+    assign exmem.frm = idex.frm;
+    assign exmem.address = eif.rdata_s_0 + { {20{idex.imm[11]}}, idex.imm};
 
 endmodule

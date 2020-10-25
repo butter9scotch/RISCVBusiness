@@ -24,6 +24,7 @@
 */
 
 `include "risc_mgmt_memory_if.vh"
+`include "register_FPU_if.svh"
 
 module rv32f_memory (
     input logic CLK, nRST,
@@ -55,50 +56,83 @@ module rv32f_memory (
     *
     * This also requires splitting up the FPU and FRFile, removing the "FPU_all" wrapper
     */
+
+    logic [4:0] flags;
+    logic [2:0] frm;
     
-    FPU_all fpu(
-        .n_rst(nRST),
+
+    // Interface instantiations
+    register_FPU_if frf_if(
         .clk(CLK),
-        .f_rd(idex.rd),
-        .f_rs1(idex.rs1),
-        .f_rs2(idex.rs2),
-        .f_frm_in(idex.frm),
-        .f_LW(idex.load),
-        .f_SW(idex.store),
-        .f_funct_7(idex.funct7),
-        .fload_ext(eif.rdata_s_0),
-        .FPU_all_out(fpu_result_temp),
-        .f_flags(flags_result_temp),
-        .f_frm_out(frm_result_temp)
+        .n_rst(nRST),
+        .f_rs1(exmem.rs1),
+        .f_rs2(exmem.rs2),
+        .f_rd(exmem.rd),
+        .f_LW(exmem.load & ~mif.mem_busy),
+        .f_SW(exmem.store),
+        //.f_flags(),
+        .f_frm_out(frm),
+        .f_frm_in(exmem.frm),
+        .funct_7(exmem.funct7)
     );
 
+    // F Register File
+    f_register_file f_rf(frf_if.rf);
+
+    assign frf_if.flags = flags;
+
+    // FPU
+    FPU_top_level FPU(
+        .clk(CLK),
+        .nrst(nRST),
+        .floating_point1(frf_if.f_rs1_data),
+        .floating_point2(frf_if.f_rs2_data),
+        .frm(frm),
+        .funct7(exmem.funct7),
+        .floating_point_out(frf_if.FPU_out),
+        .flags(flags)
+    );
+
+    clock_counter cc(frf_if.cc);
+
+    assign frf_if.f_w_data = exmem.load ? mif.mem_load : frf_if.FPU_out;
+    assign mif.mem_store = frf_if.f_rs2_data; 
 
 
     assign mif.exception = 1'b0;
-    assign mif.busy = 1'b0; //waiting for memory transaction?
+    assign mif.busy = ~frf_if.f_ready; 
     assign mif.reg_w = 1'b0;
     assign mif.reg_wdata = '0; //not needed
-    always_comb begin
+
+    assign mif.mem_ren = exmem.load;
+    assign mif.mem_wen = exmem.store;
+    
+    // TODO: Address calculation
+    assign mif.mem_addr = exmem.address;
+    assign mif.mem_byte_en = 4'b1111;
+    
+
+    /*always_comb begin
         if (mif.mem_busy == 1'b1) begin
             mif.mem_addr = '0;
             mif.mem_ren = 0;
             mif.mem_wen = 0;
-            mif.mem_store = '0;
+            //mif.mem_store = '0;
         end else begin
             if (decode_signals.load == 1'b1) begin
                 mif.mem_addr = {27'b0, decode_signals.rd};
-                mif.mem_store = exmem.fpu_result;
+                //mif.mem_store = exmem.fpu_result;
                 mif.mem_ren = 1'b1;
             end else if (decode_signals.store == 1'b1) begin
                 mif.mem_addr = {27'b0, decode_signals.rs2};
-                mif.mem_store = exmem.fpu_result;
+                //mif.mem_store = exmem.fpu_result;
                 mif.mem_wen = 1'b1;
             end else begin
                 mif.mem_addr = {27'b0, decode_signals.rd};
-                mif.mem_store = exmem.fpu_result;
+                //mif.mem_store = exmem.fpu_result;
                 mif.mem_wen = 1'b1;
             end
         end
-    end
+    end*/
 
 endmodule
