@@ -36,17 +36,17 @@ module rv32f_decode (
 
   fpu_insn_t insn;
 
-  parameter OPCODE = FPU_OPCODE_ARI | FPU_OPCODE_LD | FPU_OPCODE_SW;//load, store, or arithmetic operation
+  parameter OPCODE = FPU_OPCODE_ARI; //parameter unused in standard extensions
 
   assign insn = fpu_insn_t'(dif.insn);
 
-  assign dif.insn_claim = fpu_insn_t'(insn.opcode == OPCODE); //load/store not sure
+  assign dif.insn_claim = (insn.opcode == FPU_OPCODE_ARI || insn.opcode == FPU_OPCODE_LD || insn.opcode == FPU_OPCODE_SW); //load/store not sure
   assign dif.mem_to_reg = 1'b0; //Not writing to memory
   
-  //register locations
+  // Integer register file only used in address calculations
   assign dif.rsel_s_0 = insn.rs1;
   assign dif.rsel_s_1 = insn.offset_rs2;
-  assign dif.rsel_d = insn.rd_offset;
+  assign dif.rsel_d = '0; // Never writing to integer register file -- for now
 
   //execute signals.
   assign idex.start = dif.insn_claim;
