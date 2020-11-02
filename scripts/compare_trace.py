@@ -26,6 +26,7 @@
 import argparse 
 import sys
 import re
+import subprocess
 
 INSTR_RE = r'core[ ]+0: (0x[0-9a-f]+) \((0x[0-9a-f]+)\) ([a-z0-9 ,\(\)\+-]+)'
 
@@ -40,12 +41,13 @@ def compareTraces(sparce, spike):
 		if instr_spike[1] != sparce[sparce_idx][1]:
 			instr_skipped.append(instr_spike)
 		else: sparce_idx += 1
-	
-	print("The sparce simulation skipped " + str(num_instr_skipped) + " instructions")
-	print("These are the instructions that were skipped:")
+	print("")
+	print("The sparce simulation skipped " + str(num_instr_skipped) + " instructions\n")
+	print("These are the instructions that were skipped:\n")
 	
 	for instr in instr_skipped:
 		print("%-20s %-20s %-20s" % instr)
+	print("")
 		
 def fileToListOfTuples(file_path, spike=True):
 	with open(file_path, "r") as f:
@@ -55,15 +57,25 @@ def fileToListOfTuples(file_path, spike=True):
 			return re.findall(INSTR_RE, f.read())
 
 if __name__ == '__main__':
-	
 	description = 'Compare traces between sparce and spike simulations'
 	parser = argparse.ArgumentParser(description=description)
-	parser.add_argument('sparce_trace', metavar='sparce_trace', type=str,
-						help='Path to sparce trace file')
-	parser.add_argument('spike_trace', metavar='spike_trace', type=str,
-						help='Path to spike trace file')
+	parser.add_argument('--assembly', '-s', dest='asm_file', type=str, default="",
+							  help="Specify path to assmebly file")
+	parser.add_argument('--sim', '-sim', dest='sparce_trace', type=str, default="",
+							  help="Specify path to sparce trace file")
+	parser.add_argument('--spike', '-spike', dest='spike_trace', type=str, default="",
+							  help="Specify path to spike trace file")
 	args = parser.parse_args()
+   
+	if (args.asm_file):
+		cmd_arr = ['python', 'run_tests.py', '-t', 'compare', args.asm_file]
+		failure = subprocess.call(cmd_arr, stdout=None)
+		spike_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_spike.trace')
+		sparce_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_sim.trace', spike=False)
+		compareTraces(sparce_instr_list, spike_instr_list)
+	elif (args.spike_trace and args.sparce_trace):
+		spike_instr_list = fileToListOfTuples(args.spike_trace)
+		sparce_instr_list = fileToListOfTuples(args.sparce_trace, spike=False)
+		compareTraces(sparce_instr_list, spike_instr_list)
 
-	spike_instr_list = fileToListOfTuples(args.spike_trace)
-	sparce_instr_list = fileToListOfTuples(args.sparce_trace, spike=False)
-	compareTraces(sparce_instr_list, spike_instr_list)
+      

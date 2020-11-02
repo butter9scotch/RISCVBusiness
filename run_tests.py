@@ -38,7 +38,7 @@ START_RED = "\033[31m"
 FILE_NAME = None
 ARCH = "RV32I"
 SUPPORTED_ARCHS = []
-SUPPORTED_TEST_TYPES = ['asm', 'c', 'selfasm', "sparce", ""]
+SUPPORTED_TEST_TYPES = ['asm', 'c', 'compare', 'selfasm', "sparce", ""]
 SPARCE_MODULES = ['sparce_svc', 'sparce_sprf', 'sparce_sasa_table', 'sparce_psru', 'sparce_cfid']
 TEST_TYPE = ""
 # Change this variable to the filename (minus extension)
@@ -80,6 +80,8 @@ def parse_arguments():
               sys.exit(1)
         else:
           if TEST_TYPE == 'sparce':
+            pass
+          elif TEST_TYPE == 'compare':
             pass
           elif TEST_TYPE == 'selfasm':
             test_file_dir = 'self-tests/'
@@ -132,7 +134,6 @@ def compile_asm_for_self(file_name):
     short_name = file_name.split(ARCH+'/')[1][:-2]
     output_dir = './sim_out/' + ARCH + '/' + short_name + '/'
     output_name = output_dir + short_name + '.elf'
-
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))
 
@@ -591,6 +592,129 @@ def run_sparce():
 
    return failures
 
+def run_compare():
+   print "generating traces for compare_traces.py..."
+   failure = 0
+   
+   # COMPILE_ASM_FOR_SELF
+
+   short_name = 'compare_traces'
+   output_dir = './sim_out/' + ARCH + '/' + short_name + '/'
+   output_name = output_dir + FILE_NAME[:-2] + '.elf'
+   if not os.path.exists(os.path.dirname(output_name)):
+      os.makedirs(os.path.dirname(output_name))
+
+   xlen = 'rv64g' if '64' in ARCH else 'rv32g'
+   abi = 'lp64' if '64' in ARCH else 'ilp32'
+
+   cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
+             '-static', '-mcmodel=medany', '-fvisibility=hidden',
+             '-nostdlib', '-nostartfiles', 
+             '-T./verification/asm-env/link.ld',
+             '-I./verification/asm-env/selfasm', FILE_NAME, '-o',
+             output_name]
+   failure = subprocess.call(cmd_arr)
+   if failure:
+     print "Failed during risc64 gcc"
+     return -1
+   cmd_arr = ['elf2hex', '8', '65536', output_name, '2147483648']
+   hex_file_loc = output_dir + 'meminit.hex'
+   with open(hex_file_loc, 'w') as hex_file:
+     failure = subprocess.call(cmd_arr, stdout=hex_file)
+   if failure:
+     print "Failed during elf2hex"
+     return -2
+
+   # print "COMPILE_ASM_FOR_SELF"
+
+   # CLEAN INIT HEX FOR SELF
+
+   init_output = output_dir + 'meminit.hex'
+   build_dir = './build/meminit.hex'
+   cleaned_location = init_output[:len(FILE_NAME)-4] + "_clean.hex"
+   addr = 0x00
+   with open(init_output, 'r') as init_file:
+      cleaned_file = open(cleaned_location, 'w')
+      for line in init_file:
+         stripped_line = line[:len(line)-1]
+         for i in range(len(stripped_line), 0, -8):
+            data_word = stripped_line[i-8:i]
+            new_data_word = data_word[6:8] + data_word[4:6]
+            new_data_word += data_word[2:4] + data_word[0:2]
+            checksum = calculate_checksum_str(int(new_data_word, 16), addr)
+            if len(checksum) < 2:
+               checksum = '0' + checksum
+            addr_str = hex(addr/4)[2:]
+            #left pad the string with 0s until 4 hex digits
+            while len(addr_str) < 4:
+               addr_str = '0' + addr_str
+            if new_data_word != "00000000":
+               out = ":04" + addr_str + "00" + new_data_word + checksum + '\n'
+               cleaned_file.write(out)
+            addr += 0x4
+      # add the EOL record to the file
+      cleaned_file.write(":00000001FF")
+      cleaned_file.close()
+   subprocess.call(['rm', init_output])
+   subprocess.call(['mv', cleaned_location, init_output])
+   if not os.path.exists(os.path.dirname(build_dir)):
+      os.makedirs(os.path.dirname(build_dir))
+   subprocess.call(['cp', init_output, build_dir])
+   
+   # print "CLEAN INIT HEX FOR SELF"
+
+   # RUN SELF SIM   
+
+   cmd_arr = ['waf', 'configure', '--top_level=' + TOP_LEVEL + "_self_test"]
+   failure = subprocess.call(cmd_arr, stdout=FNULL)
+   if failure:
+      return -1
+   cmd_arr = ['waf', 'verify_source']
+   log = open(output_dir + 'waf_output.log', 'w')
+   log.write('Now running ' + FILE_NAME)
+   failure = subprocess.call(cmd_arr, stdout=log)
+   if failure:
+      log.close()
+      log = open(output_dir + 'waf_output.log', 'r')
+      for line in log:
+         print line
+      return -2
+   if(os.path.exists('build/stats.txt')):
+      subprocess.call(['mv', 'build/stats.txt', output_dir + 'stats.txt'])
+   
+   # print "RUN SELF SIM"
+
+   # CHECK RESULTS
+
+   pass_msg = '{0:<40}{1:>20}'.format(short_name,START_GREEN + '[PASSED]' + END_COLOR)
+   fail_msg = '{0:<40}{1:>20}'.format(short_name,START_RED + '[FAILED]' + END_COLOR)
+
+   pattern = r'SUCCESS'
+   with open(output_dir + '/waf_output.log', 'r') as waf_output:
+     waf_output_text = waf_output.read()
+     match = re.search(pattern, waf_output_text)
+     if match:
+         print pass_msg
+     else:
+         print fail_msg
+   
+   # print "CHECK_RESULTS"
+
+   # Get Spike Traces
+
+   meminit_loc = output_dir + 'meminit.hex'
+   elf_loc = output_dir + FILE_NAME[:-2] + '.elf'
+   trace_loc = output_dir + FILE_NAME[:-2] + '_spike.trace'
+   with open(trace_loc, "w") as f:
+      cmd_arr = ['spike', '-l', '--isa=RV32IM', '+signature=' + meminit_loc, elf_loc]
+      failure = subprocess.call(cmd_arr, stderr=subprocess.STDOUT, stdout=f)
+   
+   trace_loc = output_dir + FILE_NAME[:-2] + '_sim.trace'
+   cmd_arr = ['cp', 'build/trace.log', trace_loc]
+   failure = subprocess.call(cmd_arr, stdout=FNULL)
+
+   return failure
+
 def run_selfasm():
     failures = 0
     if FILE_NAME is None:
@@ -726,6 +850,8 @@ if __name__ == '__main__':
     # sparce tests
     elif TEST_TYPE == "sparce":
       failures = run_sparce()
+    elif TEST_TYPE == "compare":
+      failures = run_compare()
     elif TEST_TYPE == "":
       failures += run_asm()
       failures += run_selfasm()
