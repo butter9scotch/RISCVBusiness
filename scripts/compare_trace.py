@@ -35,24 +35,42 @@ SASA_R1_MASK = 0b11111 << 11
 SASA_R2_MASK = 0b11111 << 6
 SASA_COND_MASK = 0b1 << 5
 
-def compareTraces(sparce, spike):
-	num_instr_skipped = len(spike) - len(sparce)
-	# spike should have as many or less instructions than sparce
-	assert(num_instr_skipped >= 0)
-	
+def compareTraces(sparce, spike, sasa_data):
+	num_instr_skipped = 0
 	sparce_idx = 0
-	instr_skipped = [("PC", "Op Code(Literal)", "Op Code(Readable)")]
+	blocks_of_skips = []
+	instr_skipped = []
+
 	for instr_spike in spike:
+		for entry in sasa_data:
+			sasa_pc = int(entry[0], 16)
+			sim_pc = int(sparce[sparce_idx][0][2:], 16)
+			if (sasa_pc == sim_pc):
+				instr_skipped.append(sparce[sparce_idx])
+
 		if instr_spike[1] != sparce[sparce_idx][1]:
 			instr_skipped.append(instr_spike)
-		else: sparce_idx += 1
-	print("")
-	print("The sparce simulation skipped " + str(num_instr_skipped) + " instructions\n")
-	print("These are the instructions that were skipped:\n")
+		else: 
+			sparce_idx += 1
+			if (len(instr_skipped) > 1):
+				num_instr_skipped += len(instr_skipped) - 1
+				blocks_of_skips.append(instr_skipped)
+				instr_skipped = []
 	
-	for instr in instr_skipped:
-		print("%-20s %-20s %-20s" % instr)
 	print("")
+	print("The sparce simulation skipped " + str(num_instr_skipped) + " instructions in " + str(len(blocks_of_skips)) + " block(s)\n")
+	
+	for idx, code_block in enumerate(blocks_of_skips):
+		print("Block %s:\n" % str(idx+1))
+		print("Instruction responsible for skipping:\n")
+		print("%-20s %-20s %-20s" % ("PC", "Op Code(Literal)", "Op Code(Readable)"))
+		print("%-20s %-20s %-20s" % code_block[0])
+		print("")
+		print("Instructions skipped:\n")
+		print("%-20s %-20s %-20s" % ("PC", "Op Code(Literal)", "Op Code(Readable)"))
+		for instr in code_block[1:]:
+			print("%-20s %-20s %-20s" % instr)
+		print("")
 		
 def fileToListOfTuples(file_path, spike=True):
 	with open(file_path, "r") as f:
@@ -134,7 +152,7 @@ if __name__ == '__main__':
 		spike_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_spike.trace')
 		sparce_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_sim.trace', spike=False)
 		sasa_data = readSasaData(' 80001000')
-		compareTraces(sparce_instr_list, spike_instr_list)
+		compareTraces(sparce_instr_list, spike_instr_list, sasa_data)
 		
 	elif (args.spike_trace and args.sparce_trace):
 		spike_instr_list = fileToListOfTuples(args.spike_trace)
