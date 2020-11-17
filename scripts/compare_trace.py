@@ -29,6 +29,11 @@ import re
 import subprocess
 
 INSTR_RE = r'core[ ]+0: (0x[0-9a-f]+) \((0x[0-9a-f]+)\) ([a-z0-9 ,\(\)\+-]+)'
+BYTE_RE = '[0-9a-f]+'
+SASA_OFFSET_MASK = 0b11111
+SASA_R1_MASK = 0b11111 << 11
+SASA_R2_MASK = 0b11111 << 6
+SASA_COND_MASK = 0b1 << 5
 
 def compareTraces(sparce, spike):
 	num_instr_skipped = len(spike) - len(sparce)
@@ -56,6 +61,62 @@ def fileToListOfTuples(file_path, spike=True):
 		else:
 			return re.findall(INSTR_RE, f.read())
 
+def readSasaData(starting_mem_location):
+	path_to_elf = './sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '.elf'
+	cmd_arr = ['riscv64-unknown-elf-objdump', '-s', path_to_elf]
+	failure = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE)
+	output = failure.stdout.read().decode("utf-8").split('\n')
+	begin_load = False
+	data_section = []
+	hex_nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+	for line in output:
+		if (line.startswith(starting_mem_location)):
+			begin_load = True
+		if (begin_load):
+			if (line.startswith('Contents of section .riscv.attributes:')):
+				break
+			data_section.append(re.findall(BYTE_RE, line))
+	sasa_data = []
+	for mem_loc in data_section:
+		for idx, bytes in enumerate(mem_loc[1:]):
+			if (idx == 0) or (idx == 2):
+				sasa_entry = []
+			bytes = bytes[6] + bytes[7] + bytes[4] + bytes[5] + bytes[2] + bytes[3] + bytes[0] + bytes[1]
+			sasa_entry.append(bytes)
+			if (idx == 1) or (idx == 3):
+				sasa_data.append(sasa_entry)
+	end_of_sasa = 0;
+	for idx, sasa_entry in enumerate(sasa_data):
+		if (sasa_entry[0] == '00000000') and (sasa_entry[1] == '00000000'):
+			end_of_sasa = idx
+			break
+	sasa_data = sasa_data[:end_of_sasa]
+	readable_sasa_data = []
+	for sasa_entry in sasa_data:
+		readable_sasa_entry = [sasa_entry[0]]
+		data_as_int = int(sasa_entry[1], 16)
+		offset = data_as_int & SASA_OFFSET_MASK
+		r1 = (data_as_int & SASA_R1_MASK) >> 11
+		r2 = (data_as_int & SASA_R2_MASK) >> 6
+		cond = (data_as_int & SASA_COND_MASK) >> 5
+		readable_sasa_entry.append(r1)
+		readable_sasa_entry.append(r2)
+		if (cond):
+			readable_sasa_entry.append('AND')
+		else:
+			readable_sasa_entry.append('OR')
+		readable_sasa_entry.append(offset)
+		readable_sasa_data.append(readable_sasa_entry)
+	print("")
+	print("SASA Table was loaded with the following:")
+	print("")
+	print("%-10s %-5s %-5s %-10s %-5s" % ('PC', 'R1', 'R2', 'Condition', 'Offset'))
+	for sasa_entry in readable_sasa_data:
+		print("%-10s %-5s %-5s %-10s %-5s" % (sasa_entry[0], sasa_entry[1], sasa_entry[2], sasa_entry[3], sasa_entry[4]))
+
+	return readable_sasa_data
+		
+
 if __name__ == '__main__':
 	description = 'Compare traces between sparce and spike simulations'
 	parser = argparse.ArgumentParser(description=description)
@@ -72,7 +133,9 @@ if __name__ == '__main__':
 		failure = subprocess.call(cmd_arr, stdout=None)
 		spike_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_spike.trace')
 		sparce_instr_list = fileToListOfTuples(r'./sim_out/RV32I/compare_traces/' + args.asm_file[:-2] + '_sim.trace', spike=False)
+		sasa_data = readSasaData(' 80001000')
 		compareTraces(sparce_instr_list, spike_instr_list)
+		
 	elif (args.spike_trace and args.sparce_trace):
 		spike_instr_list = fileToListOfTuples(args.spike_trace)
 		sparce_instr_list = fileToListOfTuples(args.sparce_trace, spike=False)
