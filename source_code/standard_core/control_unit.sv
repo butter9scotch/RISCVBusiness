@@ -26,16 +26,19 @@
 `include "control_unit_if.vh"
 `include "rv32i_reg_file_if.vh"
 `include "risc_mgmt_if.vh"
+`include "rv32f_if.vh"
 
 module control_unit 
 (
   control_unit_if.control_unit  cu_if,
   rv32i_reg_file_if.cu          rf_if,
+  rv32f_if.fpu					fpu_if,
   input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
   input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   stype_t         instr_s;
@@ -44,6 +47,10 @@ module control_unit
   sbtype_t        instr_sb;
   utype_t         instr_u;
   ujtype_t        instr_uj;
+  flwtype_t        instr_flw;
+  fswtype_t        instr_fsw;
+  fregreg_t        instr_frr;
+  
 
   assign instr_s = stype_t'(cu_if.instr);
   assign instr_i = itype_t'(cu_if.instr);
@@ -51,14 +58,29 @@ module control_unit
   assign instr_sb = sbtype_t'(cu_if.instr);
   assign instr_u = utype_t'(cu_if.instr);
   assign instr_uj = ujtype_t'(cu_if.instr);
+  flwtype_t       = flwtype_t '( instr_flw );
+  fswtype_t       = fswtype_t '( instr_fsw );
+  fregreg_t       = fregreg_t '( instr_frr );
 
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
   assign rf_if.rs2  = rmgmt_req_reg_r ? rmgmt_rsel_s_1 : cu_if.instr[24:20];
   assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
   assign cu_if.shamt = cu_if.instr[24:20];
+
+//FPU input signals
+
+  assign fpu_if.rs1  =  cu_if.instr[19:15];
+  assign fpu_if.rs2  =  cu_if.instr[24:20];
+  assign fpu_if.rd   =  cu_if.instr[11:7]; 
+  assign fpu_if.f_funct7   =  cu_if.instr[31:25]; 
+  //assign fpu_if.dload_ext = 
+  
+
+
+
  
-  // Assign the immediate values
+  // assign the immediate values
   assign cu_if.imm_I  = instr_i.imm11_00;
   assign cu_if.imm_S  = {instr_s.imm11_05, instr_s.imm04_00};
   assign cu_if.imm_SB = {instr_sb.imm12, instr_sb.imm11, instr_sb.imm10_05,
@@ -69,14 +91,18 @@ module control_unit
 
   assign cu_if.imm_shamt_sel = (cu_if.opcode == IMMED &&
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
+	assign cu_if.immFU = (cu_if.opcode == FLOAD) ?  {instr_flw.imm} : 
+						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
+	assign cu_if.immFS = (cu_if.opcode == FLOAD) ?  {instr_flw.imm} : 
+						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
 
   // Assign branch and load type
   assign cu_if.load_type    = load_t'(instr_i.funct3);
   assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
 
   // Assign memory read/write enables
-  assign cu_if.dwen = (cu_if.opcode == STORE);
-  assign cu_if.dren = (cu_if.opcode == LOAD);
+  assign cu_if.dwen = (cu_if.opcode == STORE) || (cu_if.opcode == STORE);
+  assign cu_if.dren = (cu_if.opcode == LOAD)  || (cu_if.opcode == LOAD);
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
 
   // Assign control flow signals
@@ -88,8 +114,8 @@ module control_unit
   // Assign alu operands
   always_comb begin
     case(cu_if.opcode)
-      REGREG, IMMED, LOAD : cu_if.alu_a_sel = 2'd0;
-      STORE               : cu_if.alu_a_sel = 2'd1;
+      REGREG, IMMED, LOAD, FLOAD : cu_if.alu_a_sel = 2'd0;
+      STORE, FSTORE               : cu_if.alu_a_sel = 2'd1;
       AUIPC               : cu_if.alu_a_sel = 2'd2;
       default             : cu_if.alu_a_sel = 2'd2;
     endcase
@@ -97,9 +123,9 @@ module control_unit
 
   always_comb begin
     case(cu_if.opcode)
-      STORE       : cu_if.alu_b_sel = 2'd0;
+      STORE, FSTORE       : cu_if.alu_b_sel = 2'd0;
       REGREG      : cu_if.alu_b_sel = 2'd1;
-      IMMED, LOAD : cu_if.alu_b_sel = 2'd2;
+      IMMED, LOAD, FLOAD : cu_if.alu_b_sel = 2'd2;
       AUIPC       : cu_if.alu_b_sel = 2'd3;
       default     : cu_if.alu_b_sel = 2'd1;
     endcase
@@ -108,7 +134,7 @@ module control_unit
   // Assign write select
   always_comb begin
     case(cu_if.opcode)
-      LOAD                  : cu_if.w_sel   = 3'd0;
+      LOAD, FLOAD                  : cu_if.w_sel   = 3'd0;
       JAL, JALR             : cu_if.w_sel   = 3'd1;
       LUI                   : cu_if.w_sel   = 3'd2;
       IMMED, AUIPC, REGREG  : cu_if.w_sel   = 3'd3;
@@ -120,9 +146,9 @@ module control_unit
   // Assign register write enable
   always_comb begin
     case(cu_if.opcode)
-      STORE, BRANCH       : cu_if.wen   = 1'b0;
+      STORE, BRANCH, FSTORE       : cu_if.wen   = 1'b0;
       IMMED, LUI, AUIPC,
-      REGREG, JAL, JALR,
+      REGREG, JAL, JALR,FREGREG,
       LOAD                : cu_if.wen   = 1'b1;
       SYSTEM              : cu_if.wen   = cu_if.csr_rw_valid;
       default:  cu_if.wen   = 1'b0;
@@ -146,7 +172,11 @@ module control_unit
                       (cu_if.opcode == AUIPC) ||
                       (add_sub && ~cu_if.instr[30]) ||
                       (cu_if.opcode == LOAD) ||
-                      (cu_if.opcode == STORE));
+                      (cu_if.opcode == STORE)||
+                      (cu_if.opcode == FLOAD) ||
+                      (cu_if.opcode == FSTORE));
+						
+						(cu_if.opcode == LOAD) (cu_if.opcode == STORE)
   assign aluop_sub = (add_sub && cu_if.instr[30]);
   assign aluop_and = ((cu_if.opcode == IMMED && instr_i.funct3 == ANDI) ||
                       (cu_if.opcode == REGREG && instr_r.funct3 == AND));
