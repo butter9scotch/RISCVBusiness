@@ -25,6 +25,7 @@
 `ifndef RV32F_TYPES_PKG_SV
 `define RV32F_TYPES_PKG_SV
 package rv32f_types_pkg;
+	import rv32i_types_pkg::*;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
   parameter IMM_SIZE = 12;
@@ -45,24 +46,6 @@ package rv32f_types_pkg;
 	FSUB = 7'b0000101,
 	FMUL = 7'b0001001
 	} funct7_t;
-
-	typedef struct packed {
-		logic [11:0] imm;
-		logic [4:0]  rs1;
-		logic [2:0]  rm;
-		logic [4:0]  rd;
-		opcode_t opcode;
-	} flwtype_t;
-
-	typedef struct packed {
-		logic [6:0] imm_upper;
-		logic [4:0] rs2;
-		logic [4:0] rs1;
-		logic [2:0] rm;
-		logic [4:0] imm_lower;
-		opcode_t opcode;
-	} fswtype_t;
-
 
 	typedef struct packed {
 		funct7_t    funct7;

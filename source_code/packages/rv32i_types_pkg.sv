@@ -53,11 +53,11 @@ package rv32i_types_pkg;
     REGREG    = 7'b0110011,
     // All system instructions share an opcode
     SYSTEM    = 7'b1110011,
-    MISCMEM  = 7'b0001111
+    MISCMEM  = 7'b0001111,
 	//Floating point instrs
     FLOAD    = 7'b0000111,
-	FSTORE   = 7'b0100111,
-	FREGREG  = 7'b1010011
+	  FSTORE   = 7'b0100111,
+	  FREGREG  = 7'b1010011
   } opcode_t;
 
   typedef enum logic [BR_W-1:0] {

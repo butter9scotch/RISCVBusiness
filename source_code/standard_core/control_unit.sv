@@ -47,9 +47,9 @@ module control_unit
   sbtype_t        instr_sb;
   utype_t         instr_u;
   ujtype_t        instr_uj;
-  flwtype_t        instr_flw;
-  fswtype_t        instr_fsw;
-  fregreg_t        instr_frr;
+  itype_t         instr_flw;
+  itype_t         instr_fsw;
+  fregreg_t       instr_frr;
   
 
   assign instr_s = stype_t'(cu_if.instr);
@@ -58,9 +58,10 @@ module control_unit
   assign instr_sb = sbtype_t'(cu_if.instr);
   assign instr_u = utype_t'(cu_if.instr);
   assign instr_uj = ujtype_t'(cu_if.instr);
-  flwtype_t       = flwtype_t '( instr_flw );
-  fswtype_t       = fswtype_t '( instr_fsw );
-  fregreg_t       = fregreg_t '( instr_frr );
+	//use existing type
+  assign instr_flw      = itype_t'( cu_if.instr);
+  assign instr_fsw      = itype_t'( cu_if.instr);
+  assign instr_frr      = fregreg_t'( cu_if.instr);
 
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
@@ -101,8 +102,8 @@ module control_unit
   assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
 
   // Assign memory read/write enables
-  assign cu_if.dwen = (cu_if.opcode == STORE) || (cu_if.opcode == STORE);
-  assign cu_if.dren = (cu_if.opcode == LOAD)  || (cu_if.opcode == LOAD);
+  assign cu_if.dwen   = (cu_if.opcode == STORE) || (cu_if.opcode == STORE);
+  assign cu_if.dren   = (cu_if.opcode == LOAD)  || (cu_if.opcode == LOAD);
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
 
   // Assign control flow signals
@@ -115,26 +116,26 @@ module control_unit
   always_comb begin
     case(cu_if.opcode)
       REGREG, IMMED, LOAD, FLOAD : cu_if.alu_a_sel = 2'd0;
-      STORE, FSTORE               : cu_if.alu_a_sel = 2'd1;
-      AUIPC               : cu_if.alu_a_sel = 2'd2;
-      default             : cu_if.alu_a_sel = 2'd2;
+      STORE, FSTORE              : cu_if.alu_a_sel = 2'd1;
+      AUIPC               			 : cu_if.alu_a_sel = 2'd2;
+      default             			 : cu_if.alu_a_sel = 2'd2;
     endcase
   end
 
   always_comb begin
     case(cu_if.opcode)
       STORE, FSTORE       : cu_if.alu_b_sel = 2'd0;
-      REGREG      : cu_if.alu_b_sel = 2'd1;
-      IMMED, LOAD, FLOAD : cu_if.alu_b_sel = 2'd2;
-      AUIPC       : cu_if.alu_b_sel = 2'd3;
-      default     : cu_if.alu_b_sel = 2'd1;
+      REGREG      				: cu_if.alu_b_sel = 2'd1;
+      IMMED, LOAD, FLOAD 	: cu_if.alu_b_sel = 2'd2;
+      AUIPC       				: cu_if.alu_b_sel = 2'd3;
+      default     				: cu_if.alu_b_sel = 2'd1;
     endcase
   end
 
   // Assign write select
   always_comb begin
     case(cu_if.opcode)
-      LOAD, FLOAD                  : cu_if.w_sel   = 3'd0;
+      LOAD, FLOAD           : cu_if.w_sel   = 3'd0;
       JAL, JALR             : cu_if.w_sel   = 3'd1;
       LUI                   : cu_if.w_sel   = 3'd2;
       IMMED, AUIPC, REGREG  : cu_if.w_sel   = 3'd3;
@@ -176,7 +177,7 @@ module control_unit
                       (cu_if.opcode == FLOAD) ||
                       (cu_if.opcode == FSTORE));
 						
-						(cu_if.opcode == LOAD) (cu_if.opcode == STORE)
+						//(cu_if.opcode == LOAD) (cu_if.opcode == STORE)
   assign aluop_sub = (add_sub && cu_if.instr[30]);
   assign aluop_and = ((cu_if.opcode == IMMED && instr_i.funct3 == ANDI) ||
                       (cu_if.opcode == REGREG && instr_r.funct3 == AND));
@@ -233,7 +234,9 @@ module control_unit
       LUI, AUIPC, JAL, JALR,
       BRANCH, LOAD, STORE,
       IMMED, SYSTEM,
-      MISCMEM, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
+      MISCMEM,
+			FREGREG, FLOAD, FSTORE,
+			opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
       default                 : cu_if.illegal_insn = 1'b1;
     endcase
   end
