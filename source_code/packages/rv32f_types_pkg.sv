@@ -35,7 +35,7 @@ package rv32f_types_pkg;
   parameter FMT_W = 2;
   parameter RM_W = 3;
 
-  typedef logic [WORD_SIZE-1:0] word_t;
+  //typedef logic [WORD_SIZE-1:0] word_t;
 
   //typedef enum logic [FUNCT7_W-1:0] {
   //FLW = 7'b0000111,
