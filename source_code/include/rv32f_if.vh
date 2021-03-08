@@ -36,7 +36,7 @@ interface rv32f_if();
 
   modport fpu (
     input floating_point1, floating_point2, frm, funct7
-    output floating_point_out, flags
+    output floating_point_out, flags, f_stall
   );
 	
 

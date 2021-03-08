@@ -33,6 +33,7 @@
 `include "prv_pipeline_if.vh"
 `include "risc_mgmt_if.vh"
 `include "cache_control_if.vh"
+`include "rv32f_if.vh"
 
 
 module tspp_execute_stage(
@@ -49,6 +50,7 @@ module tspp_execute_stage(
 );
 
   import rv32i_types_pkg::*;
+	import rv32f_types_pkg::*;
 
   // Interface declarations
   control_unit_if   cu_if();
@@ -56,19 +58,30 @@ module tspp_execute_stage(
   alu_if            alu_if();
   jump_calc_if      jump_if();
   branch_res_if     branch_if(); 
+	rv32_if						fpu_if(); //TODO: change to better name
+	//add floating point unit here
  
   // Module instantiations
   control_unit cu (
     .cu_if(cu_if),
     .rf_if(rf_if),
+		//.fp_if(),
     .rmgmt_rsel_s_0(rm_if.rsel_s_0),
     .rmgmt_rsel_s_1(rm_if.rsel_s_1),
     .rmgmt_rsel_d(rm_if.rsel_d),
     .rmgmt_req_reg_r(rm_if.req_reg_r),
     .rmgmt_req_reg_w(rm_if.req_reg_w)
   );
-  rv32i_reg_file rf (.*);
+  rv32i_reg_file rf (.*); //TODO: change for fsel
   alu alu (.*);
+
+  /*******************************************************
+	*FPU: floating point reg file, FPU wrapper instantiation 
+  *******************************************************/
+
+  rv32i_reg_file f_rf (.*); //TODO: change for fsel
+	FPU_wrapper fpu (*.);     
+
   jump_calc jump_calc (.*);
   
   branch_res branch_res (
@@ -97,6 +110,7 @@ module tspp_execute_stage(
 
   assign rm_if.rdata_s_0 = rf_if.rs1_data;
   assign rm_if.rdata_s_1 = rf_if.rs2_data;
+	//do i need to add anything here?
 
 
   /*******************************************************

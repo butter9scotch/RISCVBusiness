@@ -26,6 +26,7 @@ module FPU_top_level
  input  [2:0]  frm,
  input  [6:0]  funct7,
  output [31:0] floating_point_out,
+	output 			 f_stall,
  output [4:0]  flags
  );
 
@@ -159,10 +160,10 @@ module FPU_top_level
    			       
    always_ff @ (posedge clk, negedge nrst) begin : STEP1_to_STEP2
       if(nrst == 0) begin
-         frm2           <= 0;
-	 step1_to_step2 <= 0;
-         funct7_2       <= 0;
-	 inv2           <= 0;/*
+         	frm2           <= 0;
+	 				step1_to_step2 <= 0;
+         	funct7_2       <= 0;
+	 				inv2           <= 0;/*
          sign_shifted     <= 0;
          frac_shifted     <= 0;
          sign_not_shifted <= 0;
@@ -170,10 +171,10 @@ module FPU_top_level
          exp_max          <= 0;*/
       end
       else begin
-         frm2           <= frm;
-	 step1_to_step2 <= nxt_step1_to_step2;
-	 funct7_2       <= funct7;
-	 inv2           <= inv;/*
+         	frm2           <= frm;
+	 				step1_to_step2 <= nxt_step1_to_step2;
+	 				funct7_2       <= funct7;
+	 				inv2           <= inv;/*
          sign_shifted     <= nxt_sign_shifted;
          frac_shifted     <= nxt_frac_shifted;
          sign_not_shifted <= nxt_sign_not_shifted;
@@ -212,38 +213,37 @@ module FPU_top_level
    
    always_comb begin : select_op_step2to3
       case(funct7_2)
-	ADD: begin
-	   nxt_step2_to_step3[37:36]= 2'b00;
-	   nxt_step2_to_step3[35]   = add_sign_out;
-	   nxt_step2_to_step3[34:9] = add_sum;
-	   nxt_step2_to_step3[8]    = add_carry_out;
-	   nxt_step2_to_step3[7:0]  = add_exp_max;
-	end
-	MUL: begin
-	   nxt_step2_to_step3[37]   = mul_ovf;
-       	   nxt_step2_to_step3[36]   = mul_unf;	      
-	   nxt_step2_to_step3[35]   = mul_sign_out;
-	   nxt_step2_to_step3[34:9] = step1_to_step2[43:18]; // product from MUL_step1
-	   nxt_step2_to_step3[8]    = step1_to_step2[17];    // mul_carry_out;
-	   nxt_step2_to_step3[7:0]  = sum_exp;
-	   
-	end
+				ADD: begin
+				   nxt_step2_to_step3[37:36]= 2'b00;
+				   nxt_step2_to_step3[35]   = add_sign_out;
+				   nxt_step2_to_step3[34:9] = add_sum;
+				   nxt_step2_to_step3[8]    = add_carry_out;
+				   nxt_step2_to_step3[7:0]  = add_exp_max;
+				end
+				MUL: begin
+				   nxt_step2_to_step3[37]   = mul_ovf;
+  			   nxt_step2_to_step3[36]   = mul_unf;	      
+				   nxt_step2_to_step3[35]   = mul_sign_out;
+				   nxt_step2_to_step3[34:9] = step1_to_step2[43:18]; // product from MUL_step1
+				   nxt_step2_to_step3[8]    = step1_to_step2[17];    // mul_carry_out;
+				   nxt_step2_to_step3[7:0]  = sum_exp;
+				end
       endcase // case (funct7_2)
    end // block: select_op_step2to3
    
    
    always_ff @ (posedge clk, negedge nrst) begin : STEP2_to_STEP3
       if(nrst == 0) begin
-	 funct7_3       <= 0;
-         step2_to_step3 <= 0;
-	 frm3           <= 0;
-	 inv3           <= 0;
+	 				funct7_3       <= 0;
+   	      step2_to_step3 <= 0;
+	 				frm3           <= 0;
+	 				inv3           <= 0;
       end
       else begin
-	 funct7_3       <= funct7_2;
-	 step2_to_step3 <= nxt_step2_to_step3;
-	 frm3           <= frm2;
-	 inv3           <= inv2;
+	 				funct7_3       <= funct7_2;
+	 				step2_to_step3 <= nxt_step2_to_step3;
+	 				frm3           <= frm2;
+	 				inv3           <= inv2;
       end 
    end  
 
