@@ -32,6 +32,9 @@
 `include "tspp_hazard_unit_if.vh"
 `include "core_interrupt_if.vh"
 
+//`include "FPU_all_if.vh"
+//`include "f_register_file_if.vh"
+
 module RISCVBusiness (
   input logic CLK, nRST,
   core_interrupt_if.core interrupt_if,
@@ -63,6 +66,24 @@ module RISCVBusiness (
 
   // Module Instantiations
 /*
+=======
+//  FPU_all_if fp_if();
+//  f_register_file_if freg_if();
+
+  // Module Instantiations
+/*
+  FPU_all FPU(
+    .CLK(CLK),
+    .nRST(nRST),
+    .fpif(fp_if)
+  );
+
+  f_register_file f_reg(
+    .CLK(CLK),
+    .nRST(nRST),
+    .frf_if(freg_if)
+  );
+*/
   pipeline_wrapper pipeline (
     .CLK(CLK),
     .nRST(nRST),

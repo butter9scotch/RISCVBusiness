@@ -33,6 +33,7 @@ package rv32i_types_pkg;
   parameter SW_W = 3;
   parameter IMM_W = 3;
   parameter REG_W = 3;
+  parameter FLOAT_W = 7;
 
   typedef logic [WORD_SIZE-1:0] word_t;
 
@@ -54,10 +55,13 @@ package rv32i_types_pkg;
     // All system instructions share an opcode
     SYSTEM    = 7'b1110011,
     MISCMEM  = 7'b0001111,
-	//Floating point instrs
-    FLOAD    = 7'b0000111,
-	  FSTORE   = 7'b0100111,
-	  FREGREG  = 7'b1010011
+
+    // Single precision floating point loads and stores
+    F_LW     = 7'b0000111,
+    F_SW     = 7'b0100111,
+
+    // shared op codes for floating point operations
+    F_OPS    = 7'b1010011
   } opcode_t;
 
   typedef enum logic [BR_W-1:0] {
@@ -68,6 +72,13 @@ package rv32i_types_pkg;
     BLTU    = 3'b110,
     BGEU    = 3'b111
   } branch_t;  
+
+  typedef enum logic [FLOAT_W-1:0] {
+    ADD      = 7'b0000000,
+    SUB      = 7'b0000100,
+    MULT      = 7'b0001000,
+    DIV     = 7'b0001100
+  } float_t;
 
   typedef enum logic [LD_W-1:0] {
     LB      = 3'b000,

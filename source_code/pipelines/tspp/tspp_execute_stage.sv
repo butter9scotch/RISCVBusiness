@@ -36,6 +36,8 @@
 `include "rv32f_if.vh"
 
 
+`include "FPU_all_if.vh"
+
 module tspp_execute_stage(
   input logic CLK, nRST,
   tspp_fetch_execute_if.execute fetch_ex_if,
@@ -58,9 +60,8 @@ module tspp_execute_stage(
   alu_if            alu_if();
   jump_calc_if      jump_if();
   branch_res_if     branch_if(); 
-	rv32_if						fpu_if(); //TODO: change to better name
-	//add floating point unit here
- 
+  FPU_all_if 	    fp_if();
+
   // Module instantiations
   control_unit cu (
     .cu_if(cu_if),
@@ -87,6 +88,21 @@ module tspp_execute_stage(
   branch_res branch_res (
     .br_if(branch_if)
   ); 
+
+assign fp_if.f_rd = cu_if.f_rd;
+assign fp_if.f_rs1 = cu_if.f_rs1;
+assign fp_if.f_rs2 = cu_if.f_rs2;
+assign fp_if.frm = cu_if.f_frm;
+assign fp_if.f_LW = cu_if.F_LW;
+assign fp_if.f_wen = 1;			//TODO: set to 1 for now, fix logic
+assign fp_if.f_funct_7 = cu_if.fpu_op;
+assign fp_if.f_LW_data = 31'd2;
+
+  FPU_wrapper FPU(
+    .CLK(CLK),
+    .nRST(nRST),
+    .fpif(fp_if)
+  );
 
   word_t store_swapped;
   endian_swapper store_swap (

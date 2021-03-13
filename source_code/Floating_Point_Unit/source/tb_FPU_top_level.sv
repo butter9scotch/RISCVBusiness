@@ -8,6 +8,8 @@ module tb_FPU_top_level();
    reg [31:0] floating_point_out;
    reg [6:0]  funct7;
    reg [4:0]  flags;
+   reg start_sig;
+   reg f_ready;
    
    always begin
       clk = ~clk;
@@ -25,67 +27,91 @@ module tb_FPU_top_level();
 		      .flags(flags)
 		      );
    
-   real        result_real;
+   shortreal        result_real;
    reg  [31:0] result_binary;
-   real        fp1_real;
-   real        fp2_real;
-   real        fp_out_real;
-   real        fp_exp;
-   real        fp_frac;
-
+   shortreal        fp1_real;
+   shortreal        fp2_real;
+   shortreal        fp_out_real;
+   shortreal        fp_exp;
+   shortreal        fp_frac;
+   int       i;
+   int       j = 0;
+   //real val1;
+   //shortreal val2;
    task random_check;
       begin
-	 if($random() % 2) funct7 = 7'b0100000;
-	 else              funct7 = 7'b0000010;
-	 frm       = $random() % 8;
-	 
+         //$display($bits(val1));
+   	 //$display($bits(val2));
+         //subnormal number
+	 frm = $random() % 8;
+	 funct7 = 7'b0001000;
 	 floating_point1 = $random();
 	 floating_point2 = $random();
+
 	 if(floating_point1[30:23] == 8'b11111111) 
 	   floating_point1[30:23] = 8'b11111110;
 	 if(floating_point2[30:23] == 8'b11111111) 
 	   floating_point2[30:23] = 8'b11111110;
-	 
+
+	 //convert from floating point to 2 real values
 	 fp_convert(.val(floating_point1), .fp(fp1_real));
 	 fp_convert(.val(floating_point2), .fp(fp2_real));
-	 if(funct7 == 7'b0100000) result_real = fp1_real + fp2_real;
-	 else if(funct7 == 7'b0000010) result_real = fp1_real * fp2_real;
+
+	 //performing real number arithemetic
+	 //
+	 if(funct7 == 7'b0000000) begin
+	    result_real = fp1_real + fp2_real; //addition
+	 end else if (funct7 == 7'b0001000) begin
+	    result_real = fp1_real * fp2_real; //multiplication
+         end else if (funct7 == 7'b0000100) begin
+	    result_real = fp1_real - fp2_real; //subtraction
+	 end
+	 
 	 else result_real = 'x;
-	 real_to_fp(.r(result_real), .fp(result_binary));
+	 
+	 real_to_fp(.r(result_real), .fp(result_binary)); //convert the real number back to floating point
 	 @(negedge clk);
 	 @(negedge clk);
 	 
+	 @(negedge clk);
 	 fp_convert(.val(floating_point_out), .fp(fp_out_real));
 	 #1;
-	 assert((floating_point_out == result_binary) || (floating_point_out == result_binary + 1)) 
-	   else $error("expected = %b, calculated = %b", result_binary, floating_point_out);
+	 assert((floating_point_out == result_binary) || (floating_point_out == result_binary + 1) || (floating_point_out == result_binary - 1)) 
+	   else begin
+	      j = j + 1;
+	      $error("expected = %b, calculated = %b, wrong case = %d, number = %d, fp1 is = %b, fp2 is = %b, result_real is %d", result_binary, floating_point_out, i, j, floating_point1, floating_point2, result_real);
+	//$error("expected = %b, calculated = %b, wrong case = %d, number = %d", result_binary, floating_point_out, i, j);
+	      //$display(fp1_real);//
+	      //$display(fp2_real);//
+	      //$display(result_real); //expected
+	      //$display(fp_out_real); //computed
+	   end
 	 //if((flags[1] == 0) & (flags[2] == 0)) begin
 	   // assert(flags[0] == 0) else $error("asdklfj;as");
 	 //end
-	 
 	 @(negedge clk);
-	 floating_point1 = 'x;
-	 floating_point2 = 'x;
-	 frm             = 'x;
-	 funct7          = 'x;
-	 result_real     = 'x;
-	 fp1_real        = 'x;
-	 fp2_real        = 'x;
-	 fp_exp          = 'x;
-	 fp_frac         = 'x;
+	 floating_point1 = '0;
+	 floating_point2 = '0;
+	 frm             = '0;
+	 funct7          = '0;
+	 result_real     = '0;
+	 fp1_real        = '0;
+	 fp2_real        = '0;
+	 fp_exp          = '0;
+	 fp_frac         = '0;
 	 @(negedge clk);
 	 
       end
    endtask // random_check
    
    task real_to_fp;
-      input real r;
+      input shortreal r;
       output reg [31:0] fp;
       begin
 	 
 	 int fp_index;
-	 real MAX;
-	 real MIN;
+	 shortreal MAX;
+	 shortreal MIN;
 	 
 	 fp_convert(32'b01111111011111111111111111111111, MAX);
 	 fp_convert(32'b00000000000000000000000000000000, MIN);
@@ -120,7 +146,7 @@ module tb_FPU_top_level();
 	    
 	    r -= 1;
 	    fp_index = 22;
-	    for(real i = 0.50; i != 2**-24; i /= 2) begin
+	    for(shortreal i = 0.50; i != 2**-24; i /= 2) begin
 	       if(r >= i) begin
 		  r -= i;
 		  fp[fp_index] = 1'b1;
@@ -133,11 +159,11 @@ module tb_FPU_top_level();
          
    task fp_convert;
       input [31:0] val;
-      output real  fp;
+      output shortreal  fp;
       begin
          
-	 fp_exp  = real'(val[30:23]);
-	 fp_frac = real'(val[22:0]);
+	 fp_exp  = shortreal'(val[30:23]);
+	 fp_frac = shortreal'(val[22:0]);
 
 	 fp_exp = fp_exp - 128;
 	 
@@ -152,17 +178,31 @@ module tb_FPU_top_level();
 	   fp = fp_frac * (2 ** fp_exp);
       end
    endtask // fp_convert
-   
+
+task reset_dut;
+  begin
+  nrst = 1'b0;
+
+  @(posedge clk);
+  @(posedge clk);
+
+  @(negedge clk);
+  nrst = 1'b1;
+
+  @(negedge clk);
+  @(negedge clk);
+  end
+endtask
+
 initial begin
-   nrst = 1;
-   @(negedge clk);
-   nrst = 0;
-   @(negedge clk);
-   nrst = 1;
-   
-   while(1) begin
-      random_check();
-   end      
+   reset_dut();
+   i = 0;
+//random_check();
+   while (1) begin
+	reset_dut();
+	i = i + 1;
+	random_check();
+  end //
 end
    
 endmodule // tb_FPU_top_level
