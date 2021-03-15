@@ -39,6 +39,7 @@ interface register_FPU_if(
 
 
 
+	//add fsel
   modport fp ( //to FPU
     input clk, n_rst, f_rs1_data, f_rs2_data, frm, funct_7, 
     output FPU_out, flags
