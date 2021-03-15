@@ -68,20 +68,10 @@ module control_unit
   assign rf_if.rs2  = rmgmt_req_reg_r ? rmgmt_rsel_s_1 : cu_if.instr[24:20];
   assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
   assign cu_if.shamt = cu_if.instr[24:20];
-<<<<<<< HEAD
-
-//FPU input signals
-
-  assign fpu_if.rs1  =  cu_if.instr[19:15];
-  assign fpu_if.rs2  =  cu_if.instr[24:20];
-  assign fpu_if.rd   =  cu_if.instr[11:7]; 
-  assign fpu_if.f_funct7   =  cu_if.instr[31:25]; 
-  //assign fpu_if.dload_ext = 
   
 
 
 
-=======
   assign cu_if.F_LW = cu_if.instr[6:0] == 7'b0000111;
   assign cu_if.F_SW = cu_if.instr[6:0] == 7'b0100111;
   assign cu_if.fpu_op = (cu_if.instr[6:0] == 7'b1010011) ? cu_if.instr[31:25] : 7'd0;
@@ -89,7 +79,8 @@ module control_unit
   assign cu_if.f_frm = cu_if.instr[14:12];
   assign cu_if.f_rs1 = cu_if.instr[19:15];
   assign cu_if.f_rs2 = cu_if.instr[24:20];
->>>>>>> FPU_dev
+  assign cu_if.f_sel = cu_if.F_LW | cu_if.F_SW | 
+											 (cu_if.fpu_op != '0);
  
   // assign the immediate values
   assign cu_if.imm_I  = instr_i.imm11_00;
@@ -126,17 +117,10 @@ module control_unit
   // Assign alu operands
   always_comb begin
     case(cu_if.opcode)
-<<<<<<< HEAD
-      REGREG, IMMED, LOAD, FLOAD : cu_if.alu_a_sel = 2'd0;
-      STORE, FSTORE              : cu_if.alu_a_sel = 2'd1;
-      AUIPC               			 : cu_if.alu_a_sel = 2'd2;
-      default             			 : cu_if.alu_a_sel = 2'd2;
-=======
       REGREG, IMMED, LOAD,F_LW : cu_if.alu_a_sel = 2'd0;
       STORE, F_SW               : cu_if.alu_a_sel = 2'd1;
       AUIPC               : cu_if.alu_a_sel = 2'd2;
       default             : cu_if.alu_a_sel = 2'd2;
->>>>>>> FPU_dev
     endcase
   end
 
@@ -165,12 +149,12 @@ module control_unit
   // Assign register write enable
   always_comb begin
     case(cu_if.opcode)
-      STORE, BRANCH, FSTORE       : cu_if.wen   = 1'b0;
+      STORE, BRANCH, FSTORE     : cu_if.wen   = 1'b0;
       IMMED, LUI, AUIPC,
       REGREG, JAL, JALR,
       LOAD, F_LW                : cu_if.wen   = 1'b1;
-      SYSTEM              : cu_if.wen   = cu_if.csr_rw_valid;
-      default:  cu_if.wen   = 1'b0;
+      SYSTEM              			: cu_if.wen   = cu_if.csr_rw_valid;
+      default:  								cu_if.wen   = 1'b0;
     endcase
   end
 
