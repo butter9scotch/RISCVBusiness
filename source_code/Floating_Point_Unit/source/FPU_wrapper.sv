@@ -14,8 +14,8 @@ module FPU_wrapper
 
 	FPU_top_level fpu(.clk(clk),
 										.nrst(nrst),
-										.floating_point1
-										.floating_point2
+										.floating_point1(fpu_if.floating_point1),
+										.floating_point2(fpu_if.floating_point2),
 										.frm(fpu_if.frm),
 										.funct7(fpu_if.funct7),
 										.floating_point_out(fpu_if.floating_point_out),

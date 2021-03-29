@@ -49,7 +49,7 @@ module control_unit
   ujtype_t        instr_uj;
   itype_t         instr_flw;
   itype_t         instr_fsw;
-  fregreg_t       instr_frr;
+  F_OPS_t       instr_frr;
   
 
   assign instr_s = stype_t'(cu_if.instr);
@@ -61,7 +61,7 @@ module control_unit
 	//use existing type
   assign instr_flw      = itype_t'( cu_if.instr);
   assign instr_fsw      = itype_t'( cu_if.instr);
-  assign instr_frr      = fregreg_t'( cu_if.instr);
+  assign instr_frr      = F_OPS_t'( cu_if.instr);
 
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
@@ -93,9 +93,9 @@ module control_unit
 
   assign cu_if.imm_shamt_sel = (cu_if.opcode == IMMED &&
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
-	assign cu_if.immFU = (cu_if.opcode == FLOAD) ?  {instr_flw.imm} : 
+	assign cu_if.immFU = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
 						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
-	assign cu_if.immFS = (cu_if.opcode == FLOAD) ?  {instr_flw.imm} : 
+	assign cu_if.immFS = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
 						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
 
   // Assign branch and load type
@@ -112,7 +112,7 @@ module control_unit
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.j_sel      = (cu_if.opcode == JAL);
-	assign cu_if.fsel				= (cu_if.opcode == FLOAD) || (cu_if.opcode == FSTORE) || (cu_if.opcode == FREGREG);
+	assign cu_if.fsel				= (cu_if.opcode == F_LW) || (cu_if.opcode == F_SW) || (cu_if.opcode == F_OPS);
 
   // Assign alu operands
   always_comb begin
@@ -149,7 +149,7 @@ module control_unit
   // Assign register write enable
   always_comb begin
     case(cu_if.opcode)
-      STORE, BRANCH, FSTORE     : cu_if.wen   = 1'b0;
+      STORE, BRANCH, F_SW     : cu_if.wen   = 1'b0;
       IMMED, LUI, AUIPC,
       REGREG, JAL, JALR,
       LOAD, F_LW                : cu_if.wen   = 1'b1;
@@ -177,7 +177,7 @@ module control_unit
                       (cu_if.opcode == LOAD) ||
                       (cu_if.opcode == STORE)||
                       (cu_if.opcode == FLOAD) ||
-                      (cu_if.opcode == FSTORE));
+                      (cu_if.opcode == F_SW));
 						
 						//(cu_if.opcode == LOAD) (cu_if.opcode == STORE)
   assign aluop_sub = (add_sub && cu_if.instr[30]);
@@ -237,7 +237,7 @@ module control_unit
       BRANCH, LOAD, STORE,
       IMMED, SYSTEM,
       MISCMEM,
-			FREGREG, FLOAD, FSTORE,
+			F_OPS, F_LW, F_SW,
 			opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
       default                 : cu_if.illegal_insn = 1'b1;
     endcase

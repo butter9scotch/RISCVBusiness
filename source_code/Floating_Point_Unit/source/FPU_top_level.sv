@@ -318,7 +318,6 @@ always_comb begin : check_shifted_frac_onezero
 	 			step1_to_step2 <= nxt_step1_to_step2;
 	 			funct7_2       <= funct7;
 	 			inv2           <= inv;
->>>>>>> FPU_dev
       end
    end 
 	 //perform addition
@@ -374,23 +373,6 @@ always_comb begin : check_shifted_frac_onezero
    always_comb begin : select_op_step2to3
       nxt_step2_to_step3 = 0;
       case(funct7_2)
-<<<<<<< HEAD
-				ADD: begin
-				   nxt_step2_to_step3[37:36]= 2'b00;
-				   nxt_step2_to_step3[35]   = add_sign_out;
-				   nxt_step2_to_step3[34:9] = add_sum;
-				   nxt_step2_to_step3[8]    = add_carry_out;
-				   nxt_step2_to_step3[7:0]  = add_exp_max;
-				end
-				MUL: begin
-				   nxt_step2_to_step3[37]   = mul_ovf;
-  			   nxt_step2_to_step3[36]   = mul_unf;	      
-				   nxt_step2_to_step3[35]   = mul_sign_out;
-				   nxt_step2_to_step3[34:9] = step1_to_step2[43:18]; // product from MUL_step1
-				   nxt_step2_to_step3[8]    = step1_to_step2[17];    // mul_carry_out;
-				   nxt_step2_to_step3[7:0]  = sum_exp;
-				end
-=======
 	ADD: begin
 	   nxt_step2_to_step3[37:36]= 2'b00;
 	   nxt_step2_to_step3[35]   = add_sign_out;
@@ -413,7 +395,6 @@ always_comb begin : check_shifted_frac_onezero
 	   nxt_step2_to_step3[8]    = minus_carry_out;
 	   nxt_step2_to_step3[7:0]  = minus_exp_max;
 	end
->>>>>>> FPU_dev
       endcase // case (funct7_2)
    end // block: select_op_step2to3
    

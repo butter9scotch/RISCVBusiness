@@ -36,7 +36,6 @@
 //`include "rv32f_if.vh"
 `include "FPU_if.svh"
 `include "register_FPU_if.svh"
-
 `include "FPU_all_if.vh"
 
 module tspp_execute_stage(
@@ -54,6 +53,7 @@ module tspp_execute_stage(
 
   import rv32i_types_pkg::*;
 	import rv32f_types_pkg::*;
+	import rv32f_pkg::*;
 
   // Interface declarations
   control_unit_if   cu_if();
@@ -61,8 +61,8 @@ module tspp_execute_stage(
   alu_if            alu_if();
   jump_calc_if      jump_if();
   branch_res_if     branch_if(); 
-  FPU_all_if 	    fp_if();
-	register_FPU_if ftf_if();
+  FPU_all_if 	    	fp_if();
+	register_FPU_if 	frf_if();
 
   // Module instantiations
   control_unit cu (
@@ -82,7 +82,7 @@ module tspp_execute_stage(
 	*FPU: floating point reg file, FPU wrapper instantiation 
   *******************************************************/
 
-	FPU_wrapper fpu (*.);     
+	FPU_wrapper fpu (.*);     
 
   jump_calc jump_calc (.*);
   
@@ -109,18 +109,19 @@ module tspp_execute_stage(
 
 
 
-	//register_FPU_if ftf_if (
-		assign ftf_if.n_rst				=	nRST;				//good
-		assign ftf_if.clk					=	CLK;					//good
-		assign ftf_if.f_rs1				=	cu_if.f_rs1;
-		assign ftf_if.f_rs2				=	cu_if.f_rs2;
-    assign ftf_if.f_rd				=	cu_if.f_rd;
-    assign ftf_if.f_LW				=	cu_if.f_LW;
-    assign ftf_if.f_SW				=	fpu_if.f_SW;			//TODO: fix
-    assign ftf_if.f_flags			=	fpu_if.f_flags; 	//TODO: fix
-    assign ftf_if.f_frm_out		=	fpu_if.f_frm_out; //TODO: fix
-		assign ftf_if.f_frm_in		=	cu_if.f_frm;
-		assign ftf_if.funct_7	 		=	cu_if.fpu_op;
+	//register_FPU_if frf_if (
+	assign frf_if.n_rst				=	nRST;				//good
+	assign frf_if.clk					=	CLK;					//good
+	assign frf_if.f_rs1				=	cu_if.f_rs1;
+	assign frf_if.f_rs2				=	cu_if.f_rs2;
+  assign frf_if.f_rd				=	cu_if.f_rd;
+  assign frf_if.f_LW				=	cu_if.F_LW;
+  assign frf_if.f_SW				=	cu_if.F_SW;				//TODO: fix
+	//assign frf_if.f_wen				= cu_if.
+  //assign frf_if.f_flags			=	fpu_if.f_flags; 	//TODO: fix
+  //assign frf_if.f_frm_out		=	fpu_if.f_frm_out; //TODO: fix
+	assign frf_if.f_frm_in		=	cu_if.f_frm;
+	assign frf_if.funct_7	 		=	cu_if.fpu_op;
   //); //FPU register file interface
 
 
@@ -130,24 +131,24 @@ module tspp_execute_stage(
 	clock_counter cc(frf_if.cc);
 	
 	FPU_top_level FPU(
-	.clk(frf_if.clk), 
-	.nrst(frf_if.n_rst),
-	.floating_point2(alu_if.port_a), //TODO: change
-	.floating_point2(alu_if.port_b), //TODO: change
-	.frm(frf_if.frm),
-	.funct7(frf_if.funct_7),
-	.floating_point_out(frf_if.FPU_out),
-	.flags(frf_if.flags)
+		.clk(frf_if.clk), 
+		.nrst(frf_if.n_rst),
+		.floating_point2(alu_if.port_a), 
+		.floating_point2(alu_if.port_b), 
+		.frm(frf_if.frm),
+		.funct7(frf_if.funct_7),
+		.floating_point_out(frf_if.FPU_out),
+		.flags(frf_if.flags)
 	);
 	
 	f_register_file f_rf(frf_if.rf);
 
+	word_t data_port_out;
 
-
-	);
+	
   word_t store_swapped;
   endian_swapper store_swap (
-    .word_in(rf_if.rs2_data),
+    .word_in(rf_if.rs2_data), //need to change
     .word_out(store_swapped)
   );
 
@@ -220,51 +221,49 @@ module tspp_execute_stage(
   assign alu_if.aluop = cu_if.alu_op;
   logic mal_addr;
  
-  always_comb begin
-    case (cu_if.alu_a_sel)
-      2'd0: alu_if.port_a = rf_if.rs1_data;
-      2'd1: alu_if.port_a = imm_S_ext;
-      2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
-      2'd3: alu_if.port_a = '0; //Not Used 
-			//TODO: FPU signals
-    endcase
-  end
-
-  always_comb begin
-    case(cu_if.alu_b_sel)
-      2'd0: alu_if.port_b = rf_if.rs1_data;
-      2'd1: alu_if.port_b = rf_if.rs2_data;
-      2'd2: alu_if.port_b = imm_or_shamt;
-      2'd3: alu_if.port_b = cu_if.imm_U;
-			//TODO: FPU signals
-    endcase
-  end
-
   /*******************************************************
   *** FPU Associated Logic 
   *******************************************************/
 
   always_comb begin
-    case (cu_if.alu_a_sel)
-      2'd0: alu_if.port_a = rf_if.rs1_data;
-      2'd1: alu_if.port_a = imm_S_ext;
-      2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
-      2'd3: alu_if.port_a = '0; //Not Used 
-			//TODO: FPU signals
-    endcase
+		if (cu_if.fpu_op == FPU_OPCODE_ARI) begin
+    	case (cu_if.alu_a_sel)
+    	  2'd0: alu_if.port_a = frf_if.rs1_data;
+    	  2'd1: alu_if.port_a = imm_S_ext;
+    	  2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
+    	  2'd3: alu_if.port_a = '0; //Not Used 
+    	endcase
+		end else begin
+    	case (cu_if.alu_a_sel)
+    	  2'd0: alu_if.port_a = rf_if.rs1_data;
+    	  2'd1: alu_if.port_a = imm_S_ext;
+    	  2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
+    	  2'd3: alu_if.port_a = '0; //Not Used 
+    	endcase
+		end
   end
 
   always_comb begin
-    case(cu_if.alu_b_sel)
-      2'd0: alu_if.port_b = rf_if.rs1_data;
-      2'd1: alu_if.port_b = rf_if.rs2_data;
-      2'd2: alu_if.port_b = imm_or_shamt;
-      2'd3: alu_if.port_b = cu_if.imm_U;
-			//TODO: FPU signals
-    endcase
+		if (cu_if.fpu_op == FPU_OPCODE_ARI) begin
+			//use -f signals
+    	case(cu_if.alu_b_sel)
+    	  2'd0: alu_if.port_b = frf_if.rs1_data;
+    	  2'd1: alu_if.port_b = frf_if.rs2_data;
+    	  2'd2: alu_if.port_b = imm_or_shamt;
+    	  2'd3: alu_if.port_b = cu_if.imm_U;
+    	endcase
+		end else begin
+			//use -i signals
+    	case(cu_if.alu_b_sel)
+    	  2'd0: alu_if.port_b = cu_if.f_sel ? frf_if.rs1_data : rf_if.rs1_data;
+    	  2'd1: alu_if.port_b = rf_if.rs2_data;
+    	  2'd2: alu_if.port_b = imm_or_shamt;
+    	  2'd3: alu_if.port_b = cu_if.imm_U;
+    	endcase
+		end
   end
 
-
+	assign data_port_out = cu_if.fpu_op == FPU_OPCODE_ARI ? frf_if.FPU_out : alu_if.port_out; 
   always_comb begin
     if(rm_if.req_reg_w) begin
       rf_if.w_data = rm_if.reg_wdata;
@@ -273,7 +272,7 @@ module tspp_execute_stage(
         3'd0    : rf_if.w_data = dload_ext;
         3'd1    : rf_if.w_data = fetch_ex_if.fetch_ex_reg.pc4;
         3'd2    : rf_if.w_data = cu_if.imm_U;
-        3'd3    : rf_if.w_data = alu_if.port_out;
+        3'd3    : rf_if.w_data = data_port_out; //changed for -f
         3'd4    : rf_if.w_data = prv_pipe_if.rdata;
         default : rf_if.w_data = '0; 
       endcase
@@ -281,8 +280,8 @@ module tspp_execute_stage(
   end
 
   assign rf_if.wen = (cu_if.wen | (rm_if.req_reg_w & rm_if.reg_w)) & (~hazard_if.if_ex_stall | hazard_if.npc_sel) & 
-                    ~(cu_if.dren & mal_addr); 
-										// & ~f_sel
+                    ~(cu_if.dren & mal_addr) 
+										 & ~cu_if.f_sel;
   /*******************************************************
   *** Branch Target Resolution and Associated Logic 
   *******************************************************/
@@ -325,9 +324,9 @@ module tspp_execute_stage(
   assign dgen_bus_if.wen        = rm_if.req_mem ? rm_if.mem_wen : cu_if.dwen & ~mal_addr;
   assign byte_en_temp           = rm_if.req_mem ? rm_if.mem_byte_en : byte_en_standard;
   assign dgen_bus_if.byte_en    = byte_en;
-  assign dgen_bus_if.addr       = rm_if.req_mem ? rm_if.mem_addr : alu_if.port_out;
+  assign dgen_bus_if.addr       = rm_if.req_mem ? rm_if.mem_addr : data_port_out;
   assign hazard_if.d_mem_busy   = dgen_bus_if.busy;
-  assign byte_offset            = alu_if.port_out[1:0]; 
+  assign byte_offset            = data_port_out[1:0]; 
   
   always_comb begin
     dgen_bus_if.wdata = '0;
@@ -450,7 +449,8 @@ module tspp_execute_stage(
   assign prv_pipe_if.swap  = cu_if.csr_swap;
   assign prv_pipe_if.clr   = cu_if.csr_clr;
   assign prv_pipe_if.set   = cu_if.csr_set;
-  assign prv_pipe_if.wdata = cu_if.csr_imm ? {27'h0, cu_if.zimm} : rf_if.rs1_data;
+  assign prv_pipe_if.wdata = cu_if.csr_imm ? {27'h0, cu_if.zimm} :
+														 cu_if.f_sel ?	frf_if.rs1_data : rf_if.rs1_data; //hmm double check
   assign prv_pipe_if.addr  = cu_if.csr_addr;
   assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr |
                                     prv_pipe_if.set) & ~hazard_if.if_ex_stall;

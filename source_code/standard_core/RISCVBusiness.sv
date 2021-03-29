@@ -65,8 +65,8 @@ module RISCVBusiness (
   logic halt;    //JOHN CHANGED THIS
 
   // Module Instantiations
-/*
-=======
+
+
 //  FPU_all_if fp_if();
 //  f_register_file_if freg_if();
 
@@ -84,19 +84,21 @@ module RISCVBusiness (
     .frf_if(freg_if)
   );
 */
+// TODO: Look at the communications between pipeline_wrapper and priv_wrapper
+
   pipeline_wrapper pipeline (
     .CLK(CLK),
     .nRST(nRST),
     .halt(halt),
     .igen_bus_if(tspp_icache_gen_bus_if),
     .dgen_bus_if(tspp_dcache_gen_bus_if),
-    .prv_pipe_if(prv_pipe_if), // TODO: Look at the communications between pipeline_wrapper and priv_wrapper
-    .predict_if(predict_if),
+    .prv_pipe_if(prv_pipe_if),     
+		.predict_if(predict_if),
     .rm_if(rm_if),
     .cc_if(cc_if),
     .sparce_if(sparce_if)
   );
-*/
+
   tspp_fetch_stage fetch_stage_i (
     .CLK(CLK),
     .nRST(nRST),

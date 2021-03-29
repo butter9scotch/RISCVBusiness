@@ -27,7 +27,7 @@
 
 interface rv32f_if();
 
-  import rv32f_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   word_t  floating_point1, floating_point2, floating_point_out;
 	logic [2:0] frm;
@@ -35,7 +35,7 @@ interface rv32f_if();
   logic [4:0] flags;
 
   modport fpu (
-    input floating_point1, floating_point2, frm, funct7
+    input floating_point1, floating_point2, frm, funct7,
     output floating_point_out, flags, f_stall
   );
 	

@@ -22,6 +22,7 @@
 *   Description:  Package containing types used for a RV32F implementation
 */
 
+/*
 `ifndef RV32F_TYPES_PKG_SV
 `define RV32F_TYPES_PKG_SV
 package rv32f_types_pkg;
@@ -59,3 +60,4 @@ package rv32f_types_pkg;
 
 endpackage
 `endif
+*/
