@@ -1,7 +1,7 @@
 
 module ADD_step3
   (
-   input reg out_of_range,
+   input logic out_of_range,
    input    reg        mul_ovf,
    input reg         mul_carry_out,
    input [6:0] 	 function_mode,

@@ -33,6 +33,7 @@ interface rv32f_if();
 	logic [2:0] frm;
 	logic [6:0] funct7;
   logic [4:0] flags;
+	logic f_stall;
 
   modport fpu (
     input floating_point1, floating_point2, frm, funct7,

@@ -22,7 +22,7 @@
 *   Description:  This extension is the Template for creating rytpe custom
 *                 instructions. 
 */
-
+/*
 `include "risc_mgmt_decode_if.vh"
 
 module rv32f_decode (
@@ -79,3 +79,4 @@ module rv32f_decode (
   end
 
 endmodule
+*/

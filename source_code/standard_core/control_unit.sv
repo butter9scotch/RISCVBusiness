@@ -32,13 +32,13 @@ module control_unit
 (
   control_unit_if.control_unit  cu_if,
   rv32i_reg_file_if.cu          rf_if,
-  rv32f_if.fpu					fpu_if,
+  rv32f_if.fpu				fpu_if,
   input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
   input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
-  import rv32f_types_pkg::*;
+  //import rv32f_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   stype_t         instr_s;
@@ -49,7 +49,7 @@ module control_unit
   ujtype_t        instr_uj;
   itype_t         instr_flw;
   itype_t         instr_fsw;
-  F_OPS_t       instr_frr;
+  //F_OPS_t       instr_frr;
   
 
   assign instr_s = stype_t'(cu_if.instr);
@@ -61,7 +61,7 @@ module control_unit
 	//use existing type
   assign instr_flw      = itype_t'( cu_if.instr);
   assign instr_fsw      = itype_t'( cu_if.instr);
-  assign instr_frr      = F_OPS_t'( cu_if.instr);
+  //assign instr_frr      = F_OPS_t'( cu_if.instr);
 
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
@@ -176,7 +176,7 @@ module control_unit
                       (add_sub && ~cu_if.instr[30]) ||
                       (cu_if.opcode == LOAD) ||
                       (cu_if.opcode == STORE)||
-                      (cu_if.opcode == FLOAD) ||
+                      (cu_if.opcode == F_LW) ||
                       (cu_if.opcode == F_SW));
 						
 						//(cu_if.opcode == LOAD) (cu_if.opcode == STORE)

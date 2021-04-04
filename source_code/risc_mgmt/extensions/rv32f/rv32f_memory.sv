@@ -22,7 +22,7 @@
 *   Description:  This extension is the Template for creating rytpe custom
 *                 instructions
 */
-
+/*
 `include "risc_mgmt_memory_if.vh"
 
 module rv32f_memory (
@@ -63,3 +63,4 @@ module rv32f_memory (
   end
 
 endmodule
+*/

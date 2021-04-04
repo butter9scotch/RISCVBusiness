@@ -37,6 +37,7 @@
 `include "FPU_if.svh"
 `include "register_FPU_if.svh"
 `include "FPU_all_if.vh"
+`include "rv32f_if.vh"
 
 module tspp_execute_stage(
   input logic CLK, nRST,
@@ -52,8 +53,9 @@ module tspp_execute_stage(
 );
 
   import rv32i_types_pkg::*;
-	import rv32f_types_pkg::*;
-	import rv32f_pkg::*;
+	//import rv32f_types_pkg::*;
+	//import rv32f_pkg::*;
+	import fpu_pkg::*;
 
   // Interface declarations
   control_unit_if   cu_if();
@@ -61,14 +63,15 @@ module tspp_execute_stage(
   alu_if            alu_if();
   jump_calc_if      jump_if();
   branch_res_if     branch_if(); 
-  FPU_all_if 	    	fp_if();
+  FPU_all_if 	    	fp_if();// not needed
 	register_FPU_if 	frf_if();
+	rv32f_if 					f_if();
 
   // Module instantiations
   control_unit cu (
     .cu_if(cu_if),
     .rf_if(rf_if),
-		//.fp_if(),
+		.fpu_if(f_if.fpu),
     .rmgmt_rsel_s_0(rm_if.rsel_s_0),
     .rmgmt_rsel_s_1(rm_if.rsel_s_1),
     .rmgmt_rsel_d(rm_if.rsel_d),
@@ -78,75 +81,15 @@ module tspp_execute_stage(
   rv32i_reg_file rf (.*); 
   alu alu (.*);
 
-  /*******************************************************
-	*FPU: floating point reg file, FPU wrapper instantiation 
-  *******************************************************/
-
-	FPU_wrapper fpu (.*);     
-
   jump_calc jump_calc (.*);
   
   branch_res branch_res (
     .br_if(branch_if)
   ); 
 
-// assign fp_if.f_rd = cu_if.f_rd;
-// assign fp_if.f_rs1 = cu_if.f_rs1;
-// assign fp_if.f_rs2 = cu_if.f_rs2;
-// assign fp_if.frm = cu_if.f_frm;
-// assign fp_if.f_LW = cu_if.F_LW;
-// assign fp_if.f_wen = 1;			//TODO: set to 1 for now, fix logic
-// assign fp_if.f_funct_7 = cu_if.fpu_op;
-// assign fp_if.f_LW_data = 31'd2;
-
-	//split
- // FPU_wrapper FPU(
- //   .CLK(CLK),
- //   .nRST(nRST),
- //   .fpif(fp_if)
- // );
-
-
-
-
-	//register_FPU_if frf_if (
-	assign frf_if.n_rst				=	nRST;				//good
-	assign frf_if.clk					=	CLK;					//good
-	assign frf_if.f_rs1				=	cu_if.f_rs1;
-	assign frf_if.f_rs2				=	cu_if.f_rs2;
-  assign frf_if.f_rd				=	cu_if.f_rd;
-  assign frf_if.f_LW				=	cu_if.F_LW;
-  assign frf_if.f_SW				=	cu_if.F_SW;				//TODO: fix
-	//assign frf_if.f_wen				= cu_if.
-  //assign frf_if.f_flags			=	fpu_if.f_flags; 	//TODO: fix
-  //assign frf_if.f_frm_out		=	fpu_if.f_frm_out; //TODO: fix
-	assign frf_if.f_frm_in		=	cu_if.f_frm;
-	assign frf_if.funct_7	 		=	cu_if.fpu_op;
-  //); //FPU register file interface
-
-
-	assign frf_if.f_w_data = fpu_if.f_LW ? fpu_if.dload_ext : frf_if.FPU_out;
-	assign fpu_if.FPU_all_out = fpu_if.f_SW ? frf_if.f_rs2_data : '0; 
-
-	clock_counter cc(frf_if.cc);
-	
-	FPU_top_level FPU(
-		.clk(frf_if.clk), 
-		.nrst(frf_if.n_rst),
-		.floating_point2(alu_if.port_a), 
-		.floating_point2(alu_if.port_b), 
-		.frm(frf_if.frm),
-		.funct7(frf_if.funct_7),
-		.floating_point_out(frf_if.FPU_out),
-		.flags(frf_if.flags)
-	);
-	
-	f_register_file f_rf(frf_if.rf);
-
 	word_t data_port_out;
-
-	
   word_t store_swapped;
+
   endian_swapper store_swap (
     .word_in(rf_if.rs2_data), //need to change
     .word_out(store_swapped)
@@ -160,6 +103,43 @@ module tspp_execute_stage(
     .byte_en(byte_en),
     .ext_out(dload_ext)
   );
+  /*******************************************************
+	*FPU: floating point reg file, FPU wrapper instantiation 
+  *******************************************************/
+
+	FPU_top_level FPU(
+		.clk(frf_if.clk), 
+		.nrst(frf_if.n_rst),
+		.floating_point1(alu_if.port_a), 
+		.floating_point2(alu_if.port_b), 
+		.frm(frf_if.frm),
+		.funct7(frf_if.funct_7),
+		.floating_point_out(frf_if.FPU_out),
+		.flags(frf_if.flags)
+	);
+
+	//FPU register file interface
+	assign frf_if.n_rst				=	nRST;				//good
+	assign frf_if.clk					=	CLK;					//good
+	assign frf_if.f_rs1				=	cu_if.f_rs1;
+	assign frf_if.f_rs2				=	cu_if.f_rs2;
+  assign frf_if.f_rd				=	cu_if.f_rd;
+  assign frf_if.f_LW				=	cu_if.F_LW;
+  assign frf_if.f_SW				=	cu_if.F_SW;				//TODO: fix
+	//assign frf_if.f_wen				= cu_if.
+  //assign frf_if.f_flags			=	fpu_if.f_flags; 	//TODO: fix
+  //assign frf_if.f_frm_out		=	fpu_if.f_frm_out; //TODO: fix
+	assign frf_if.f_frm_in		=	cu_if.f_frm;
+	assign frf_if.funct_7	 		=	cu_if.fpu_op;
+
+
+	assign frf_if.f_w_data = fpu_if.f_LW ? fpu_if.dload_ext : frf_if.FPU_out;
+	assign fpu_if.FPU_all_out = fpu_if.f_SW ? frf_if.f_rs2_data : '0; 
+
+	clock_counter cc(frf_if.cc);
+	
+	
+	f_register_file f_rf(frf_if.rf);
 
 
   /*******************************************************
@@ -176,9 +156,9 @@ module tspp_execute_stage(
   *******************************************************/
   generate
     if (BUS_ENDIANNESS == "big")
-    begin
-      assign byte_en = byte_en_temp;
-    end else if (BUS_ENDIANNESS == "little")
+		begin
+			assign byte_en = byte_en_temp;
+		end else if (BUS_ENDIANNESS == "little")
     begin
       assign byte_en = cu_if.dren ? byte_en_temp :
               {byte_en_temp[0], byte_en_temp[1],
@@ -227,12 +207,12 @@ module tspp_execute_stage(
 
   always_comb begin
 		if (cu_if.fpu_op == FPU_OPCODE_ARI) begin
-    	case (cu_if.alu_a_sel)
-    	  2'd0: alu_if.port_a = frf_if.rs1_data;
-    	  2'd1: alu_if.port_a = imm_S_ext;
-    	  2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
-    	  2'd3: alu_if.port_a = '0; //Not Used 
-    	endcase
+			case (cu_if.alu_a_sel)
+				2'd0: alu_if.port_a = frf_if.rs1_data;
+				2'd1: alu_if.port_a = imm_S_ext;
+				2'd2: alu_if.port_a = fetch_ex_if.fetch_ex_reg.pc;
+				2'd3: alu_if.port_a = '0; //Not Used 
+			endcase
 		end else begin
     	case (cu_if.alu_a_sel)
     	  2'd0: alu_if.port_a = rf_if.rs1_data;

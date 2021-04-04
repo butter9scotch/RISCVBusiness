@@ -33,7 +33,7 @@ assign fpu_if.FPU_all_out = fpu_if.f_SW ? frf_if.f_rs2_data : '0;
 // assign frf_if.f_rd = fpu_if.f_rd;
 // assign frf_if.f_LW = fpu_if.f_LW;
 // assign frf_if.f_SW = fpu_if.f_SW;
-
+    
 
 clock_counter cc(frf_if.cc);
 

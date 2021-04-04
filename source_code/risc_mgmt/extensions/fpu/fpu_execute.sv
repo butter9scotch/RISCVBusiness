@@ -56,13 +56,13 @@ module fpu_execute (
 
   always_ff @ (posedge CLK, negedge nRST) begin //not sure
     if (~nRST) begin
-      idex.fpu_result 	<= '0;
-      idex.flags_result <= '0;
-      idex.frm_result 	<= '0;
+      exmem.fpu_result 	<= '0;
+      exmem.flags_result <= '0;
+      exmem.frm_result 	<= '0;
     end if (eif.start == 1'b1) begin
-      idex.fpu_result 	<= fpu_result_temp;
-      idex.flags_result <= flags_result_temp;
-      idex.frm_result 	<= frm_result_temp;
+      exmem.fpu_result 	<= fpu_result_temp;
+      exmem.flags_result <= flags_result_temp;
+      exmem.frm_result 	<= frm_result_temp;
     end
   end
 

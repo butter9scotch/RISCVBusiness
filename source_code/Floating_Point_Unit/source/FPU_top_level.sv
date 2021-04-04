@@ -61,7 +61,7 @@ module FPU_top_level
    reg [7:0]   mul_exp2;
    reg [25:0]  product;
    reg         mul_carry_out;
-   reg 		   out_of_range;
+   logic 		   out_of_range;
    
    reg [61:0]  step1_to_step2;
    reg [61:0]  nxt_step1_to_step2;

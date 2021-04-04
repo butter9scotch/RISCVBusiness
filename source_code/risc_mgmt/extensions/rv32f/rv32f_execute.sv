@@ -22,7 +22,7 @@
 *   Description:  This extension is the Template for creating rytpe custom
 *                 instructions. 
 */
-
+/*
 `include "risc_mgmt_execute_if.vh"
 
 module rv32f_execute (
@@ -76,3 +76,4 @@ module rv32f_execute (
   assign eif.reg_wdata = fpu_result_temp; //but we have three outputs(fpu_out, flags, and frm)
 
 endmodule
+*/

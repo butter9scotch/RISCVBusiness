@@ -1,0 +1,135 @@
+Waf: Entering directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'
+[1/3] Processing IncisiveTask: RISCVBusiness_packages_nclib
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+
+[2/3] Processing IncisiveTask: RISCVBusiness_nclib
+
+[3/3] Processing IncisiveTask: tb_RISCVBusiness_nclib
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+    $urandom(seed);
+           |
+ncvlog: *W,NOSYST (../source_code/tb/tb_caches.sv,156|11): System function '$urandom' invoked as a task. Return value will be ignored.
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+ncvlog: *N,DLWTLK: Pausing until a exclusive lock can be established on library 'RISCVBusiness_nclib'.  Another process may be accessing the library.  Process will resume when the lock is established.
+ncvlog: *W,DLWNEW: Intermediate file verilog_package RISCVBusiness_packages_nclib.rv32i_types_pkg:verilog_package (VST)
+	is newer than expected by verilog_package RISCVBusiness_packages_nclib.rv32f_types_pkg:verilog_package (VST)
+		actual:   Fri Apr  2 22:47:50 2021
+		expected: Sun Mar 21 18:05:27 2021.
+module int_compare(funct7, exp1, exp2, u_diff, cmp_out);
+                 |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,6|17): recompiling design unit RISCVBusiness_nclib.int_compare.
+	First compiled from line 13 of ../source_code/Floating_Point_Unit/source/int_compare.sv.
+module ADD_step1(funct7, floating_point1_in, floating_point2_in,
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,436|15): recompiling design unit RISCVBusiness_nclib.ADD_step1.
+	First compiled from line 17 of ../source_code/Floating_Point_Unit/source/ADD_step1.sv.
+module subtract(exp1, shifted_amount, result);
+              |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,1275|14): recompiling design unit RISCVBusiness_nclib.subtract.
+	First compiled from line 3 of ../source_code/Floating_Point_Unit/source/subtract.sv.
+module ADD_step3(mul_ovf, mul_carry_out, function_mode,
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,2188|15): recompiling design unit RISCVBusiness_nclib.ADD_step3.
+	First compiled from line 2 of ../source_code/Floating_Point_Unit/source/ADD_step3.sv.
+module determine_frac_status(fp1_frac1, fp2_frac2, frac_same);
+                           |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,2552|27): recompiling design unit RISCVBusiness_nclib.determine_frac_status.
+	First compiled from line 1 of ../source_code/Floating_Point_Unit/source/determine_frac_status.sv.
+module sign_determine(cmp_out, same_compare, frac_same,
+                    |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,6532|20): recompiling design unit RISCVBusiness_nclib.sign_determine.
+	First compiled from line 1 of ../source_code/Floating_Point_Unit/source/sign_determine.sv.
+module SUB_step3(sum_init, unsigned_exp_diff, n1p2r, wm, clk, nrst,
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,9674|15): recompiling design unit RISCVBusiness_nclib.SUB_step3.
+	First compiled from line 17 of ../source_code/Floating_Point_Unit/source/SUB_step3.sv.
+module SUB_step1(funct7, bothnegsub, floating_point1_in,
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fpu.v,11025|15): recompiling design unit RISCVBusiness_nclib.SUB_step1.
+	First compiled from line 18 of ../source_code/Floating_Point_Unit/source/SUB_step1.sv.
+module MUL_step1
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/MUL_step1.sv,16|15): recompiling design unit RISCVBusiness_nclib.MUL_step1.
+	First compiled from line 6380 of ../source_code/Floating_Point_Unit/fpu.v.
+module c_to_cp
+             |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/c_to_cp.sv,1|13): recompiling design unit RISCVBusiness_nclib.c_to_cp.
+	First compiled from line 6670 of ../source_code/Floating_Point_Unit/fpu.v.
+module rounder(
+             |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/rounder.sv,15|13): recompiling design unit RISCVBusiness_nclib.rounder.
+	First compiled from line 1227 of ../source_code/Floating_Point_Unit/fpu.v.
+module u_to_s(
+            |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/u_to_s.sv,38|12): recompiling design unit RISCVBusiness_nclib.u_to_s.
+	First compiled from line 686 of ../source_code/Floating_Point_Unit/fpu.v.
+module FPU_top_level
+                   |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/FPU_top_level.sv,21|19): recompiling design unit RISCVBusiness_nclib.FPU_top_level.
+	First compiled from line 11422 of ../source_code/Floating_Point_Unit/fpu.v.
+module int_comparesub(
+                    |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/int_comparesub.sv,13|20): recompiling design unit RISCVBusiness_nclib.int_comparesub.
+	First compiled from line 2467 of ../source_code/Floating_Point_Unit/fpu.v.
+module right_shift(
+                 |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/right_shift.sv,13|17): recompiling design unit RISCVBusiness_nclib.right_shift.
+	First compiled from line 149 of ../source_code/Floating_Point_Unit/fpu.v.
+module adder_26b(
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/adder_26b.sv,13|15): recompiling design unit RISCVBusiness_nclib.adder_26b.
+	First compiled from line 668 of ../source_code/Floating_Point_Unit/fpu.v.
+module adder_8b(
+              |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/adder_8b.sv,13|14): recompiling design unit RISCVBusiness_nclib.adder_8b.
+	First compiled from line 6434 of ../source_code/Floating_Point_Unit/fpu.v.
+ncvlog: *W,DLWNEW: Intermediate file verilog_package RISCVBusiness_packages_nclib.rv32i_types_pkg:verilog_package (VST)
+	is newer than expected by verilog_package RISCVBusiness_packages_nclib.rv32f_types_pkg:verilog_package (VST)
+		actual:   Fri Apr  2 22:47:50 2021
+		expected: Sun Mar 21 18:05:27 2021.
+module add_unsigned_GENERIC_REAL(A, B, Z);
+                               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fv/FPU_top_level/dp_info.v,1|31): recompiling design unit RISCVBusiness_nclib.add_unsigned_GENERIC_REAL.
+	First compiled from line 1 of ../source_code/Floating_Point_Unit/fv/adder_26b/dp_info.v.
+module add_unsigned_GENERIC(A, B, Z);
+                          |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fv/FPU_top_level/dp_info.v,181|26): recompiling design unit RISCVBusiness_nclib.add_unsigned_GENERIC.
+	First compiled from line 376 of ../source_code/Floating_Point_Unit/fv/adder_26b/dp_info.v.
+module s_to_u(
+            |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/s_to_u.sv,2|12): recompiling design unit RISCVBusiness_nclib.s_to_u.
+	First compiled from line 936 of ../source_code/Floating_Point_Unit/fpu.v.
+module SUB_step2
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/SUB_step2.sv,1|15): recompiling design unit RISCVBusiness_nclib.SUB_step2.
+	First compiled from line 7270 of ../source_code/Floating_Point_Unit/fpu.v.
+module sub_26b(
+             |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/sub_26b.sv,16|13): recompiling design unit RISCVBusiness_nclib.sub_26b.
+	First compiled from line 7195 of ../source_code/Floating_Point_Unit/fpu.v.
+module ADD_step2
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/ADD_step2.sv,18|15): recompiling design unit RISCVBusiness_nclib.ADD_step2.
+	First compiled from line 1058 of ../source_code/Floating_Point_Unit/fpu.v.
+module mul_26b
+             |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/mul_26b.sv,13|13): recompiling design unit RISCVBusiness_nclib.mul_26b.
+	First compiled from line 2740 of ../source_code/Floating_Point_Unit/fpu.v.
+module MUL_step2
+               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/MUL_step2.sv,17|15): recompiling design unit RISCVBusiness_nclib.MUL_step2.
+	First compiled from line 6517 of ../source_code/Floating_Point_Unit/fpu.v.
+module rounder_sub(
+                 |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/rounder_sub.sv,12|17): recompiling design unit RISCVBusiness_nclib.rounder_sub.
+	First compiled from line 7599 of ../source_code/Floating_Point_Unit/fpu.v.
+module left_shift(
+                |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/source/left_shift.sv,12|16): recompiling design unit RISCVBusiness_nclib.left_shift.
+	First compiled from line 9578 of ../source_code/Floating_Point_Unit/fpu.v.
+
+Waf: Leaving directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'
+'verify_source' finished successfully (3.450s)

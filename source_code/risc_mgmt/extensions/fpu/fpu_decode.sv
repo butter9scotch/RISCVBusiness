@@ -70,7 +70,7 @@ module fpu_decode (
       idex.rs2 = insn.rs2;
       idex.rs1 = insn.rs1;
     end else if (OPCODE == FPU_OPCODE_ARI) begin
-      idex.funct7 = {offset_funct5, offset_fmt};
+      idex.funct7 = {insn.offset_funct5, insn.offset_fmt};
       idex.rs2 = insn.offset_rs2;
       idex.rs1 = insn.rs1;
       idex.rd = insn.rd_offset;
