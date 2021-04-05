@@ -1,0 +1,24 @@
+Waf: Entering directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'
+[1/3] Processing IncisiveTask: RISCVBusiness_packages_nclib
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+
+[2/3] Processing IncisiveTask: RISCVBusiness_nclib
+
+[3/3] Processing IncisiveTask: tb_RISCVBusiness_nclib
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+module add_unsigned_GENERIC_REAL(A, B, Z);
+                               |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fv/FPU_top_level/dp_info.v,1|31): recompiling design unit RISCVBusiness_nclib.add_unsigned_GENERIC_REAL.
+	First compiled from line 1 of ../source_code/Floating_Point_Unit/fv/adder_26b/dp_info.v.
+module add_unsigned_GENERIC(A, B, Z);
+                          |
+ncvlog: *W,RECOMP (../source_code/Floating_Point_Unit/fv/FPU_top_level/dp_info.v,181|26): recompiling design unit RISCVBusiness_nclib.add_unsigned_GENERIC.
+	First compiled from line 376 of ../source_code/Floating_Point_Unit/fv/adder_26b/dp_info.v.
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+ncvlog: *N,DLWTLK: Pausing until a shared lock can be established on library 'RISCVBusiness_nclib'.  Another process may be accessing the library.  Process will resume when the lock is established.
+
+Waf: Leaving directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'
+Interrupted 

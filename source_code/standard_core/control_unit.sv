@@ -26,13 +26,11 @@
 `include "control_unit_if.vh"
 `include "rv32i_reg_file_if.vh"
 `include "risc_mgmt_if.vh"
-`include "rv32f_if.vh"
 
 module control_unit 
 (
   control_unit_if.control_unit  cu_if,
   rv32i_reg_file_if.cu          rf_if,
-  rv32f_if.fpu				fpu_if,
   input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
   input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
@@ -72,15 +70,13 @@ module control_unit
 
 
 
-  assign cu_if.F_LW = cu_if.instr[6:0] == 7'b0000111;
-  assign cu_if.F_SW = cu_if.instr[6:0] == 7'b0100111;
+  assign cu_if.f_LW = cu_if.instr[6:0] == 7'b0000111;
+  assign cu_if.f_SW = cu_if.instr[6:0] == 7'b0100111;
   assign cu_if.fpu_op = (cu_if.instr[6:0] == 7'b1010011) ? cu_if.instr[31:25] : 7'd0;
   assign cu_if.f_rd = cu_if.instr[11:7];
   assign cu_if.f_frm = cu_if.instr[14:12];
   assign cu_if.f_rs1 = cu_if.instr[19:15];
   assign cu_if.f_rs2 = cu_if.instr[24:20];
-  assign cu_if.f_sel = cu_if.F_LW | cu_if.F_SW | 
-											 (cu_if.fpu_op != '0);
  
   // assign the immediate values
   assign cu_if.imm_I  = instr_i.imm11_00;
@@ -93,10 +89,10 @@ module control_unit
 
   assign cu_if.imm_shamt_sel = (cu_if.opcode == IMMED &&
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
-	assign cu_if.immFU = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
-						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
-	assign cu_if.immFS = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
-						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
+//	assign cu_if.immFU = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
+//						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
+//	assign cu_if.immFS = (cu_if.opcode == F_LW) ?  {instr_flw.imm} : 
+//						 {instr_fsw.imm_upper, instr_fsw.imm_lower};
 
   // Assign branch and load type
   assign cu_if.load_type    = load_t'(instr_i.funct3);
@@ -112,7 +108,7 @@ module control_unit
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.j_sel      = (cu_if.opcode == JAL);
-	assign cu_if.fsel				= (cu_if.opcode == F_LW) || (cu_if.opcode == F_SW) || (cu_if.opcode == F_OPS);
+	assign cu_if.f_sel				= (cu_if.opcode == F_LW) || (cu_if.opcode == F_SW) || (cu_if.opcode == F_OPS);
 
   // Assign alu operands
   always_comb begin

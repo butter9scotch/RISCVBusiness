@@ -27,7 +27,6 @@
 //`include "FPU_if.svh"
 `include "register_FPU_if.svh"
 module f_register_file (
-  // input CLK, nRST,
   // FPU_if.fp fpa_if,
   // register_FPU_if.fp frf_fp
   register_FPU_if.rf frf_rf

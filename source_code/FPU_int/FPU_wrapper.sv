@@ -1,4 +1,4 @@
-`include "FPU_all_if.vh"
+/*`include "FPU_all_if.vh"
 `include "component_selection_defines.vh"
 
 module FPU_wrapper(
@@ -13,4 +13,5 @@ generate
   endcase
 endgenerate
 
-endmodule
+endmodule 
+*/

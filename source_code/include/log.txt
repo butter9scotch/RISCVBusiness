@@ -1,0 +1,6 @@
+Waf: Entering directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'
+[1/3] Processing IncisiveTask: RISCVBusiness_packages_nclib
+
+ncvlog(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+
+Waf: Leaving directory `/home/asicfab/a/socet49/AFTx06/RISCVBusiness/build'

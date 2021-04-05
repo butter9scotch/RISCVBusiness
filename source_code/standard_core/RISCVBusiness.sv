@@ -85,7 +85,7 @@ module RISCVBusiness (
   );
 */
 // TODO: Look at the communications between pipeline_wrapper and priv_wrapper
-
+/*
   pipeline_wrapper pipeline (
     .CLK(CLK),
     .nRST(nRST),
@@ -98,7 +98,7 @@ module RISCVBusiness (
     .cc_if(cc_if),
     .sparce_if(sparce_if)
   );
-
+*/
   tspp_fetch_stage fetch_stage_i (
     .CLK(CLK),
     .nRST(nRST),

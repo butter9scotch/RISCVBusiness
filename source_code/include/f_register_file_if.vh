@@ -28,7 +28,7 @@
 interface f_register_file_if();
 
  // import rv32i_types_pkg::*;
-
+	logic clk, n_rst;
   logic [31:0]        f_w_data, f_rs1_data, f_rs2_data;
   logic   [4:0] f_rs1, f_rs2, f_rd;
   logic         f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX;
@@ -37,7 +37,7 @@ interface f_register_file_if();
   logic [4:0] f_flags;
 
   modport rf (
-    input f_w_data, f_rs1, f_rs2, f_rd, f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX, f_frm_in, 
+    input clk, n_rst, f_w_data, f_rs1, f_rs2, f_rd, f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX, f_frm_in, 
     output f_rs1_data, f_rs2_data, f_frm_out, f_flags
   );
 
