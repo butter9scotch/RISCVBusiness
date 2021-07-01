@@ -54,7 +54,7 @@ module l1_cache
     // local parameters
     localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
     localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;
-    localparam N_FRAMES           = $clog2(ASSOC);
+    localparam N_FRAME_BITS       = $clog2(ASSOC);
     localparam N_SET_BITS         = $clog2(N_SETS);
     localparam N_BLOCK_BITS       = $clog2(BLOCK_SIZE);
     localparam N_TAG_BITS         = WORD_SIZE - N_SET_BITS - N_BLOCK_BITS - 2;
@@ -151,7 +151,7 @@ module l1_cache
 
     // Comb. output logic for counter finish flags
     assign finish_set = (set_num == N_SETS) ? 1'b1 : 1'b0;
-    assign finish_frame  = (frame_num == N_FRAMES) ? 1'b1 : 1'b0;
+    assign finish_frame  = (frame_num == ASSOC) ? 1'b1 : 1'b0;
     assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
 
     // FF for cache
@@ -185,7 +185,7 @@ module l1_cache
     // Cache Hit
     logic hit, pass_through;
     logic [WORD_SIZE - 1:0] hit_data [BLOCK_SIZE - 1:0];
-    logic [N_SET_FRAMES - 1:0] hit_idx;
+    logic [N_FRAME_BITS - 1:0] hit_idx;
 
     always_comb begin
         hit = 1'b0;
@@ -205,7 +205,7 @@ module l1_cache
         end // else: !if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)
     end // always_comb
 
-    // Here add logic for cache replacement policy
+    // TODO: Here add logic for cache replacement policy
     logic [N_SET_FRAMES - 1:0] ridx;
 
     word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
