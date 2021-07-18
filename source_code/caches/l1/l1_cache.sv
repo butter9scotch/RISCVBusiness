@@ -22,15 +22,15 @@
 *   Description:  L1 Cache. The following are configurable:
 *                   - Cache Size
 *                   - Non-Cacheable start address
-*                   - Block Size
-*	            - ASSOC (currently either 1 or 2 works)
+*                   - Block Size | max 8
+*	            - ASSOC | either 1 or 2
 */
 
 `include "generic_bus_if.vh"
 
 module l1_cache #(
-    parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 2^32
-    parameter BLOCK_SIZE          = 2, // must be power of 2, max 32
+    parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 4k - 4 * 2^10
+    parameter BLOCK_SIZE          = 2, // must be power of 2, max 8
     parameter ASSOC               = 1, // 1 or 2 so far
     parameter NONCACHE_START_ADDR = 32'h8000_0000
 )
@@ -45,10 +45,11 @@ module l1_cache #(
     // TODO:
     // 1. Implement Byte Enable
     // 2. Implement Flush & Clear functunality
-    // 3. Implement Cache Replacement Policy for ASSOC more than 2
-    // 4. Direct Memory Access
-    // 5. Fix bus sizes for ASSOC = 1
-
+    // 3. Direct Memory Access
+    // 4. Counter for frame size is not necessary, one if(ASSOC == 1) else should be enough
+    // 5. Make it work for icache and dcache
+    // 6. Test for ASSOC = 1
+    
     import rv32i_types_pkg::*;
 
     // local parameters
@@ -74,7 +75,7 @@ module l1_cache #(
 
     // FSM type
     typedef enum {
-       IDLE, FETCH, WB, CLEAR_PREP, CLEAR_SET, CLEAR_FRAME
+       IDLE, FETCH, WB, CLEAR_CACHE, CLEAR_SET, CLEAR_FRAME
     } fsm_t;
 
     // Cache address decode type
@@ -86,15 +87,15 @@ module l1_cache #(
     } decoded_addr_t;
 
     // Set Counter
-    logic [31:0] set_num, next_set_num;
+    logic [12:0] set_num, next_set_num;
     logic en_set_ctr, clr_set_ctr;
 
-    // Frame(way) Counter
-    logic [31:0] frame_num, next_frame_num;
+    // Frame(way) Counter - either 1 or 2 frames in a set
+    logic [1:0] frame_num, next_frame_num;
     logic en_frame_ctr, clr_frame_ctr;
 
     // Word Counter
-    logic [4:0] word_num, next_word_num;
+    logic [3:0] word_num, next_word_num;
     logic en_word_ctr, clr_word_ctr;
 
     // Counter Finish flags
@@ -110,22 +111,22 @@ module l1_cache #(
     // FF for counters
     always_ff @ (posedge CLK, negedge nRST) begin
         if(~nRST) begin
-            set_num <= '0;
+            set_num   <= '0;
             frame_num <= '0;
-            word_num <= '0;
+            word_num  <= '0;
         end
         else begin
-            set_num <= next_set_num;
+            set_num   <= next_set_num;
             frame_num <= next_frame_num;
-            word_num <= next_word_num;
+            word_num  <= next_word_num;
         end
     end // always_ff @
 
     // Comb. logic for counters
     always_comb begin
-        next_set_num = set_num;
-        next_frame_num = frame_num;
-        next_word_num = word_num;
+        next_set_num 	= set_num;
+        next_frame_num 	= frame_num;
+        next_word_num 	= word_num;
 
         if(clr_set_ctr) begin
             next_set_num = '0;
@@ -150,17 +151,17 @@ module l1_cache #(
     end // always_comb
 
     // Comb. output logic for counter finish flags
-    assign finish_set = (set_num == N_SETS - 1) ? 1'b1 : 1'b0;
-    assign finish_frame  = (frame_num == ASSOC - 1) ? 1'b1 : 1'b0;
-    assign finish_word 	= (word_num == BLOCK_SIZE - 1) ? 1'b1 : 1'b0;
+    assign finish_set = (set_num == N_SETS) ? 1'b1 : 1'b0;
+    assign finish_frame  = (frame_num == ASSOC) ? 1'b1 : 1'b0;
+    assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
 
     // FF for cache
     always_ff @ (posedge CLK, negedge nRST) begin
         if(~nRST) begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
-                    cache[i].frames[j].data <= '0;
-                    cache[i].frames[j].tag  <= '0;
+                    cache[i].frames[j].data  <= '0;
+                    cache[i].frames[j].tag   <= '0;
                     cache[i].frames[j].valid <= 1'b0;
                     cache[i].frames[j].dirty <= 1'b0;
                 end
@@ -169,8 +170,8 @@ module l1_cache #(
         else begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
-                    cache[i].frames[j].data <= next_cache[i].frames[j].data;
-                    cache[i].frames[j].tag  <= next_cache[i].frames[j].tag;
+                    cache[i].frames[j].data  <= next_cache[i].frames[j].data;
+                    cache[i].frames[j].tag   <= next_cache[i].frames[j].tag;
                     cache[i].frames[j].valid <= next_cache[i].frames[j].valid;
                     cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
                 end
@@ -185,11 +186,11 @@ module l1_cache #(
     // Cache Hit
     logic hit, pass_through;
     word_t [BLOCK_SIZE - 1:0] hit_data;
-    logic [N_FRAME_BITS - 1:0] hit_idx;
+    logic hit_idx;
 
     always_comb begin
-        hit = 1'b0;
-        pass_through = 1'b0;
+        hit 	      = 1'b0;
+        pass_through  = 1'b0;
 
         if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin
             pass_through = 1'b1;
@@ -197,32 +198,38 @@ module l1_cache #(
         else begin
             for(int i = 0; i < ASSOC; i++) begin
                 if(cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits && cache[decoded_addr.set_bits].frames[i].valid) begin
-                    hit = 1'b1;
-                    hit_data = cache[decoded_addr.set_bits].frames[i].data;
-                    hit_idx = i;
+                    hit       = 1'b1;
+                    hit_data  = cache[decoded_addr.set_bits].frames[i].data;
+                    hit_idx   = i;
                 end
             end
         end // else: !if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)
     end // always_comb
 
     // logic for cache replacement policy
-    logic [N_FRAME_BITS - 1:0] ridx;
-    logic 		       last_used, next_last_used;
+    logic ridx;
+    logic last_used [N_SETS - 1:0];
+    logic next_last_used [N_SETS - 1:0];
+    
     always_comb begin
 	if(ASSOC == 1) begin
-	    ridx  = 0;
+	    ridx  = 1'b0;
 	end
 	else if (ASSOC == 2) begin
-	    ridx  = ~last_used;
+	    ridx  = ~last_used[decoded_addr.set_bits];
 	end
     end
 
     always_ff @(posedge CLK, negedge nRST) begin // FF for last used if ASSOC = 1
 	if(~nRST) begin
-	    last_used <= 1'b0;
+	    for(integer i = 0; i < N_SETS; i++) begin
+		last_used[i] <= 1'b0;
+	    end
 	end
 	else begin
-	    last_used <= next_last_used;
+	    for(integer i = 0; i < N_SETS; i++) begin
+		last_used[i] <= next_last_used[i];
+	    end
 	end
     end
     
@@ -234,7 +241,7 @@ module l1_cache #(
 	else begin
 	    read_addr <= next_read_addr;
 	end
-    end
+    end // always_ff @
 
     // Comb. logic for outputs, maybe merging this comb. block with the one above
     // could be an optmization. Hopefully, synthesizer is smart to catch it.
@@ -250,63 +257,107 @@ module l1_cache #(
 	clr_set_ctr 	      = 1'b0;
 	clr_word_ctr 	      = 1'b0;
 	clr_frame_ctr 	      = 1'b0;
-	next_last_used 	      = last_used;
-		
+	clear_done 	      = 1'b0;
+	flush_done 	      = 1'b0;
+	
         for(int i = 0; i < N_SETS; i++) begin
             for(int j = 0; j < ASSOC; j++) begin
-                 next_cache[i].frames[j].data = cache[i].frames[j].data;
-                 next_cache[i].frames[j].tag  = cache[i].frames[j].tag;
-                 next_cache[i].frames[j].valid = cache[i].frames[j].valid;
-                 next_cache[i].frames[j].dirty = cache[i].frames[j].dirty;
-            end
+                next_cache[i].frames[j].data   = cache[i].frames[j].data;
+                next_cache[i].frames[j].tag    = cache[i].frames[j].tag;
+                next_cache[i].frames[j].valid  = cache[i].frames[j].valid;
+                next_cache[i].frames[j].dirty  = cache[i].frames[j].dirty;
+            end // for (int j = 0; j < ASSOC; j++)
+	    next_last_used[i] = last_used[i];
         end
 
         casez(state)
             IDLE: begin
                 if(proc_gen_bus_if.ren && hit) begin
-                    proc_gen_bus_if.busy   = 1'b0;
-                    proc_gen_bus_if.rdata  = hit_data;
-		    next_last_used 	   = hit_idx;
+                    proc_gen_bus_if.busy 		   = 1'b0;
+                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits];
+		    next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin
                     proc_gen_bus_if.busy 							     = 1'b0;
                     next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
 		    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
-		    next_last_used 								     = hit_idx;
-                end
+		    next_last_used[decoded_addr.set_bits] 					     = hit_idx;
+                end // if (proc_gen_bus_if.wen && hit)
 		next_read_addr = decoded_addr;
             end // case: IDLE
+	    
             FETCH: begin
 		mem_gen_bus_if.ren   = 1'b1;
 		mem_gen_bus_if.addr  = read_addr;
 		
-		if(~mem_gen_bus_if.busy && finish_word) begin
-		    clr_word_ctr 						   = 1'b1;
-		    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
-		    next_cache[decoded_addr.set_bits].frames[ridx].valid 	   = 1'b1;
-		    next_cache[decoded_addr.set_bits].frames[ridx].tag 		   = decoded_addr.tag_bits;
+		if(finish_word) begin
+		    clr_word_ctr 					  = 1'b1;
+		    next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
+		    next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
+		    mem_gen_bus_if.ren 					  = 1'b0;
 		end
 		else if(~mem_gen_bus_if.busy && ~finish_word) begin
-		    en_word_ctr     = 1'b1;
-		    next_read_addr  = read_addr + 4;
+		    en_word_ctr 						   = 1'b1;
+		    next_read_addr 						   = read_addr + 4;
 		    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
 		end
             end // case: FETCH
+	    
 	    WB: begin
 		mem_gen_bus_if.wen    = 1'b1;
 		mem_gen_bus_if.addr   = read_addr;
 		mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
 		
-		if(~mem_gen_bus_if.busy && finish_word) begin
+		if(finish_word) begin
 		    clr_word_ctr 					  = 1'b1;
 		    next_read_addr 					  = decoded_addr;
 		    next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
+		    mem_gen_bus_if.wen 					  = 1'b0;
 		end
 		else if(~mem_gen_bus_if.busy && ~finish_word) begin
 		    en_word_ctr     = 1'b1;
 		    next_read_addr  = read_addr + 4;
 		end
 	    end // case: WB
+	    // Maybe: you don't even need counters, three loops is enough
+	    // whenever you find a frame that is dirty, goto state CLEAR_WB
+	    // write back, un-dirty and then come back to CLEAR_CACHE
+	    // then re-loop to search for dirty frame
+	    CLEAR_CACHE: begin
+		if(finish_set) begin
+		    clr_set_ctr  = 1'b1;
+		    clear_done 	 = 1'b1;
+		end
+	    end
+	    
+	    // CLEAR_SET is not required, because we already know ASSOC is either 1 or 2
+	    // therefore, just checking ASSOC in CLEAR_FRAME, and deciding whether to go back to
+	    // CLEAR_CACHE or stay for cleaning of the another frame is sufficient
+	    CLEAR_SET: begin 
+		if(finish_frame) begin
+		    clr_frame_ctr  = 1'b1;
+		    en_set_ctr 	   = 1'b1;
+		end
+		if(~cache[set_num].frames[frame_num].dirty) begin
+		    en_frame_ctr  = 1'b1;
+		end
+	    end // case: CLEAR_SET
+	    
+	    CLEAR_FRAME: begin
+		mem_gen_bus_if.wen    = 1'b1;
+		mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
+		mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
+		
+		if(finish_word) begin
+		    clr_word_ctr 				 = 1'b1;
+		    en_frame_ctr 				 = 1'b1;
+		    mem_gen_bus_if.wen 				 = 1'b0;
+		    next_cache[set_num].frames[frame_num].dirty  = 1'b0;
+		end		
+		if(~mem_gen_bus_if.busy) begin
+		    en_word_ctr  = 1'b1;
+		end
+	    end // case: CLEAR_FRAME
         endcase // casez (state)
     end // always_comb
 
@@ -322,18 +373,46 @@ module l1_cache #(
 		else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty &&
 		~pass_through) begin
 		    next_state 	= FETCH;
+	        end
+		else if(clear) begin
+		    next_state 	= CLEAR_CACHE;
 		end
-	    end
+	    end // case: IDLE
+	    
 	    FETCH: begin
-		if(~mem_gen_bus_if.busy && finish_word) begin
+		if(finish_word) begin
 		    next_state 	= IDLE;
 		end
 	    end
+	    
 	    WB: begin
-		if(~mem_gen_bus_if.busy && finish_word) begin
+		if(finish_word) begin
 		    next_state 	= FETCH;
 		end
 	    end
+	    
+	    CLEAR_CACHE: begin
+		next_state  = CLEAR_SET;
+		if(finish_set) begin
+		    next_state 	= IDLE;
+		end
+	    end // case: CLEAR_CACHE
+	    
+	    CLEAR_SET: begin
+		if(finish_frame) begin
+		    next_state 	= CLEAR_CACHE;
+		end
+		else if(cache[set_num].frames[frame_num].dirty) begin
+		    next_state = CLEAR_FRAME;
+		end
+	    end // case: CLEAR_SET
+	    
+	    CLEAR_FRAME: begin
+		if(finish_word) begin
+		    next_state 	= CLEAR_SET;
+		end
+	    end
+	    
 	endcase // casez (state)
     end // always_comb
 
