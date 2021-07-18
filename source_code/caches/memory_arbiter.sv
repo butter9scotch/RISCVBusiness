@@ -107,6 +107,14 @@ module memory_arbiter (
        endcase // casez (state)
    end // always_comb
     
-
+   always_ff @ (posedge CLK, negedge nRST) begin
+       if(~nRST) begin
+	   state <= IDLE;
+       end
+       else begin
+	   state <= next_state;
+       end // else: !if(~nRST)
+   end // always_ff @
+    
 endmodule // memory_arbiter
 
