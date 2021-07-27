@@ -29,6 +29,11 @@ parameter CLK_PERIOD = 10;
 
 module tb_l1_cache.sv
 ();
+	// Defined Constants
+	localparam RAM_WIDTH = 32;
+	localparam ADDR_WIDTH = 32;
+	localparam CLK_PERIOD = 10;
+	localparam PROPAGATION_DELAY = 3;
 
 	// DUT Portmap Signals
 	logic tb_CLK;
@@ -43,17 +48,32 @@ module tb_l1_cache.sv
 	// Testbench Signals
 	integer test_number;
 	string test_case;
-	logic test_checking;
-	logic test_clear_done_expected;
-	logic test_clear_done_mismatch;
-	logic test_flush_done_expected;
-	logic test_flush_done_mismatch;
-	generic_bus_if.cpu test_mem_gen_bus_if_expected;
-	generic_bus_if.cpu test_mem_gen_bus_if_mismatch;
-	generic_bus_if.generic_bus test_proc_gen_bus_if_expected;
-	generic_bus_if.generic_bus test_proc_gen_bus_if_mismatch;
+	typedef struct {
+		logic clear_done_expected;
+		logic clear_done_mismatch;
+		logic flush_done_expected;
+		logic flush_done_mismatch;
+		logic [RAM_WIDTH-1:0] cpu_rdata;
+		logic cpu_ren;
+		logic [RAM_WIDTH-1:0] cpu_wdata;
+		logic cpu_wen;
+		logic cpu_busy;
+		logic cpu_byte_en;
+		logic [ADDR_WIDTH-1:0] cpu_waddr;
+		logic [ADDR_WIDTH-1:0] cpu_raddr;
+		logic [RAM_WIDTH-1:0] mem_rdata;
+		logic mem_ren;
+		logic [RAM_WIDTH-1:0] mem_wdata;
+		logic mem_wen;
+		logic mem_wen;
+		logic mem_busy;
+		logic mem_byte_en;
+		logic [ADDR_WIDTH-1:0] mem_addr;
+	} cache_test_t;
+	cache_test_t inst_signals;
+	cache_test_t data_signals;
 
-	// Task to Reset DUT
+	// Task to Reset DUTs
 	task reset_dut;
 	begin
 
@@ -71,13 +91,86 @@ module tb_l1_cache.sv
 	end
 	endtask
 
-	// Task to Check Output
-	task check_output;
+
+	// Task to emulate data write from CPU
+	task cpu_write;
+		input logic [RAM_WIDTH-1:0] data;
+		input logic [ADDR_WIDTH-1:0] addr;
 	begin
-		// TODO: add checks and prints
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.cpu_wen = 1'b1;
+		data_signals.cpu_wdata = data;
+		data_signals.cpu_waddr = addr;
+
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.cpu_wen = 1'b0;
+		data_signals.cpu_wdata = '0;
+		data_signals.cpu_waddr = '0;
+		
 	end
 	endtask
 
-	// TODO: finish the testbench
+	// Task to emulate data read from CPU
+	task cpu_read;
+		input logic [RAM_WIDTH-1:0] data;  // Not necessary, can be used for checks
+		input logic [ADDR_WIDTH-1:0] addr;
+	begin
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.cpu_ren = 1'b1;
+		data_signals.cpu_raddr = addr;
+
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.cpu_ren = 1'b0;
+		data_signals.cpu_raddr = '0;
+		
+
+		//TODO: some sort of checking?
+	end
+	endtask
+
+	// Task to emulate fetch from memory
+	task mem_fetch;
+		input logic [RAM_WIDTH-1:0] data;  // Not necessary, can be used for checks
+		input logic [ADDR_WIDTH-1:0] addr;
+	begin
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.mem_ren = 1'b1;
+		data_signals.mem_raddr = addr;
+
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.mem_ren = 1'b0;
+		data_signals.mem_raddr = '0;
+
+		//TODO: some sort of checking?
+	end
+	endtask
+
+	// Task to emulate write back to memory
+	task mem_write_back;
+		input logic [RAM_WIDTH-1:0] data;
+		input logic [ADDR_WIDTH-1:0] addr;
+	begin
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.mem_wen = 1'b1;
+		data_signals.mem_wdata = data;
+		data_signals.mem_waddr = addr;
+
+		@(posedge tb_CLK);
+		#(PROPAGATION_DELAY);
+		data_signals.mem_wen = 1'b0;
+		data_signals.mem_wdata = '0;
+		data_signals.mem_waddr = '0;
+
+		//TODO: some sort of checking?
+		
+	end
+	endtask
 
 endmodule
