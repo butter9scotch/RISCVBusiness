@@ -92,8 +92,8 @@ module tb_l1_cache.sv
 	endtask
 
 
-	// Task to emulate data write from CPU
-	task cpu_write;
+	// Task to simulate data write by CPU
+	task cpu_data_write;
 		input logic [RAM_WIDTH-1:0] data;
 		input logic [ADDR_WIDTH-1:0] addr;
 	begin
@@ -108,12 +108,13 @@ module tb_l1_cache.sv
 		data_signals.cpu_wen = 1'b0;
 		data_signals.cpu_wdata = '0;
 		data_signals.cpu_waddr = '0;
-		
+
+		//TODO: some sort of checking?
 	end
 	endtask
 
-	// Task to emulate data read from CPU
-	task cpu_read;
+	// Task to simulate data read by CPU
+	task cpu_data_read;
 		input logic [RAM_WIDTH-1:0] data;  // Not necessary, can be used for checks
 		input logic [ADDR_WIDTH-1:0] addr;
 	begin
@@ -132,44 +133,24 @@ module tb_l1_cache.sv
 	end
 	endtask
 
-	// Task to emulate fetch from memory
-	task mem_fetch;
+
+	// Task to simulate instruction read by CPU
+	task cpu_data_read;
 		input logic [RAM_WIDTH-1:0] data;  // Not necessary, can be used for checks
 		input logic [ADDR_WIDTH-1:0] addr;
 	begin
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.mem_ren = 1'b1;
-		data_signals.mem_raddr = addr;
+		inst_signals.cpu_ren = 1'b1;
+		inst_signals.cpu_raddr = addr;
 
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.mem_ren = 1'b0;
-		data_signals.mem_raddr = '0;
-
-		//TODO: some sort of checking?
-	end
-	endtask
-
-	// Task to emulate write back to memory
-	task mem_write_back;
-		input logic [RAM_WIDTH-1:0] data;
-		input logic [ADDR_WIDTH-1:0] addr;
-	begin
-		@(posedge tb_CLK);
-		#(PROPAGATION_DELAY);
-		data_signals.mem_wen = 1'b1;
-		data_signals.mem_wdata = data;
-		data_signals.mem_waddr = addr;
-
-		@(posedge tb_CLK);
-		#(PROPAGATION_DELAY);
-		data_signals.mem_wen = 1'b0;
-		data_signals.mem_wdata = '0;
-		data_signals.mem_waddr = '0;
-
-		//TODO: some sort of checking?
+		inst_signals.cpu_ren = 1'b0;
+		inst_signals.cpu_raddr = '0;
 		
+
+		//TODO: some sort of checking?
 	end
 	endtask
 
