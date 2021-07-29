@@ -49,26 +49,12 @@ module tb_l1_cache.sv
 	integer test_number;
 	string test_case;
 	typedef struct {
-		logic clear_done_expected;
-		logic clear_done_mismatch;
-		logic flush_done_expected;
-		logic flush_done_mismatch;
-		logic [RAM_WIDTH-1:0] cpu_rdata;
-		logic cpu_ren;
-		logic [RAM_WIDTH-1:0] cpu_wdata;
-		logic cpu_wen;
-		logic cpu_busy;
-		logic cpu_byte_en;
-		logic [ADDR_WIDTH-1:0] cpu_waddr;
-		logic [ADDR_WIDTH-1:0] cpu_raddr;
-		logic [RAM_WIDTH-1:0] mem_rdata;
-		logic mem_ren;
-		logic [RAM_WIDTH-1:0] mem_wdata;
-		logic mem_wen;
-		logic mem_wen;
-		logic mem_busy;
-		logic mem_byte_en;
-		logic [ADDR_WIDTH-1:0] mem_addr;
+		logic clear;
+		logic clear_done;
+		logic flush;
+		logic flush_done;
+		generic_bus_if mem_gen_if();
+		generic_bus_if proc_gen_if();
 	} cache_test_t;
 	cache_test_t inst_signals;
 	cache_test_t data_signals;
@@ -99,17 +85,15 @@ module tb_l1_cache.sv
 	begin
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.cpu_wen = 1'b1;
-		data_signals.cpu_wdata = data;
-		data_signals.cpu_waddr = addr;
+		data_signals.proc_gen_if.wen = 1'b1;
+		data_signals.proc_gen_if.wdata = data;
+		data_signals.proc_gen_if.addr = addr;
 
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.cpu_wen = 1'b0;
-		data_signals.cpu_wdata = '0;
-		data_signals.cpu_waddr = '0;
-
-		//TODO: some sort of checking?
+		data_signals.proc_gen_if.wen = 1'b0;
+		data_signals.proc_gen_if.wdata = '0;
+		data_signals.proc_gen_if.addr = '0;
 	end
 	endtask
 
@@ -120,16 +104,13 @@ module tb_l1_cache.sv
 	begin
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.cpu_ren = 1'b1;
-		data_signals.cpu_raddr = addr;
+		data_signals.proc_gen_if.ren = 1'b1
+		data_signals.proc_gen_if.addr = addr;
 
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		data_signals.cpu_ren = 1'b0;
-		data_signals.cpu_raddr = '0;
-		
-
-		//TODO: some sort of checking?
+		data_signals.proc_gen_if.ren = 1'b0;
+		data_signals.proc_gen_if.addr = '0;
 	end
 	endtask
 
@@ -141,17 +122,50 @@ module tb_l1_cache.sv
 	begin
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		inst_signals.cpu_ren = 1'b1;
-		inst_signals.cpu_raddr = addr;
+		inst_signals.proc_gen_if.ren = 1'b1
+		inst_signals.proc_gen_if.addr = addr;
 
 		@(posedge tb_CLK);
 		#(PROPAGATION_DELAY);
-		inst_signals.cpu_ren = 1'b0;
-		inst_signals.cpu_raddr = '0;
-		
-
-		//TODO: some sort of checking?
+		inst_signals.proc_gen_if.ren = 1'b0;
+		inst_signals.proc_gen_if.addr = '0;
 	end
 	endtask
+
+	// Data Cache Portmap
+	l1_cache #(.CACHE_SIZE(2048),
+	.BLOCK_SIZE(4),
+	.ASSOC(4),
+	.NONCACHE_START_ADDR(32'h8000_0000))
+	DATA_CACHE (.CLK(tb_CLK),
+	.nRST(tb_nRST),
+	.clear(data_signals.clear),
+	.clear_done(data_signals.clear_done),
+	.flush(data_signals.flush),
+	.flush_done(data_signals.flush_done),
+	.mem_gen_bus_if(data_signals.mem_gen_bus_if),
+	.proc_gen_bus_if(data_signals.proc_gen_bus_if));
+
+	// Instruction Cache Portmap
+	l1_cache #(.CACHE_SIZE(1024),
+	.BLOCK_SIZE(2),
+	.ASSOC(2),
+	.NONCACHE_START_ADDR(32'h8000_0000))
+	INST_CACHE (.CLK(tb_CLK),
+	.nRST(tb_nRST),
+	.clear(inst_signals.clear),
+	.clear_done(inst_signals.clear_done),
+	.flush(inst_signals.flush),
+	.flush_done(inst_signals.flush_done),
+	.mem_gen_bus_if(inst_signals.mem_gen_bus_if),
+	.proc_gen_bus_if(inst_signals.proc_gen_bus_if));
+
+	// Clock generation block	
+	always begin
+        	tb_CLK = 1'b0;
+    		#(CLK_PERIOD/2.0);
+    		tb_CLK = 1'b1;
+    		#(CLK_PERIOD/2.0);
+  	end
 
 endmodule
