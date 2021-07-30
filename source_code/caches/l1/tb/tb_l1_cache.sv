@@ -46,13 +46,6 @@ program test(
     generic_bus_if.cpu proc_gen_bus_if
 );
 
-/* -----\/----- EXCLUDED -----\/-----
-    modport cpu (
-    input rdata, busy,
-    output addr, ren, wen, wdata, byte_en
-    );
- -----/\----- EXCLUDED -----/\----- */
-
     integer 	 test_num, test_value, test_value2;
     string 	 test_case;
     
@@ -171,12 +164,12 @@ program test(
 	    @(posedge CLK);
 	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
 
-	// Test case 6, clear functionality
+	// Test case 6, flush functionality
 	#CLK_PERIOD;
 	@(negedge CLK);
 	test_num++;
-	test_case  = "Clear";
-	// First write to cache, and then set clear
+	test_case  = "Flush";
+	// First write to cache, and then set flush
 	nRST 	   = 1'b0;
 	#(2*CLK_PERIOD);
 	@(posedge CLK);
@@ -197,14 +190,14 @@ program test(
 	proc_gen_bus_if.wen = 1'b0;
 	#CLK_PERIOD;
 	@(negedge CLK);
-	clear 		     = 1'b1;
+	flush 		     = 1'b1;
 	mem_gen_bus_if.busy  = 1'b1;
 	test_value 	     = 32'h0000_0080;
 	test_value2 	     = '0;
 	// Check for memory writes
 	while(1) begin
-	    wait(mem_gen_bus_if.wen || clear_done);
-	    if(clear_done) begin
+	    wait(mem_gen_bus_if.wen || flush_done);
+	    if(flush_done) begin
 		break;
 	    end
 	    if(mem_gen_bus_if.addr >= 32'h0000_0200) begin
@@ -230,7 +223,7 @@ program test(
 		test_value2++;
 	    end // else: !if(mem_gen_bus_if.addr >= 32'h0000_0200)
 	end // while (1)
-	clear  = 1'b0;
+	flush  = 1'b0;
 
 	// Test case 7, write 4 times to a set, check cache replacement
 	#CLK_PERIOD;
@@ -282,12 +275,12 @@ program test(
 	proc_gen_bus_if.ren = 1'b0;
 	
 	
-	// Test case 8, clear after random write
+	// Test case 8, flush after random write
 	@(negedge CLK);
 	nRST  = 1'b0;
 	#CLK_PERIOD;
 	nRST 		      = 1'b1;
-	test_case 	      = "Random Clear";
+	test_case 	      = "Random Flush";
 	test_num 	     += 1;
 	proc_gen_bus_if.wen   = 1'b1;
 	mem_gen_bus_if.busy   = 1'b0;
@@ -298,15 +291,16 @@ program test(
 	#1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
 
 	proc_gen_bus_if.addr  = 32'h0000_0020;
-	proc_gen_bus_if.wdata = 32'hDEAF_DEAF;
 	#1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
 
 	proc_gen_bus_if.wen  = 1'b0;
-	clear 		     = 1'b1;
+	flush 		     = 1'b1;
+
         while(1) begin
-	    wait(clear_done || mem_gen_bus_if.wen);
-	    if(clear_done) begin
-		clear  = 1'b0;
+	    wait(flush_done || mem_gen_bus_if.wen);
+	    if(flush_done) begin
+		flush  = 1'b0;
+		#CLK_PERIOD;
 		break;
 	    end
 	    if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020) begin
@@ -317,7 +311,6 @@ program test(
 	    end // else: !if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020)
 	end // while (1)
 	$finish;	
-    end    
-    
+    end // initial begin
  
 endprogram // test
