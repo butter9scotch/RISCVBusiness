@@ -125,7 +125,7 @@ module tb_l1_cache.sv
 	// Data Cache Portmap
 	l1_cache #(.CACHE_SIZE(2048),
 	.BLOCK_SIZE(4),
-	.ASSOC(4),
+	.ASSOC(2),
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	DATA_CACHE (.CLK(tb_CLK),
 	.nRST(tb_nRST),
@@ -139,7 +139,7 @@ module tb_l1_cache.sv
 	// Instruction Cache Portmap
 	l1_cache #(.CACHE_SIZE(1024),
 	.BLOCK_SIZE(2),
-	.ASSOC(2),
+	.ASSOC(1),
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	INST_CACHE (.CLK(tb_CLK),
 	.nRST(tb_nRST),
