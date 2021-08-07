@@ -4,7 +4,7 @@
 RVTEST_RV32U
 
 RVTEST_CODE_BEGIN
-
+.globl main
 main:
     # Set up handler address
     la t0, mtvec_handler

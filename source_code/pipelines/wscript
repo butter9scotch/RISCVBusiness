@@ -2,7 +2,7 @@
 #encoding: utf-8
 
 def configure(cnf):
-  cnf.recurse(tspp)
+  cnf.recurse(pipe5)
 
 def sim_source(cnf):
-  cnf.recurse(tspp)
+  cnf.recurse(pipe5)

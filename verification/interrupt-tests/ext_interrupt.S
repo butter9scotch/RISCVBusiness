@@ -30,7 +30,7 @@
 RVTEST_RV32U
 RVTEST_CODE_BEGIN
 
-
+.globl main
 main:
   la t0, mtvec_handler // load in address of mtvec_handler
   ori t0, t0, 0x1 // or in the MODE (Vectored)

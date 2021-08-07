@@ -37,9 +37,10 @@ interface jump_calc_if();
     output jump_addr
   );
   
-  modport memory_resolution (
-    output jump_addr
+  modport execute (
+    output  base, offset, j_sel, jump_addr
   );
+  
 
 endinterface
 

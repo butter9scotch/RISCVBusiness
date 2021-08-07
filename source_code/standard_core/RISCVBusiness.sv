@@ -25,13 +25,23 @@
 `include "generic_bus_if.vh"
 `include "ahb_if.vh"
 `include "component_selection_defines.vh"
-`include "risc_mgmt_if.vh"
+//`include "risc_mgmt_if.vh"
 `include "cache_control_if.vh"
-`include "sparce_pipeline_if.vh"
-`include "tspp_fetch_execute_if.vh"
-`include "tspp_hazard_unit_if.vh"
+//`include "sparce_pipeline_if.vh"
 `include "core_interrupt_if.vh"
-`include "rv32c_if.vh"
+`include "pipe5_fetch1_fetch2_if.vh"
+`include "pipe5_decode_execute_if.vh"
+`include "pipe5_execute_mem_if.vh"
+`include "pipe5_mem_writeback_if.vh"
+`include "pipe5_forwarding_unit_if.vh"
+`include "pipe5_hazard_unit_if.vh"
+`include "rv32i_reg_file_if.vh"
+`include "jump_calc_if.vh"
+`include "branch_res_if.vh"
+`include "rv32i_reg_file_if.vh"
+`include "predictor_pipeline_if.vh"
+`include "generic_bus_if.vh"
+`include "prv_pipeline_if.vh"
 
 module RISCVBusiness (
   input logic CLK, nRST,
@@ -44,23 +54,30 @@ module RISCVBusiness (
   `endif
 );
 
-  // Interface instantiations
+  import rv32i_types_pkg::*;
+ //  Interface instantiations
 
-  generic_bus_if tspp_icache_gen_bus_if();
-  generic_bus_if tspp_dcache_gen_bus_if();
+  generic_bus_if icache_gen_bus_if();
+  generic_bus_if dcache_gen_bus_if();
   generic_bus_if icache_mc_if();
   generic_bus_if dcache_mc_if();
   generic_bus_if pipeline_trans_if(); 
-  risc_mgmt_if   rm_if();
+  //risc_mgmt_if   rm_if();
   predictor_pipeline_if predict_if();
   prv_pipeline_if prv_pipe_if();
   cache_control_if cc_if();
-  sparce_pipeline_if sparce_if();
-  rv32c_if rv32cif(); 
+  //sparce_pipeline_if sparce_if();
 
-  //interface instantiations
-  tspp_fetch_execute_if      fetch_ex_if();
-  tspp_hazard_unit_if        hazard_if();
+   pipe5_fetch1_fetch2_if fetch1_fetch2_if();
+   pipe5_fetch2_decode_if fetch_decode_if();
+   pipe5_decode_execute_if decode_execute_if();
+   pipe5_execute_mem_if execute_mem_if();
+   pipe5_mem_writeback_if mem_wb_if();
+   pipe5_forwarding_unit_if bypass_if();
+   pipe5_hazard_unit_if hazard_if();
+   rv32i_reg_file_if rf_if();
+   jump_calc_if jump_if();
+   branch_res_if branch_if();
 
   logic halt;    //JOHN CHANGED THIS
 
@@ -79,7 +96,7 @@ module RISCVBusiness (
     .sparce_if(sparce_if)
   );
 */
-
+/*
   tspp_fetch_stage fetch_stage_i (
     .CLK(CLK),
     .nRST(nRST),
@@ -113,7 +130,90 @@ module RISCVBusiness (
     .rm_if(rm_if),
     .sparce_if(sparce_if)
   );
+  */
 
+   pipe5_fetch1_stage fetch1_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.halt(halt)
+       ,.fetch1_fetch2_if(fetch1_fetch2_if)
+       ,.predict_if(predict_if)
+       ,.hazard_if(hazard_if)
+      );
+
+   pipe5_fetch2_stage fetch2_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.halt(halt)
+       ,.fetch1_fetch2_if(fetch1_fetch2_if)
+       ,.fetch_decode_if(fetch_decode_if)
+       ,.igen_bus_if(icache_gen_bus_if)
+       ,.hazard_if(hazard_if)
+      );
+
+   pipe5_decode_stage decode_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.halt(halt)
+       ,.fetch_decode_if(fetch_decode_if)
+       ,.decode_execute_if(decode_execute_if)
+       ,.rf_if(rf_if)
+       ,.hazard_if(hazard_if)
+      );
+
+   pipe5_execute_stage execute_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.halt(halt)
+       ,.decode_execute_if(decode_execute_if)
+       ,.execute_mem_if(execute_mem_if)
+       ,.bypass_if(bypass_if)
+       ,.jump_if(jump_if)
+       ,.branch_if(branch_if)
+       ,.hazard_if(hazard_if)
+      );
+
+   pipe5_memory_stage memory_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.halt(halt)
+       ,.execute_mem_if(execute_mem_if)
+       ,.mem_wb_if(mem_wb_if)
+       ,.bypass_if(bypass_if)
+       ,.dgen_bus_if(dcache_gen_bus_if)
+       ,.predict_if(predict_if)
+       ,.cc_if(cc_if)
+       ,.hazard_if(hazard_if)
+       ,.prv_pipe_if(prv_pipe_if)
+      );
+
+
+   pipe5_writeback_stage writeback_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.mem_wb_if(mem_wb_if)
+       ,.bypass_if(bypass_if)
+       ,.rf_if(rf_if)
+      );
+   
+   rv32i_reg_file reg_file (.*);
+   branch_res branch_res (.br_if(branch_if));
+   jump_calc jump_calc (.jump_if(jump_if));
+   pipe5_forwarding_unit forwarding_unit (.bypass_if(bypass_if));
+
+   pipe5_hazard_unit hazard_unit (
+       .hazard_if(hazard_if)
+       ,.prv_pipe_if(prv_pipe_if)
+     );
+   
+   always @(posedge CLK, negedge nRST)
+   begin
+       if (!nRST)
+           halt <= 1'b0;
+       else if (mem_wb_if.halt_instr)
+           halt <= 1'b1;
+
+   end
 
   branch_predictor_wrapper branch_predictor_i (
     .CLK(CLK),
@@ -128,30 +228,19 @@ module RISCVBusiness (
     .interrupt_if
   );
 
-  risc_mgmt_wrapper rmgmt (
+
+  /*risc_mgmt_wrapper rmgmt (
     .CLK(CLK),
     .nRST(nRST),
     .rm_if(rm_if)
-  );
-
-/*
-  caches_wrapper caches (
-    .CLK(CLK),
-    .nRST(nRST),
-    .icache_proc_gen_bus_if(tspp_icache_gen_bus_if),
-    .icache_mem_gen_bus_if(icache_mc_if),
-    .dcache_proc_gen_bus_if(tspp_dcache_gen_bus_if),
-    .dcache_mem_gen_bus_if(dcache_mc_if),
-    .cc_if(cc_if)
-  );
-*/
+  );*/
 
   separate_caches sep_caches (
     .CLK(CLK),
     .nRST(nRST),
-    .icache_proc_gen_bus_if(tspp_icache_gen_bus_if),
+    .icache_proc_gen_bus_if(icache_gen_bus_if),
     .icache_mem_gen_bus_if(icache_mc_if),
-    .dcache_proc_gen_bus_if(tspp_dcache_gen_bus_if),
+    .dcache_proc_gen_bus_if(dcache_gen_bus_if),
     .dcache_mem_gen_bus_if(dcache_mc_if),
     .cc_if(cc_if)
   );
@@ -164,10 +253,11 @@ module RISCVBusiness (
     .out_gen_bus_if(pipeline_trans_if)
   );
 
-  sparce_wrapper sparce_wrapper_i (
+  /*sparce_wrapper sparce_wrapper_i (
     .CLK(CLK),
     .nRST(nRST),
     .sparce_if(sparce_if)
+<<<<<<< HEAD
   );
 
   rv32c_wrapper rv32c (
@@ -177,6 +267,8 @@ module RISCVBusiness (
   );
 
   // Instantiate the chosen bus interface
+=======
+  ); */
 
   generate 
     case (BUS_INTERFACE_TYPE) 
@@ -188,15 +280,15 @@ module RISCVBusiness (
           .out_gen_bus_if(gen_bus_if)
         );
       end
-      "ahb_if" : begin
+      "ahb_if" : begin 
         ahb bt (
           .CLK(CLK),
           .nRST(nRST),
           .out_gen_bus_if(pipeline_trans_if),
           .ahb_m(ahb_master)
-        );
+        ); 
       end
-    endcase
+   endcase
 
   endgenerate
 

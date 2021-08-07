@@ -31,7 +31,7 @@
 
 `define OUTPUT_FILE_NAME "cpu.hex"
 `define STATS_FILE_NAME "stats.txt"
-`define RVBSELF_CLK_TIMEOUT 5000000
+`define RVBSELF_CLK_TIMEOUT 50000
 
 module tb_RISCVBusiness_self_test ();
    
@@ -45,6 +45,7 @@ module tb_RISCVBusiness_self_test ();
   logic [7:0] checksum;
   integer fptr, stats_ptr;
   integer clk_count;
+  integer test_count;
 
   //Interface Instantiations
   generic_bus_if gen_bus_if();
@@ -58,6 +59,8 @@ module tb_RISCVBusiness_self_test ();
     assign interrupt_if.ext_int_clear = '0;
     assign interrupt_if.soft_int = '0;
     assign interrupt_if.soft_int_clear = '0;
+
+    assign test_count = ((DUT.reg_file.registers[28]-1)/2);
 
   //Module Instantiations
 
@@ -80,23 +83,23 @@ module tb_RISCVBusiness_self_test ();
     assign data = data_temp;
   else ;//TODO:ERROR
 
-  bind tspp_execute_stage cpu_tracker cpu_track1 (
+  bind pipe5_writeback_stage cpu_tracker cpu_track1 (
     .CLK(CLK),
     .wb_stall(wb_stall),
-    .instr(fetch_ex_if.fetch_ex_reg.instr),
-    .pc(fetch_ex_if.fetch_ex_reg.pc),
-    .opcode(cu_if.opcode),
-    .funct3(funct3),
-    .funct12(funct12),
-    .rs1(rf_if.rs1),
-    .rs2(rf_if.rs2),
-    .rd(rf_if.rd),
-    .imm_S(cu_if.imm_S),
-    .imm_I(cu_if.imm_I),
-    .imm_U(cu_if.imm_U),
-    .imm_UJ(imm_UJ_ext),
-    .imm_SB(cu_if.imm_SB),
-    .instr_30(instr_30)
+    .instr(mem_wb_if.instr),
+    .pc(mem_wb_if.pc),
+    .opcode(mem_wb_if.opcode),
+    .funct3(mem_wb_if.funct3),
+    .funct12(mem_wb_if.funct12),
+    .rs1(mem_wb_if.rs1),
+    .rs2(mem_wb_if.rs2),
+    .rd(mem_wb_if.reg_rd),
+    .imm_S(mem_wb_if.imm_S),
+    .imm_I(mem_wb_if.imm_I),
+    .imm_U(mem_wb_if.imm_U),
+    .imm_UJ(mem_wb_if.imm_UJ_ext),
+    .imm_SB(mem_wb_if.imm_SB),
+    .instr_30(mem_wb_if.instr_30)
     );
 
   bind branch_predictor_wrapper branch_tracker branch_perf(
@@ -105,7 +108,7 @@ module tb_RISCVBusiness_self_test ();
     .update_predictor(predict_if.update_predictor),
     .prediction(predict_if.prediction),
     .branch_result(predict_if.branch_result)
-  ); 
+  );  
 
   //Ramif Mux
   always_comb begin
@@ -124,7 +127,7 @@ module tb_RISCVBusiness_self_test ();
       gen_bus_if.byte_en = tb_gen_bus_if.byte_en;
     end
   end
-
+   
   /* No actual bus, so directly connect ram to generic bus interface */
   assign rvb_gen_bus_if.rdata  = gen_bus_if.rdata;
   assign rvb_gen_bus_if.busy   = gen_bus_if.busy;
@@ -139,6 +142,11 @@ module tb_RISCVBusiness_self_test ();
   always begin : CLOCK_GEN
     #(PERIOD/2) CLK = ~CLK;
   end : CLOCK_GEN
+
+    initial begin
+        $shm_open("dump.db");
+        $shm_probe(tb_RISCVBusiness_self_test , "ACTFM");
+    end
 
   //Setup core and let it run
   initial begin : CORE_RUN
@@ -161,22 +169,22 @@ module tb_RISCVBusiness_self_test ();
 
     #(1);
 
-    dump_stats();
+   // dump_stats();
     dump_ram();
 
     // Check Register 28 to see if test passed or failed
     if (clk_count == `RVBSELF_CLK_TIMEOUT)
       $display("ERROR: Test timed out");
-    else if(DUT.execute_stage_i.REG_FILE_SEL.rf.registers[28] != 32'h1)
+    else if(DUT.reg_file.registers[28] != 32'h1)
       $display("ERROR: Test %0d did not pass",
-                (DUT.execute_stage_i.REG_FILE_SEL.rf.registers[28] - 1)/2);
+                (DUT.reg_file.registers[28] - 1)/2);
     else 
       $display("SUCCESS");
     $finish;
 
   end : CORE_RUN
 
-  task dump_stats();
+ task dump_stats();
     logic [63:0] instret, cycles;
     instret = DUT.priv_wrapper_i.priv_block_i.csr_rfile_i.instretfull;
     cycles  = DUT.priv_wrapper_i.priv_block_i.csr_rfile_i.cyclefull;
@@ -187,7 +195,7 @@ module tb_RISCVBusiness_self_test ();
     $fwrite(stats_ptr, "CPI: %5f\n", real'(cycles)/instret);
     $fwrite(stats_ptr, "IPC: %5f\n", real'(instret)/cycles);
     $fclose(stats_ptr);
-  endtask
+  endtask 
 
   task dump_ram ();
     ram_control = 0;
@@ -199,7 +207,7 @@ module tb_RISCVBusiness_self_test ();
 
     fptr = $fopen(`OUTPUT_FILE_NAME, "w");
 
-    for(addr = 32'h100; addr < 32'h2000; addr+=4) begin
+    for(addr = 32'h000; addr < 32'h2000; addr+=4) begin
       read_ram(addr, data_temp);
       #(PERIOD/4);
       hexdump_temp = {8'h04, addr[15:0]>>2, 8'h00, data};

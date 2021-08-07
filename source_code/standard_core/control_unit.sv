@@ -27,13 +27,14 @@
 `include "rv32i_reg_file_if.vh"
 `include "risc_mgmt_if.vh"
 `include "decompressor_if.vh"
+`include "component_selection_defines.vh"
 
 module control_unit 
 (
-  control_unit_if.control_unit  cu_if,
-  rv32i_reg_file_if.cu          rf_if,
-  input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
-  input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
+  control_unit_if.control_unit  cu_if
+  //rv32i_reg_file_if.cu          rf_if
+  //input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
+  //input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
@@ -57,9 +58,9 @@ module control_unit
   //assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
   //assign rf_if.rs2  = rmgmt_req_reg_r ? rmgmt_rsel_s_1 : cu_if.instr[24:20];
   //assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
-  assign rf_if.rs1  = cu_if.instr[19:15];
-  assign rf_if.rs2  = cu_if.instr[24:20];
-  assign rf_if.rd   = cu_if.instr[11:7]; 
+  assign cu_if.reg_rs1  = cu_if.instr[19:15];
+  assign cu_if.reg_rs2  = cu_if.instr[24:20];
+  assign cu_if.reg_rd   = cu_if.instr[11:7]; 
   assign cu_if.shamt = cu_if.instr[24:20];
  
   // Assign the immediate values
@@ -85,6 +86,7 @@ module control_unit
 
   // Assign control flow signals
   assign cu_if.branch     = (cu_if.opcode == BRANCH);
+  assign cu_if.lui_instr  = (cu_if.opcode == LUI);
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.j_sel      = (cu_if.opcode == JAL);
@@ -216,7 +218,7 @@ module control_unit
     cu_if.ret_insn = 1'b0;
     cu_if.breakpoint = 1'b0;
     cu_if.ecall_insn = 1'b0;
-    cu_if.wfi = 1'b0;
+    cu_if.wfi        = 1'b0;
 
     if (cu_if.opcode == SYSTEM) begin
       if (rv32i_system_t'(instr_i.funct3) == PRIV) begin

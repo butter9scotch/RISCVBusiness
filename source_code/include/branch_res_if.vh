@@ -38,6 +38,10 @@ interface branch_res_if();
     input rs1_data, rs2_data, pc, imm_sb, branch_type,
     output branch_addr, branch_taken
   );
+  
+   modport execute (
+    output rs1_data, rs2_data, pc, imm_sb, branch_type, branch_taken, branch_addr
+   );
 
 endinterface
 

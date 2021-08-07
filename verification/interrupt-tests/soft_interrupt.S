@@ -33,7 +33,7 @@ RVTEST_RV32U
 RVTEST_CODE_BEGIN
 
 .equ msip, 0x80050000
-
+.globl main
 main:
   # Define trap vector address
   la t0, mtvec_handler

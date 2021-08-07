@@ -32,7 +32,7 @@
 
 `define OUTPUT_FILE_NAME "cpu.hex"
 `define STATS_FILE_NAME "stats.txt"
-`define RVBSELF_CLK_TIMEOUT 5000000
+`define RVBSELF_CLK_TIMEOUT 500000
 
 module tb_RISCVBusiness_self_test_plic ();
 
@@ -81,7 +81,7 @@ module tb_RISCVBusiness_self_test_plic ();
         assign data = data_temp;
     else ;//TODO:ERROR
 
-    bind tspp_execute_stage cpu_tracker cpu_track1 (
+  /*  bind tspp_execute_stage cpu_tracker cpu_track1 (
         .CLK(CLK),
         .wb_stall(wb_stall),
         .instr(fetch_ex_if.fetch_ex_reg.instr),
@@ -107,7 +107,11 @@ module tb_RISCVBusiness_self_test_plic ();
         .prediction(predict_if.prediction),
         .branch_result(predict_if.branch_result)
     ); 
-
+ */
+    initial begin
+        $shm_open("dump.db");
+        $shm_probe(tb_RISCVBusiness_self_test_plic , "ACTFM");
+    end
     //Ramif Mux
     always_comb begin
         if(ram_control) begin
@@ -170,7 +174,7 @@ module tb_RISCVBusiness_self_test_plic ();
         interrupt_if.ext_int_clear = 1'b0;
 
         // Trigger software interrupt
-        #(PERIOD * 20);
+        #(PERIOD * 200);
         interrupt_if.soft_int = 1'b1;
         #(PERIOD);
         interrupt_if.soft_int = 1'b0;
@@ -180,7 +184,7 @@ module tb_RISCVBusiness_self_test_plic ();
         interrupt_if.soft_int_clear = 1'b0;
 
         // Trigger timer interrupt
-        #(PERIOD * 20);
+        #(PERIOD * 200);
         interrupt_if.timer_int = 1'b1;
         #(PERIOD);
         interrupt_if.timer_int = 1'b0;
@@ -206,9 +210,9 @@ module tb_RISCVBusiness_self_test_plic ();
         // Check Register 28 to see if test passed or failed
         if (clk_count == `RVBSELF_CLK_TIMEOUT)
             $display("ERROR: Test timed out");
-        else if(DUT.execute_stage_i.rf.registers[28] != 32'h1)
+        else if(DUT.reg_file.registers[28] != 32'h1)
             $display("ERROR: Test %0d did not pass",
-                (DUT.execute_stage_i.rf.registers[28] - 1)/2);
+                (DUT.reg_file.registers[28] - 1)/2);
         else 
             $display("SUCCESS");
         $finish;

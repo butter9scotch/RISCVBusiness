@@ -22,7 +22,7 @@ module pipe5_hazard_forwarding_unit(
 
     // IRQ/Exception hazard signals
     logic exception;
-
+/*
     assign prv_pipe_if.ret = hazard_if.ret;
     assign exception =    hazard_if.fault_insn 
                        || hazard_if.mal_insn 
@@ -60,7 +60,7 @@ module pipe5_hazard_forwarding_unit(
     // values in 'M', which are loads and CSR instructions.
     // Hazard strategy: detect between D/X, stall frontend of pipeline
     // while flushing X
-    logic raw_hazard, dx_forwardable;
+ /*   logic raw_hazard, dx_forwardable;
     // D->X RAW forwardable if X produces value in X
     assign dx_forwardable = (!hazard_if.d_dwen && !hazard_if.d_dren
                                 && !hazard_if.d_csr_access);
@@ -166,5 +166,5 @@ module pipe5_hazard_forwarding_unit(
             hazard_if.pc_en = 1'b0;
         end
     end
-
+*/
 endmodule

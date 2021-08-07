@@ -12,28 +12,33 @@
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-*
-*
-*   Filename:     jump_calc.sv
-*
-*   Created by:   Jacob R. Stevens
+*   
+*   
+*   Filename:     tspp_fetch_execute_if.vh
+*   
+*   Created by:   Jacob R. Stevens	
 *   Email:        steven69@purdue.edu
-*   Date Created: 06/15/2016
-*   Description:  A simple adder for calculating branch targets 
+*   Date Created: 06/01/2016
+*   Description:  Interface between the fetch and execute pipeline stages
 */
 
-`include "jump_calc_if.vh"
+`ifndef PIPE5_FETCH1_FETCH2_IF_VH
+`define PIPE5_FETCH1_FETCH2_IF_VH
 
-module jump_calc
-(
-  jump_calc_if.jump_calc jump_if
-);
+interface pipe5_fetch1_fetch2_if;
 
   import rv32i_types_pkg::*;
+ 
+  word_t pc;
+  logic prediction;
 
-  word_t j_addr;
-  assign j_addr = jump_if.base + jump_if.offset;
+  modport fetch1(
+      output pc, prediction
+  );
+  
+  modport fetch2(
+      input pc, prediction
+  );
 
-  assign jump_if.jump_addr = (jump_if.j_sel) ? j_addr : {j_addr[31:1], 1'b0};
-
-endmodule
+endinterface
+`endif

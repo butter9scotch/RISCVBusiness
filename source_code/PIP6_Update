@@ -1,0 +1,46 @@
+1. Files
+    All source files are present in pipelines/pipe5/src
+    All include files are present in include/  -> This is so that editing wscript (for waf) is easy
+    All package files are package directory
+
+2. TESTING using waf and run_tests.py to test the selfasm tests
+    Run the script in scripts/config_core.sv to set the bus as generic one and infinite halt loop as true.
+    Run the following commands from RISCVBusiness directory
+    i) waf configure --top_level=RISCVBusiness_self_test
+    ii) waf verify_source
+    iii) python run_tests.py -t selfasm
+
+   -> Issues that might come up
+   i) move the tspp directory to source_code - otherwise wscript fails
+   ii) move the pipelines/pipe5/src/pipe5_hazard_forwarding_unit.sv to somewhere otherwise wscript will fail
+
+3. TESTING using your own assembly files
+    A. Add 
+       .global main
+       main:
+       <assembly code>
+   B. Compile teh assembly to ELF
+       riscv64-unknown-elf-gcc <yourfile>.S -march=rv32i -mabi=ilp32 -mcmodel=medancy -static -nostdlib -o <yourfile>.elf  -T link.x
+   C. python3 make_hex.py <youfile>.elf
+   link.x and make_hex.py are in RISCVBusiness/source_code/asmToHex directory
+
+4. How to run the test using Cadence simvision 
+    A. In your test bench add:
+        initial begin
+           $shm_open("dump.db");
+           $shm_probe(<top module>, "ACTFM");
+        end
+   B. Add -shm to irun command. Compile code using irun.
+   C. Command: simvision dump.db  : This will open the waveform window with all the signals dumped from top module.
+   D. You can save the signals by going to File->Save Command script. And load the signals using - File -> Source Command Script
+      No need to close the window after compiling again. File ->Reload Database and it would refresh the waveform window
+ 
+5. Exception tests
+   A. RISCVBusiness/verification/exception-tests/exception.S : Test each exception
+   A. RISCVBusiness/verification/exception-tests/exception_multiple.S Test 2 exceptions occuring at teh same time
+  
+
+6. TO-DOS
+    A. Testing for little and big endianess
+    B. Test illegal opcode in Exceptions
+    C. More intensive testing - like mergesort, for example programs
