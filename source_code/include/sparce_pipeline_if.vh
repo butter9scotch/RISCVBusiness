@@ -53,8 +53,6 @@ interface sparce_pipeline_if;
   );
 
   modport pipe_execute (
-
-  modport pipe_execute (
     input sparce_target, skipping,
     output wb_data, wb_en, sasa_data, sasa_addr, sasa_wen, rd
   );
