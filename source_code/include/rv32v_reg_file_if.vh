@@ -30,27 +30,31 @@ interface rv32v_reg_file_if();
   import rv32v_types_pkg::*;
   import rv32i_types_pkg::*;
 
-  parameter WEN_WIDTH = 4;
-  parameter NUM_LANES = 2;
-
-  word_t  [NUM_LANES - 1:0]  w_data;
-  // word_t   w_data;
-  word_t  [NUM_LANES - 1:0]  rs1_data, rs2_data;
-  logic   [4:0] rs1, rs2, rd;
-  logic   [WEN_WIDTH - 1:0] wen;
+  word_t  [NUM_LANES - 1:0]  w_data, vs1_data, vs2_data;
+  logic   [4:0] vs1, vs2, vd;
+  sew_t de_sew, wb_sew;                  //8, 16, 32 bit elements
+  logic [VL_WIDTH - 1:0] de_vl, wb_vl;  //number of elements in the vector
+  offset_t vs1_offset, vs2_offset, vd_offset;
+  logic wen;
+  logic write_single_bit;
+  logic [1:0] vs1_mask, vs2_mask;
 
   modport rf (
-    input w_data, rs1, rs2, rd, wen,
-    output rs1_data, rs2_data
+    input w_data, vs1, vs2, vd, wen, 
+          de_sew, de_vl, //for decode stage
+          wb_sew, wb_vl, //for wb stage
+          vs1_offset, vs2_offset, vd_offset,
+          write_single_bit,
+    output vs1_data, vs2_data, vs1_mask, vs2_mask
   );
   
   modport decode (
-    output  rs1, rs2,
-    input   rs1_data, rs2_data
+    output  vs1, vs2, vs1_offset, vs2_offset, de_sew, de_vl,
+    input   vs1_data, vs2_data, vs1_mask, vs2_mask
   );
 
   modport writeback (
-    input w_data, rd, wen
+    input w_data, vd, wen, write_single_bit, vd_offset, wb_sew, wb_vl
   );
 
 endinterface
