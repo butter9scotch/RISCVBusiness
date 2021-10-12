@@ -33,7 +33,7 @@ interface rv32v_reg_file_if();
   word_t  [NUM_LANES - 1:0]  w_data, vs1_data, vs2_data;
   logic   [4:0] vs1, vs2, vd;
   sew_t de_sew, wb_sew;                  //8, 16, 32 bit elements
-  logic [VL_WIDTH - 1:0] de_vl, wb_vl;  //number of elements in the vector
+  logic [VL_WIDTH:0] de_vl, wb_vl;  //number of elements in the vector
   offset_t vs1_offset, vs2_offset, vd_offset;
   logic wen;
   logic write_single_bit;

@@ -55,7 +55,7 @@ package rv32v_types_pkg;
     LMULEIGHTH  = 3'd7
   } vlmul_t;
 
-  typedef logic [VLEN_WIDTH : 0] offset_t; //bits needed to hold offset
+  typedef logic [VLEN_WIDTH - 1: 0] offset_t; //bits needed to hold offset
 
 endpackage
 `endif

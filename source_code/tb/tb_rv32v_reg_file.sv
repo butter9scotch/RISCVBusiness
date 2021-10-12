@@ -62,6 +62,8 @@ module tb_rv32v_reg_file ();
     rfv_if.vs2_offset = 0;
     rfv_if.vd_offset  = 0;
     rfv_if.write_single_bit = 0;
+    rfv_if.wb_vl = 127;
+    rfv_if.de_vl = 127;
     nRST = 0;
     @(posedge CLK);
     nRST = 1;
@@ -113,7 +115,8 @@ module tb_rv32v_reg_file ();
     input offset_t vs1_offset;
     input offset_t vs2_offset;
 
-    @(negedge CLK);
+    // @(negedge CLK);
+    #1;
     rfv_if.de_sew = sew;
     rfv_if.vs1 = vs1;
     rfv_if.vs2 = vs2;
@@ -252,6 +255,7 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
     //32 bit
     newtest("32 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
+      $write("----------------------------\n");
       write_reg(4'hF, SEW32, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW32, i, i, 0, 0);
     end
@@ -259,6 +263,7 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
     //16 bit
     newtest("16 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
+      $write("----------------------------\n");
       write_reg(4'h3, SEW16, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW16, i, i, 0, 0);
     end
@@ -266,6 +271,7 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
     //8 bit
     newtest("8 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
+      $write("----------------------------\n");
       write_reg(4'h1, SEW8, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW8, i, i, 0, 0);
     end
