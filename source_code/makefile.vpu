@@ -1,0 +1,84 @@
+##############################################################################
+# File Related Variables
+##############################################################################
+
+HEADER_FILES := -incdir ./include 
+PKG_FILES := packages/rv32v_types_pkg.sv packages/rv32i_types_pkg.sv packages/alu_types_pkg.sv packages/machine_mode_types_1_11_pkg.sv  packages/machine_mode_types_pkg.sv packages/pipe5_types_pkg.sv 
+
+STANDARD_CORE_FILES = standard_core/rv32v_reg_file.sv 
+TB = tb/tb_rv32v_reg_file.sv 
+SRC_FILE  =  restore.tcl 
+
+IRUN = @irun  -access +rwc -timescale 1ns/100ps -shm -gui
+
+# add this function to your makefile, then you can use vmake to run anything from makefile.vpu
+# vmake() {
+# make -f makefile.vpu "$@"
+# }
+
+
+##############################################################################
+# Usage Definition
+##############################################################################
+
+define USAGE
+@echo "----------------------------------------------------------------"
+@echo "Administrative targets:"
+@echo "  clean         - removes the temporary files"
+@echo	"  print_vars  - prints the contents of the variables"
+@echo
+@echo "Simulation targets:"
+@echo "  source     - compiles and simulates the source version"
+@echo "----------------------------------------------------------------"
+endef
+
+##############################################################################
+# Designate targets that do not correspond directly to files so that they are
+# run every time they are called
+##############################################################################
+.phony: default clean 
+.phony: sim_source sim_mapped_ti sim_mapped_osu
+.phony: syn_mapped
+
+##############################################################################
+# Make the default target (the one called when no specific one is invoked) to
+# output the proper usage of this makefile
+##############################################################################
+default:
+	$(USAGE)
+
+##############################################################################
+# Administrative Targets
+##############################################################################
+
+clean:
+	@echo -e "Removing temporary files"
+	@rm -rf source_work mapped_work
+	@rm -rf analyzed/ARCH analyzed/ENTI
+	@rm -rf INCA_libs/
+	@rm -f analyzed/*
+	@rm -f schematic/*
+	@rm -f *.wlf *.svf transcript
+	@rm -f *.tran
+	@rm -f *.comp
+	@rm -f mmmc.view
+	@rm -f *.rpt
+	@rm -f *.cmd*
+	@rm -f *.log*
+	@rm -f *.rpt.old
+	@rm -f irun.*
+	@echo -e "Done\n\n"
+	
+print_vars:
+	@echo -e "Component Files: \n $(foreach file, $(COMPONENT_FILES_VHD) $(COMPONENT_FILES_V), $(file)\n)"
+	@echo -e "Top level File: $(TOP_LEVEL_FILE)"
+	@echo -e "Arch to mapp: $(MAPPED_ARCH)"
+	@echo -e "Testbench: $(TEST_BENCH)"
+
+
+##############################################################################
+# Synthesis Target
+##############################################################################
+
+source:
+	$(IRUN)  $(PKG_FILES) $(HEADER_FILES) $(STANDARD_CORE_FILES) -input $SRC_FILE
