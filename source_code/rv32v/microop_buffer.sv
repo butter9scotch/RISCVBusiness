@@ -28,6 +28,7 @@ module microop_buffer (
   input logic [3:0] LMUL,
   input logic shift_ena,
   input logic start,
+  input logic clear,
   input logic [31:0] instr,
   output logic [31:0] microop
 );
@@ -99,6 +100,8 @@ module microop_buffer (
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
+      buffer <= '0;
+    end else if (clear) begin
       buffer <= '0;
     end else if (shift_ena) begin
       buffer <= (buffer >> 32);
