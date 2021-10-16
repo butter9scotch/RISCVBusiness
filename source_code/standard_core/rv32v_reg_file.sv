@@ -29,20 +29,13 @@ module rv32v_reg_file (
   rv32v_reg_file_if.rf rfv_if
 );
 
-  //TODO: MAKE SURE REG FILE DIDN'T BREAK NOW THAT THIS IS 8 BITS
-
-
   import rv32v_types_pkg::*;
   import rv32i_types_pkg::*;
-  // parameter VLENB = 8;
 
-  typedef logic [7:0] byte_t;
-  typedef byte_t [VLENB-1:0]  vreg_t;
-  // typedef [7:0] byte_t vreg_t;
+
 
 
   parameter NUM_REGS = 32;
-  // assign rfv_if.vd_offset = 0; 
   logic [6:0] vd1_start, vd2_start;
   logic [6:0] vd1_end, vd2_end;
   
