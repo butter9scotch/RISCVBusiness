@@ -32,29 +32,26 @@ interface rv32v_reg_file_if();
 
   word_t  [NUM_LANES - 1:0]  w_data, vs1_data, vs2_data;
   logic   [4:0] vs1, vs2, vd;
-  sew_t de_sew, wb_sew;                  //8, 16, 32 bit elements
-  logic [VL_WIDTH:0] de_vl, wb_vl;  //number of elements in the vector
+  sew_t sew;                  //8, 16, 32 bit elements
+  logic [VL_WIDTH:0]  vl;  //number of elements in the vector
   offset_t vs1_offset, vs2_offset, vd_offset;
   logic wen;
-  logic write_single_bit;
   logic [1:0] vs1_mask, vs2_mask;
 
   modport rf (
     input w_data, vs1, vs2, vd, wen, 
-          de_sew, de_vl, //for decode stage
-          wb_sew, wb_vl, //for wb stage
+          sew, vl, //for wb stage
           vs1_offset, vs2_offset, vd_offset,
-          write_single_bit,
     output vs1_data, vs2_data, vs1_mask, vs2_mask
   );
   
   modport decode (
-    output  vs1, vs2, vs1_offset, vs2_offset, de_sew, de_vl,
+    output  vs1, vs2, vs1_offset, vs2_offset, sew, 
     input   vs1_data, vs2_data, vs1_mask, vs2_mask
   );
 
   modport writeback (
-    input w_data, vd, wen, write_single_bit, vd_offset, wb_sew, wb_vl
+    input w_data, vd, wen, vd_offset, sew, vl
   );
 
 endinterface
