@@ -28,22 +28,20 @@
 interface element_counter_if();
   import rv32i_types_pkg::*;
   import rv32v_types_pkg::*;
-
   
   offset_t offset;
-  logic [3:0] micro_op_vl;
-  logic done;
+  logic [4:0] uop_vl;
+  logic shift_ena, done;
 
   word_t vstart, vl;
-  logic stall, ex_return, de_en;
-  offset_t reset_idx;
+  logic stall, ex_return, de_en, clear;
   sew_t sew;
 
   modport ec (
     input   vstart, vl,
             stall, ex_return, de_en,
-            reset_idx, sew,
-    output  offset, micro_op_vl, done
+            sew, clear,
+    output  offset, uop_vl, shift_ena, done
   );
 
   // modport decode (

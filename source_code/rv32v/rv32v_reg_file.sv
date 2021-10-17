@@ -39,6 +39,7 @@ module rv32v_reg_file (
   logic [6:0] vd1_start, vd2_start;
   logic [6:0] vd1_end, vd2_end;
   
+  // set lower 2 bits to zero to round down instead of division
 
   vreg_t [NUM_REGS-1:0] registers, next_registers;
 
