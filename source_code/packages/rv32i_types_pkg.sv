@@ -45,12 +45,16 @@ package rv32i_types_pkg;
     BRANCH    = 7'b1100011,
     // All load instructions share an opcode
     LOAD      = 7'b0000011,
+    LOAD_FP   = 7'b0000111,
     // All store instructions share an opcode
     STORE     = 7'b0100011,
+    STORE_FP  = 7'b0100111,
     // All immediate ALU instructions share an opcode
     IMMED     = 7'b0010011,
     // All register-register instructions share an opcode
     REGREG    = 7'b0110011,
+    // Vector opcode
+    VECTOR    = 7'b1010111,
     // All system instructions share an opcode
     SYSTEM    = 7'b1110011,
     MISCMEM  = 7'b0001111
