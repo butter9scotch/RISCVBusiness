@@ -76,13 +76,13 @@ package rv32v_types_pkg;
     MOP_OINDEXED = 3 
   } mop_t;
 
-  typedef enum logic [2:0] { 
-    ARITH,
-    MASK,
-    PERM,
-    LOADSTORE,
-    NOOP
-  } funit_type;
+  // typedef enum logic [2:0] { 
+  //   ARITH,
+  //   MASK,
+  //   PERM,
+  //   LOADSTORE,
+  //   NOOP
+  // } funit_type;
 
   typedef enum logic [2:0] { 
     OPIVV = 3'b0,
@@ -93,7 +93,7 @@ package rv32v_types_pkg;
     OPFVF = 3'd5,
     OPMVX = 3'd6,
     OPCFG = 3'd7
-  } vfunct3;
+  } vfunct3_t;
 
   typedef enum logic [1:0] { 
     NOT_CFG, 
@@ -129,8 +129,8 @@ package rv32v_types_pkg;
     VMSLE = 6'b011101,
     VMSGTU = 6'b011110,
     VMSGT = 6'b011111,
-    VMSADDU = 6'b100000,
-    VMSADD = 6'b100001,
+    VSADDU = 6'b100000,
+    VSADD = 6'b100001,
     VSSUBU = 6'b100010,
     VSSUB = 6'b100011,
     VSLL = 6'b100101,
@@ -203,7 +203,119 @@ package rv32v_types_pkg;
     VWMACCSU = 6'b111111
   } vopm_t;
 
-  
+
+  typedef enum logic [6:0] { 
+    BAD_OP = 0,
+    OP_VADD,
+    OP_VSUB,
+    OP_VRSUB,
+    OP_VMINU,
+    OP_VMIN,
+    OP_VMAXU,
+    OP_VMAX,
+    OP_VAND,
+    OP_VOR,
+    OP_VXOR,
+    OP_VRGATHER,
+    OP_VSLIDEUP,
+    OP_VRGATHEREI16,
+    OP_VSLIDEDOWN,
+    OP_VADC,
+    OP_VMADC,
+    OP_VSBC,
+    OP_VMSBC,
+    OP_VMERGE,
+    OP_VMV,
+    OP_VMSEQ,
+    OP_VMSNE,
+    OP_VMSLTU,
+    OP_VMSLT,
+    OP_VMSLEU,
+    OP_VMSLE,
+    OP_VMSGTU,
+    OP_VMSGT,
+    OP_VSADDU,
+    OP_VSADD,
+    OP_VSSUBU,
+    OP_VSSUB,
+    OP_VSLL,
+    OP_VSMUL,
+    OP_VSRL,
+    OP_VSRA,
+    OP_VSSRL,
+    OP_VSSRA,
+    OP_VNSRL,
+    OP_VNSRA,
+    OP_VNCLIPU,
+    OP_VNCLIP,
+    OP_VWREDSUMU,
+    OP_VWREDSUM,
+    OP_VREDSUM,
+    OP_VREDAND,
+    OP_VREDOR,
+    OP_VREDXOR,
+    OP_VREDMINU,
+    OP_VREDMIN,
+    OP_VREDMAXU,
+    OP_VREDMAX,
+    OP_VAADDU,
+    OP_VAADD,
+    OP_VASUBU,
+    OP_VASUB,
+    OP_VSLIDE1UP,
+    OP_VSLIDE1DOWN,
+    OP_VMV_X_S,
+    OP_VPOPC,
+    OP_VFIRST,
+    OP_VMV_S_X,
+    OP_VZEXT_VF8,
+    OP_VSEXT_VF8,
+    OP_VZEXT_VF4,
+    OP_VSEXT_VF4,
+    OP_VZEXT_VF2,
+    OP_VSEXT_VF2,
+    OP_VMSBF,
+    OP_VMSOF,
+    OP_VMSIF,
+    OP_VIOTA,
+    OP_VID,
+    OP_VCOMPRESS,
+    OP_VMANDNOT,
+    OP_VMAND,
+    OP_VMOR,
+    OP_VMXOR,
+    OP_VMORNOT,
+    OP_VMNAND,
+    OP_VMNOR,
+    OP_VMXNOR,
+    OP_VDIVU,
+    OP_VDIV,
+    OP_VREMU,
+    OP_VREM,
+    OP_VMULHU,
+    OP_VMUL,
+    OP_VMULHSU,
+    OP_VMULH,
+    OP_VMADD,
+    OP_VNMSUB,
+    OP_VMACC,
+    OP_VNMSAC,
+    OP_VWADDU,
+    OP_VWADD,
+    OP_VWSUBU,
+    OP_VWSUB,
+    OP_VWADDU_W,
+    OP_VWADD_W,
+    OP_VWSUBU_W,
+    OP_VWSUB_W,
+    OP_VWMULU,
+    OP_VWMULSU,
+    OP_VWMUL,
+    OP_VWMACCU,
+    OP_VWMACC,
+    OP_VWMACCUS,
+    OP_VWMACCSU
+  } vop_decoded_t;
 
   typedef enum logic[4:0] { //vs1
     VMV_X_S = 5'b00000,
@@ -243,35 +355,35 @@ package rv32v_types_pkg;
     DIV     = 3'b011,
     MASK    = 3'b100,
     PEM     = 3'b101,
-    LOAD    = 3'b110,
-    STORE   = 3'b111
+    LOAD_UNIT    = 3'b110,
+    STORE_UNIT   = 3'b111
   } fu_t;
 
   typedef enum logic [3:0] {
-    ALU_SLL   = 4'b0000,
-    ALU_SRL   = 4'b0001,
-    ALU_SRA   = 4'b0010,
-    ALU_ADD   = 4'b0011,
-    ALU_SUB   = 4'b0100,
-    ALU_AND   = 4'b0101,
-    ALU_OR    = 4'b0110,
-    ALU_XOR   = 4'b0111,
-    ALU_COMP  = 4'b1000,
-    ALU_MERGE = 4'b1001,
-    ALU_MOVE  = 4'b1010,
-    ALU_MM    = 4'b1011,
-    ALU_EXT   = 4'b1100
+    VALU_SLL   = 4'b0000,
+    VALU_SRL   = 4'b0001,
+    VALU_SRA   = 4'b0010,
+    VALU_ADD   = 4'b0011,
+    VALU_SUB   = 4'b0100,
+    VALU_AND   = 4'b0101,
+    VALU_OR    = 4'b0110,
+    VALU_XOR   = 4'b0111,
+    VALU_COMP  = 4'b1000,
+    VALU_MERGE = 4'b1001,
+    VALU_MOVE  = 4'b1010,
+    VALU_MM    = 4'b1011,
+    VALU_EXT   = 4'b1100
   } valuop_t;
 
   typedef enum logic [2:0] {
-    SEQ   = 3'b000,
-    SNE   = 3'b001,
-    SLTU  = 3'b010,
-    SLT   = 3'b011,
-    SLEU  = 3'b100,
-    SLE   = 3'b101,
-    SGTU  = 3'b110,
-    SGT   = 3'b111
+    VSEQ   = 3'b000,
+    VSNE   = 3'b001,
+    VSLTU  = 3'b010,
+    VSLT   = 3'b011,
+    VSLEU  = 3'b100,
+    VSLE   = 3'b101,
+    VSGTU  = 3'b110,
+    VSGT   = 3'b111
   } comp_t;
 
   typedef enum logic [2:0] {
