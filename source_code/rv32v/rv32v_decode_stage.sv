@@ -1,0 +1,304 @@
+/*
+*   Copyright 2016 Purdue University
+*   
+*   Licensed under the Apache License, Version 2.0 (the "License");
+*   you may not use this file except in compliance with the License.
+*   You may obtain a copy of the License at
+*   
+*       http://www.apache.org/licenses/LICENSE-2.0
+*   
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
+*
+*
+*   Filename:     include/rv32v_reg_file_if.vh
+*
+*   Created by:   Owen Prince	
+*   Email:        oprince@purdue.edu
+*   Date Created: 10/30/2021
+*   Description:  Decode-execute interface for vector extension 
+*/
+
+`include "rv32v_fetch2_decode_if.vh"
+`include "rv32v_decode_execute_if.vh"
+`include "rv32v_reg_file_if.vh"
+`include "rv32v_hazard_unit_if.vh"
+`include "prv_pipeline_if.vh"
+
+module rv32v_decode_stage (
+  input logic CLK, nRST, halt,
+  rv32v_fetch2_decode_if.decode fetch_decode_if,
+  rv32v_decode_execute_if.decode decode_execute_if,
+  rv32v_reg_file_if.decode rfv_if,
+  rv32v_hazard_unit_if.decode hazard_if,
+  prv_pipeline_if.vdecode prv_if,
+  input logic [31:0] xs1, xs2,
+  input logic scalar_hazard_if_ret
+);
+
+  import rv32i_types_pkg::*;
+  import rv32v_types_pkg::*;
+
+  parameter TODO = 0;
+  
+  vector_control_unit_if vcu_if();
+  element_counter_if ele_if();
+  microop_buffer_if uop_if();
+
+  vector_control_unit vcu(.*);
+  element_counter_if  element_counter(.*);
+  microop_buffer_if uop_buffer(.*);
+
+
+  // vector control unit assigns
+  assign vcu_if.instr = uop_buffer.microop;
+
+  // element counter assigns
+  assign ele_if.vstart    = prv_if.vstart; 
+  assign ele_if.vl        = prv_if.vl;  
+  assign ele_if.stall     = hazard_if.stall_dec | vcu_if.stall;  
+  assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
+  assign ele_if.de_en     = vcu_if.de_en;   
+  assign ele_if.sew       = prv_if.sew; 
+  assign ele_if.clear     = ~vcu_if.de_en | hazard_if.flush_dec; //TODO: check this 
+
+  assign uop_buffer.LMUL       = prv_if.lmul;
+  assign uop_buffer.shift_ena  = ele_if.shift_ena;
+  assign uop_buffer.start      = vcu_if.de_en;
+  assign uop_buffer.clear      = ele_if.done | hazard_if.flush_dec; //TODO: check this 
+  assign uop_buffer.instr      = fetch_decode_if.instr;
+
+
+  logic [31:0] sign_ext_imm5, zero_ext_imm5;
+  assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
+  assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
+
+
+
+  // microop buffer assigns
+
+
+  offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
+
+  logic mask0, mask1;
+
+  //TODO: iron out exact masking logic based on offsets
+  always_comb begin : MASK_BITS
+    if (vcu_if.vs1_offset_src == NORMAL) begin
+      mask0 = rfv_if.vs1_mask[0];
+      mask1 = rfv_if.vs1_mask[1];
+    end else if (vcu_if.vs2_offset_src == NORMAL) begin
+      mask0 = rfv_if.vs2_mask[0];
+      mask1 = rfv_if.vs2_mask[1];
+    end else begin
+      mask0 = rfv_if.vs3_mask[0];
+      mask1 = rfv_if.vs3_mask[1];
+    end
+  end
+
+  always_comb begin : VS1_OFFSET
+    case(vcu_if.vs1_offset_src)
+    VS1_SRC_NORMAL: begin 
+            vs1_offset0 = ele_if.offset;
+            vs1_offset1 = ele_if.offset + 1;
+    end
+    VS1_SRC_ZERO: begin 
+            vs1_offset0 = 0;
+            vs1_offset1 = 0;
+    end
+  endcase
+  end
+
+  always_comb begin : VS2_OFFSET
+    case(vcu_if.vs2_offset_src)
+      VS2_SRC_NORMAL: begin 
+              vs2_offset0 = ele_if.offset;
+              vs2_offset1 = ele_if.offset + 1;
+      end
+      VS2_SRC_IDX_PLUS_RS1: begin 
+              vs2_offset0 = ele_if.offset + xs1;
+              vs2_offset1 = ele_if.offset + xs1 + 1;
+      end
+      VS2_SRC_IDX_PLUS_UIMM: begin 
+            vs2_offset0 = ele_if.offset + zero_ext_imm5;
+            vs2_offset1 = ele_if.offset + zero_ext_imm5 + 1;
+      end
+      VS2_SRC_IDX_PLUS_1: begin 
+            vs2_offset0 = ele_if.offset + 1;
+            vs2_offset1 = ele_if.offset + 2; 
+      end
+      VS2_SRC_VS1: begin 
+            vs2_offset0 = rfv_if.vs1_data[0];
+            vs2_offset1 = rfv_if.vs1_data[1];
+      end
+      VS2_SRC_RS1: begin 
+            vs2_offset0 = xs1;
+            vs2_offset1 = xs1;
+      end
+      VS2_SRC_UIMM: begin 
+            vs2_offset0 = zero_ext_imm5[VLEN_WIDTH:0];
+            vs2_offset1 = zero_ext_imm5[VLEN_WIDTH:0];
+      end
+      VS2_SRC_ZERO: begin
+            vs2_offset0 = 0;
+            vs2_offset1 = 0;
+      end
+    endcase
+  end
+
+  always_comb begin : WOFFSET
+    case (vcu_if.vd_offset_src)
+      VD_SRC_NORMAL: begin   
+        woffset0 = ele_if.offset;
+        woffset1 = ele_if.offset + 1;
+      end       
+      VD_SRC_ZERO: begin   
+        woffset0 = 0;
+        woffset1 = 0;
+      end         
+      VD_SRC_IDX_PLUS_RS1:  begin  
+        woffset0 = ele_if.offset + xs1;
+        woffset1 = ele_if.offset + xs1 + 1;
+      end
+      VD_SRC_IDX_PLUS_UIMM: begin  
+        woffset0 = ele_if.offset + zero_ext_imm5;
+        woffset1 = ele_if.offset + zero_ext_imm5 + 1;
+      end
+      VD_SRC_IDX_PLUS_1:  begin  
+        woffset0 = ele_if.offset + 1;
+        woffset1 = ele_if.offset + 2;
+      end         
+      VD_SRC_COMPRESS: begin   
+        woffset0 = ele_if.offset;      //this will need to change 
+        woffset1 = ele_if.offset + 1; //this will need to change
+      end       
+    endcase
+  end
+
+    // in:  vs1, vs2, vs1_offset, vs2_offset, sew, 
+    // out: vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask
+
+  assign rfv_if.vs1 = vcu_if.vs1;
+  assign rfv_if.vs1 = vcu_if.vs2;
+  assign rfv_if.vs1_offset[0] = vs1_offset0;
+  assign rfv_if.vs1_offset[1] = vs1_offset1;
+  assign rfv_if.vs2_offset[0] = vs2_offset0;
+  assign rfv_if.vs2_offset[1] = vs2_offset1;
+  assign rfv_if.vs3_offset[0] = woffset0; // use offset of vd here because same bits in instruction
+  assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
+  assign rfv_if.sew = prv_if.sew;
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      decode_execute_if.stride_type   <= 'h0;
+      decode_execute_if.rd_WEN        <= 'h0;
+      decode_execute_if.config_type   <= 'h0;
+      decode_execute_if.mask0         <= 'h0;
+      decode_execute_if.mask1         <= 'h0;
+      decode_execute_if.reduction_ena <= 'h0;
+      decode_execute_if.is_signed     <= 'h0;
+      decode_execute_if.ls_idx        <= 'h0;
+      decode_execute_if.load          <= 'h0;
+      decode_execute_if.store         <= 'h0;
+      decode_execute_if.wen0          <= 'h0;
+      decode_execute_if.wen1          <= 'h0;
+      decode_execute_if.stride_val    <= 'h0;
+      decode_execute_if.xs1           <= 'h0;
+      decode_execute_if.xs2           <= 'h0;
+      decode_execute_if.vl            <= 'h0;
+      decode_execute_if.vs1_lane0     <= 'h0;
+      decode_execute_if.vs1_lane1     <= 'h0;
+      decode_execute_if.vs3_lane0     <= 'h0;
+      decode_execute_if.vs3_lane1     <= 'h0;
+      decode_execute_if.vs2_lane0     <= 'h0;
+      decode_execute_if.vs2_lane1     <= 'h0;
+      decode_execute_if.imm           <= 'h0;
+      decode_execute_if.storedata0    <= 'h0;
+      decode_execute_if.storedata1    <= 'h0;
+      decode_execute_if.rd_sel        <= 'h0;
+      decode_execute_if.woffset0      <= 'h0;
+      decode_execute_if.woffset1      <= 'h0;
+      decode_execute_if.fu_type       <= 'h0;
+      decode_execute_if.result_type   <= 'h0;
+      decode_execute_if.aluop         <= 'h0;
+      decode_execute_if.rs1_type      <= 'h0;
+      decode_execute_if.rs2_type      <= 'h0;
+      decode_execute_if.minmax_type   <= 'h0;
+    end else if(hazard_if.flush_dec) begin
+      decode_execute_if.stride_type   <= 'h0;
+      decode_execute_if.rd_WEN        <= 'h0;
+      decode_execute_if.config_type   <= 'h0;
+      decode_execute_if.mask0         <= 'h0;
+      decode_execute_if.mask1         <= 'h0;
+      decode_execute_if.reduction_ena <= 'h0;
+      decode_execute_if.is_signed     <= 'h0;
+      decode_execute_if.ls_idx        <= 'h0;
+      decode_execute_if.load          <= 'h0;
+      decode_execute_if.store         <= 'h0;
+      decode_execute_if.wen0          <= 'h0;
+      decode_execute_if.wen1          <= 'h0;
+      decode_execute_if.stride_val    <= 'h0;
+      decode_execute_if.xs1           <= 'h0;
+      decode_execute_if.xs2           <= 'h0;
+      decode_execute_if.vl            <= 'h0;
+      decode_execute_if.vs1_lane0     <= 'h0;
+      decode_execute_if.vs1_lane1     <= 'h0;
+      decode_execute_if.vs3_lane0     <= 'h0;
+      decode_execute_if.vs3_lane1     <= 'h0;
+      decode_execute_if.vs2_lane0     <= 'h0;
+      decode_execute_if.vs2_lane1     <= 'h0;
+      decode_execute_if.imm           <= 'h0;
+      decode_execute_if.storedata0    <= 'h0;
+      decode_execute_if.storedata1    <= 'h0;
+      decode_execute_if.rd_sel        <= 'h0;
+      decode_execute_if.woffset0      <= 'h0;
+      decode_execute_if.woffset1      <= 'h0;
+      decode_execute_if.fu_type       <= 'h0;
+      decode_execute_if.result_type   <= 'h0;
+      decode_execute_if.aluop         <= 'h0;
+      decode_execute_if.rs1_type      <= 'h0;
+      decode_execute_if.rs2_type      <= 'h0;
+      decode_execute_if.minmax_type   <= 'h0;
+    end else if(~hazard_if.stall_dec && ~hazard_if.flush_dec) begin
+      decode_execute_if.stride_type   <= vcu_if.stride_type;
+      decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
+      decode_execute_if.config_type   <= vcu_if.cfgsel != NOT_CFG;
+      decode_execute_if.mask0         <= mask0; //double check, will it always be vs1_mask
+      decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
+      decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
+      decode_execute_if.is_signed     <= vcu_if.is_signed;
+      decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
+      decode_execute_if.load          <= vcu_if.is_vload;
+      decode_execute_if.store         <= vcu_if.is_vstore;
+      decode_execute_if.wen0          <= vcu_if.wen;
+      decode_execute_if.wen1          <= vcu_if.wen;
+      decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
+      decode_execute_if.xs1           <= xs1; 
+      decode_execute_if.xs2           <= xs2; 
+      decode_execute_if.vl            <= prv_if.vl;  //TODO: handle CSRs
+      decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
+      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1];
+      decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
+      decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
+      decode_execute_if.vs2_lane0     <= rfv_if.vs2_data[0];
+      decode_execute_if.vs2_lane1     <= rfv_if.vs2_data[1];
+      decode_execute_if.imm           <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
+      decode_execute_if.storedata0    <= rfv_if.vs3_data[0];
+      decode_execute_if.storedata1    <= rfv_if.vs3_data[1];
+      decode_execute_if.rd_sel        <= vcu_if.vd;
+      decode_execute_if.woffset0      <=  woffset0; //TODO: add decision logic here
+      decode_execute_if.woffset1      <=  woffset1; //TODO: add decision logic here
+      decode_execute_if.fu_type       <= vcu_if.fu_type;
+      decode_execute_if.result_type   <= vcu_if.result_type;
+      decode_execute_if.aluop         <= vcu_if.aluop;
+      decode_execute_if.rs1_type      <= vcu_if.rs1_type;
+      decode_execute_if.rs2_type      <= vcu_if.rs2_type;
+      decode_execute_if.minmax_type   <= vcu_if.minmax_type;
+    end
+  end
+
+endmodule
+

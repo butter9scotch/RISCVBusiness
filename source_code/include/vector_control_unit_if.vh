@@ -51,19 +51,27 @@ interface vector_control_unit_if();
   logic vm;
   logic  [4:0] vs1, vs2, vd; //regfile sel lines
   logic vs1_src; //choose between vd =1 and vs1 =0
-  logic vs1_offset_src, vs2_offset_src; //choose from diff offsets 
-  logic vd_offset_src;
+  vs1_offset_src_t vs1_offset_src; 
+  vs2_offset_src_t vs2_offset_src; //choose from diff offsets 
+  vd_offset_src_t  vd_offset_src;
   logic imm_op; //imm op uses imm instead of vs1
-  logic rs1_scalar_src, rs2_scalar_src, rd_scalar_src; //select signal to scalar regs
+  logic xs1_scalar_src, xs2_scalar_src, rd_scalar_src; //select signal to scalar regs
   logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena; //unit enables
   width_t mem_op_width; //3 bit width field of load/store
-  logic is_signed; //sign extension will happen in execute stage?
+  logic sign_extend; //sign extend the immediate value
   logic single_bit_op; //move this out to the decode stage top level?
   logic illegal_insn; 
-
+  logic is_vload, is_vstore;
   logic de_en;
   logic stall;
+  logic is_load, is_store;
 
+  rs_t rs1_type;
+  rs_t rs2_type;
+  logic stride_type;
+// TODO:
+  logic is_signed; //op in the execution units is signed 
+  logic ls_idx;
   // result_type,  multiply_type, multiply_pos_neg, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena,  minmax_type, carryin_ena, win, zext_w, woutu, index,
 
 
@@ -83,17 +91,18 @@ interface vector_control_unit_if();
     eew,
     cfgsel,
     result_type,
-
-
+    is_load,
+    is_store,
     vs1, vs2, vd,  
     vs1_src, 
     vs1_offset_src, vs2_offset_src,
     imm_op,
-    rs1_scalar_src, rs2_scalar_src, rd_scalar_src,
+    xs1_scalar_src, xs2_scalar_src, rd_scalar_src,
     arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena,
     fu_type,
     mem_op_width,
-    is_signed,
+    sign_extend,
+    is_signed, //
     single_bit_op,
     illegal_insn,
     vd_offset_src,
@@ -104,7 +113,10 @@ interface vector_control_unit_if();
     zimm_10,
     comp_type,
     minmax_type,
-    ext_type
+    ext_type,
+    rs1_type,
+    rs2_type,
+    stride_type
   );
 
 

@@ -30,7 +30,7 @@ package rv32v_types_pkg;
   parameter VLEN_WIDTH = 7; // 128 bit registers
   parameter VL_WIDTH = VLEN_WIDTH; //width of largest vector = VLENB * 8 
   parameter VLEN = 1 << 7; 
-  parameter VLENB = VLEN / 8; //VLEN in bytes
+  parameter VLENB = VLEN / 8; //VLEN in bytes- TODO change to use csr val
   parameter NUM_LANES = 2;
 
 
@@ -416,5 +416,31 @@ package rv32v_types_pkg;
     X = 2'b10
   } rs_t;
   
+  typedef enum logic { 
+    VS1_SRC_NORMAL = 0, 
+    VS1_SRC_ZERO = 1 
+  } vs1_offset_src_t;
+
+  typedef enum logic [2:0] { 
+    VS2_SRC_NORMAL = 0,
+    VS2_SRC_IDX_PLUS_RS1,
+    VS2_SRC_IDX_PLUS_UIMM,
+    VS2_SRC_IDX_PLUS_1,
+    VS2_SRC_VS1,
+    VS2_SRC_RS1,
+    VS2_SRC_UIMM,
+    VS2_SRC_ZERO
+  } vs2_offset_src_t;
+
+  typedef enum logic [2:0] { 
+    VD_SRC_NORMAL = 0,
+    VD_SRC_ZERO,
+    VD_SRC_IDX_PLUS_RS1,
+    VD_SRC_IDX_PLUS_UIMM,
+    VD_SRC_IDX_PLUS_1,
+    VD_SRC_COMPRESS
+  } vd_offset_src_t;
+
+
 endpackage
 `endif
