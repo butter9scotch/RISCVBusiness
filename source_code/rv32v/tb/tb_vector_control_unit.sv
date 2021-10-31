@@ -23,6 +23,7 @@
 */
 
 // `include "vector_control_unit_if.vh"
+`include "transaction.svh"
 
 module tb_vector_control_unit ();
   import rv32v_types_pkg::*;
@@ -39,10 +40,10 @@ module tb_vector_control_unit ();
   logic CLK, nRST;
   vopm_t op;
 
-  // vector_control_unit_if vcu_if();
+  vector_control_unit_if vcu_if();
 
-  // vector_control_unit DUT (.*);
-  //   .rfv_if(CLK, nRST, rfv_if)
+  vector_control_unit DUT (.*);
+    // .rfv_if(CLK, nRST, rfv_if)
   // );
 
   initial begin : CLK_INIT
@@ -63,8 +64,10 @@ module tb_vector_control_unit ();
 
   task newtest;
     input string testname;
+    transaction tx;
     reset();
-    $info("\nTEST CASE %d: %s\n", testnum, testname);
+    tx = new();
+    $info("\nTEST CASE %d: %s\n instr = %d\n", testnum, testname, tx.get_instr());
     testnum+=1;
   endtask
 

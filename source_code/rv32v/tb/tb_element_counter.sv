@@ -23,6 +23,7 @@
 */
 
 `include "element_counter_if.vh"
+`include "microop_buffer_if.vh"
 `timescale 1ns/100ps
 
 module tb_element_counter ();
@@ -38,28 +39,29 @@ module tb_element_counter ();
 
  
   logic CLK, nRST;
-  logic [3:0] LMUL;
-  logic tb_shift_ena;
-  logic tb_start;
-  logic tb_clear;
-  logic [31:0] tb_instr;
-  logic [31:0] microop;
+  // logic [3:0] uop_if.LMUL;
+  // logic uop_if.shift_ena;
+  // logic uop_if.start;
+  // logic uop_if.clear;
+  // logic [31:0] uop_if.instr;
+  // logic [31:0] microop;
   rtype_t vinstr;
 
-  assign vinstr = rtype_t'(microop);
 
   element_counter_if ele_if();
+  microop_buffer_if uop_if();
 
-  assign tb_shift_ena = ele_if.shift_ena;
+  assign uop_if.shift_ena = ele_if.shift_ena;
+  assign vinstr = rtype_t'(uop_if.microop);
 
   element_counter DUT (.*);
-  microop_buffer buffer (CLK, nRST, 
-                        LMUL,
-                        tb_shift_ena,
-                        tb_start,
-                        tb_clear,
-                        tb_instr,
-                        microop);
+  microop_buffer buffer (.*); 
+                        // LMUL,
+                        // tb_shift_ena,
+                        // tb_start,
+                        // tb_clear,
+                        // tb_instr,
+                        // microop);
   //   .rfv_if(CLK, nRST, rfv_if)
   // );
 
@@ -86,10 +88,10 @@ module tb_element_counter ();
     ele_if.uop_vl  = 0;
     ele_if.done = 0;
     ele_if.clear = 0;
-    LMUL = 0;
-    tb_start = 0;
-    tb_clear = 0;
-    tb_instr = 0;
+    uop_if.LMUL = 0;
+    uop_if.start = 0;
+    uop_if.clear = 0;
+    uop_if.instr = 0;
 
 
     @(posedge CLK);
@@ -108,11 +110,11 @@ module tb_element_counter ();
     input logic [3:0] LMUL_val;
     input int instr_val;
     @(negedge CLK);
-    tb_start = 1;
-    tb_instr = instr_val;
-    LMUL = LMUL_val;
+    uop_if.start = 1;
+    uop_if.instr = instr_val;
+    uop_if.LMUL = LMUL_val;
     @(negedge CLK);
-    tb_start = 0;
+    uop_if.start = 0;
   endtask
 
   task count;
@@ -213,10 +215,10 @@ module tb_element_counter ();
     // init_microop_buffer(8, 32'h57);
     count_to(4);
     ele_if.clear = 1;
-    tb_clear = 1;
+    uop_if.clear = 1;
     @(negedge CLK);
     ele_if.ex_return = 0;
-    tb_clear = 0;
+    uop_if.clear = 0;
     count_to(4);
 
     $finish;
