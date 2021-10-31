@@ -61,8 +61,8 @@ module vector_lane (
   assign dv  = vif.fu_type == DIV;
   assign mau = vif.fu_type == MASK;
   assign pu  = vif.fu_type == PEM;
-  assign lu  = vif.fu_type == LOAD;
-  assign su  = vif.fu_type == STORE;
+  assign lu  = vif.fu_type == LOAD_UNIT;
+  assign su  = vif.fu_type == STORE_UNIT;
 
   // Output sel
   assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls;

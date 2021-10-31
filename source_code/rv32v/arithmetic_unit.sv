@@ -119,14 +119,14 @@ module arithmetic_unit (
   // Comparison instr ALU
   always_comb begin 
     case (aif.comp_type)
-      SEQ   : comp = seq;
-      SNE   : comp = seq == 0;
-      SLTU  : comp = {31'd0, sltu};
-      SLT   : comp = {31'd0, slt};
-      SLEU  : comp = sleu;
-      SLE   : comp = sle;
-      SGTU  : comp = sleu == 0;
-      SGT   : comp = sle == 0;
+      VSEQ   : comp = seq;
+      VSNE   : comp = seq == 0;
+      VSLTU  : comp = {31'd0, sltu};
+      VSLT   : comp = {31'd0, slt};
+      VSLEU  : comp = sleu;
+      VSLE   : comp = sle;
+      VSGTU  : comp = sleu == 0;
+      VSGT   : comp = sle == 0;
       default : comp = '0;
     endcase
   end
@@ -145,18 +145,18 @@ module arithmetic_unit (
   // Main ALU
   always_comb begin 
     case (aif.aluop)
-      ALU_SLL   : result = vsdata2 << shamnt;
-      ALU_SRL   : result = vsdata2 >> shamnt;
-      ALU_SRA   : result = $signed(vsdata2) >>> shamnt;
-      ALU_ADD   : result = finaldata2 + vsdata1;
-      ALU_SUB   : result = finaldata2 - sdata1;
-      ALU_AND   : result = vsdata2 & vsdata1;
-      ALU_OR    : result = vsdata2 | vsdata1;
-      ALU_XOR   : result = vsdata2 ^ vsdata1;
-      ALU_COMP  : result = comp;
-      ALU_MERGE : result = merge;
-      ALU_MOVE  : result = vsdata1;
-      ALU_MM    : result = mm;
+      VALU_SLL   : result = vsdata2 << shamnt;
+      VALU_SRL   : result = vsdata2 >> shamnt;
+      VALU_SRA   : result = $signed(vsdata2) >>> shamnt;
+      VALU_ADD   : result = finaldata2 + vsdata1;
+      VALU_SUB   : result = finaldata2 - sdata1;
+      VALU_AND   : result = vsdata2 & vsdata1;
+      VALU_OR    : result = vsdata2 | vsdata1;
+      VALU_XOR   : result = vsdata2 ^ vsdata1;
+      VALU_COMP  : result = comp;
+      VALU_MERGE : result = merge;
+      VALU_MOVE  : result = vsdata1;
+      VALU_MM    : result = mm;
       default   : result = '0;
     endcase
   end
