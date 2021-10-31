@@ -18,7 +18,7 @@
 *
 *   Created by:   Jing Yin See
 *   Email:        see4@purdue.edu
-*   Date Created: 01/15/2021
+*   Date Created: 10/15/2021
 *   Description:  Break vector instr into microops if LMUL > 1
 */
 

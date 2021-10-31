@@ -10,8 +10,8 @@ interface address_scheduler_if;
   sew_t sew;
 
   modport address_scheduler (
-    input   addr0, addr1, storedata0, storedata1, dhit, sew, returnex,
-    output  final_addr, final_storedata, wen, ren, arrived0, arrived1, exception, busy
+    input   addr0, addr1, storedata0, storedata1, dhit, sew, returnex, load, store,
+    output  final_addr, final_storedata, wen, ren, arrived0, arrived1, exception, busy, byte_ena
   );
 
 endinterface

@@ -409,6 +409,12 @@ package rv32v_types_pkg;
     F8Z = 3'b100,
     F8S = 3'b101
   } ext_t;
+
+  typedef enum logic [1:0] {
+    V = 2'b00,
+    I = 2'b01,
+    X = 2'b10
+  } rs_t;
   
 endpackage
 `endif
