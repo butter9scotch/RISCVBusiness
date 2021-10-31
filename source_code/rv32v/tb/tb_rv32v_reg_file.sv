@@ -94,6 +94,7 @@ module tb_rv32v_reg_file ();
     rfv_if.w_data = dat;
     rfv_if.wen = wen;
     rfv_if.sew = sew;
+    rfv_if.eew = sew;
     
 
     rfv_if.vd_offset = vd_offset;
@@ -115,6 +116,7 @@ module tb_rv32v_reg_file ();
     // @(negedge CLK);
     #1;
     rfv_if.sew = sew;
+    rfv_if.eew = sew;
     rfv_if.vs1 = vs1;
     rfv_if.vs2 = vs2;
 
