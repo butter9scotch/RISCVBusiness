@@ -33,6 +33,7 @@
 interface prv_pipeline_if();
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
+  import rv32v_types_pkg::*;
 
   // exception signals
   logic fault_insn, mal_insn, illegal_insn, fault_l, mal_l, fault_s, mal_s,
@@ -59,6 +60,12 @@ interface prv_pipeline_if();
   logic ex_rmgmt;
   logic [$clog2(`NUM_EXTENSIONS)-1:0] ex_rmgmt_cause;
 
+  // vector extension signals
+  vlmul_t lmul;
+  sew_t   sew;
+  logic   vill;
+  logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+
   modport hazard (
     input priv_pc, insert_pc, intr,
     output pipe_clear, ret, epc, fault_insn, mal_insn, 
@@ -72,6 +79,9 @@ interface prv_pipeline_if();
     input  rdata, invalid_csr
   );
 
+  modport vdecode (
+    output lmul, sew, vl, vstart, vlenb, vill 
+  );
 
   modport priv_block (
     input pipe_clear, ret, epc, fault_insn, mal_insn,
