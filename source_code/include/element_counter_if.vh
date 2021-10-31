@@ -37,12 +37,13 @@ interface element_counter_if();
   logic stall, ex_return, de_en, clear;
   sew_t sew;
 
-  modport ec (
+  modport decode (
     input   vstart, vl,
             stall, ex_return, de_en,
             sew, clear,
     output  offset, uop_vl, shift_ena, done
   );
+
 
   // modport decode (
   // );
