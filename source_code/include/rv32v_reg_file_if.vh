@@ -38,11 +38,14 @@ interface rv32v_reg_file_if();
   offset_t vs1_offset, vs2_offset, vs3_offset, vd_offset;
   logic wen;
   logic [1:0] vs1_mask, vs2_mask, vs3_mask;
+  logic rs2_widen;
+  logic single_bit_write;
 
   modport rf (
     input w_data, vs1, vs2, vs3, vd, wen, 
           sew, eew, vl, //for wb stage
           vs1_offset, vs2_offset, vs3_offset, vd_offset,
+          rs2_widen
     output vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask
   );
   
@@ -52,7 +55,7 @@ interface rv32v_reg_file_if();
   );
 
   modport writeback (
-    input w_data, vd, wen, vd_offset, eew, vl
+    input w_data, vd, wen, vd_offset, eew, vl, single_bit_write
   );
 
 endinterface
