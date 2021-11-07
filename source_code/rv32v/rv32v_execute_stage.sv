@@ -122,6 +122,13 @@ module rv32v_execute_stage (
   assign vif0.portb1          = decode_execute_if.vs2_lane0;
   assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0);
   assign vif0.portb_sel       = decode_execute_if.ls_idx;
+  assign vif0.is_signed       = decode_execute_if.is_signed;
+  assign vif0.multiply_type   = decode_execute_if.multiply_type;
+  assign vif0.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
+  assign vif0.mul_widen_ena   = decode_execute_if.mul_widen_ena;
+  assign vif0.high_low        = decode_execute_if.high_low;
+  assign vif0.div_type        = decode_execute_if.div_type;
+  assign vif0.is_signed_div   = decode_execute_if.is_signed_div;
 
   // Vector Lane 1
   //assign vif1.stride          = decode_execute_if.stride;
@@ -139,6 +146,13 @@ module rv32v_execute_stage (
   assign vif1.portb1          = decode_execute_if.vs2_lane1;
   assign vif1.porta_sel       = decode_execute_if.ls_idx;
   assign vif1.portb_sel       = decode_execute_if.ls_idx;
+  assign vif1.is_signed       = decode_execute_if.is_signed;
+  assign vif1.multiply_type   = decode_execute_if.multiply_type;
+  assign vif1.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
+  assign vif1.mul_widen_ena   = decode_execute_if.mul_widen_ena;
+  assign vif1.high_low        = decode_execute_if.high_low;
+  assign vif1.div_type        = decode_execute_if.div_type;
+  assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
 
   // Address Buffer
   always_ff @ (posedge CLK, negedge nRST) begin
