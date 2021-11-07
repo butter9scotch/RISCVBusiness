@@ -271,8 +271,8 @@ module rv32v_decode_stage (
       decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
       decode_execute_if.is_signed     <= vcu_if.is_signed;
       decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
-      decode_execute_if.load          <= vcu_if.is_vload;
-      decode_execute_if.store         <= vcu_if.is_vstore;
+      decode_execute_if.load          <= vcu_if.is_load;
+      decode_execute_if.store         <= vcu_if.is_store;
       decode_execute_if.wen0          <= vcu_if.wen;
       decode_execute_if.wen1          <= vcu_if.wen;
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 

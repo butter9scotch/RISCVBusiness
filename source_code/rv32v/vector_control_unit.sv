@@ -23,11 +23,6 @@
 *                  
 */
 
-`include "control_unit_if.vh"
-`include "rv32i_reg_file_if.vh"
-`include "risc_mgmt_if.vh"
-`include "decompressor_if.vh"
-`include "component_selection_defines.vh"
 `include "vector_control_unit_if.vh"
 
 module vector_control_unit 
@@ -37,10 +32,10 @@ module vector_control_unit
   //input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
   //input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
-  import alu_types_pkg::*;
+  // import alu_types_pkg::*;
   import rv32i_types_pkg::*;
   import rv32v_types_pkg::*;
-  import machine_mode_types_1_11_pkg::*;
+  // import machine_mode_types_1_11_pkg::*;
 
   rtype_t instr_r;
   itype_t instr_i;
@@ -226,13 +221,15 @@ module vector_control_unit
 
 
   //vs1 source
-  assign vcu_if.vs1_src = vcu_if.is_store; //stores use vs3 == vd for reading the data that will be stored
+  // assign vcu_if.vs1_src = vcu_if.is_store; //stores use vs3 == vd for reading the data that will be stored
 
   
   assign vcu_if.imm_op = ((vfunct3 == OPCFG) || (vfunct3 == OPIVI)) && (vcu_if.opcode == VECTOR); 
   
   //use rs1, rs1, rd. when VMV_X_S, VMV_X_S, VFIRST write to rd
-  assign vcu_if.xs1_scalar_src = vcu_if.is_store || vcu_if.is_load || (vcu_if.cfgsel == VSETVLI) || (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVL) || (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
+  assign vcu_if.xs1_scalar_src = vcu_if.is_store || vcu_if.is_load || (vcu_if.cfgsel == VSETVLI) || 
+                                (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVL) || 
+                                (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
   
   assign vcu_if.xs2_scalar_src = (vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED);
   assign vcu_if.rd_scalar_src = ((vfunct3 == OPCFG) || 
@@ -305,7 +302,11 @@ module vector_control_unit
 
   // OFFSET SOURCE MUX CONTROL LINES
   //choose vs1 offset, any of the reduction ops cause it to be 0
-  assign vcu_if.vs1_offset_src = (vfunct3 == OPMVV) && ((op_decoded == OP_VREDSUM) || (op_decoded == OP_VREDAND) || (op_decoded == OP_VREDOR) || (op_decoded == OP_VREDXOR) || (op_decoded == OP_VREDMINU) || (op_decoded == OP_VREDMIN) || (op_decoded == OP_VREDMAXU) || (op_decoded == OP_VREDMAX)) ? VS1_SRC_ZERO : VS1_SRC_NORMAL ; //some reduction ops
+  assign vcu_if.vs1_offset_src = (vfunct3 == OPMVV) && ((op_decoded == OP_VREDSUM) || 
+                                  (op_decoded == OP_VREDAND) || (op_decoded == OP_VREDOR) || 
+                                  (op_decoded == OP_VREDXOR) || (op_decoded == OP_VREDMINU) || 
+                                  (op_decoded == OP_VREDMIN) || (op_decoded == OP_VREDMAXU) || 
+                                  (op_decoded == OP_VREDMAX)) ? VS1_SRC_ZERO : VS1_SRC_NORMAL ; //some reduction ops
   
   always_comb begin
     vcu_if.vs2_offset_src = VS2_SRC_NORMAL;
@@ -434,12 +435,12 @@ module vector_control_unit
 
   always_comb begin
     case (op_decoded)
-      OP_VZEXT_VF8: vcu_if.ext_type = F2Z;
-      OP_VSEXT_VF8: vcu_if.ext_type = F2S;
+      OP_VZEXT_VF8: vcu_if.ext_type = F8Z;
+      OP_VSEXT_VF8: vcu_if.ext_type = F8S;
       OP_VZEXT_VF4: vcu_if.ext_type = F4Z;
       OP_VSEXT_VF4: vcu_if.ext_type = F4S;
-      OP_VZEXT_VF2: vcu_if.ext_type = F8Z;
-      OP_VSEXT_VF2: vcu_if.ext_type = F8S;
+      OP_VZEXT_VF2: vcu_if.ext_type = F2Z;
+      OP_VSEXT_VF2: vcu_if.ext_type = F2S;
     default:        vcu_if.ext_type = F2Z;
     endcase
   end

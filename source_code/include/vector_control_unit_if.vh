@@ -50,7 +50,7 @@ interface vector_control_unit_if();
   mop_t [1:0] mop;
   logic vm;
   logic  [4:0] vs1, vs2, vd; //regfile sel lines
-  logic vs1_src; //choose between vd =1 and vs1 =0
+  // logic vs1_src; //choose between vd =1 and vs1 =0
   vs1_offset_src_t vs1_offset_src; 
   vs2_offset_src_t vs2_offset_src; //choose from diff offsets 
   vd_offset_src_t  vd_offset_src;
@@ -94,7 +94,7 @@ interface vector_control_unit_if();
     is_load,
     is_store,
     vs1, vs2, vd,  
-    vs1_src, 
+    // vs1_src, 
     vs1_offset_src, vs2_offset_src,
     imm_op,
     xs1_scalar_src, xs2_scalar_src, rd_scalar_src,

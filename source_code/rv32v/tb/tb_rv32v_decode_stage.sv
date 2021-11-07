@@ -29,6 +29,8 @@ module tb_vector_control_unit ();
   import rv32v_types_pkg::*;
   import rv32i_types_pkg::*;
 
+  parameter PERIOD = 20;
+
   int testnum;
   string testname = "";
  
@@ -36,9 +38,28 @@ module tb_vector_control_unit ();
   logic CLK, nRST;
   vopm_t op;
 
-  vector_control_unit_if vcu_if();
+  typedef struct packed {
+    vopi_t funct6;
+    logic vm;
+    logic [4:0] rs2;
+    logic [4:0] rs1;
+    vfunct3_t funct3;
+    logic [4:0] rd;
+    opcode_t op;
+  } vopi_ins;
 
-  vector_control_unit DUT (.vcu_if(vcu_if));
+  typedef struct packed {
+    vopm_t funct6;
+    logic vm;
+    logic [4:0] rs2;
+    logic [4:0] rs1;
+    vfunct3_t funct3;
+    logic [4:0] rd;
+    opcode_t op;
+  } vopm_ins;
+
+  vector_control_unit_if vcu_if();
+  vector_control_unit DUT (.*);
     // .rfv_if(CLK, nRST, rfv_if)
   // );
 
@@ -82,16 +103,30 @@ module tb_vector_control_unit ();
     testnum+=1;
   endtask
 
+
+
   bit [9:0] bitarray;
+  int hexfile;
+  bit [31:0] line;
+  vopi_ins ins_i;
+  vopm_ins ins_m;
+
   initial begin : MAIN
     testnum = 0;
     testname = "";
     error_found = 0;
 
-  for (bitarray = 0; bitarray < 512; bitarray++) begin
-    testVectorInstrs(bitarray[8:4], bitarray[3], bitarray[2:0]);
-    #(1);
-  end  
+    hexfile = $fopen("rv32v/tb/init.hex", "r");   
+
+    while (!$feof(hexfile)) begin 
+        $fscanf(hexfile,"%h\n",line); 
+        $write("Line Value: %x\n", line);
+        ins_i = vopi_ins'(line);
+        ins_m = vopm_ins'(line);
+        @(posedge CLK); //wait some time as needed.
+    end 
+    //once reading and writing is finished, close the file.
+    $fclose(hexfile);
 
     
     // op = VWMACCSU;
