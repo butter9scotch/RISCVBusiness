@@ -145,7 +145,7 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
 
     data = {$urandom(), $urandom()};
     data_temp = data;
-    max_cnt = 128 / (8 << sew);
+    max_cnt = 128 / (1 << sew);
     reg_idx = 0;
 
     for(int el_idx = 0; el_idx < max_cnt; el_idx+=2) begin

@@ -14,14 +14,14 @@ interface rv32v_decode_execute_if;
   rs_t rs1_type, rs2_type;
   logic [4:0] uop_vl;
   vlmul_t lmul;
-  sew_t   sew;
+  sew_t   sew, eew;
   logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
   mm_t minmax_type;
 
 
   modport decode (
     output stride_type, stride_val, xs1, xs2, rd_WEN, config_type, rd_sel, 
-    lmul, sew, vl, vstart, vlenb, 
+    lmul, sew, eew, vl, vlenb, 
     vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, 
     vs2_lane1, fu_type, result_type, woffset0, woffset1, aluop, mask0, mask1, 
     reduction_ena, is_signed, ls_idx, load, store, storedata0, storedata1, wen0, wen1,
@@ -29,10 +29,11 @@ interface rv32v_decode_execute_if;
   );
 
   modport execute (
-    input stride_type, stride_val, xs1, xs2, rd_WEN, config_type, rd_sel, vl, vs1_lane0, 
+    input stride_type, stride_val, xs1, xs2, rd_WEN, config_type, rd_sel, vs1_lane0, 
     vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, vs2_lane1, fu_type, 
     result_type, woffset0, woffset1, aluop, mask0, mask1, reduction_ena, is_signed, ls_idx, 
-    load, store, storedata0, storedata1, wen0, wen1, minmax_type
+    load, store, storedata0, storedata1, wen0, wen1, minmax_type,
+    lmul, sew, eew, vl,  vlenb, 
   );
 
 endinterface

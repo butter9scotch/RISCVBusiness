@@ -27,6 +27,7 @@
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
 `include "prv_pipeline_if.vh"
+`include "microop_buffer_if.vh"
 
 module rv32v_decode_stage (
   input logic CLK, nRST, halt,
@@ -46,15 +47,15 @@ module rv32v_decode_stage (
   
   vector_control_unit_if vcu_if();
   element_counter_if ele_if();
-  microop_buffer_if uop_if();
+  // microop_buffer_if uop_if();
 
   vector_control_unit vcu(.*);
-  element_counter_if  element_counter(.*);
-  microop_buffer_if uop_buffer(.*);
+  element_counter  element_counter(.*);
+  // microop_buffer uop_buffer(.*);
 
 
   // vector control unit assigns
-  assign vcu_if.instr = uop_buffer.microop;
+  assign vcu_if.instr = fetch_decode_if.instr;
 
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
@@ -65,18 +66,9 @@ module rv32v_decode_stage (
   assign ele_if.sew       = prv_if.sew; 
   assign ele_if.clear     = ~vcu_if.de_en | hazard_if.flush_dec; //TODO: check this 
 
-  assign uop_buffer.LMUL       = prv_if.lmul;
-  assign uop_buffer.shift_ena  = ele_if.shift_ena;
-  assign uop_buffer.start      = vcu_if.de_en;
-  assign uop_buffer.clear      = ele_if.done | hazard_if.flush_dec; //TODO: check this 
-  assign uop_buffer.instr      = fetch_decode_if.instr;
-
-
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
-
-
 
   // microop buffer assigns
 
@@ -84,6 +76,25 @@ module rv32v_decode_stage (
   offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
 
   logic mask0, mask1;
+
+  sew_t next_decode_execute_if_eew;
+
+  always_comb begin
+    next_decode_execute_if_eew = prv_if.sew;
+    if (vcu_if.vd_widen) begin
+      case(prv_if.sew)
+        SEW32, SEW16: next_decode_execute_if_eew = SEW32;
+        SEW8: next_decode_execute_if_eew = SEW16;
+      endcase
+    end 
+    // if (vcu_if.vd_narrow) begin
+    //   case(prv_if.sew)
+    //     SEW32 : decode_execute_if.eew = SEW16;
+    //     SEW16, SEW8: decode_execute_if.eew = SEW8;
+    //   endcase
+    // end
+
+  end
 
   //TODO: iron out exact masking logic based on offsets
   always_comb begin : MASK_BITS
@@ -182,15 +193,28 @@ module rv32v_decode_stage (
     // out: vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask
 
   assign rfv_if.vs1 = vcu_if.vs1;
-  assign rfv_if.vs1 = vcu_if.vs2;
-  assign rfv_if.vs1_offset[0] = vs1_offset0;
-  assign rfv_if.vs1_offset[1] = vs1_offset1;
-  assign rfv_if.vs2_offset[0] = vs2_offset0;
-  assign rfv_if.vs2_offset[1] = vs2_offset1;
-  assign rfv_if.vs3_offset[0] = woffset0; // use offset of vd here because same bits in instruction
-  assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
+  assign rfv_if.vs2 = vcu_if.vs2;
+  assign rfv_if.vs3 = vcu_if.vd;
+  assign rfv_if.vs1_offset = vs1_offset0;
+  // assign rfv_if.vs1_offset[1] = vs1_offset1;
+  assign rfv_if.vs2_offset = vs2_offset0;
+  // assign rfv_if.vs2_offset[1] = vs2_offset1;
+  assign rfv_if.vs3_offset = woffset0; // use offset of vd here because same bits in instruction
+  // assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
   assign rfv_if.sew = prv_if.sew;
-
+  // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
+                                              // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
+  always_comb begin
+    rfv_if.vs2_sew = prv_if.sew;
+    if (vcu_if.vs2_widen) begin
+      case(prv_if.sew)
+        SEW32, SEW16: rfv_if.vs2_sew = SEW32;
+        SEW8: rfv_if.vs2_sew = SEW16;
+      endcase
+    end
+  end
+                                              
+                                              
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       decode_execute_if.stride_type   <= 'h0;
@@ -208,7 +232,6 @@ module rv32v_decode_stage (
       decode_execute_if.stride_val    <= 'h0;
       decode_execute_if.xs1           <= 'h0;
       decode_execute_if.xs2           <= 'h0;
-      decode_execute_if.vl            <= 'h0;
       decode_execute_if.vs1_lane0     <= 'h0;
       decode_execute_if.vs1_lane1     <= 'h0;
       decode_execute_if.vs3_lane0     <= 'h0;
@@ -227,6 +250,11 @@ module rv32v_decode_stage (
       decode_execute_if.rs1_type      <= 'h0;
       decode_execute_if.rs2_type      <= 'h0;
       decode_execute_if.minmax_type   <= 'h0;
+      decode_execute_if.lmul          <= prv_if.lmul;
+      decode_execute_if.sew           <= prv_if.sew;
+      decode_execute_if.eew           <= prv_if.sew;
+      decode_execute_if.vl            <= prv_if.vl;
+      decode_execute_if.vlenb         <= prv_if.vlenb;
     end else if(hazard_if.flush_dec) begin
       decode_execute_if.stride_type   <= 'h0;
       decode_execute_if.rd_WEN        <= 'h0;
@@ -243,7 +271,6 @@ module rv32v_decode_stage (
       decode_execute_if.stride_val    <= 'h0;
       decode_execute_if.xs1           <= 'h0;
       decode_execute_if.xs2           <= 'h0;
-      decode_execute_if.vl            <= 'h0;
       decode_execute_if.vs1_lane0     <= 'h0;
       decode_execute_if.vs1_lane1     <= 'h0;
       decode_execute_if.vs3_lane0     <= 'h0;
@@ -262,6 +289,12 @@ module rv32v_decode_stage (
       decode_execute_if.rs1_type      <= 'h0;
       decode_execute_if.rs2_type      <= 'h0;
       decode_execute_if.minmax_type   <= 'h0;
+      decode_execute_if.lmul          <= prv_if.lmul;    
+      decode_execute_if.sew           <= prv_if.sew;     
+      decode_execute_if.eew           <= prv_if.sew; 
+      decode_execute_if.vl            <= prv_if.vl;      
+      decode_execute_if.vlenb         <= prv_if.vlenb;   
+
     end else if(~hazard_if.stall_dec && ~hazard_if.flush_dec) begin
       decode_execute_if.stride_type   <= vcu_if.stride_type;
       decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
@@ -278,7 +311,6 @@ module rv32v_decode_stage (
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
-      decode_execute_if.vl            <= prv_if.vl;  //TODO: handle CSRs
       decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
       decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1];
       decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
@@ -297,6 +329,12 @@ module rv32v_decode_stage (
       decode_execute_if.rs1_type      <= vcu_if.rs1_type;
       decode_execute_if.rs2_type      <= vcu_if.rs2_type;
       decode_execute_if.minmax_type   <= vcu_if.minmax_type;
+      decode_execute_if.lmul          <= prv_if.lmul;    
+      decode_execute_if.sew           <= prv_if.sew;     
+      decode_execute_if.eew           <= next_decode_execute_if_eew; //TODO: after adding widening, change this     
+      decode_execute_if.vl            <= prv_if.vl;      
+      decode_execute_if.vlenb         <= prv_if.vlenb;   
+
     end
   end
 

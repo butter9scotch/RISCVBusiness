@@ -73,10 +73,10 @@ interface vector_control_unit_if();
   logic is_signed; //op in the execution units is signed 
   logic ls_idx;
   // result_type,  multiply_type, multiply_pos_neg, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena,  minmax_type, carryin_ena, win, zext_w, woutu, index,
-
-
+  logic vd_widen;
+  logic vs2_widen;
   logic [10:0] zimm_11; 
-  logic [10:0] zimm_10;
+  logic [9:0] zimm_10;
   logic [4:0]  imm_5; 
 
 
@@ -116,7 +116,9 @@ interface vector_control_unit_if();
     ext_type,
     rs1_type,
     rs2_type,
-    stride_type
+    stride_type,
+    vd_widen,
+    vs2_widen
   );
 
 
