@@ -38,6 +38,19 @@ module vector_lane (
     .nRST(nRST),
     .au_if(vif)
   );
+
+  multiply_unit MULU (
+    .CLK(CLK),
+    .nRST(nRST),
+    .mif(vif)
+  );
+
+  divide_unit DIVU (
+    .CLK(CLK),
+    .nRST(nRST),
+    .dif(vif)
+  );
+
 /*
   permutation_unit PU (
     .CLK(CLK),
@@ -63,11 +76,15 @@ module vector_lane (
   assign pu  = vif.fu_type == PEM;
   assign lu  = vif.fu_type == LOAD_UNIT;
   assign su  = vif.fu_type == STORE_UNIT;
+  assign vif.start_mu = mlu;
+  assign vif.start_div = dv;
 
   // Output sel
   assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls;
   assign vif.exception   = vif.exception_a | vif.exception_p | vif.exception_m | vif.exception_ls;
-  assign vif.lane_result = (au | ru | mlu | dv) ? vif.wdata_a :
+  assign vif.lane_result = (au | ru) ? vif.wdata_a :
+                           (mlu) ? vif.wdata_mu :
+                           (dv) ? vif.wdata_du :
                            (mau) ? vif.wdata_m :
                            (pu) ? vif.wdata_p :
                            (lu | su) ? vif.wdata_ls :
