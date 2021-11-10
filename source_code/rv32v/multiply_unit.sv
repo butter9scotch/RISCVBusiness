@@ -42,7 +42,7 @@ module multiply_unit (
     .nRST(nRST),
     .multiplicand(mif.vs2_data),
     .multiplier(mif.vs1_data),
-    .is_signed(mif.is_signed),
+    .is_signed(mif.is_signed_mul),
     .start(mif.start_mu),
     .finished(done),
     .product(product)
