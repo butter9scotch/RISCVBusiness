@@ -9,7 +9,7 @@ interface cache_model_if;
   logic [31:0] dmemload, dmemstore, dmemaddr;
 
   modport memory (
-    input dhit, dmemload,
+    input dmemload, dhit,
     output dmemstore, dmemaddr, ren, wen, byte_ena
   );
 
