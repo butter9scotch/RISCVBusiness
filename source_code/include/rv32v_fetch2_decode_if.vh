@@ -33,13 +33,16 @@ interface rv32v_fetch2_decode_if();
   word_t        instr;
   logic         mal_insn;
   logic         fault_insn;
+  sew_t sew, eew;
+  vlmul_t lmul;  
 
   modport fetch(
     output  instr, mal_insn, fault_insn
   );
 
   modport decode(
-    input   instr, mal_insn, fault_insn
+    input   instr, mal_insn, fault_insn, 
+    // sew, eew, lmul
   );
 
 endinterface

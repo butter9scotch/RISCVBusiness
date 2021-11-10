@@ -37,17 +37,17 @@ module rv32v_reg_file (
   parameter MAXLEN = NUM_REGS * 8;
 
   logic [6:0] vd1_start, vd2_start;
-  logic [6:0] vd1_end, vd2_end;
+  // logic [6:0] vd1_end, vd2_end;
 
   logic [2:0] vs1_inner_offset;
   logic [2:0] vs2_inner_offset;
   logic [2:0] vs3_inner_offset;
   logic [2:0] vd_inner_offset;
 
-  logic [3:0][1:0] vs1_outer_offset;
-  logic [3:0][1:0] vs2_outer_offset;
-  logic [3:0][1:0] vs3_outer_offset;
-  logic [3:0][1:0] vd_outer_offset;  
+  logic [1:0][3:0] vs1_outer_offset;
+  logic [1:0][3:0] vs2_outer_offset;
+  logic [1:0][3:0] vs3_outer_offset;
+  logic [1:0][3:0] vd_outer_offset;  
   // set lower 2 bits to zero to round down instead of division
   offset_t vd_offset_lane1;
   offset_t vs1_offset_lane1;
@@ -69,50 +69,50 @@ module rv32v_reg_file (
   assign vs2_offset_lane1 = rfv_if.vs2_offset + 1;
   assign vs3_offset_lane1 = rfv_if.vs3_offset + 1;
 
-  assign vd_inner_offset = rfv_if.eew == SEW32 ?  rfv_if.vd_offset[8:6] : 
-                            rfv_if.eew == SEW16 ? rfv_if.vd_offset[7:5] : 
+  assign vd_inner_offset = rfv_if.eew == SEW32 ?  rfv_if.vd_offset[4:2] : 
+                            rfv_if.eew == SEW16 ? rfv_if.vd_offset[5:3] : 
                                                   rfv_if.vd_offset[6:4];
-  assign vs1_inner_offset = rfv_if.sew == SEW32 ? rfv_if.vs1_offset[8:6] : 
-                            rfv_if.sew == SEW16 ? rfv_if.vs1_offset[7:5] : 
+  assign vs1_inner_offset = rfv_if.sew == SEW32 ? rfv_if.vs1_offset[4:2] : 
+                            rfv_if.sew == SEW16 ? rfv_if.vs1_offset[5:3] : 
                                                   rfv_if.vs1_offset[6:4];
-  assign vs2_inner_offset = rfv_if.vs2_sew == SEW32 ? rfv_if.vs2_offset[8:6] : 
-                            rfv_if.vs2_sew == SEW16 ? rfv_if.vs2_offset[7:5] : 
+  assign vs2_inner_offset = rfv_if.vs2_sew == SEW32 ? rfv_if.vs2_offset[4:2] : 
+                            rfv_if.vs2_sew == SEW16 ? rfv_if.vs2_offset[5:3] : 
                                                      rfv_if.vs2_offset[6:4];
-  assign vs3_inner_offset = rfv_if.sew == SEW32 ? rfv_if.vs3_offset[8:6] : 
-                            rfv_if.sew == SEW16 ? rfv_if.vs3_offset[7:5] : 
+  assign vs3_inner_offset = rfv_if.sew == SEW32 ? rfv_if.vs3_offset[4:2] : 
+                            rfv_if.sew == SEW16 ? rfv_if.vs3_offset[5:3] : 
                                                   rfv_if.vs3_offset[6:4];
 
 
 
-  assign vd_outer_offset[0] = rfv_if.eew == SEW32 ? rfv_if.vd_offset[5:2] : 
-                              rfv_if.eew == SEW16 ? rfv_if.vd_offset[4:1] : 
+  assign vd_outer_offset[0] = rfv_if.eew == SEW32 ? {rfv_if.vd_offset[1:0], 2'b00} : 
+                              rfv_if.eew == SEW16 ? {rfv_if.vd_offset[2:0], 1'b00} : 
                                                     rfv_if.vd_offset[3:0];
-  assign vd_outer_offset[1] = rfv_if.eew == SEW32 ? vd_offset_lane1[5:2] : 
-                              rfv_if.eew == SEW16 ? vd_offset_lane1[4:1] : 
+  assign vd_outer_offset[1] = rfv_if.eew == SEW32 ? {vd_offset_lane1[1:0], 2'b00} : 
+                              rfv_if.eew == SEW16 ? {vd_offset_lane1[2:0], 1'b00} : 
                                                     vd_offset_lane1[3:0];
                                                     
 
-  assign vs1_outer_offset[0] = rfv_if.sew == SEW32 ? rfv_if.vs1_offset[5:2] : 
-                               rfv_if.sew == SEW16 ? rfv_if.vs1_offset[4:1] : 
+  assign vs1_outer_offset[0] = rfv_if.sew == SEW32 ? {rfv_if.vs1_offset[1:0], 2'b00} : 
+                               rfv_if.sew == SEW16 ? {rfv_if.vs1_offset[2:0], 1'b00} : 
                                                      rfv_if.vs1_offset[3:0];
-  assign vs1_outer_offset[1] = rfv_if.sew == SEW32 ? vd_offset_lane1[5:2] : 
-                               rfv_if.sew == SEW16 ? vd_offset_lane1[4:1] : 
+  assign vs1_outer_offset[1] = rfv_if.sew == SEW32 ? {vd_offset_lane1[1:0], 2'b00} : 
+                               rfv_if.sew == SEW16 ? {vd_offset_lane1[2:0], 1'b00} : 
                                                      vd_offset_lane1[3:0];
                                                     
                                                     
-  assign vs2_outer_offset[0] = rfv_if.vs2_sew == SEW32 ? rfv_if.vs2_offset[5:2] : 
-                               rfv_if.vs2_sew == SEW16 ? rfv_if.vs2_offset[4:1] : 
+  assign vs2_outer_offset[0] = rfv_if.vs2_sew == SEW32 ? {rfv_if.vs2_offset[1:0], 2'b00} : 
+                               rfv_if.vs2_sew == SEW16 ? {rfv_if.vs2_offset[2:0], 1'b00} : 
                                                          rfv_if.vs2_offset[3:0];
-  assign vs2_outer_offset[1] = rfv_if.vs2_sew == SEW32 ? vs2_offset_lane1[5:2] : 
-                               rfv_if.vs2_sew == SEW16 ? vs2_offset_lane1[4:1] : 
+  assign vs2_outer_offset[1] = rfv_if.vs2_sew == SEW32 ? {vs2_offset_lane1[1:0], 2'b00} : 
+                               rfv_if.vs2_sew == SEW16 ? {vs2_offset_lane1[2:0], 1'b00} : 
                                                          vs2_offset_lane1[3:0];
                                                     
                                                     
-  assign vs3_outer_offset[0] = rfv_if.sew == SEW32 ? rfv_if.vs3_offset[5:2] : 
-                               rfv_if.sew == SEW16 ? rfv_if.vs3_offset[4:1] : 
+  assign vs3_outer_offset[0] = rfv_if.sew == SEW32 ? {rfv_if.vs3_offset[1:0], 2'b00} : 
+                               rfv_if.sew == SEW16 ? {rfv_if.vs3_offset[2:0], 1'b00} : 
                                                      rfv_if.vs3_offset[3:0];
-  assign vs3_outer_offset[1] = rfv_if.sew == SEW32 ? vs3_offset_lane1[5:2] : 
-                               rfv_if.sew == SEW16 ? vs3_offset_lane1[4:1] : 
+  assign vs3_outer_offset[1] = rfv_if.sew == SEW32 ? {vs3_offset_lane1[1:0], 2'b00} : 
+                               rfv_if.sew == SEW16 ? {vs3_offset_lane1[2:0], 1'b00} : 
                                                      vs3_offset_lane1[3:0];
   
 

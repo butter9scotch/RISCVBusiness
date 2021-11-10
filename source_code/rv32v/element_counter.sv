@@ -30,7 +30,6 @@ module element_counter (
 );
   import rv32i_types_pkg::*;
   import rv32v_types_pkg::*;
-
   offset_t next_offset;
   logic [4:0] next_uop_vl;
   logic next_done;
@@ -63,35 +62,20 @@ module element_counter (
   end
 
   always_comb begin
-    ele_if.done = 0;
-    ele_if.shift_ena = 0;
-    if (next_offset >= ele_if.vl) begin
-      next_done = 1; 
-    // end else if (ele_if.sew == SEW32) begin
-    //   ele_if.shift_ena = (ele_if.offset != 0) && ((ele_if.offset % 4) == 0);
-    // end else if (ele_if.sew == SEW16) begin
-    //   ele_if.shift_ena = (ele_if.offset != 0) && ((ele_if.offset % 8) == 0);
-    // end else if (ele_if.sew == SEW8) begin
-    //   ele_if.shift_ena = (ele_if.offset != 0) && ((ele_if.offset % 16) == 0);
-    // end
+      next_done = 0;
+      // ele_if.shift_ena = 0;
+      if (next_offset >= ele_if.vl) begin
+        next_done = 1; 
+    end
   end
 
   always_comb begin
     next_uop_vl = 1 << (4 - ele_if.sew);
     if (ele_if.sew == SEW8) begin
-      // if ((next_offset >> 4) + 1 > ele_if.vl >> 4) begin
-      //   next_uop_vl = ele_if.vl % 16;
-      // end
       if (ele_if.uop_vl >= 128) $error("offset overflow, SEW8");
     end else if (ele_if.sew == SEW16) begin
-      // if ((next_offset >> 3) + 1 > ele_if.vl >> 3) begin
-      //   next_uop_vl = ele_if.vl % 8;
-      // end
       if (ele_if.uop_vl > 64) $error("offset overflow, SEW16");
     end else if (ele_if.sew == SEW32) begin
-      // if ((next_offset >> 2) + 1 > ele_if.vl >> 2) begin
-      //   next_uop_vl = ele_if.vl % 4;
-      // end
       if (ele_if.uop_vl > 32) $error("uop_vl overflow, SEW32");
     end
   end

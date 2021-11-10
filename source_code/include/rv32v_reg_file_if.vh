@@ -50,7 +50,7 @@ interface rv32v_reg_file_if();
   );
   
   modport decode (
-    input  vs1, vs2, vs3, vs1_offset, vs2_offset, vs3_offset, sew, eew,
+    input  vs1, vs2, vs3, vs1_offset, vs2_offset, vs3_offset, sew, vs2_sew,
     output   vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask
   );
 

@@ -42,6 +42,9 @@ module vector_control_unit
   lumop_t lumop;
   vfunct3_t vfunct3;
   vop_decoded_t op_decoded;
+  logic is_vopi, is_vopm;
+  vopi_t funct6_opi;
+  vopm_t funct6_opm;
   
 
   assign instr_r   = rtype_t'(vcu_if.instr);
@@ -58,16 +61,25 @@ module vector_control_unit
   assign vcu_if.mop          = mop_t'(vcu_if.instr[27:26]);
   assign vcu_if.vm           = vcu_if.instr[25];
   assign lumop               = lumop_t'(vcu_if.instr[24:20]);
-  assign funct6_opi          = vopi_t'(vcu_if.instr[31:20]);
-  assign funct6_opm          = vopm_t'(vcu_if.instr[31:20]);  
+  assign funct6_opi          = vopi_t'(vcu_if.instr[31:26]);
+  assign funct6_opm          = vopm_t'(vcu_if.instr[31:26]);  
   assign vfunct3             = vfunct3_t'(instr_r.funct3);
 
   
 
   // Assign the immediate values
-  assign imm_5   = vcu_if.instr[19:15];
-  assign zimm_11 = vcu_if.instr[30:20];
-  assign zimm_10 = vcu_if.instr[29:20];
+  assign vcu_if.imm_5   = vcu_if.instr[19:15];
+  assign vcu_if.zimm_11 = vcu_if.instr[30:20];
+  assign vcu_if.zimm_10 = vcu_if.instr[29:20];
+
+  assign vcu_if.vd_widen   = (vcu_if.opcode == LOAD_FP) && ((op_decoded == VWREDSUMU) || (op_decoded == VWREDSUM) || 
+                            (op_decoded == VWADDU) || (op_decoded == VWADD) || (op_decoded == VWSUBU) || 
+                            (op_decoded == VWSUB) || (op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || 
+                            (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W) || (op_decoded == VWMULU) || 
+                            (op_decoded == VWMULSU) || (op_decoded == VWMUL) || (op_decoded == VWMACCU) || 
+                            (op_decoded == VWMACC) || (op_decoded == VWMACCUS) || (op_decoded == VWMACCSU));
+  assign vcu_if.vs2_widen = (vcu_if.opcode == LOAD_FP) && ((op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || 
+                            (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W));
 
   //intermediary variables 
   assign vcu_if.is_load  = (vcu_if.opcode == STORE_FP) && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
@@ -89,7 +101,14 @@ module vector_control_unit
 
 
   //enable counter
-  assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
+  // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
+
+  // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
+
+  assign vcu_if.de_en = vcu_if.arith_ena || vcu_if.mask_ena || vcu_if.perm_ena || vcu_if.reduction_ena || vcu_if.loadstore_ena || vcu_if.mul_ena || vcu_if.div_ena || vcu_if.fixed_point_ena; //unit enables
+
+
+
   always_comb begin
     if (is_vopi) begin
       case (funct6_opi)
