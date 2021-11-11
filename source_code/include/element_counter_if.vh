@@ -30,7 +30,6 @@ interface element_counter_if();
   import rv32v_types_pkg::*;
   
   offset_t offset;
-  logic [4:0] uop_vl;
   logic  done;
 
   word_t vstart, vl;
@@ -41,7 +40,7 @@ interface element_counter_if();
     input   vstart, vl,
             stall, ex_return, de_en,
             sew, clear,
-    output  offset, uop_vl, done
+    output  offset,  done
   );
 
 

@@ -65,6 +65,7 @@ interface prv_pipeline_if();
   sew_t   sew;
   logic   vill;
   logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+  logic [7:0] vtype;
 
   modport hazard (
     input priv_pc, insert_pc, intr,
@@ -80,7 +81,7 @@ interface prv_pipeline_if();
   );
 
   modport vdecode (
-    output lmul, sew, vl, vstart, vlenb, vill 
+    output lmul, sew, vl, vstart, vlenb, vill, vtype 
   );
 
   modport priv_block (

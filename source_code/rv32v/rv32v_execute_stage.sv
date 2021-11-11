@@ -152,6 +152,39 @@ module rv32v_execute_stage (
   assign vif1.div_type        = decode_execute_if.div_type;
   assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
 
+  //missing signals
+
+  assign vif0.adc_sbc         = decode_execute_if.adc_sbc;
+  assign vif0.carry_borrow_ena= decode_execute_if.carry_borrow_ena;
+  assign vif0.carryin_ena     = decode_execute_if.carryin_ena;
+  assign vif0.comp_type       = decode_execute_if.comp_type;
+  assign vif0.rev             = decode_execute_if.rev;
+  assign vif0.sew             = decode_execute_if.sew;
+  assign vif0.ext_type        = decode_execute_if.ext_type;
+  assign vif0.minmax_type        = decode_execute_if.minmax_type;
+
+  
+  
+  assign vif1.adc_sbc         = decode_execute_if.adc_sbc;
+  assign vif1.carry_borrow_ena= decode_execute_if.carry_borrow_ena;
+  assign vif1.carryin_ena     = decode_execute_if.carryin_ena;
+  assign vif1.comp_type       = decode_execute_if.comp_type;
+  assign vif1.rev             = decode_execute_if.rev;
+  assign vif1.sew             = decode_execute_if.sew;
+  assign vif1.ext_type        = decode_execute_if.ext_type;
+  assign vif1.minmax_type        = decode_execute_if.minmax_type;
+
+  
+  // assign vif1.index
+  // assign vif1.start
+  // assign vif1.win
+  // assign vif1.woutu
+  // assign vif1.zext_w
+
+
+
+
+
   // Address Buffer
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin

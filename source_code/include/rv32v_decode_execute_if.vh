@@ -14,26 +14,44 @@ interface rv32v_decode_execute_if;
   rs_t rs1_type, rs2_type;
   logic [4:0] uop_vl;
   vlmul_t lmul;
-  sew_t   sew, eew;
+  sew_t sew,  eew;
   logic [VL_WIDTH:0] vl, vstart, vlenb, vtype; //[1, 128]
   mm_t minmax_type;
 
-//TODO: determine what each of these are
-  logic multiply_type;
-  logic multiply_pos_neg;
-  logic mul_widen_ena;
-  logic high_low;
+
   logic div_type;
   logic is_signed_div;
+  logic high_low;
+  logic [1:0] is_signed_mul;
+  logic mul_widen_ena;
+  logic multiply_pos_neg;
+  logic multiply_type;
+
+  logic adc_sbc;
+  logic carry_borrow_ena;
+  logic carryin_ena;
+  logic comp_type;
+  logic rev;
+  ext_t ext_type;
+  // logic index;
+  // logic win;
+  // logic woutu;
+  // logic zext_w;
+  // logic shamt;
+
+
 
 
   modport decode (
     output stride_type, stride_val, xs1, xs2, rd_WEN, config_type, rd_sel, 
-    lmul, sew, eew, vl, vlenb, 
+    eew, vl, vlenb, 
     vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, 
     vs2_lane1, fu_type, result_type, woffset0, woffset1, aluop, mask0, mask1, 
     reduction_ena, is_signed, ls_idx, load, store, storedata0, storedata1, wen0, wen1,
-    minmax_type, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, vtype
+    minmax_type, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul, vtype,
+    lmul, sew,
+    adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type
+    
   );
 
   modport execute (
@@ -41,8 +59,10 @@ interface rv32v_decode_execute_if;
     vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, vs2_lane1, fu_type, 
     result_type, woffset0, woffset1, aluop, mask0, mask1, reduction_ena, is_signed, ls_idx, 
     load, store, storedata0, storedata1, wen0, wen1, minmax_type,
-    lmul, sew, eew, vl,  vlenb, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div,
-    vtype
+    eew, lmul, sew, vl, vlenb, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul,
+    vtype,
+    adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type
+
   );
 
 endinterface

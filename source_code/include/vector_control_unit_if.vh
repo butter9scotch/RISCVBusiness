@@ -79,6 +79,19 @@ interface vector_control_unit_if();
   logic [9:0] zimm_10;
   logic [4:0]  imm_5; 
 
+  logic div_type;
+  logic is_signed_div;
+  logic high_low;
+  logic [1:0] is_signed_mul;
+  logic mul_widen_ena;
+  logic multiply_pos_neg;
+  logic multiply_type;
+
+  logic adc_sbc;
+  logic carry_borrow_ena;
+  logic carryin_ena;
+  logic rev;
+
 
   modport vcu (
     input instr,
@@ -118,7 +131,18 @@ interface vector_control_unit_if();
     rs2_type,
     stride_type,
     vd_widen,
-    vs2_widen
+    vs2_widen,
+    div_type,
+    is_signed_div,
+    high_low,
+    is_signed_mul,
+    mul_widen_ena,
+    multiply_pos_neg,
+    multiply_type,
+    adc_sbc,
+    carry_borrow_ena,
+    carryin_ena,
+    rev
   );
 
 

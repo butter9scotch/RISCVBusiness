@@ -110,6 +110,8 @@ module vector_control_unit
 
 
   always_comb begin
+    op_decoded = BAD_OP;
+    vcu_if.illegal_insn = 0;
     if (is_vopi) begin
       case (funct6_opi)
         VADD:       op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ||	(vfunct3 == OPIVI) ? OP_VADD : BAD_OP  ;
@@ -464,5 +466,76 @@ module vector_control_unit
     endcase
   end
 
-endmodule
+  //div_type;
+  always_comb begin
+    case (op_decoded)
+      VDIVU: vcu_if.div_type = 1;
+      default: vcu_if.div_type = 0;
+    endcase
+  end
 
+  //is_signed_div;
+  always_comb begin
+    case (op_decoded)
+      VDIV, VREM: vcu_if.is_signed_div = 1;
+      default: vcu_if.is_signed_div = 0;
+    endcase
+  end
+
+  //high_low;
+  always_comb begin
+    case (op_decoded)
+      VMULHU, VMULHSU, VMULH: vcu_if.high_low = 1;
+      default: vcu_if.high_low = 0;
+    endcase
+  end
+
+  //is_signed_mul;
+  always_comb begin
+    case (op_decoded)
+      VMULHU, VMUL, VMADD, VNMSUB, VMACC, VNMSAC, VWMUL, VWMACC: vcu_if.is_signed_mul = 2'b11;
+      VMULH, VWMULSU, VWMACCSU: vcu_if.is_signed_mul = 2'b10;
+      VWMACCUS: vcu_if.is_signed_mul = 2'b01;
+      default: vcu_if.is_signed_mul = 0;
+    endcase
+  end
+  
+  //mul_widen_ena;
+  always_comb begin
+    case (op_decoded)
+      VWMULU, VWMULSU, VWMUL, VWMACCU, VWMACC, VWMACCUS, VWMACCSU: vcu_if.mul_widen_ena = 1;
+      default: vcu_if.mul_widen_ena = 0;
+    endcase
+  end
+  
+  //multiply_pos_neg;
+  always_comb begin
+    case (op_decoded)
+      VMADD, VMACC, VWMACCU, VWMACC: vcu_if.multiply_pos_neg = 1 ;
+      default: vcu_if.multiply_pos_neg = 0;
+    endcase
+  end
+
+  //multiply_type;
+  always_comb begin
+    case (op_decoded)
+      VMADD, VNMSUB, VMACC, VNMSAC, VWMACCU, VWMACC, VWMACCUS, VWMACCSU: vcu_if.multiply_type = 1 ;
+      default: vcu_if.multiply_type = 0;
+    endcase
+  end
+
+  assign vcu_if.adc_sbc = (op_decoded == VADC) || (op_decoded == VMADC);
+  assign vcu_if.carry_borrow_ena = (op_decoded == VMADC) || (op_decoded == VMSBC);
+  assign vcu_if.rev = (op_decoded == VRSUB);
+
+
+  always_comb begin : CARRYIN_ENA
+    case(op_decoded)
+    VADC, VSBC:   vcu_if.carryin_ena = 1;
+    //VMADC, VMSBC: ONLY USES mask as a carry-in if mask bit is 1
+    VMADC, VMSBC: vcu_if.carryin_ena = (vcu_if.instr[25] == 1) ?  1 : 0;
+    default: vcu_if.carryin_ena = 0;
+    endcase
+  end
+
+endmodule

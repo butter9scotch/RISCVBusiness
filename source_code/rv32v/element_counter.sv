@@ -31,7 +31,6 @@ module element_counter (
   import rv32i_types_pkg::*;
   import rv32v_types_pkg::*;
   offset_t next_offset;
-  logic [4:0] next_uop_vl;
   logic next_done;
 
   
@@ -39,15 +38,12 @@ module element_counter (
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       ele_if.offset <= 0;
-      ele_if.uop_vl <= 0;
       ele_if.done <= 0;
     end else if (ele_if.clear) begin
       ele_if.offset <= 0;
-      ele_if.uop_vl <= 0;
       ele_if.done <= 0;
     end else begin
       ele_if.offset <= next_offset;
-      ele_if.uop_vl <= next_uop_vl;
       ele_if.done <= next_done;
     end
   end
@@ -56,6 +52,8 @@ module element_counter (
     next_offset = ele_if.offset;
     if (ele_if.ex_return & ele_if.de_en) begin
       next_offset = ele_if.vstart;
+    end else if (ele_if.offset + NUM_LANES >= ele_if.vl) begin
+      next_offset = 0;
     end else if ((ele_if.de_en == 1) & ~ele_if.stall)begin
       next_offset = ele_if.offset + NUM_LANES; //in this case 2
     end
@@ -64,21 +62,22 @@ module element_counter (
   always_comb begin
       next_done = 0;
       // ele_if.shift_ena = 0;
-      if (next_offset >= ele_if.vl) begin
+      if (next_offset + 3 >= ele_if.vl) begin
         next_done = 1; 
+        
     end
   end
 
-  always_comb begin
-    next_uop_vl = 1 << (4 - ele_if.sew);
-    if (ele_if.sew == SEW8) begin
-      if (ele_if.uop_vl >= 128) $error("offset overflow, SEW8");
-    end else if (ele_if.sew == SEW16) begin
-      if (ele_if.uop_vl > 64) $error("offset overflow, SEW16");
-    end else if (ele_if.sew == SEW32) begin
-      if (ele_if.uop_vl > 32) $error("uop_vl overflow, SEW32");
-    end
-  end
+  // always_comb begin
+  //   // next_uop_vl = 1 << (4 - ele_if.sew);
+  //   if (ele_if.sew == SEW8) begin
+  //     // if (ele_if.uop_vl >= 128) $error("offset overflow, SEW8");
+  //   end else if (ele_if.sew == SEW16) begin
+  //     // if (ele_if.uop_vl > 64) $error("offset overflow, SEW16");
+  //   end else if (ele_if.sew == SEW32) begin
+  //     // if (ele_if.uop_vl > 32) $error("uop_vl overflow, SEW32");
+  //   end
+  // end
 
 
 endmodule
