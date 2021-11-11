@@ -23,6 +23,7 @@
 */
 
 `include "rv32v_reg_file_if.vh"
+// `define TESTBENCH
 
 module tb_rv32v_reg_file ();
   import rv32v_types_pkg::*;
@@ -54,6 +55,9 @@ module tb_rv32v_reg_file ();
   end : CLK_GEN
  
   task reset;
+    // `ifdef TESTBENCH
+    DUT.tb_ctrl = 0;
+    // `endif
     @(negedge CLK);
     rfv_if.vd = 0;
     rfv_if.w_data = 0;
@@ -67,20 +71,50 @@ module tb_rv32v_reg_file ();
     nRST = 1;
   endtask
 
+  task load_reg_data;
+    // `ifdef TESTBENCH
+      @(negedge CLK);
+      DUT.tb_ctrl = 1;
+      DUT.tb_sel = 0;
+      DUT.tb_data = {32{4'hA}};
+      @(negedge CLK);
+      DUT.tb_ctrl = 0;
+    // `endif
+  endtask
+
   task display_reg;
     input logic [4:0] rs;
 
     int i;
-    $write("register[%d]: ", rs);
+    automatic int sum;
+    sum = 0;
     for (i = VLENB - 1; i >= 0; i--) begin
-      $write("[%x] ", DUT.registers[rs][i]);
+      sum += DUT.registers[rs][i];
     end
-    $write("\n");
+    if (sum != 0) begin
+      $write("register[%d]: ", rs);
+      for (i = VLENB - 1; i >= 0; i--) begin
+        if (i % 4 == 3 && (i != 15)) begin
+          $write(" --- [%x]", DUT.registers[rs][i]);
+        end else begin
+          $write(" [%x]", DUT.registers[rs][i]);
+        end
+      end
+      $write("\n");
+    end
     // $display("[%x] [%x] [%x] [%x] [%x] [%x] [%x] [%x]", DUT.registers[vs1][7], DUT.registers[vs1][6],DUT.registers[vs1][5],DUT.registers[vs1][4],DUT.registers[vs1][3],DUT.registers[vs1][2],DUT.registers[vs1][1],DUT.registers[vs1][0]);
     // #2;
   endtask
   
+  task display_reg_file;
+    int i;
+    $write("\n");
+    for (i = 0; i < 32; i++) begin
+      display_reg(i);
+    end
+    $write("\n");
 
+  endtask
 
   task write_reg;
     input wen;
@@ -95,14 +129,15 @@ module tb_rv32v_reg_file ();
     rfv_if.wen = wen;
     rfv_if.sew = sew;
     rfv_if.eew = sew;
+    rfv_if.vs2_sew = sew;
     
 
     rfv_if.vd_offset = vd_offset;
 
     @(posedge CLK);
     #2;
-    $write ("WRITE to registers[%d], offset(%d) : [%x], [%x]\n", wsel, vd_offset, rfv_if.w_data[1], rfv_if.w_data[0]);
-    display_reg(wsel);
+    // $write ("WRITE to registers[%d], offset(%d) : [%x], [%x]\n", wsel, vd_offset, rfv_if.w_data[1], rfv_if.w_data[0]);
+    // display_reg(wsel);
   endtask
 
 
@@ -119,13 +154,15 @@ module tb_rv32v_reg_file ();
     rfv_if.eew = sew;
     rfv_if.vs1 = vs1;
     rfv_if.vs2 = vs2;
+    rfv_if.vs3 = vs2;
 
     rfv_if.vs1_offset = vs1_offset;
     rfv_if.vs2_offset = vs2_offset;
+    rfv_if.vs3_offset = vs2_offset; //yes it is the same as vs2
 
-    display_reg(vs1);
-    $write ("READ: registers[%d], rdat1: [%x], [%x]\n \
-registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0], vs2, rfv_if.vs2_data[1], rfv_if.vs2_data[0]);
+    // display_reg(vs1);
+    // $write ("READ: registers[%d], rdat1: [%x], [%x]\n \
+// registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0], vs2, rfv_if.vs2_data[1], rfv_if.vs2_data[0]);
   endtask
 
   task newtest;
@@ -155,6 +192,7 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
       read_reg(sew, reg_idx, reg_idx, el_idx, el_idx);
       // data = next_data;
     end
+    display_reg_file();
   endtask
 
 
@@ -167,6 +205,12 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
     #(DELAY);
     nRST = 1;
 
+    newtest("test load");
+    load_reg_data();
+    #(10);
+    display_reg_file();
+
+
 
     newtest("write disable");
     write_reg(4'h0, SEW32, {$urandom(), $urandom()}, 0, 0);
@@ -174,26 +218,29 @@ registers[%d], rdat2: [%x], [%x]\n", vs1, rfv_if.vs1_data[1], rfv_if.vs1_data[0]
     //32 bit
     newtest("32 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
-      $write("----------------------------\n");
+      // $write("----------------------------\n");
       write_reg(4'hF, SEW32, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW32, i, i, 0, 0);
     end
+    display_reg_file();
 
     //16 bit
     newtest("16 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
-      $write("----------------------------\n");
+      // $write("----------------------------\n");
       write_reg(4'h3, SEW16, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW16, i, i, 0, 0);
     end
+    display_reg_file();
     
     //8 bit
     newtest("8 bit, no offset");
     for(int i = 0; i < 32; i+=8) begin
-      $write("----------------------------\n");
+      // $write("----------------------------\n");
       write_reg(4'h1, SEW8, {$urandom(), $urandom()}, i, 0);
       read_reg(SEW8, i, i, 0, 0);
     end
+    display_reg_file();
 
     newtest("32 bit, with offset");
     write_with_offset(SEW32);

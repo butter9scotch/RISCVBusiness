@@ -36,8 +36,13 @@ module rv32v_reg_file (
   parameter NUM_REGS = 32;
   parameter MAXLEN = NUM_REGS * 8;
 
-  logic [6:0] vd1_start, vd2_start;
+  // logic [6:0] vd1_start, vd2_start;
   // logic [6:0] vd1_end, vd2_end;
+  // `ifdef TESTBENCH
+  logic tb_ctrl;
+  logic [4:0] tb_sel;
+  logic [127:0] tb_data;
+  // `endif
 
   logic [2:0] vs1_inner_offset;
   logic [2:0] vs2_inner_offset;
@@ -123,7 +128,7 @@ module rv32v_reg_file (
       if (rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:4]       = rfv_if.w_data[0][31:0];
       end
-      if (rfv_if.vd_offset + 1 < rfv_if.vl) begin
+      if ((rfv_if.vd_offset + 1) <= rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:4] = rfv_if.w_data[1][31:0];
       end
     end else if (rfv_if.wen & rfv_if.eew == SEW16) begin //2 byte
@@ -131,7 +136,7 @@ module rv32v_reg_file (
       if (rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:2]       = rfv_if.w_data[0][15:0]; 
       end
-      if ((rfv_if.vd_offset + 1) < rfv_if.vl) begin
+      if ((rfv_if.vd_offset + 1) <= rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:2] = rfv_if.w_data[1][15:0];
       end
     end else if (rfv_if.wen & rfv_if.eew == SEW8) begin //1 byte
@@ -139,10 +144,13 @@ module rv32v_reg_file (
       if ((rfv_if.vd_offset) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0]]      = rfv_if.w_data[0][7:0]; 
       end
-      if ((rfv_if.vd_offset + 1) < rfv_if.vl) begin
+      if ((rfv_if.vd_offset + 1) <= rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1]]  = rfv_if.w_data[1][7:0]; 
       end
     end
+    // `ifdef TESTBENCH
+      if (tb_ctrl) begin next_registers[tb_sel][15:0] = tb_data; end 
+    // `endif
   end
 
   always_comb begin : VS1_DATA
