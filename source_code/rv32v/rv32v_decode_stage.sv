@@ -34,7 +34,7 @@ module rv32v_decode_stage (
   rv32v_fetch2_decode_if.decode fetch_decode_if,
   rv32v_decode_execute_if.decode decode_execute_if,
   rv32v_reg_file_if.decode rfv_if,
-  rv32v_hazard_unit_if.decode hazard_if,
+  rv32v_hazard_unit_if.decode hu_if,
   prv_pipeline_if.vdecode prv_if,
   input logic [31:0] xs1, xs2,
   input logic scalar_hazard_if_ret
@@ -60,11 +60,11 @@ module rv32v_decode_stage (
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = prv_if.vl;  
-  assign ele_if.stall     = hazard_if.stall_dec | vcu_if.stall;  
+  assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
   assign ele_if.sew       = prv_if.sew; 
-  assign ele_if.clear     = ~vcu_if.de_en | hazard_if.flush_dec; //TODO: check this 
+  assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
@@ -255,7 +255,7 @@ module rv32v_decode_stage (
       decode_execute_if.eew           <= prv_if.sew;
       decode_execute_if.vl            <= prv_if.vl;
       decode_execute_if.vlenb         <= prv_if.vlenb;
-    end else if(hazard_if.flush_dec) begin
+    end else if(hu_if.flush_dec) begin
       decode_execute_if.stride_type   <= 'h0;
       decode_execute_if.rd_WEN        <= 'h0;
       decode_execute_if.config_type   <= 'h0;
@@ -295,7 +295,7 @@ module rv32v_decode_stage (
       decode_execute_if.vl            <= prv_if.vl;      
       decode_execute_if.vlenb         <= prv_if.vlenb;   
 
-    end else if(~hazard_if.stall_dec && ~hazard_if.flush_dec) begin
+    end else if(~hu_if.stall_dec && ~hu_if.flush_dec) begin
       decode_execute_if.stride_type   <= vcu_if.stride_type;
       decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
       decode_execute_if.config_type   <= vcu_if.cfgsel != NOT_CFG;

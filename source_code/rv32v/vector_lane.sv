@@ -36,7 +36,7 @@ module vector_lane (
   arithmetic_unit AU (
     .CLK(CLK),
     .nRST(nRST),
-    .au_if(vif)
+    .aif(vif)
   );
 
   multiply_unit MULU (
@@ -62,9 +62,9 @@ module vector_lane (
     .mu_if(vif)
   ); */
 
-  load_store_unit LSU (
-    .lsu_if(vif)
-  ); 
+  // load_store_unit LSU (
+  //   .lsu_if(vif)
+  // ); 
 
   // Connecting signals
   logic au, ru, mlu, dv, mau, pu, lu, su;

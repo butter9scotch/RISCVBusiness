@@ -15,8 +15,16 @@ interface rv32v_decode_execute_if;
   logic [4:0] uop_vl;
   vlmul_t lmul;
   sew_t   sew, eew;
-  logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+  logic [VL_WIDTH:0] vl, vstart, vlenb, vtype; //[1, 128]
   mm_t minmax_type;
+
+//TODO: determine what each of these are
+  logic multiply_type;
+  logic multiply_pos_neg;
+  logic mul_widen_ena;
+  logic high_low;
+  logic div_type;
+  logic is_signed_div;
 
 
   modport decode (
@@ -25,7 +33,7 @@ interface rv32v_decode_execute_if;
     vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, 
     vs2_lane1, fu_type, result_type, woffset0, woffset1, aluop, mask0, mask1, 
     reduction_ena, is_signed, ls_idx, load, store, storedata0, storedata1, wen0, wen1,
-    minmax_type
+    minmax_type, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, vtype
   );
 
   modport execute (
@@ -33,7 +41,8 @@ interface rv32v_decode_execute_if;
     vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, vs2_lane1, fu_type, 
     result_type, woffset0, woffset1, aluop, mask0, mask1, reduction_ena, is_signed, ls_idx, 
     load, store, storedata0, storedata1, wen0, wen1, minmax_type,
-    lmul, sew, eew, vl,  vlenb, 
+    lmul, sew, eew, vl,  vlenb, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div,
+    vtype
   );
 
 endinterface

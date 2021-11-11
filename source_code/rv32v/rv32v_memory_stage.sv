@@ -119,7 +119,7 @@ module rv32v_memory_stage (
     end
   end
   assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
-  assign memory_writeback_if.lmul  = vlmul_t'(vtype[5:3]);
+  assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
   assign vta   = vtype[6];
   assign vma   = vtype[7];
   assign vill  = vtype[7];

@@ -115,7 +115,7 @@ module rv32v_execute_stage (
   assign vif0.aluop           = decode_execute_if.aluop;
   assign vif0.mask            = decode_execute_if.mask0;
   assign vif0.reduction_ena   = decode_execute_if.reduction_ena;
-  assign vif0.is_signed       = decode_execute_if.is_signed;
+  // assign vif0.is_signed       = decode_execute_if.is_signed;
   assign vif0.porta0          = addr_buffer;
   assign vif0.porta1          = base_addr;
   assign vif0.portb0          = portb0;
@@ -139,7 +139,7 @@ module rv32v_execute_stage (
   assign vif1.aluop           = decode_execute_if.aluop;
   assign vif1.mask            = decode_execute_if.mask1;
   assign vif1.reduction_ena   = decode_execute_if.reduction_ena;
-  assign vif1.is_signed       = decode_execute_if.is_signed;
+  // assign vif1.is_signed       = decode_execute_if.is_signed;
   assign vif1.porta0          = vif0.out_addr;
   assign vif1.porta1          = base_addr;
   assign vif1.portb0          = portb0;

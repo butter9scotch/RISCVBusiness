@@ -19,7 +19,7 @@ interface vector_lane_if;
   sew_t sew;
   mm_t minmax_type;
   ext_t ext_type;
-
+  logic is_signed, wdata_du, busy_du, exception_du;
   modport vector_lane (
     input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div,
     output  lane_result, busy, exception

@@ -39,7 +39,7 @@ module divide_unit (
     .nRST(nRST),
     .dividend(dif.vs2_data),
     .divisor(dif.vs1_data),
-    .is_signed(dif.is_signed),
+    .is_signed(dif.is_signed_div),
     .start(dif.start_div),
     .finished(done),
     .quotient(quotient),
