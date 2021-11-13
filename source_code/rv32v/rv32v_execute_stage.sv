@@ -128,6 +128,10 @@ module rv32v_execute_stage (
   assign vif0.high_low        = decode_execute_if.high_low;
   assign vif0.div_type        = decode_execute_if.div_type;
   assign vif0.is_signed_div   = decode_execute_if.is_signed_div;
+  assign vif0.out_inv         = decode_execute_if.out_inv;
+  assign vif0.in_inv          = decode_execute_if.in_inv;
+  assign vif0.mask_type       = decode_execute_if.mask_type;
+  assign vif0.mask_32bit      = decode_execute_if.mask_32bit_lane0;
 
   // Vector Lane 1
   //assign vif1.stride          = decode_execute_if.stride;
@@ -151,6 +155,11 @@ module rv32v_execute_stage (
   assign vif1.high_low        = decode_execute_if.high_low;
   assign vif1.div_type        = decode_execute_if.div_type;
   assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
+  assign vif1.out_inv         = decode_execute_if.out_inv;
+  assign vif1.in_inv          = decode_execute_if.in_inv;
+  assign vif1.mask_type       = decode_execute_if.mask_type;
+  assign vif1.mask_32bit      = decode_execute_if.mask_32bit_lane1;
+
 
   //missing signals
 

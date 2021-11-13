@@ -401,6 +401,18 @@ package rv32v_types_pkg;
     REM     = 4'b0100
   } athresult_t;
 
+  typedef enum logic [3:0] {
+    VMASK_AND   = 4'b0000,
+    VMASK_OR    = 4'b0001,
+    VMASK_XOR   = 4'b0010,
+    VMASK_POPC  = 4'b0011,
+    VMASK_FIRST = 4'b0100,
+    VMASK_SBF   = 4'b0101,
+    VMASK_SIF   = 4'b0110,
+    VMASK_SOF   = 4'b0111,
+    VMASK_IOTA  = 4'b1000
+  } ma_t;
+
   typedef enum logic [2:0] {
     F2Z = 3'b000,
     F2S = 3'b001,
