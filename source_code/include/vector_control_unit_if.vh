@@ -92,6 +92,9 @@ interface vector_control_unit_if();
   logic carryin_ena;
   logic rev;
 
+  logic win;
+  logic woutu;
+  logic zext_w;
 
   modport vcu (
     input instr,
@@ -142,7 +145,10 @@ interface vector_control_unit_if();
     adc_sbc,
     carry_borrow_ena,
     carryin_ena,
-    rev
+    rev,
+    win,
+    woutu,
+    zext_w
   );
 
 

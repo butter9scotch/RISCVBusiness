@@ -53,22 +53,29 @@ module rv32v_decode_stage (
   element_counter  element_counter(.*);
   // microop_buffer uop_buffer(.*);
 
+  sew_t sew;
+  vlmul_t lmul;
+
+  assign sew = sew_t'(prv_if.vtype[2:0]);
+  assign lmul = vlmul_t'(prv_if.vtype[5:3]);
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
-
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = prv_if.vl;  
   assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
-  assign ele_if.sew       = prv_if.sew; 
+  assign ele_if.sew       = sew; 
   assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
+
+  // assign hu_if.busy_dec = vcu_if.de_en | (ele_if.offset != 0 && ~ele_if.done);
+  assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
 
   // microop buffer assigns
 
@@ -80,9 +87,9 @@ module rv32v_decode_stage (
   sew_t next_decode_execute_if_eew;
 
   always_comb begin
-    next_decode_execute_if_eew = prv_if.sew;
+    next_decode_execute_if_eew = sew;
     if (vcu_if.vd_widen) begin
-      case(prv_if.sew)
+      case(sew)
         SEW32, SEW16: next_decode_execute_if_eew = SEW32;
         SEW8: next_decode_execute_if_eew = SEW16;
       endcase
@@ -201,13 +208,14 @@ module rv32v_decode_stage (
   // assign rfv_if.vs2_offset[1] = vs2_offset1;
   assign rfv_if.vs3_offset = woffset0; // use offset of vd here because same bits in instruction
   // assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
-  assign rfv_if.sew = prv_if.sew;
+  assign rfv_if.sew = sew;
+  // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
   always_comb begin
-    rfv_if.vs2_sew = prv_if.sew;
+    rfv_if.vs2_sew = sew;
     if (vcu_if.vs2_widen) begin
-      case(prv_if.sew)
+      case(sew)
         SEW32, SEW16: rfv_if.vs2_sew = SEW32;
         SEW8: rfv_if.vs2_sew = SEW16;
       endcase
@@ -217,88 +225,139 @@ module rv32v_decode_stage (
                                               
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
-      decode_execute_if.stride_type   <= 'h0;
-      decode_execute_if.rd_WEN        <= 'h0;
-      decode_execute_if.config_type   <= 'h0;
-      decode_execute_if.mask0         <= 'h0;
-      decode_execute_if.mask1         <= 'h0;
-      decode_execute_if.reduction_ena <= 'h0;
-      decode_execute_if.is_signed     <= 'h0;
-      decode_execute_if.ls_idx        <= 'h0;
-      decode_execute_if.load          <= 'h0;
-      decode_execute_if.store         <= 'h0;
-      decode_execute_if.wen0          <= 'h0;
-      decode_execute_if.wen1          <= 'h0;
-      decode_execute_if.stride_val    <= 'h0;
-      decode_execute_if.xs1           <= 'h0;
-      decode_execute_if.xs2           <= 'h0;
-      decode_execute_if.vs1_lane0     <= 'h0;
-      decode_execute_if.vs1_lane1     <= 'h0;
-      decode_execute_if.vs3_lane0     <= 'h0;
-      decode_execute_if.vs3_lane1     <= 'h0;
-      decode_execute_if.vs2_lane0     <= 'h0;
-      decode_execute_if.vs2_lane1     <= 'h0;
-      decode_execute_if.imm           <= 'h0;
-      decode_execute_if.storedata0    <= 'h0;
-      decode_execute_if.storedata1    <= 'h0;
-      decode_execute_if.rd_sel        <= 'h0;
-      decode_execute_if.woffset0      <= 'h0;
-      decode_execute_if.woffset1      <= 'h0;
-      decode_execute_if.fu_type       <= 'h0;
-      decode_execute_if.result_type   <= 'h0;
-      decode_execute_if.aluop         <= 'h0;
-      decode_execute_if.rs1_type      <= 'h0;
-      decode_execute_if.rs2_type      <= 'h0;
-      decode_execute_if.minmax_type   <= 'h0;
-      decode_execute_if.lmul          <= prv_if.lmul;
-      decode_execute_if.sew           <= prv_if.sew;
-      decode_execute_if.eew           <= prv_if.sew;
-      decode_execute_if.vl            <= prv_if.vl;
-      decode_execute_if.vlenb         <= prv_if.vlenb;
-    end else if(hu_if.flush_dec) begin
-      decode_execute_if.stride_type   <= 'h0;
-      decode_execute_if.rd_WEN        <= 'h0;
-      decode_execute_if.config_type   <= 'h0;
-      decode_execute_if.mask0         <= 'h0;
-      decode_execute_if.mask1         <= 'h0;
-      decode_execute_if.reduction_ena <= 'h0;
-      decode_execute_if.is_signed     <= 'h0;
-      decode_execute_if.ls_idx        <= 'h0;
-      decode_execute_if.load          <= 'h0;
-      decode_execute_if.store         <= 'h0;
-      decode_execute_if.wen0          <= 'h0;
-      decode_execute_if.wen1          <= 'h0;
-      decode_execute_if.stride_val    <= 'h0;
-      decode_execute_if.xs1           <= 'h0;
-      decode_execute_if.xs2           <= 'h0;
-      decode_execute_if.vs1_lane0     <= 'h0;
-      decode_execute_if.vs1_lane1     <= 'h0;
-      decode_execute_if.vs3_lane0     <= 'h0;
-      decode_execute_if.vs3_lane1     <= 'h0;
-      decode_execute_if.vs2_lane0     <= 'h0;
-      decode_execute_if.vs2_lane1     <= 'h0;
-      decode_execute_if.imm           <= 'h0;
-      decode_execute_if.storedata0    <= 'h0;
-      decode_execute_if.storedata1    <= 'h0;
-      decode_execute_if.rd_sel        <= 'h0;
-      decode_execute_if.woffset0      <= 'h0;
-      decode_execute_if.woffset1      <= 'h0;
-      decode_execute_if.fu_type       <= 'h0;
-      decode_execute_if.result_type   <= 'h0;
-      decode_execute_if.aluop         <= 'h0;
-      decode_execute_if.rs1_type      <= 'h0;
-      decode_execute_if.rs2_type      <= 'h0;
-      decode_execute_if.minmax_type   <= 'h0;
-      decode_execute_if.lmul          <= prv_if.lmul;    
-      decode_execute_if.sew           <= prv_if.sew;     
-      decode_execute_if.eew           <= prv_if.sew; 
-      decode_execute_if.vl            <= prv_if.vl;      
-      decode_execute_if.vlenb         <= prv_if.vlenb;   
+      decode_execute_if.stride_type       <= 'h0;
+      decode_execute_if.rd_WEN            <= 'h0;
+      decode_execute_if.config_type       <= 'h0;
+      decode_execute_if.mask0             <= 'h0;
+      decode_execute_if.mask1             <= 'h0;
+      decode_execute_if.reduction_ena     <= 'h0;
+      decode_execute_if.is_signed         <= 'h0;
+      decode_execute_if.ls_idx            <= 'h0;
+      decode_execute_if.load              <= 'h0;
+      decode_execute_if.store             <= 'h0;
+      decode_execute_if.wen0              <= 'h0;
+      decode_execute_if.wen1              <= 'h0;
+      decode_execute_if.stride_val        <= 'h0;
+      decode_execute_if.xs1               <= 'h0;
+      decode_execute_if.xs2               <= 'h0;
+      decode_execute_if.vs1_lane0         <= 'h0;
+      decode_execute_if.vs1_lane1         <= 'h0;
+      decode_execute_if.vs3_lane0         <= 'h0;
+      decode_execute_if.vs3_lane1         <= 'h0;
+      decode_execute_if.vs2_lane0         <= 'h0;
+      decode_execute_if.vs2_lane1         <= 'h0;
+      decode_execute_if.imm               <= 'h0;
+      decode_execute_if.storedata0        <= 'h0;
+      decode_execute_if.storedata1        <= 'h0;
+      decode_execute_if.rd_sel            <= 'h0;
+      decode_execute_if.woffset0          <= 'h0;
+      decode_execute_if.woffset1          <= 'h0;
+      decode_execute_if.fu_type           <= 'h0;
+      decode_execute_if.result_type       <= 'h0;
+      decode_execute_if.aluop             <= 'h0;
+      decode_execute_if.rs1_type          <= 'h0;
+      decode_execute_if.rs2_type          <= 'h0;
+      decode_execute_if.minmax_type       <= 'h0;
+      decode_execute_if.eew               <= 'h0;
+      decode_execute_if.vl                <= 'h0;
+      decode_execute_if.vlenb             <= 'h0;
+      decode_execute_if.vtype             <= 'h0;
+      
+      decode_execute_if.div_type          <= 'h0;
+      decode_execute_if.is_signed_div     <= 'h0;
+      decode_execute_if.high_low          <= 'h0;
+      decode_execute_if.is_signed_mul     <= 'h0;
+      decode_execute_if.mul_widen_ena     <= 'h0;
+      decode_execute_if.multiply_pos_neg  <= 'h0;
+      decode_execute_if.multiply_type     <= 'h0;
+      //new
+      decode_execute_if.sew               <= 'h0;
+      decode_execute_if.lmul              <= 'h0;
+      //arith signals
+      decode_execute_if.comp_type         <= 'h0;
+      decode_execute_if.adc_sbc           <= 'h0;
+      decode_execute_if.carry_borrow_ena  <= 'h0;
+      decode_execute_if.carryin_ena       <= 'h0;
+      decode_execute_if.rev               <= 'h0;
+      decode_execute_if.ext_type          <= 'h0;
 
-    end else if(~hu_if.stall_dec && ~hu_if.flush_dec) begin
+      decode_execute_if.woutu             <= 'h0;
+      decode_execute_if.win               <= 'h0;
+      decode_execute_if.zext_w            <= 'h0;
+
+      decode_execute_if.vd                <= '0;
+      decode_execute_if.single_bit_write  <= '0;
+
+
+    end else if(hu_if.flush_dec) begin
+      decode_execute_if.stride_type       <= 'h0;
+      decode_execute_if.rd_WEN            <= 'h0;
+      decode_execute_if.config_type       <= 'h0;
+      decode_execute_if.mask0             <= 'h0;
+      decode_execute_if.mask1             <= 'h0;
+      decode_execute_if.reduction_ena     <= 'h0;
+      decode_execute_if.is_signed         <= 'h0;
+      decode_execute_if.ls_idx            <= 'h0;
+      decode_execute_if.load              <= 'h0;
+      decode_execute_if.store             <= 'h0;
+      decode_execute_if.wen0              <= 'h0;
+      decode_execute_if.wen1              <= 'h0;
+      decode_execute_if.stride_val        <= 'h0;
+      decode_execute_if.xs1               <= 'h0;
+      decode_execute_if.xs2               <= 'h0;
+      decode_execute_if.vs1_lane0         <= 'h0;
+      decode_execute_if.vs1_lane1         <= 'h0;
+      decode_execute_if.vs3_lane0         <= 'h0;
+      decode_execute_if.vs3_lane1         <= 'h0;
+      decode_execute_if.vs2_lane0         <= 'h0;
+      decode_execute_if.vs2_lane1         <= 'h0;
+      decode_execute_if.imm               <= 'h0;
+      decode_execute_if.storedata0        <= 'h0;
+      decode_execute_if.storedata1        <= 'h0;
+      decode_execute_if.rd_sel            <= 'h0;
+      decode_execute_if.woffset0          <= 'h0;
+      decode_execute_if.woffset1          <= 'h0;
+      decode_execute_if.fu_type           <= 'h0;
+      decode_execute_if.result_type       <= 'h0;
+      decode_execute_if.aluop             <= 'h0;
+      decode_execute_if.rs1_type          <= 'h0;
+      decode_execute_if.rs2_type          <= 'h0;
+      decode_execute_if.minmax_type       <= 'h0;
+      decode_execute_if.eew               <= 'h0; 
+      decode_execute_if.vl                <= 'h0;      
+      decode_execute_if.vlenb             <= 'h0;   
+      decode_execute_if.vtype             <= 'h0;   
+
+      decode_execute_if.div_type          <= 'h0;
+      decode_execute_if.is_signed_div     <= 'h0;
+      decode_execute_if.high_low          <= 'h0;
+      decode_execute_if.is_signed_mul     <= 'h0;
+      decode_execute_if.mul_widen_ena     <= 'h0;
+      decode_execute_if.multiply_pos_neg  <= 'h0;
+      decode_execute_if.multiply_type     <= 'h0;
+      //new
+      decode_execute_if.sew               <= 'h0;
+      decode_execute_if.lmul              <= 'h0;
+      //missing arith
+      decode_execute_if.comp_type         <= 'h0;
+      decode_execute_if.adc_sbc           <= 'h0;
+      decode_execute_if.carry_borrow_ena  <= 'h0;
+      decode_execute_if.carryin_ena       <= 'h0;
+      decode_execute_if.rev               <= 'h0;
+      decode_execute_if.ext_type          <= 'h0;
+
+      decode_execute_if.woutu             <= 'h0;
+      decode_execute_if.win               <= 'h0;
+      decode_execute_if.zext_w            <= 'h0;
+
+      decode_execute_if.vd                <= '0;
+      decode_execute_if.single_bit_write  <= '0;
+
+
+    end else begin
       decode_execute_if.stride_type   <= vcu_if.stride_type;
       decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
-      decode_execute_if.config_type   <= vcu_if.cfgsel != NOT_CFG;
+      decode_execute_if.config_type   <= ~(vcu_if.cfgsel == NOT_CFG);
       decode_execute_if.mask0         <= mask0; //double check, will it always be vs1_mask
       decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
       decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
@@ -312,11 +371,11 @@ module rv32v_decode_stage (
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
       decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
-      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1];
-      decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
-      decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
+      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; //vs1_data1 is not good?
       decode_execute_if.vs2_lane0     <= rfv_if.vs2_data[0];
       decode_execute_if.vs2_lane1     <= rfv_if.vs2_data[1];
+      decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
+      decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
       decode_execute_if.imm           <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
       decode_execute_if.storedata0    <= rfv_if.vs3_data[0];
       decode_execute_if.storedata1    <= rfv_if.vs3_data[1];
@@ -329,11 +388,34 @@ module rv32v_decode_stage (
       decode_execute_if.rs1_type      <= vcu_if.rs1_type;
       decode_execute_if.rs2_type      <= vcu_if.rs2_type;
       decode_execute_if.minmax_type   <= vcu_if.minmax_type;
-      decode_execute_if.lmul          <= prv_if.lmul;    
-      decode_execute_if.sew           <= prv_if.sew;     
       decode_execute_if.eew           <= next_decode_execute_if_eew; //TODO: after adding widening, change this     
       decode_execute_if.vl            <= prv_if.vl;      
       decode_execute_if.vlenb         <= prv_if.vlenb;   
+      decode_execute_if.vtype         <= prv_if.vtype;   
+      decode_execute_if.div_type          <= vcu_if.div_type;
+      decode_execute_if.is_signed_div     <= vcu_if.is_signed_div;
+      decode_execute_if.high_low          <= vcu_if.high_low;
+      decode_execute_if.is_signed_mul     <= vcu_if.is_signed_mul;
+      decode_execute_if.mul_widen_ena     <= vcu_if.mul_widen_ena;
+      decode_execute_if.multiply_pos_neg  <= vcu_if.multiply_pos_neg;
+      decode_execute_if.multiply_type     <= vcu_if.multiply_type;
+      //new
+      decode_execute_if.sew               <= sew;
+      decode_execute_if.lmul              <= lmul;
+      //missing arith signals
+      decode_execute_if.comp_type         <= vcu_if.comp_type;
+      decode_execute_if.adc_sbc           <= vcu_if.adc_sbc;
+      decode_execute_if.carry_borrow_ena  <= vcu_if.carry_borrow_ena;
+      decode_execute_if.carryin_ena       <= vcu_if.carryin_ena;
+      decode_execute_if.rev               <= vcu_if.rev;
+      decode_execute_if.ext_type          <= vcu_if.ext_type;
+
+      decode_execute_if.woutu             <= vcu_if.woutu;
+      decode_execute_if.win               <= vcu_if.win;
+      decode_execute_if.zext_w            <= vcu_if.zext_w;
+
+      decode_execute_if.vd                <= vcu_if.vd;
+      decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
 
     end
   end

@@ -538,4 +538,8 @@ module vector_control_unit
     endcase
   end
 
+  assign vcu_if.win       = (op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W);
+  assign vcu_if.woutu     = (op_decoded == VWADDU) || (op_decoded == VWSUBU) || (op_decoded == VWADDU_W) || (op_decoded == VWSUBU_W) || (op_decoded == VWMULU) || (op_decoded == VWMULSU);
+  assign vcu_if.zext_w    = (op_decoded == VWADDU_W) || (op_decoded == VWSUBU_W);
+
 endmodule

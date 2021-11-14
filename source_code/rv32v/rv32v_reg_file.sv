@@ -124,7 +124,6 @@ module rv32v_reg_file (
   always_comb begin : WRITE_DATA
     next_registers = registers;
     if (rfv_if.wen & rfv_if.eew == SEW32) begin //4 byte
-      if ((rfv_if.vd_offset + 2) << 2 > MAXLEN) $info("Illegal 32bit write address: vd_offset = %d", rfv_if.vd_offset);
       if (rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:4]       = rfv_if.w_data[0][31:0];
       end
@@ -132,7 +131,6 @@ module rv32v_reg_file (
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:4] = rfv_if.w_data[1][31:0];
       end
     end else if (rfv_if.wen & rfv_if.eew == SEW16) begin //2 byte
-      if ((rfv_if.vd_offset + 2) << 1 > MAXLEN)  $info("Illegal 16bit write address: vd_offset = %d", rfv_if.vd_offset);
       if (rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:2]       = rfv_if.w_data[0][15:0]; 
       end
@@ -140,7 +138,6 @@ module rv32v_reg_file (
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:2] = rfv_if.w_data[1][15:0];
       end
     end else if (rfv_if.wen & rfv_if.eew == SEW8) begin //1 byte
-      if ((rfv_if.vd_offset + 2) > MAXLEN) $info("Illegal 8bit write address: vd_offset = %d", rfv_if.vd_offset);
       if ((rfv_if.vd_offset) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0]]      = rfv_if.w_data[0][7:0]; 
       end

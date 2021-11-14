@@ -35,8 +35,9 @@ module arithmetic_unit (
   logic [32:0] as_res, result;
   logic [6:0] shamt;
   logic vsdata1_msb, vsdata2_msb, sltu, slt, seq, sle, sleu, carryin;
-  assign aif.win = 0; //TODO: CHANGE THIS
-  assign aif.woutu = 0; //TODO: CHANGE THIS
+  // assign aif.win = 0; //TODO: CHANGE THIS
+  // assign aif.woutu = 0; //TODO: CHANGE THIS
+  // assign aif.zext_w = 0; //TODO: CHANGE THIS
   
 
   // SEW dependent signals

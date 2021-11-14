@@ -163,7 +163,10 @@ module rv32v_execute_stage (
   assign vif0.ext_type        = decode_execute_if.ext_type;
   assign vif0.minmax_type        = decode_execute_if.minmax_type;
 
-  
+  assign vif0.woutu = decode_execute_if.woutu;
+  assign vif0.win = decode_execute_if.win;
+  assign vif0.zext_w = decode_execute_if.zext_w;
+
   
   assign vif1.adc_sbc         = decode_execute_if.adc_sbc;
   assign vif1.carry_borrow_ena= decode_execute_if.carry_borrow_ena;
@@ -174,6 +177,12 @@ module rv32v_execute_stage (
   assign vif1.ext_type        = decode_execute_if.ext_type;
   assign vif1.minmax_type        = decode_execute_if.minmax_type;
 
+  assign vif1.woutu = decode_execute_if.woutu;
+  assign vif1.win = decode_execute_if.win;
+  assign vif1.zext_w = decode_execute_if.zext_w;
+
+
+  assign hu_if.busy_ex = vif0.busy | vif1.busy;
   
   // assign vif1.index
   // assign vif1.start
@@ -213,6 +222,10 @@ module rv32v_execute_stage (
       execute_memory_if.config_type <= '0;
       execute_memory_if.vl          <= '0;
       execute_memory_if.vtype       <= '0;
+      execute_memory_if.vd          <= '0;
+      execute_memory_if.eew         <= '0;
+      execute_memory_if.single_bit_write  <= '0;
+
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load        <= '0;
       execute_memory_if.store       <= '0;
@@ -227,6 +240,10 @@ module rv32v_execute_stage (
       execute_memory_if.config_type <= '0;
       execute_memory_if.vl          <= '0;
       execute_memory_if.vtype       <= '0;
+      execute_memory_if.vd                <= '0;
+      execute_memory_if.eew  <= '0;
+      execute_memory_if.single_bit_write  <= '0;
+
     end else if (!hu_if.stall_ex) begin
       execute_memory_if.load        <= decode_execute_if.load;
       execute_memory_if.store       <= decode_execute_if.store;
@@ -239,8 +256,13 @@ module rv32v_execute_stage (
       execute_memory_if.woffset0    <= decode_execute_if.woffset0;
       execute_memory_if.woffset1    <= decode_execute_if.woffset1;
       execute_memory_if.config_type <= decode_execute_if.config_type;
-      execute_memory_if.vl          <= decode_execute_if.vl;
       execute_memory_if.vtype       <= decode_execute_if.vtype;
+
+      execute_memory_if.vl          <= decode_execute_if.vl;
+      execute_memory_if.vd                <= decode_execute_if.vd;
+      execute_memory_if.eew  <= decode_execute_if.single_bit_write;
+      execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
+
     end
   end
 

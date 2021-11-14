@@ -11,12 +11,12 @@ interface rv32v_hazard_unit_if;
     flush_f1, stall_f1, flush_f2, stall_f2
   );
 
-  modport flush1 (
+  modport fetch1 (
     input stall_f1, flush_f1,
     output busy_f1
   );
 
-  modport flush2 (
+  modport fetch2 (
     input stall_f2, flush_f2,
     output busy_f2
   );

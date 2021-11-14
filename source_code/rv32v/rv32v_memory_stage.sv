@@ -43,7 +43,7 @@ module rv32v_memory_stage (
   address_scheduler AS (CLK, nRST, asif);
 
   assign hu_if.busy_mem = asif.busy;
-  assign hu_if.csr_update = execute_memory_if.config_type;
+  assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
   assign hu_if.exception_mem = asif.exception;
   assign wdat0 = execute_memory_if.load ? data0 : execute_memory_if.aluresult0;
   assign wdat1 = execute_memory_if.load ? cif.dmemload : execute_memory_if.aluresult1;
@@ -97,6 +97,11 @@ module rv32v_memory_stage (
       memory_writeback_if.wen1      <= execute_memory_if.wen1;
       memory_writeback_if.woffset0  <= execute_memory_if.woffset0;
       memory_writeback_if.woffset1  <= execute_memory_if.woffset1;
+
+      memory_writeback_if.vd  <= execute_memory_if.vd;
+      memory_writeback_if.eew <= execute_memory_if.eew;
+      memory_writeback_if.vl  <= execute_memory_if.vl;
+      memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
     end
   end
 
