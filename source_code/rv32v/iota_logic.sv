@@ -29,6 +29,8 @@ module iota_logic (
   iota_logic_if.iota_logic iif
 );    
 
+  import rv32v_types_pkg::*;
+
   logic [63:0] temp;
   logic [31:0] out1, out2, out3, out4, out5, out6, out7, out8;
   logic [31:0] prev_res, next_prev_res, mask_reg, next_mask_reg, count, next_count;
@@ -79,7 +81,7 @@ module iota_logic (
     next_busy = busy_reg;
     if (iif.start) begin
       next_busy = 1;
-      if (iif.sew == 32) begin
+      if (iif.sew == SEW32) begin
         iif.res0 = out1;
         iif.res1 = out2;
         next_mask_reg = temp >> 2;
@@ -87,17 +89,17 @@ module iota_logic (
         next_prev_res = out2;
         next_prev_mask = temp[1];
       end
-      else if (iif.sew == 16) begin
-        iif.res0 = {out2, out1};
-        iif.res1 = {out4, out3};
+      else if (iif.sew == SEW16) begin
+        iif.res0 = {out2[15:0], out1[15:0]};
+        iif.res1 = {out4[15:0], out3[15:0]};
         next_mask_reg = temp >> 4;
         next_count = count + 4;
         next_prev_res = out4;
         next_prev_mask = temp[3];
       end
-      else if (iif.sew == 8) begin
-        iif.res0 = {out4, out3, out2, out1};
-        iif.res1 = {out8, out7, out6, out5};
+      else if (iif.sew == SEW8) begin
+        iif.res0 = {out4[7:0], out3[7:0], out2[7:0], out1[7:0]};
+        iif.res1 = {out8[7:0], out7[7:0], out6[7:0], out5[7:0]};
         next_mask_reg = temp >> 8;
         next_count = count + 8;
         next_prev_res = out8;
