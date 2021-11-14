@@ -30,7 +30,7 @@ module mask_unit (
 
   import rv32v_types_pkg::*;
 
-  logic [31:0] in1, result, aluresult, encoder_result, constant, anded, add_out, first_element, iota_out;
+  logic [31:0] in1, result, aluresult, encoder_result, constant, anded, add_out, first_element;
   logic [4:0] encoder_out, add_out0, add_out1, add_out2, add_out3;
   logic mask_bit_set;
 
@@ -78,7 +78,7 @@ module mask_unit (
       VMASK_SBF   : mif.wdata_m = ~(constant << encoder_out);
       VMASK_SIF   : mif.wdata_m = ~(constant << (encoder_out+1));
       VMASK_SOF   : mif.wdata_m = 32'd1 << encoder_out;
-      VMASK_IOTA  : mif.wdata_m = iota_out; // TODO: Add logics
+      VMASK_IOTA  : mif.wdata_m = mif.iota_res; 
       default     : mif.wdata_m = '0;
     endcase
   end
