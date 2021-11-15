@@ -25,6 +25,7 @@
 `include "rv32v_execute_memory_if.vh"
 `include "rv32v_decode_execute_if.vh"
 `include "vector_lane_if.vh"
+`include "iota_logic_if.vh"
 
 module rv32v_execute_stage (
   input logic CLK, nRST,
@@ -43,15 +44,23 @@ module rv32v_execute_stage (
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
+  iota_logic_if iif ();
 
   vector_lane V0 (CLK, nRST, vif0);
   vector_lane V1 (CLK, nRST, vif1);
+  iota_logic IL (CLK, nRST, iif);
 
   assign portb0    = decode_execute_if.stride_type ? decode_execute_if.stride_val : 4;
   assign base_addr = decode_execute_if.xs1;
   assign rd_WEN    = decode_execute_if.rd_WEN | decode_execute_if.config_type;
   assign rd_sel    = decode_execute_if.rd_sel;
   assign rd_data   = decode_execute_if.config_type ? decode_execute_if.vl : coherence_res; //TODO: Add coherence unit signal
+
+  // Iota logic signals
+  assign iif.mask_bits = {vif1.vs2_data, vif0.vs2_data};
+  assign iif.start     = decode_execute_if.fu_type == MASK & decode_execute_if.mask_type == VMASK_IOTA;
+  assign iif.sew       = decode_execute_if.sew;
+  assign iif.max       = decode_execute_if.vl;
 
   // Data select 
   assign vif0.vs3_data = decode_execute_if.vs3_lane0; // Needed for mul-add instr
@@ -128,6 +137,11 @@ module rv32v_execute_stage (
   assign vif0.high_low        = decode_execute_if.high_low;
   assign vif0.div_type        = decode_execute_if.div_type;
   assign vif0.is_signed_div   = decode_execute_if.is_signed_div;
+  assign vif0.out_inv         = decode_execute_if.out_inv;
+  assign vif0.in_inv          = decode_execute_if.in_inv;
+  assign vif0.mask_type       = decode_execute_if.mask_type;
+  assign vif0.mask_32bit      = decode_execute_if.mask_32bit_lane0;
+  assign vif0.iota_res        = iif.res0;
 
   // Vector Lane 1
   //assign vif1.stride          = decode_execute_if.stride;
@@ -151,6 +165,12 @@ module rv32v_execute_stage (
   assign vif1.high_low        = decode_execute_if.high_low;
   assign vif1.div_type        = decode_execute_if.div_type;
   assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
+  assign vif1.out_inv         = decode_execute_if.out_inv;
+  assign vif1.in_inv          = decode_execute_if.in_inv;
+  assign vif1.mask_type       = decode_execute_if.mask_type;
+  assign vif1.mask_32bit      = decode_execute_if.mask_32bit_lane1;
+  assign vif1.iota_res        = iif.res1;
+
 
   //missing signals
 

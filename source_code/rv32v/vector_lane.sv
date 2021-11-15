@@ -56,11 +56,11 @@ module vector_lane (
     .CLK(CLK),
     .nRST(nRST),
     .pu_if(vif)
-  );
+  ); */
   
   mask_unit MU (
     .mu_if(vif)
-  ); */
+  ); 
 
   // load_store_unit LSU (
   //   .lsu_if(vif)
@@ -78,6 +78,7 @@ module vector_lane (
   assign su  = vif.fu_type == STORE_UNIT;
   assign vif.start_mu = mlu;
   assign vif.start_div = dv;
+  assign vif.start_ma = mau;
 
   assign vif.busy_a   = 0;   //TODO
   assign vif.busy_p   = 0 ;   //TODO

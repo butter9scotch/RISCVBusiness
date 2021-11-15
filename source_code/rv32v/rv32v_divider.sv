@@ -1,3 +1,27 @@
+/*
+*   Copyright 2016 Purdue University
+*   
+*   Licensed under the Apache License, Version 2.0 (the "License");
+*   you may not use this file except in compliance with the License.
+*   You may obtain a copy of the License at
+*   
+*       http://www.apache.org/licenses/LICENSE-2.0
+*   
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
+*
+*
+*   Filename:     rv32v_divider.sv
+*
+*   Created by:   Jing Yin See
+*   Email:        see4@purdue.edu
+*   Date Created: 11/7/2021
+*   Description:  Pipelined restoring divider that does not support overlapping 
+*/
+
 module rv32v_divider
 #(
 	parameter NUM_BITS = 32
@@ -30,32 +54,7 @@ module rv32v_divider
 	assign adjust_remainder     = is_signed && dividend[NUM_BITS-1];
 	assign div_done             = (count == 0);
 	assign quotient = temp_quotient;
-	assign remainder = temp_remainder;
-
-/*
-	always_comb begin
-	quotient = temp_quotient;
-	remainder = temp_remainder;
-		if (count == 5'b1) begin
-			quotient = adjust_quotient ? ~temp_quotient + 1 : temp_quotient;
-			remainder = adjust_remainder ? ~temp_remainder + 1 : temp_remainder;
-		end
-	end
-*/
-/*
-	always_ff @(posedge CLK, negedge nRST) begin
-		if (~finished && adjust_quotient)
-			quotient <= ~quotient + 1;
-			
-		else if(~finished && adjust_remainder  )
-			remainder <= ~remainder	+ 1;
-			
-		else begin
-			quotient <= quotient;
-			remainder <= remainder;
-		end
-	end
-*/					
+	assign remainder = temp_remainder;					
 
 	always_ff @(posedge CLK, negedge nRST) begin
         if (nRST == 0) begin
