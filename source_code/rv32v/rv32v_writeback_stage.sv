@@ -9,10 +9,10 @@ module rv32v_writeback_stage(
 
   import rv32v_types_pkg::*;
 
-  assign rfv_if.w_data = {memory_writeback_if.wdat0, memory_writeback_if.wdat1};
+  assign rfv_if.w_data = {memory_writeback_if.wdat1, memory_writeback_if.wdat0};
   // assign rfv_if.wen = {memory_writeback_if.wen1, memory_writeback_if.wen0};
   assign rfv_if.wen = 2'b11;
-  assign rfv_if.vd_offset = {memory_writeback_if.woffset1, memory_writeback_if.woffset1}; 
+  assign rfv_if.vd_offset = {memory_writeback_if.woffset1, memory_writeback_if.woffset0}; 
   
   assign rfv_if.vd = memory_writeback_if.vd;
   assign rfv_if.eew = memory_writeback_if.eew;

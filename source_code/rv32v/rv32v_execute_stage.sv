@@ -166,6 +166,7 @@ module rv32v_execute_stage (
   assign vif0.woutu = decode_execute_if.woutu;
   assign vif0.win = decode_execute_if.win;
   assign vif0.zext_w = decode_execute_if.zext_w;
+  assign vif0.index = decode_execute_if.woffset0;
 
   
   assign vif1.adc_sbc         = decode_execute_if.adc_sbc;
@@ -259,8 +260,8 @@ module rv32v_execute_stage (
       execute_memory_if.vtype       <= decode_execute_if.vtype;
 
       execute_memory_if.vl          <= decode_execute_if.vl;
-      execute_memory_if.vd                <= decode_execute_if.vd;
-      execute_memory_if.eew  <= decode_execute_if.single_bit_write;
+      execute_memory_if.vd          <= decode_execute_if.vd;
+      execute_memory_if.eew         <= decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
 
     end

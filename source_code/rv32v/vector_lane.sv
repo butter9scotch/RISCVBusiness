@@ -31,7 +31,7 @@ module vector_lane (
 
   import rv32v_types_pkg::*;
 
-  // Instantiate all functional unit
+  // Instantiate fall functional unit
 
   arithmetic_unit AU (
     .CLK(CLK),
@@ -78,6 +78,15 @@ module vector_lane (
   assign su  = vif.fu_type == STORE_UNIT;
   assign vif.start_mu = mlu;
   assign vif.start_div = dv;
+
+  assign vif.busy_a   = 0;   //TODO
+  assign vif.busy_p   = 0 ;   //TODO
+  assign vif.busy_m   = 0 ;   //TODO
+  assign vif.busy_ls  = 0 ;   //TODO
+  assign vif.exception_a = 0;   //TODO
+  assign vif.exception_p = 0;   //TODO
+  assign vif.exception_m = 0;   //TODO
+  assign vif.exception_ls = 0;   //TODO
 
   // Output sel
   assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls;
