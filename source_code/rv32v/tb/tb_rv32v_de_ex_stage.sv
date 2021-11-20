@@ -166,7 +166,7 @@ module tb_rv32v_de_ex_stage ();
     prv_if.lmul    = LMUL2;
     prv_if.sew     = SEW32;
     prv_if.vtype     = {2'b0, LMUL1, SEW32};
-    prv_if.vl      = 4;
+    prv_if.vl      = 16;
     prv_if.vstart  = 0;
     prv_if.vlenb   = 16;
     prv_if.vill    = 0;

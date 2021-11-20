@@ -23,7 +23,7 @@ interface vector_lane_if;
   ma_t mask_type;
   logic is_signed, wdata_du, busy_du, exception_du;
   modport vector_lane (
-    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1
+    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1,
     output  lane_result, busy, exception
   );
 

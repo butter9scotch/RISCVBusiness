@@ -39,6 +39,11 @@ interface rv32v_decode_execute_if;
   logic woutu;
   logic zext_w;
   logic single_bit_write;
+
+  ma_t mask_type;
+  logic out_inv;
+  logic in_inv;
+  logic[31:0] mask_32bit_lane0, mask_32bit_lane1;
   // logic shamt;
 
 
@@ -53,7 +58,7 @@ interface rv32v_decode_execute_if;
     minmax_type, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul, vtype,
     lmul, sew,
     adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type,
-    win, woutu, zext_w, vd, single_bit_write
+    win, woutu, zext_w, vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1
   );
 
   modport execute (
@@ -64,7 +69,7 @@ interface rv32v_decode_execute_if;
     eew, lmul, sew, vl, vlenb, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul,
     vtype,
     adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type, win, woutu, zext_w,
-    vd, single_bit_write
+    vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1
   );
 
 endinterface

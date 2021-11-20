@@ -89,7 +89,7 @@ module address_scheduler (
     asif.final_storedata = '0; 
     asif.wen = '0;
     asif.ren = '0;  
-    asif.busy = 1; 
+    asif.busy = 1; // TODO?  
     asif.exception = '0; 
     case(state)
       IDLE:

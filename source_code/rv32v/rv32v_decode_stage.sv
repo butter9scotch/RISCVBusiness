@@ -64,18 +64,21 @@ module rv32v_decode_stage (
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = prv_if.vl;  
+  // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
+  // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
   assign ele_if.sew       = sew; 
-  assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
+  assign ele_if.clear     = hu_if.flush_dec;
+  // assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
 
   // assign hu_if.busy_dec = vcu_if.de_en | (ele_if.offset != 0 && ~ele_if.done);
-  assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
+  // assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
 
   // microop buffer assigns
 
@@ -85,6 +88,19 @@ module rv32v_decode_stage (
   logic mask0, mask1;
 
   sew_t next_decode_execute_if_eew;
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if(~nRST)begin
+      hu_if.busy_dec <= 0;
+    end else begin
+      if (hu_if.busy_dec == 0 && vcu_if.de_en ) begin
+        hu_if.busy_dec <= 1;
+      end
+      else if (hu_if.busy_dec == 1 && ele_if.done) begin
+        hu_if.busy_dec <= 0;
+      end
+    end
+  end
 
   always_comb begin
     next_decode_execute_if_eew = sew;

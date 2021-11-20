@@ -113,7 +113,7 @@ module tb_rv32v_top_level ();
     prv_if.lmul    = LMUL2;
     prv_if.sew     = SEW32;
     prv_if.vtype     = {2'b0, LMUL1, SEW32};
-    prv_if.vl      = 4;
+    prv_if.vl      = 8;
     prv_if.vstart  = 0;
     prv_if.vlenb   = 16;
     prv_if.vill    = 0;
@@ -145,8 +145,9 @@ module tb_rv32v_top_level ();
     load_reg_data(0, '1);
     load_reg_data(1, {32'h4, 32'd3, 32'd2, 32'd1});
     load_reg_data(2, {32'd3, 32'd2, 32'd1, 32'd0});
-    hexfile = $fopen("rv32v/tb/init.hex", "r");   
-
+    @(posedge CLK);
+    hexfile = $fopen("rv32v/tb/add.hex", "r");   
+    
     while (!$feof(hexfile)) begin 
         $fscanf(hexfile,"%h\n",line); 
         $write("Line Value: %x\n", line);
@@ -154,6 +155,7 @@ module tb_rv32v_top_level ();
         ins_m = vopm_ins'(line);
         fetch_decode_if.instr = line;
         @(posedge CLK); //wait some time as needed.
+        while(hu_if.busy_dec) @(posedge CLK); //wait some time as needed.
         // while (hu_if.busy_dec | hu_if.busy_ex)  begin @(posedge CLK) end; 
     end 
     //once reading and writing is finished, close the file.

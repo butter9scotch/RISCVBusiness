@@ -262,7 +262,7 @@ module rv32v_execute_stage (
       execute_memory_if.vl          <= '0;
       execute_memory_if.vtype       <= '0;
       execute_memory_if.vd                <= '0;
-      execute_memory_if.eew  <= '0;
+      execute_memory_if.eew               <= '0;
       execute_memory_if.single_bit_write  <= '0;
 
     end else if (!hu_if.stall_ex) begin

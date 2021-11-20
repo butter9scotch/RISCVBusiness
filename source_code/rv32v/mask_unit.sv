@@ -25,7 +25,7 @@
 `include "vector_lane_if.vh"
 
 module mask_unit (
-  vector_lane_if.mask_unit mif
+  vector_lane_if.mask_unit mu_if
 );
 
   import rv32v_types_pkg::*;
@@ -34,16 +34,16 @@ module mask_unit (
   logic [4:0] encoder_out, add_out0, add_out1, add_out2, add_out3;
   logic mask_bit_set;
 
-  assign in1           = mif.in_inv ? ~mif.vs1_data : mif.vs1_data;
-  assign aluresult     = mif.out_inv ? ~result : result;
+  assign in1           = mu_if.in_inv ? ~mu_if.vs1_data : mu_if.vs1_data;
+  assign aluresult     = mu_if.out_inv ? ~result : result;
   assign first_element = mask_bit_set ? encoder_out : '1; // Return -1 when no mask bit is set
-  assign anded         = mif.vs2_data & mif.mask_32bit;
+  assign anded         = mu_if.vs2_data & mu_if.mask_32bit;
   assign add_out       = add_out0 + add_out1 + add_out2 + add_out3;
   assign constant      = '1;
 
   encoder ENC (
-    .in(mif.vs2_data),
-    .ena(mif.mask_32bit),
+    .in(mu_if.vs2_data),
+    .ena(mu_if.mask_32bit),
     .strobe(mask_bit_set), // 0: No mask bit is set
     .out(encoder_out)
   );
@@ -69,17 +69,17 @@ module mask_unit (
   );
 
   always_comb begin 
-    case (mif.mask_type)
-      VMASK_AND   : mif.wdata_m = mif.vs2_data & in1;
-      VMASK_OR    : mif.wdata_m = mif.vs2_data | in1;
-      VMASK_XOR   : mif.wdata_m = mif.vs2_data ^ in1;
-      VMASK_POPC  : mif.wdata_m = add_out;
-      VMASK_FIRST : mif.wdata_m = first_element;
-      VMASK_SBF   : mif.wdata_m = ~(constant << encoder_out);
-      VMASK_SIF   : mif.wdata_m = ~(constant << (encoder_out+1));
-      VMASK_SOF   : mif.wdata_m = 32'd1 << encoder_out;
-      VMASK_IOTA  : mif.wdata_m = mif.iota_res; 
-      default     : mif.wdata_m = '0;
+    case (mu_if.mask_type)
+      VMASK_AND   : mu_if.wdata_m = mu_if.vs2_data & in1;
+      VMASK_OR    : mu_if.wdata_m = mu_if.vs2_data | in1;
+      VMASK_XOR   : mu_if.wdata_m = mu_if.vs2_data ^ in1;
+      VMASK_POPC  : mu_if.wdata_m = add_out;
+      VMASK_FIRST : mu_if.wdata_m = first_element;
+      VMASK_SBF   : mu_if.wdata_m = ~(constant << encoder_out);
+      VMASK_SIF   : mu_if.wdata_m = ~(constant << (encoder_out+1));
+      VMASK_SOF   : mu_if.wdata_m = 32'd1 << encoder_out;
+      VMASK_IOTA  : mu_if.wdata_m = mu_if.iota_res; 
+      default     : mu_if.wdata_m = '0;
     endcase
   end
 
