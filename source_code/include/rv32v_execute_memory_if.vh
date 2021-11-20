@@ -14,16 +14,19 @@ interface rv32v_execute_memory_if;
   sew_t eew;
   logic single_bit_write;
   logic [4:0] vd;
+  logic [31:0] vstart;
 
   modport execute (
     output load, store, storedata0, storedata1, aluresult0, aluresult1, wen0, wen1, woffset0, woffset1,
-    config_type, vl, vtype, eew, vd, single_bit_write
+    config_type, vl, vtype, eew, vd, single_bit_write,
+    vstart
   );
 
 
   modport memory (
     input load, store, storedata0, storedata1, aluresult0, aluresult1, wen0, wen1, woffset0, woffset1,
-    config_type, vtype, eew, vl, vd, single_bit_write
+    config_type, vtype, eew, vl, vd, single_bit_write,
+    vstart
   );
 
 endinterface

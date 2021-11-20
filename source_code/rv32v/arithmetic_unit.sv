@@ -177,6 +177,6 @@ module arithmetic_unit (
     endcase
   end
 
-
+  assign aif.exception_a = 0; //TODO
 
 endmodule

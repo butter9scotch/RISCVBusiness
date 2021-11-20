@@ -81,7 +81,7 @@ interface prv_pipeline_if();
   );
 
   modport vdecode (
-    output lmul, sew, vl, vstart, vlenb, vill, vtype 
+    input lmul, sew, vl, vstart, vlenb, vill, vtype 
   );
 
   modport priv_block (

@@ -55,6 +55,7 @@ module rv32v_decode_stage (
 
   sew_t sew;
   vlmul_t lmul;
+  logic [31:0] vstart;
 
   assign sew = sew_t'(prv_if.vtype[2:0]);
   assign lmul = vlmul_t'(prv_if.vtype[5:3]);
@@ -77,6 +78,7 @@ module rv32v_decode_stage (
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
 
+  assign vstart = 0; //TODO
   // assign hu_if.busy_dec = vcu_if.de_en | (ele_if.offset != 0 && ~ele_if.done);
   // assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
 
@@ -304,6 +306,8 @@ module rv32v_decode_stage (
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
 
+      decode_execute_if.vstart <= '0;
+
 
     end else if(hu_if.flush_dec) begin
       decode_execute_if.stride_type       <= 'h0;
@@ -368,9 +372,10 @@ module rv32v_decode_stage (
 
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
+      decode_execute_if.vstart <= '0;
 
 
-    end else begin
+    end else if (~hu_if.stall_dec) begin
       decode_execute_if.stride_type   <= vcu_if.stride_type;
       decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
       decode_execute_if.config_type   <= ~(vcu_if.cfgsel == NOT_CFG);
@@ -432,6 +437,9 @@ module rv32v_decode_stage (
 
       decode_execute_if.vd                <= vcu_if.vd;
       decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
+
+      decode_execute_if.vstart <= vstart;
+
 
     end
   end

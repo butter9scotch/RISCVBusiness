@@ -62,9 +62,9 @@ module vector_lane (
     .mu_if(vif)
   ); 
 
-  // load_store_unit LSU (
-  //   .lsu_if(vif)
-  // ); 
+  loadstore_unit LSU (
+    .lsif(vif)
+  ); 
 
   // Connecting signals
   logic au, ru, mlu, dv, mau, pu, lu, su;
@@ -80,18 +80,19 @@ module vector_lane (
   assign vif.start_div = dv;
   assign vif.start_ma = mau;
 
-  assign vif.busy_a   = 0;   //TODO
-  assign vif.busy_p   = 0 ;   //TODO
-  assign vif.busy_m   = 0 ;   //TODO
-  assign vif.busy_ls  = 0 ;   //TODO
-  assign vif.exception_a = 0;   //TODO
-  assign vif.exception_p = 0;   //TODO
-  assign vif.exception_m = 0;   //TODO
-  assign vif.exception_ls = 0;   //TODO
+  
+  assign vif.busy_a   = 0;   
+  assign vif.busy_p   = 0 ;   //not done yet
+  assign vif.busy_m   = iif.busy ;   //
+  assign vif.busy_ls  = 0 ;   //single cycle address calculation
+  assign vif.exception_p = 0;   //not done yet
+  assign vif.exception_m = 0;   //not implemented atm 
+  assign vif.exception_ls = 0;   //not done here, remove
 
   // Output sel
-  assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls;
-  assign vif.exception   = vif.exception_a | vif.exception_p | vif.exception_m | vif.exception_ls;
+  //busy_mu should not stall entire stage
+  assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls | vif.busy_du | vif.busy_mu;
+  assign vif.exception   = vif.exception_a | vif.exception_p | vif.exception_m |  vif.exception_du | vif.exception_mu;
   assign vif.lane_result = (au | ru) ? vif.wdata_a :
                            (mlu) ? vif.wdata_mu :
                            (dv) ? vif.wdata_du :

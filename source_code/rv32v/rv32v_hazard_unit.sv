@@ -17,7 +17,7 @@ module rv32v_hazard_unit (
 
   // decode stage
   assign hu_if.flush_dec = hu_if.csr_update;
-  assign hu_if.stall_dec = hu_if.busy_mem | hu_if.busy_ex | hu_if.busy_dec;
+  assign hu_if.stall_dec = hu_if.busy_mem | hu_if.busy_ex; // double check
 
   // execute stage
   assign hu_if.flush_ex = hu_if.csr_update;
