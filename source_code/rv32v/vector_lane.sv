@@ -51,12 +51,9 @@ module vector_lane (
     .dif(vif)
   );
 
-/*
   permutation_unit PU (
-    .CLK(CLK),
-    .nRST(nRST),
     .pu_if(vif)
-  ); */
+  ); 
   
   mask_unit MU (
     .mu_if(vif)
