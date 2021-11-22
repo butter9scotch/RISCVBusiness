@@ -108,4 +108,10 @@ module priv_1_11_block (
   assign prv_pipe_if.rdata       = prv_intern_if.rdata;
   assign prv_pipe_if.invalid_csr = prv_intern_if.invalid_csr;
   
+  assign prv_pipe_if.vstart = prv_intern_if.vstart;
+  assign prv_pipe_if.vtype = prv_intern_if.vtype;
+  assign prv_pipe_if.vl = prv_intern_if.vl;
+  assign prv_pipe_if.vlenb = prv_intern_if.vlenb;
+
+
 endmodule

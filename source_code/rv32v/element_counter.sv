@@ -68,16 +68,5 @@ module element_counter (
     end
   end
 
-  // always_comb begin
-  //   // next_uop_vl = 1 << (4 - ele_if.sew);
-  //   if (ele_if.sew == SEW8) begin
-  //     // if (ele_if.uop_vl >= 128) $error("offset overflow, SEW8");
-  //   end else if (ele_if.sew == SEW16) begin
-  //     // if (ele_if.uop_vl > 64) $error("offset overflow, SEW16");
-  //   end else if (ele_if.sew == SEW32) begin
-  //     // if (ele_if.uop_vl > 32) $error("uop_vl overflow, SEW32");
-  //   end
-  // end
-
 
 endmodule

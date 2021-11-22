@@ -81,7 +81,7 @@ interface prv_pipeline_if();
   );
 
   modport vdecode (
-    input lmul, sew, vl, vstart, vlenb, vill, vtype 
+    input vl, vstart, vlenb, vtype 
   );
 
   modport priv_block (
@@ -89,7 +89,7 @@ interface prv_pipeline_if();
           illegal_insn, fault_l, mal_l, fault_s, mal_s,
           breakpoint, env_m, badaddr, swap, clr, set,
           wdata, addr, valid_write, wb_enable, instr,
-          ex_rmgmt, ex_rmgmt_cause,
+          ex_rmgmt, ex_rmgmt_cause,vl, vstart, vlenb, vtype,
     output priv_pc, insert_pc, intr, rdata, invalid_csr
   );
 

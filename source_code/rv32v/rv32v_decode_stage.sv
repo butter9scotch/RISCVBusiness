@@ -56,9 +56,12 @@ module rv32v_decode_stage (
   sew_t sew;
   vlmul_t lmul;
   logic [31:0] vstart;
+  vop_cfg vop_c;
 
-  assign sew = sew_t'(prv_if.vtype[2:0]);
-  assign lmul = vlmul_t'(prv_if.vtype[5:3]);
+  assign vop_c = vop_cfg'(fetch_decode_if.instr);
+
+  assign sew = sew_t'(prv_if.vtype[5:3]);
+  assign lmul = vlmul_t'(prv_if.vtype[2:0]);
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
@@ -244,7 +247,8 @@ module rv32v_decode_stage (
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       decode_execute_if.stride_type       <= 'h0;
-      decode_execute_if.rd_WEN            <= 'h0;
+      decode_execute_if.rd_wen            <= 'h0;
+      decode_execute_if.rd_data            <= 'h0;
       decode_execute_if.config_type       <= 'h0;
       decode_execute_if.mask0             <= 'h0;
       decode_execute_if.mask1             <= 'h0;
@@ -307,11 +311,16 @@ module rv32v_decode_stage (
       decode_execute_if.single_bit_write  <= '0;
 
       decode_execute_if.vstart <= '0;
+      decode_execute_if.next_vtype_csr <= '0;
+      decode_execute_if.next_avl_csr <= '0;
+
+      //TESTBENCH ONLY
+      decode_execute_if.tb_line_num        <= 0;
 
 
     end else if(hu_if.flush_dec) begin
       decode_execute_if.stride_type       <= 'h0;
-      decode_execute_if.rd_WEN            <= 'h0;
+      decode_execute_if.rd_wen            <= 'h0;
       decode_execute_if.config_type       <= 'h0;
       decode_execute_if.mask0             <= 'h0;
       decode_execute_if.mask1             <= 'h0;
@@ -373,12 +382,19 @@ module rv32v_decode_stage (
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
       decode_execute_if.vstart <= '0;
+      decode_execute_if.next_vtype_csr <= '0;
+      decode_execute_if.next_avl_csr <= '0;
+      decode_execute_if.rd_data            <= 'h0;
+
+      //TESTBENCH ONLY
+      decode_execute_if.tb_line_num        <= 0;
+
 
 
     end else if (~hu_if.stall_dec) begin
       decode_execute_if.stride_type   <= vcu_if.stride_type;
-      decode_execute_if.rd_WEN        <= vcu_if.rd_scalar_src; //write to scalar regs
-      decode_execute_if.config_type   <= ~(vcu_if.cfgsel == NOT_CFG);
+      decode_execute_if.rd_wen        <= vcu_if.rd_scalar_src; //write to scalar regs
+      decode_execute_if.config_type   <= vcu_if.cfgsel;
       decode_execute_if.mask0         <= mask0; //double check, will it always be vs1_mask
       decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
       decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
@@ -438,8 +454,14 @@ module rv32v_decode_stage (
       decode_execute_if.vd                <= vcu_if.vd;
       decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
 
-      decode_execute_if.vstart <= vstart;
+      decode_execute_if.vstart            <= vstart;
+      decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs1;
+      decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
+      decode_execute_if.rd_data            <= 'h0;
 
+      
+      //TESTBENCH ONLY
+      decode_execute_if.tb_line_num        <= fetch_decode_if.tb_line_num;
 
     end
   end

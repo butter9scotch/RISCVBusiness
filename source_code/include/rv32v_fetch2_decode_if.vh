@@ -36,12 +36,16 @@ interface rv32v_fetch2_decode_if();
   sew_t sew, eew;
   vlmul_t lmul;  
 
+  int tb_line_num;
+
   modport fetch(
-    output  instr, mal_insn, fault_insn
+    output  instr, mal_insn, fault_insn,
+    tb_line_num //TESTBENCH ONLY
   );
 
   modport decode(
     input   instr, mal_insn, fault_insn, 
+    tb_line_num //TESTBENCH ONLY
     // sew, eew, lmul
   );
 

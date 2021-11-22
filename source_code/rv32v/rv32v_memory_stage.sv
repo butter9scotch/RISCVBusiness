@@ -32,9 +32,11 @@ module rv32v_memory_stage (
   cache_model_if.memory cif, // TODO: Remove/Change this during integration
   rv32v_hazard_unit_if.memory hu_if,
   rv32v_execute_memory_if.memory execute_memory_if,
-  rv32v_memory_writeback_if.memory memory_writeback_if
+  rv32v_memory_writeback_if.memory memory_writeback_if,
+  prv_pipeline_if.pipe prv_if
 );
   import rv32v_types_pkg::*;
+  import machine_mode_types_1_11_pkg::*;
 
   logic [31:0] data0, wdat0, wdat1;
 
@@ -42,8 +44,9 @@ module rv32v_memory_stage (
 
   address_scheduler AS (CLK, nRST, asif);
 
+
   assign hu_if.busy_mem = asif.busy;
-  assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
+  // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
   assign hu_if.exception_mem = asif.exception;
   assign wdat0 = execute_memory_if.load ? data0 : execute_memory_if.aluresult0;
   assign wdat1 = execute_memory_if.load ? cif.dmemload : execute_memory_if.aluresult1;
@@ -76,6 +79,7 @@ module rv32v_memory_stage (
 
   // Pipeline Latch
   always_ff @ (posedge CLK, negedge nRST) begin
+
     if (nRST == 0) begin
       memory_writeback_if.wdat0     <= '0;
       memory_writeback_if.wdat1     <= '0;
@@ -83,6 +87,13 @@ module rv32v_memory_stage (
       memory_writeback_if.wen1      <= '0;
       memory_writeback_if.woffset0  <= '0;
       memory_writeback_if.woffset1  <= '0;
+      memory_writeback_if.rd_wen    <= '0;
+      memory_writeback_if.rd_sel    <= '0;
+      memory_writeback_if.rd_data   <= '0;
+
+      memory_writeback_if.tb_line_num <= 0;
+
+
     end else if (hu_if.flush_mem) begin
       memory_writeback_if.wdat0     <= '0;
       memory_writeback_if.wdat1     <= '0;
@@ -90,6 +101,13 @@ module rv32v_memory_stage (
       memory_writeback_if.wen1      <= '0;
       memory_writeback_if.woffset0  <= '0;
       memory_writeback_if.woffset1  <= '0;
+      memory_writeback_if.rd_wen    <= '0;
+      memory_writeback_if.rd_sel    <= '0;
+      memory_writeback_if.rd_data   <= '0;
+
+            //TESTBENCH ONLY
+      memory_writeback_if.tb_line_num <= 0;
+
     end else if (!hu_if.stall_mem) begin
       memory_writeback_if.wdat0     <= wdat0;
       memory_writeback_if.wdat1     <= wdat1;
@@ -102,12 +120,20 @@ module rv32v_memory_stage (
       memory_writeback_if.eew <= execute_memory_if.eew;
       memory_writeback_if.vl  <= execute_memory_if.vl;
       memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
+
+      memory_writeback_if.rd_wen <= execute_memory_if.rd_wen;
+      memory_writeback_if.rd_sel <= execute_memory_if.rd_sel;
+      memory_writeback_if.rd_data <= ~(execute_memory_if.config_type == NOT_CFG) ? prv_if.rdata : execute_memory_if.rd_data;
+
+      //TESTBENCH ONLY
+      memory_writeback_if.tb_line_num <= execute_memory_if.tb_line_num;
+
+      
     end
   end
 
   // CSR
   logic [31:0] vl, vlenb, vtype, vstart, next_vstart, next_vl, vlmax;
-  logic vma, vta, vill;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       vl     <= '0;
@@ -117,7 +143,7 @@ module rv32v_memory_stage (
     end else if (execute_memory_if.config_type) begin
       vl     <= execute_memory_if.vl;
       vlenb  <= VLENB;
-      vtype  <= execute_memory_if.vtype;
+      vtype  <= execute_memory_if.next_vtype_csr;
       vstart <= '0;
     end else begin
       vstart <= next_vstart;
@@ -125,9 +151,30 @@ module rv32v_memory_stage (
   end
   assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
   assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
-  assign vta   = vtype[6];
-  assign vma   = vtype[7];
-  assign vill  = vtype[7];
+
+
+  // VSTART_ADDR --> exception
+  // VXSAT_ADDR --> who knows
+  // VXRM_ADDR  --> who knows
+  // VCSR_ADDR  --> who knows
+  // VL_ADDR    --> will be set by config instrs
+  // VTYPE_ADDR --> will be set by config instrs
+  // VLENB_ADDR --> probably not use this
+  logic [7:0] next_vl_csr;
+  assign next_vl_csr = execute_memory_if.next_avl_csr[7:0]; //CHANGE FOR ACTUAL DECISION LOGIC
+  assign prv_if.swap =  ~(execute_memory_if.config_type == NOT_CFG);
+  assign prv_if.clr = 0;
+  assign prv_if.set = 0;
+  assign prv_if.wdata = {8'd0, next_vl_csr, execute_memory_if.next_vtype_csr};
+  assign prv_if.addr = VTYPE_ADDR;
+  assign prv_if.valid_write = prv_if.swap; 
+  assign prv_if.instr = 0; 
+
+  assign hu_if.csr_update =   ~(execute_memory_if.config_type == NOT_CFG);
+
+  logic use_mem_pc;
+
+
   // Next vstart logic
 /*
   always_comb begin

@@ -85,7 +85,6 @@ module tb_element_counter ();
     ele_if.de_en  = 0;
     ele_if.sew  = 0;
     ele_if.offset  = 0;
-    ele_if.uop_vl  = 0;
     ele_if.done = 0;
     ele_if.clear = 0;
     uop_if.LMUL = 0;
@@ -124,7 +123,7 @@ module tb_element_counter ();
     ele_if.de_en = de_en;
     ele_if.stall = stall;
 
-    if (ele_if.done) $write("Offset: %d, uop_vl: %d", ele_if.offset, ele_if.uop_vl);
+    if (ele_if.done) $write("Offset: %d", ele_if.offset);
   endtask
 
   task count_to;
@@ -133,15 +132,6 @@ module tb_element_counter ();
     repeat (n) @(posedge CLK);
   endtask
 
-  // task buffer_integration;
-  //   input len;
-    
-  //   @(negedge CLK);
-  //   if (ele_if.done) $write("Offset: %d, uop_vl: %d", ele_if.offset, ele_if.uop_vl);
-  // endtask
-
-
-  // endtask
 
   task newtest;
     input string testname_arg;

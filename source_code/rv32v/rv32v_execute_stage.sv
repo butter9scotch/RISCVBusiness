@@ -31,10 +31,7 @@ module rv32v_execute_stage (
   input logic CLK, nRST,
   rv32v_hazard_unit_if.execute hu_if,
   rv32v_decode_execute_if.execute decode_execute_if,
-  rv32v_execute_memory_if.execute execute_memory_if,
-  output logic rd_WEN,
-  output logic [4:0] rd_sel,
-  output logic [31:0] rd_data
+  rv32v_execute_memory_if.execute execute_memory_if
 );
 
   import rv32v_types_pkg::*;
@@ -52,7 +49,7 @@ module rv32v_execute_stage (
 
   assign portb0    = decode_execute_if.stride_type ? decode_execute_if.stride_val : 4;
   assign base_addr = decode_execute_if.xs1;
-  assign rd_WEN    = decode_execute_if.rd_WEN | decode_execute_if.config_type;
+  assign rd_wen    = decode_execute_if.rd_wen | decode_execute_if.config_type;
   assign rd_sel    = decode_execute_if.rd_sel;
   assign rd_data   = decode_execute_if.config_type ? decode_execute_if.vl : coherence_res; //TODO: Add coherence unit signal
 
@@ -246,6 +243,15 @@ module rv32v_execute_stage (
       execute_memory_if.vd          <= '0;
       execute_memory_if.eew         <= '0;
       execute_memory_if.single_bit_write  <= '0;
+      execute_memory_if.next_vtype_csr  <= '0;
+      execute_memory_if.next_avl_csr  <= '0;
+
+      execute_memory_if.rd_wen <= 0;
+      execute_memory_if.rd_sel <= 0;
+      execute_memory_if.rd_data <= 0;
+
+      //TESTBENCH ONLY
+      execute_memory_if.tb_line_num        <= 0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load        <= '0;
@@ -264,6 +270,17 @@ module rv32v_execute_stage (
       execute_memory_if.vd                <= '0;
       execute_memory_if.eew               <= '0;
       execute_memory_if.single_bit_write  <= '0;
+      execute_memory_if.next_vtype_csr  <= '0;
+      execute_memory_if.next_avl_csr  <= '0;
+
+      execute_memory_if.rd_wen <= 0;
+      execute_memory_if.rd_sel <= 0;
+      execute_memory_if.rd_data <= 0;
+
+      //TESTBENCH ONLY
+      execute_memory_if.tb_line_num        <= 0;
+
+
 
     end else if (!hu_if.stall_ex) begin
       execute_memory_if.load        <= decode_execute_if.load;
@@ -283,6 +300,16 @@ module rv32v_execute_stage (
       execute_memory_if.vd          <= decode_execute_if.vd;
       execute_memory_if.eew         <= decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
+      execute_memory_if.next_vtype_csr  <= decode_execute_if.next_vtype_csr;
+      execute_memory_if.next_avl_csr  <= decode_execute_if.next_avl_csr;
+
+      execute_memory_if.rd_wen  <= decode_execute_if.rd_wen;
+      execute_memory_if.rd_sel  <= decode_execute_if.rd_sel;
+      execute_memory_if.rd_data <= decode_execute_if.rd_data;
+
+            //TESTBENCH ONLY
+      execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
+
 
     end
   end

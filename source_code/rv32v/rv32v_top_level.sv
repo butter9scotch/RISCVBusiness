@@ -4,7 +4,7 @@ module rv32v_top_level(
   cache_model_if.memory cif,
   rv32v_hazard_unit_if hu_if,
   prv_pipeline_if prv_if,
-  output logic rd_WEN,
+  output logic rd_wen,
   output logic [4:0] rd_sel,
   output logic [31:0] rd_data,
   input logic [31:0] xs1, xs2,

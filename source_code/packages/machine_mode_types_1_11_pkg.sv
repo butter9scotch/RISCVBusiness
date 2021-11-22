@@ -26,6 +26,7 @@
 `define MACHINE_MODE_TYPES_1_11_PKG_SV
 
 package machine_mode_types_1_11_pkg;
+  import rv32v_types_pkg::*;
 
   typedef enum logic [11:0] {
     /* Machine Mode Addresses */
@@ -51,7 +52,15 @@ package machine_mode_types_1_11_pkg;
     MCYCLE_ADDR      = 12'hB00,
     MINSTRET_ADDR    = 12'hB02,
     MCYCLEH_ADDR     = 12'hB80,
-    MINSTRETH_ADDR   = 12'hB82
+    MINSTRETH_ADDR   = 12'hB82,
+
+    VSTART_ADDR      = 12'h008,
+    VXSAT_ADDR       = 12'h009,
+    VXRM_ADDR        = 12'h00A,
+    VCSR_ADDR        = 12'h00F,
+    VL_ADDR          = 12'hC20,
+    VTYPE_ADDR       = 12'hC21,
+    VLENB_ADDR       = 12'hC22
   } csr_addr_t;
 
   /* Machine Mode Register Types */
@@ -258,6 +267,24 @@ package machine_mode_types_1_11_pkg;
   //Non Standard Extentions 
   typedef logic [31:0] mtohost_t;
   typedef logic [31:0] mfromhost_t;
+
+  //Vector
+  typedef logic [31:0] vstart_t;
+  // typedef struct [31:0] vxsat;  //not used yet
+  // typedef struct [31:0] vxrm;  //not used yet
+  // typedef struct [31:0] vcsr;  //not used yet
+  typedef logic [31:0] vl_t;
+  
+  typedef struct packed {
+    logic vill;
+    logic [21:0] reserved;
+    logic vma;
+    logic vta;
+    sew_t sew;
+    vlmul_t lmul;
+  } vtype_t;
+
+  typedef logic [31:0] vlenb_t;
   
 endpackage
 

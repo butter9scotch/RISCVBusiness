@@ -27,6 +27,7 @@
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
 `include "prv_pipeline_if.vh"
+// `include "config_test.svh"
 
 
 
@@ -65,7 +66,7 @@ module tb_rv32v_top_level ();
   logic [31:0] xs1, xs2;
   logic scalar_hazard_if_ret;
   logic returnex;
-  logic rd_WEN;
+  logic rd_wen;
   logic [4:0] rd_sel;
   logic [31:0] rd_data;
 
@@ -75,8 +76,12 @@ module tb_rv32v_top_level ();
   cache_model_if cif();
   rv32v_hazard_unit_if hu_if();
   prv_pipeline_if prv_if();
+  core_interrupt_if interrupt_if();
+
 
   rv32v_top_level      DUT (.*);
+  priv_wrapper PRIV (.prv_pipe_if(prv_if), .*);
+
 
 
   initial begin : CLK_INIT
@@ -110,14 +115,13 @@ module tb_rv32v_top_level ();
 
   task init();
     reset();
-    prv_if.lmul    = LMUL2;
-    prv_if.sew     = SEW32;
-    prv_if.vtype     = {2'b0, LMUL1, SEW32};
-    prv_if.vl      = 8;
-    prv_if.vstart  = 0;
-    prv_if.vlenb   = 16;
-    prv_if.vill    = 0;
-    xs1 = 32'hABCD;
+    // prv_if.lmul    = LMUL2;
+    // prv_if.sew     = SEW32;
+    // prv_if.vtype     = {2'b0, LMUL1, SEW32};
+    // prv_if.vl      = 8;
+    // prv_if.vstart  = 0;
+    // prv_if.vlenb   = 16;
+    xs1 = 32'd16;
     xs2 = 32'hDCBA;
     scalar_hazard_if_ret = 0;
     returnex = 0;
@@ -132,36 +136,136 @@ module tb_rv32v_top_level ();
 
   endtask
 
+  task display_reg;
+    input logic [4:0] rs;
 
-  bit [9:0] bitarray;
+    automatic int i;
+    automatic int sum;
+    sum = 0;
+    for (i = VLENB - 1; i >= 0; i--) begin
+      sum += DUT.reg_file.registers[rs][i];
+    end
+    if (sum != 0) begin
+      $write("register[%d]: ", rs);
+      for (i = VLENB - 1; i >= 0; i--) begin
+        if (i % 4 == 3 && (i != 15)) begin
+          $write(" --- [%x]", DUT.reg_file.registers[rs][i]);
+        end else begin
+          $write(" [%x]", DUT.reg_file.registers[rs][i]);
+        end
+      end
+      $write("\n");
+    end
+    // $display("[%x] [%x] [%x] [%x] [%x] [%x] [%x] [%x]", DUT.registers[vs1][7], DUT.registers[vs1][6],DUT.registers[vs1][5],DUT.registers[vs1][4],DUT.registers[vs1][3],DUT.registers[vs1][2],DUT.registers[vs1][1],DUT.registers[vs1][0]);
+    // #2;
+  endtask
+
+  task display_reg_file;
+    automatic int i;
+    $write("\n");
+    for (i = 0; i < 32; i++) begin
+      display_reg(i);
+    end
+    $write("\n");
+
+  endtask
+
+  task display_vars;
+    $display("vtype: %h", DUT.execute_memory_if.next_vtype_csr);
+    $display("avl:   %h", DUT.execute_memory_if.next_avl_csr);
+  endtask
+
+  // always @(posedge CLK) begin
+  //   display_vars();
+  // end
+
+  // always @(posedge DUT.fetch_decode_if.instr) begin
+  //   $display("instr: %h", DUT.fetch_decode_if.instr);
+  // end
+
+  task build_instr_mem;
+    input string filename;
+    output int instr_mem [];
+    int line_buffer [];
+    int i;
+    int hexfile;
+    bit [31:0] line;
+
+    hexfile = $fopen("rv32v/tb/config.hex", "r");   
+    instr_mem = new [0];
+    line_buffer = new [2];
+    i = 0;
+    while (!$feof(hexfile)) begin 
+      $fscanf(hexfile,"%h\n",line); 
+      // line_buffer[0] = line;
+      // $fscanf(hexfile,"%h\n",line); 
+      // line_buffer[1] = line;
+      
+      instr_mem = new [i + 1] (instr_mem);
+      instr_mem[i] = line;
+      i = i + 1;
+      #(1);
+    end
+    $fclose(hexfile);
+    // return instr_mem;
+
+  endtask
+
+  task execute_test;
+  endtask
+
   int hexfile;
   bit [31:0] line;
   vopi_ins ins_i;
   vopm_ins ins_m;
+  vop_cfg ins_c;
+  int instr_mem [];
+  int i;
 
   initial begin : MAIN
     fetch_decode_if.instr = 0;
     init();
+    build_instr_mem("", instr_mem);
     load_reg_data(0, '1);
-    load_reg_data(1, {32'h4, 32'd3, 32'd2, 32'd1});
-    load_reg_data(2, {32'd3, 32'd2, 32'd1, 32'd0});
+    load_reg_data(1, {32'h3, 32'd2, 32'd1, 32'd0});
+    load_reg_data(2, {32'h7, 32'd6, 32'd5, 32'd4});
+    load_reg_data(3, {32'd3, 32'd2, 32'd1, 32'd0});
+    load_reg_data(4, {32'd7, 32'd6, 32'd5, 32'd4});
     @(posedge CLK);
-    hexfile = $fopen("rv32v/tb/add.hex", "r");   
-    
-    while (!$feof(hexfile)) begin 
-        $fscanf(hexfile,"%h\n",line); 
+    // hexfile = $fopen("rv32v/tb/config.hex", "r");   
+    // i = 1;
+    // while (!$feof(hexfile)) begin 
+    //     $fscanf(hexfile,"%h\n",line); 
+    //     $write("Line Value: %x\n", line);
+    //     ins_i = vopi_ins'(line);
+    //     ins_m = vopm_ins'(line);
+    //     fetch_decode_if.instr = line;
+    //     // fetch_decode_if.tb_instr_num = line;
+    //     @(posedge CLK); //wait some time as needed.
+    //     // display_vars();
+    //     while(hu_if.busy_dec) @(posedge CLK); //wait some time as needed.
+    //     // while (hu_if.busy_dec | hu_if.busy_ex)  begin @(posedge CLK) end; 
+    // end 
+    // //once reading and writing is finished, close the file.
+    // $fclose(hexfile);
+    // #(10)
+    for (i = 0; i < instr_mem.size(); i++) begin
+        line = instr_mem[i];
         $write("Line Value: %x\n", line);
         ins_i = vopi_ins'(line);
         ins_m = vopm_ins'(line);
+        // ins_c = vop_cfg'(line);
         fetch_decode_if.instr = line;
-        @(posedge CLK); //wait some time as needed.
-        while(hu_if.busy_dec) @(posedge CLK); //wait some time as needed.
-        // while (hu_if.busy_dec | hu_if.busy_ex)  begin @(posedge CLK) end; 
-    end 
-    //once reading and writing is finished, close the file.
-    $fclose(hexfile);
-    #(10)
-    
+        fetch_decode_if.tb_line_num = i; 
+
+        do begin
+          if (hu_if.csr_update) i = DUT.execute_memory_if.tb_line_num;
+          @(posedge CLK); //wait some time as needed.
+        end while(hu_if.busy_dec);
+      
+    end
+    #(PERIOD * 3);
+    display_reg_file();
     // op = VWMACCSU;
     // if (op inside {VWMACCSU, VWMACCUS}) $write("\n\n\n\nSUCCESS\n\n\n\n");
 

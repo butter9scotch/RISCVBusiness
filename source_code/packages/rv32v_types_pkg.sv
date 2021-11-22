@@ -453,6 +453,17 @@ package rv32v_types_pkg;
     VD_SRC_COMPRESS
   } vd_offset_src_t;
 
+  typedef struct packed {
+    logic [3:0] reserved;
+    logic vma;
+    logic vta;
+    sew_t sew;
+    vlmul_t lmul;
+    logic [4:0] rs1;
+    vfunct3_t funct3;
+    logic [4:0] rd;
+    rv32i_types_pkg::opcode_t op;
+  } vop_cfg;
 
 
 endpackage

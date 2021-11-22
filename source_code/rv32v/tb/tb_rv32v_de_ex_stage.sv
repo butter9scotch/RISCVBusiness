@@ -76,7 +76,7 @@ module tb_rv32v_de_ex_stage ();
   rv32v_execute_memory_if execute_memory_if();
   // rv32v_reg_file_if rfv_if();
 
-  logic rd_WEN;
+  logic rd_wen;
   logic [4:0] rd_sel;
   logic [31:0] rd_data;
 

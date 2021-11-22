@@ -148,6 +148,14 @@ module priv_1_11_csr_rfile (
   assign instretfull_next = (prv_intern_if.instr_retired == 1'b1) ?
                             instretfull + 1 : instretfull;
 
+  //Vector CSRs
+  vstart_t vstart, vstart_next;
+  vl_t     vl, vl_next;
+  vtype_t  vtype, vtype_next;
+  vlenb_t  vlenb, vlenb_next;
+
+
+
  
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
@@ -167,6 +175,10 @@ module priv_1_11_csr_rfile (
       timefull    <= '0;
       cyclefull   <= '0;
       instretfull <= '0;
+      vstart      <= '0;
+      vl          <= '0;
+      vtype       <= '0;
+      vlenb       <= 'd16;
     end else begin      
       mstatus.mie  <= mstatus_next.mie;
       mstatus.mpie <= mstatus_next.mpie;
@@ -185,6 +197,11 @@ module priv_1_11_csr_rfile (
       timefull    <= timefull_next;
       cyclefull   <= cyclefull_next;
       instretfull <= instretfull_next;
+      vstart      <= vstart_next;
+      vl          <= vl_next;
+      vtype       <= vtype_next;
+      vlenb       <= vlenb_next;
+      
     end
   end
 
@@ -241,6 +258,23 @@ module priv_1_11_csr_rfile (
       end
   end
 
+  //Vector
+  assign vstart_next = (prv_intern_if.addr == VSTART_ADDR) && swap? vstart_t'(rup_data) : vstart; 
+  // assign vl_next     = (prv_intern_if.addr == VTYPE_ADDR)  ? vl_t'({24'd0, rup_data[15:8]}) : ((prv_intern_if.addr == VL_ADDR) ? vl_t'(rup_data) : vl); 
+  assign vtype_next  = (prv_intern_if.addr == VTYPE_ADDR) && swap ? vtype_t'({24'd0, rup_data[7:0]}) : vtype; 
+  assign vlenb_next  = (prv_intern_if.addr == VLENB_ADDR) && swap ? vlenb_t'(rup_data) : vlenb; 
+
+  always_comb begin
+    if ((prv_intern_if.addr == VTYPE_ADDR) && swap) begin
+      vl_next = vl_t'({24'd0, rup_data[15:8]});
+    end else if ((prv_intern_if.addr == VL_ADDR) && swap) begin
+      vl_next = vl_t'(rup_data);
+    end else begin
+      vl_next = vl;
+    end
+  end
+
+
   always_comb begin // register to send to pipeline based on the address
     valid_csr_addr = 1'b1;
     casez (prv_intern_if.addr)
@@ -268,6 +302,14 @@ module priv_1_11_csr_rfile (
       MCYCLEH_ADDR     : prv_intern_if.rdata = cycleh;
       MINSTRETH_ADDR   : prv_intern_if.rdata = instreth;
 
+      VSTART_ADDR      : prv_intern_if.rdata = vstart;     
+      // VXSAT_ADDR       : prv_intern_if.rdata = vxsat;     
+      // VXRM_ADDR        : prv_intern_if.rdata = vxrm;   
+      // VCSR_ADDR        : prv_intern_if.rdata = vcsr;   
+      VL_ADDR          : prv_intern_if.rdata = vl; 
+      VTYPE_ADDR       : prv_intern_if.rdata = vtype;     
+      VLENB_ADDR       : prv_intern_if.rdata = vlenb;     
+
       default : begin
         valid_csr_addr = 1'b0;
         prv_intern_if.rdata = '0;
@@ -281,6 +323,12 @@ module priv_1_11_csr_rfile (
   assign prv_intern_if.mstatus   = mstatus;
   assign prv_intern_if.mcause    = mcause;
   assign prv_intern_if.mip       = mip;
+
+  assign prv_intern_if.vstart    = vstart;
+  assign prv_intern_if.vl        = vl;
+  assign prv_intern_if.vlenb     = vlenb;
+  assign prv_intern_if.vtype     = vtype;
+
 
 
 endmodule
