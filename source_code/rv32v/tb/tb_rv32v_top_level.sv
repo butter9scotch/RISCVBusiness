@@ -262,8 +262,8 @@ module tb_rv32v_top_level ();
           if (hu_if.csr_update) i = DUT.execute_memory_if.tb_line_num;
           @(posedge CLK); //wait some time as needed.
         end while(hu_if.busy_dec);
-      
     end
+      
     #(PERIOD * 3);
     display_reg_file();
     // op = VWMACCSU;
