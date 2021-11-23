@@ -81,6 +81,7 @@ module tb_rv32v_top_level ();
 
   rv32v_top_level      DUT (.*);
   priv_wrapper PRIV (.prv_pipe_if(prv_if), .*);
+  logic update;
 
 
 
@@ -171,16 +172,25 @@ module tb_rv32v_top_level ();
   endtask
 
   task display_vars;
-    $display("vtype: %h", DUT.execute_memory_if.next_vtype_csr);
-    $display("avl:   %h", DUT.execute_memory_if.next_avl_csr);
+  //   $display("fetch stage: %h", DUT.fetch_decode_if.decode.instr);
+  //   // $display("avl:   %h", DUT.execute_memory_if.next_avl_csr);
   endtask
 
-  // always @(posedge CLK) begin
-  //   display_vars();
+
+  always @(posedge PRIV.priv_block_i.csr_rfile_i.vtype.lmul) begin
+    display_vars();
+  end
+
+  // always @(posedge DUT.fetch_decode_if.decode.instr) begin
+  //   $display("instr: %h", DUT.fetch_decode_if.instr);
   // end
 
-  // always @(posedge DUT.fetch_decode_if.instr) begin
-  //   $display("instr: %h", DUT.fetch_decode_if.instr);
+  // always @(negedge hu_if.decode.busy_dec) begin
+  //   $display("DECODE CHANGED");
+  // end
+
+  // always @(update) begin
+  //   if (~hu_if.busy_dec) $info("busy_de = %d", hu_if.busy_dec);
   // end
 
   task build_instr_mem;
@@ -220,9 +230,10 @@ module tb_rv32v_top_level ();
   vopm_ins ins_m;
   vop_cfg ins_c;
   int instr_mem [];
-  int i;
+  int i, old_i;
 
   initial begin : MAIN
+    update = 0;
     fetch_decode_if.instr = 0;
     init();
     build_instr_mem("", instr_mem);
@@ -251,16 +262,24 @@ module tb_rv32v_top_level ();
     // #(10)
     for (i = 0; i < instr_mem.size(); i++) begin
         line = instr_mem[i];
-        $write("Line Value: %x\n", line);
+        // $write("Line Value: %x\n", line);
         ins_i = vopi_ins'(line);
         ins_m = vopm_ins'(line);
-        // ins_c = vop_cfg'(line);
+        ins_c = vop_cfg'(line);
+        $info("line[%1d] is %1d", i, instr_mem[i]);
         fetch_decode_if.instr = line;
         fetch_decode_if.tb_line_num = i; 
 
         do begin
-          if (hu_if.csr_update) i = DUT.execute_memory_if.tb_line_num;
+          if (hu_if.csr_update) begin
+            old_i = i;
+            i = DUT.memory_writeback_if.tb_line_num;
+            $info("%d --> %d", old_i, i);
+          end
+          update = ~update;
           @(posedge CLK); //wait some time as needed.
+            //  fetch_decode_if.instr = 0;
+
         end while(hu_if.busy_dec);
     end
       
