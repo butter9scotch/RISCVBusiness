@@ -13,6 +13,9 @@ DE_EX_FILES =  rv32v/*.sv
 TOP_LEVEL_FILE = rv32v_de_ex_stage
 TB_NAME = tb_$(TOP_LEVEL_FILE)
 TB = rv32v/tb/$(TB_NAME).sv 
+
+PRIV_FILES := privs/priv_wrapper.sv  privs/priv_1_11/priv_1_11_block.sv  privs/priv_1_11/priv_1_11_control.sv  privs/priv_1_11/priv_1_11_csr_rfile.sv  privs/priv_1_11/priv_1_11_pipeline_control.sv
+
 # SRC_FILE  = -input restore-$(TOP_LEVEL_FILE).tcl 
 # SRC_FILE  = restore-$(TOP_LEVEL_FILE).tcl 
 # TEST = +define+TESTBENCH
@@ -95,4 +98,4 @@ deex:
 	$(IRUN)  $(PKG_FILES) $(HEADER_FILES) $(DE_EX_FILES) rv32v/tb/tb_rv32v_de_ex_stage.sv $(SRC_FILE) $(TEST)
 	
 top_level: 
-	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(SRC_FILE) $(TEST)
+	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)

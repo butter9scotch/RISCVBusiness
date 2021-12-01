@@ -154,35 +154,35 @@ module rv32v_reg_file (
     rfv_if.vs1_data[0] = 32'hDED0DED0;
     rfv_if.vs1_data[1] = 32'hDED1DED1;
 
-    if (rfv_if.vs1_offset <= rfv_if.vl) begin
-      if (rfv_if.sew == SEW32) begin
-        rfv_if.vs1_data[0] = registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0] +:4];
-        rfv_if.vs1_data[1] = registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1] +:4];
-      end else if (rfv_if.sew == SEW16) begin
-        rfv_if.vs1_data[0] = {16'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0] +:2]};
-        rfv_if.vs1_data[1] = {16'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1] +:2]};
-      end else if (rfv_if.sew == SEW8) begin
-        rfv_if.vs1_data[0] = {24'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0]]};
-        rfv_if.vs1_data[1] = {24'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1]]};
-      end
+    // if (rfv_if.vs1_offset <= rfv_if.vl) begin
+    if (rfv_if.sew == SEW32) begin
+      rfv_if.vs1_data[0] = registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0] +:4];
+      rfv_if.vs1_data[1] = registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1] +:4];
+    end else if (rfv_if.sew == SEW16) begin
+      rfv_if.vs1_data[0] = {16'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0] +:2]};
+      rfv_if.vs1_data[1] = {16'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1] +:2]};
+    end else if (rfv_if.sew == SEW8) begin
+      rfv_if.vs1_data[0] = {24'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[0]]};
+      rfv_if.vs1_data[1] = {24'h0, registers[rfv_if.vs1 + vs1_inner_offset][vs1_outer_offset[1]]};
     end
+    // end
   end
 
   always_comb begin : VS2_DATA
     rfv_if.vs2_data[0] = 32'hDED0DED0;
     rfv_if.vs2_data[1] = 32'hDED1DED1;
-    if (rfv_if.vs2_offset <= rfv_if.vl) begin
-      if (rfv_if.vs2_sew == SEW32) begin
-        rfv_if.vs2_data[0] = registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0] +:4];
-        rfv_if.vs2_data[1] = registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1] +:4];
-      end else if (rfv_if.vs2_sew == SEW16) begin
-        rfv_if.vs2_data[0] = {16'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0] +:2]};
-        rfv_if.vs2_data[1] = {16'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1] +:2]};
-      end else if (rfv_if.vs2_sew == SEW8) begin
-        rfv_if.vs2_data[0] = {24'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0]]};
-        rfv_if.vs2_data[1] = {24'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1]]};
-      end
+  // if (rfv_if.vs2_offset <= rfv_if.vl) begin
+    if (rfv_if.vs2_sew == SEW32) begin
+      rfv_if.vs2_data[0] = registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0] +:4];
+      rfv_if.vs2_data[1] = registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1] +:4];
+    end else if (rfv_if.vs2_sew == SEW16) begin
+      rfv_if.vs2_data[0] = {16'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0] +:2]};
+      rfv_if.vs2_data[1] = {16'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1] +:2]};
+    end else if (rfv_if.vs2_sew == SEW8) begin
+      rfv_if.vs2_data[0] = {24'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[0]]};
+      rfv_if.vs2_data[1] = {24'h0, registers[rfv_if.vs2 + vs2_inner_offset][vs2_outer_offset[1]]};
     end
+  // end
   end
 
    always_comb begin : VS3_DATA

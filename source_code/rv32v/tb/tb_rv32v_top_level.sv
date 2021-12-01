@@ -122,8 +122,8 @@ module tb_rv32v_top_level ();
     // prv_if.vl      = 8;
     // prv_if.vstart  = 0;
     // prv_if.vlenb   = 16;
-    xs1 = 32'd16;
-    xs2 = 32'hDCBA;
+    xs1 = 32'd8;
+    xs2 = {24'd0, 2'd0, SEW32, LMUL2};
     scalar_hazard_if_ret = 0;
     returnex = 0;
     fetch_decode_if.fault_insn = 0;
@@ -195,26 +195,26 @@ module tb_rv32v_top_level ();
 
   task build_instr_mem;
     input string filename;
-    output int instr_mem [];
+    output int instr_mem [][];
     int line_buffer [];
     int i;
     int hexfile;
     bit [31:0] line;
 
-    hexfile = $fopen("rv32v/tb/config.hex", "r");   
+    hexfile = $fopen("rv32v/tb/vsetivli.hex", "r");   
     instr_mem = new [0];
     line_buffer = new [2];
     i = 0;
     while (!$feof(hexfile)) begin 
       $fscanf(hexfile,"%h\n",line); 
-      // line_buffer[0] = line;
-      // $fscanf(hexfile,"%h\n",line); 
-      // line_buffer[1] = line;
+      line_buffer[0] = line;
+      $fscanf(hexfile,"%h\n",line); 
+      line_buffer[1] = line;
       
       instr_mem = new [i + 1] (instr_mem);
-      instr_mem[i] = line;
+      instr_mem[i] = line_buffer;
       i = i + 1;
-      #(1);
+      // #(1);
     end
     $fclose(hexfile);
     // return instr_mem;
@@ -224,12 +224,28 @@ module tb_rv32v_top_level ();
   task execute_test;
   endtask
 
+  task stall_fetch;
+    input int idx;
+    do begin
+      if (hu_if.csr_update) begin idx = DUT.memory_writeback_if.tb_line_num; end
+      @(posedge CLK); //wait some time as needed.
+    end while(hu_if.busy_dec);
+  endtask
+
+  task check_outputs;
+    input logic [255:0] expected;
+    // $info("%d, %d, %d, %d", DUT.reg_file.registers[6][15:12], DUT.reg_file.registers[6][11:8], DUT.reg_file.registers[6][7:4], DUT.reg_file.registers[6][3:0]);
+    // $display("%d, %d, %d, %d", DUT.reg_file.registers[1][15:12], DUT.reg_file.registers[1][11:8], DUT.reg_file.registers[1][7:4], DUT.reg_file.registers[1][3:0]);
+    if (expected == {DUT.reg_file.registers[6], DUT.reg_file.registers[5]}) $display("correct");
+      // $display("");
+  endtask
+
   int hexfile;
   bit [31:0] line;
   vopi_ins ins_i;
   vopm_ins ins_m;
   vop_cfg ins_c;
-  int instr_mem [];
+  int instr_mem [][];
   int i, old_i;
 
   initial begin : MAIN
@@ -238,10 +254,10 @@ module tb_rv32v_top_level ();
     init();
     build_instr_mem("", instr_mem);
     load_reg_data(0, '1);
-    load_reg_data(1, {32'h3, 32'd2, 32'd1, 32'd0});
-    load_reg_data(2, {32'h7, 32'd6, 32'd5, 32'd4});
-    load_reg_data(3, {32'd3, 32'd2, 32'd1, 32'd0});
-    load_reg_data(4, {32'd7, 32'd6, 32'd5, 32'd4});
+    load_reg_data(1, {32'h3333_3333, 32'd2222_2222, 32'd1111_1111, 32'd0});
+    load_reg_data(2, {32'h7777_7777, 32'd6666_6666, 32'd5555_5555, 32'd4444_4444});
+    load_reg_data(3, {32'd3333_3333, 32'd2222_2222, 32'd1111_1111, 32'd0});
+    load_reg_data(4, {32'h7777_7777, 32'd6666_6666, 32'd5555_5555, 32'd4444_4444});
     @(posedge CLK);
     // hexfile = $fopen("rv32v/tb/config.hex", "r");   
     // i = 1;
@@ -261,26 +277,34 @@ module tb_rv32v_top_level ();
     // $fclose(hexfile);
     // #(10)
     for (i = 0; i < instr_mem.size(); i++) begin
-        line = instr_mem[i];
-        // $write("Line Value: %x\n", line);
-        ins_i = vopi_ins'(line);
-        ins_m = vopm_ins'(line);
-        ins_c = vop_cfg'(line);
-        $info("line[%1d] is %1d", i, instr_mem[i]);
-        fetch_decode_if.instr = line;
-        fetch_decode_if.tb_line_num = i; 
+      // line = instr_mem[i];
+      // $write("Line Value: %x\n", line);
+      ins_i = vopi_ins'(line);
+      ins_m = vopm_ins'(line);
+      ins_c = vop_cfg'(line);
 
+      xs1 = 32'd32;
+      #(PERIOD * 3);
+
+      // $info("line[%1d] is %1d", i, instr_mem[i]);
+      // fetch_decode_if.instr = line;
+      // fetch_decode_if.tb_line_num = i; 
+
+      for (int j = 0; j < instr_mem[i].size(); j++) begin  
+        // instr_mem[i][j]
+        fetch_decode_if.instr = instr_mem[i][j];
+        fetch_decode_if.tb_line_num = j;
         do begin
-          if (hu_if.csr_update) begin
-            old_i = i;
-            i = DUT.memory_writeback_if.tb_line_num;
-            $info("%d --> %d", old_i, i);
-          end
-          update = ~update;
+          if (hu_if.csr_update) begin j = DUT.memory_writeback_if.tb_line_num; end
           @(posedge CLK); //wait some time as needed.
-            //  fetch_decode_if.instr = 0;
-
-        end while(hu_if.busy_dec);
+        end while(hu_if.busy_dec);      
+        @(posedge CLK);
+        // while(hu_if.busy_dec) @(posedge CLK);
+      end
+      repeat (1) @(posedge CLK);
+      #(1);
+      check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
+      init();
     end
       
     #(PERIOD * 3);
