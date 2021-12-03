@@ -57,6 +57,7 @@ module rv32v_decode_stage (
   vlmul_t lmul;
   logic [31:0] vstart;
   vop_cfg vop_c;
+  logic wen0, wen1;
 
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
@@ -146,6 +147,16 @@ module rv32v_decode_stage (
     end else begin
       mask0 = ~vcu_if.vm ? rfv_if.vs3_mask[0] : 1;
       mask1 = ~vcu_if.vm ? rfv_if.vs3_mask[1] : 1;
+    end
+  end
+
+  always_comb begin
+    if (vcu_if.reduction_ena) begin
+      wen0 = ele_if.next_done;
+      wen1 = 0;
+    end else begin
+      wen0 = vcu_if.wen & (mask0);
+      wen1 = vcu_if.wen & (mask1);
     end
   end
 
@@ -318,6 +329,12 @@ module rv32v_decode_stage (
       decode_execute_if.next_avl_csr <= '0;
       decode_execute_if.vd_widen            <= 'h0;
 
+      decode_execute_if.vs2_offset0          <= 'h0;
+      decode_execute_if.vs2_offset1          <= 'h0;
+
+      decode_execute_if.is_masked <= 'h0;
+
+
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
 
@@ -391,6 +408,11 @@ module rv32v_decode_stage (
       decode_execute_if.rd_data            <= 'h0;
       decode_execute_if.vd_widen            <= 'h0;
 
+      decode_execute_if.vs2_offset0          <= 'h0;
+      decode_execute_if.vs2_offset1          <= 'h0;
+
+      decode_execute_if.is_masked <= 'h0;
+
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
 
@@ -407,8 +429,8 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
       decode_execute_if.load          <= vcu_if.is_load;
       decode_execute_if.store         <= vcu_if.is_store;
-      decode_execute_if.wen[0]          <= vcu_if.wen & (mask0);
-      decode_execute_if.wen[1]          <= vcu_if.wen & (mask1);
+      decode_execute_if.wen[0]        <= wen0;
+      decode_execute_if.wen[1]        <= wen1;
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
@@ -462,12 +484,17 @@ module rv32v_decode_stage (
       decode_execute_if.vstart            <= vstart;
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data            <= 'h0;
-      decode_execute_if.vd_widen            <= vcu_if.vd_widen;
+      decode_execute_if.rd_data           <= 'h0;
+      decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
-      
+      decode_execute_if.vs2_offset0       <= vs2_offset0;
+      decode_execute_if.vs2_offset1       <= vs2_offset1;
+
+      decode_execute_if.is_masked         <= vcu_if.vm;
+
+
       //TESTBENCH ONLY
-      decode_execute_if.tb_line_num        <= fetch_decode_if.tb_line_num;
+      decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;
 
     end
   end

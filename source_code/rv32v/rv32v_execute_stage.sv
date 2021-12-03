@@ -171,33 +171,36 @@ module rv32v_execute_stage (
 
   //missing signals
 
-  assign vif0.adc_sbc         = decode_execute_if.adc_sbc;
-  assign vif0.carry_borrow_ena= decode_execute_if.carry_borrow_ena;
-  assign vif0.carryin_ena     = decode_execute_if.carryin_ena;
-  assign vif0.comp_type       = decode_execute_if.comp_type;
-  assign vif0.rev             = decode_execute_if.rev;
-  assign vif0.sew             = decode_execute_if.sew;
-  assign vif0.ext_type        = decode_execute_if.ext_type;
-  assign vif0.minmax_type        = decode_execute_if.minmax_type;
+  assign vif0.adc_sbc          = decode_execute_if.adc_sbc;
+  assign vif0.carry_borrow_ena = decode_execute_if.carry_borrow_ena;
+  assign vif0.carryin_ena      = decode_execute_if.carryin_ena;
+  assign vif0.comp_type        = decode_execute_if.comp_type;
+  assign vif0.rev              = decode_execute_if.rev;
+  assign vif0.sew              = decode_execute_if.sew;
+  assign vif0.ext_type         = decode_execute_if.ext_type;
+  assign vif0.minmax_type      = decode_execute_if.minmax_type;
 
   assign vif0.woutu = decode_execute_if.woutu;
   assign vif0.win = decode_execute_if.win;
   assign vif0.zext_w = decode_execute_if.zext_w;
-  assign vif0.index = decode_execute_if.woffset0;
+  assign vif0.is_masked = decode_execute_if.is_masked;
+
+  // assign vif0.index = decode_execute_if.woffset0;
 
   
-  assign vif1.adc_sbc         = decode_execute_if.adc_sbc;
-  assign vif1.carry_borrow_ena= decode_execute_if.carry_borrow_ena;
-  assign vif1.carryin_ena     = decode_execute_if.carryin_ena;
-  assign vif1.comp_type       = decode_execute_if.comp_type;
-  assign vif1.rev             = decode_execute_if.rev;
-  assign vif1.sew             = decode_execute_if.sew;
-  assign vif1.ext_type        = decode_execute_if.ext_type;
-  assign vif1.minmax_type        = decode_execute_if.minmax_type;
+  assign vif1.adc_sbc          = decode_execute_if.adc_sbc;
+  assign vif1.carry_borrow_ena = decode_execute_if.carry_borrow_ena;
+  assign vif1.carryin_ena      = decode_execute_if.carryin_ena;
+  assign vif1.comp_type        = decode_execute_if.comp_type;
+  assign vif1.rev              = decode_execute_if.rev;
+  assign vif1.sew              = decode_execute_if.sew;
+  assign vif1.ext_type         = decode_execute_if.ext_type;
+  assign vif1.minmax_type      = decode_execute_if.minmax_type;
 
-  assign vif1.woutu = decode_execute_if.woutu;
-  assign vif1.win = decode_execute_if.win;
+  assign vif1.woutu  = decode_execute_if.woutu;
+  assign vif1.win    = decode_execute_if.win;
   assign vif1.zext_w = decode_execute_if.zext_w;
+  assign vif1.is_masked = decode_execute_if.is_masked;
 
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
@@ -208,10 +211,15 @@ module rv32v_execute_stage (
   // assign vif1.win
   // assign vif1.woutu
   // assign vif1.zext_w
-  assign vif0.vd_widen = decode_execute_if.vd_widen;
+  assign vif0.vd_widen  = decode_execute_if.vd_widen;
   assign vif0.is_signed = decode_execute_if.is_signed;
-  assign vif1.vd_widen = decode_execute_if.vd_widen;
+  assign vif0.index     = decode_execute_if.vs2_offset0;
+  // assign vif0.mask      = decode_execute_if.mask0;
+
+  assign vif1.vd_widen  = decode_execute_if.vd_widen;
   assign vif1.is_signed = decode_execute_if.is_signed;
+  assign vif1.index     = decode_execute_if.vs2_offset1;
+  // assign vif1.mask      = decode_execute_if.mask1;
 
 
 
@@ -291,7 +299,7 @@ module rv32v_execute_stage (
       execute_memory_if.store       <= decode_execute_if.store;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
-      execute_memory_if.aluresult0  <= aluresult0;
+      execute_memory_if.aluresult0  <= decode_execute_if.reduction_ena ? aluresult0 + aluresult1 : aluresult0;
       execute_memory_if.aluresult1  <= aluresult1;
       execute_memory_if.wen[0]        <= decode_execute_if.wen[0];
       execute_memory_if.wen[1]        <= decode_execute_if.wen[1];

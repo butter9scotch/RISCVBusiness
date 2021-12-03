@@ -31,7 +31,7 @@ module element_counter (
   import rv32i_types_pkg::*;
   import rv32v_types_pkg::*;
   offset_t next_offset;
-  logic next_done;
+  // logic next_done;
 
   
 
@@ -44,16 +44,16 @@ module element_counter (
       ele_if.done <= 0;
     end else if (ele_if.ex_return & ele_if.de_en) begin
       ele_if.offset <= ele_if.vstart;
-      ele_if.done <= next_done;
+      ele_if.done <= ele_if.next_done;
     end else if (ele_if.offset + NUM_LANES >= ele_if.vl) begin
       ele_if.offset <= 0;
-      ele_if.done <= next_done;
+      ele_if.done <= ele_if.next_done;
     end else if (ele_if.done) begin
       ele_if.offset <= 0;
-      ele_if.done <= next_done;
+      ele_if.done <= ele_if.next_done;
     end else if (ele_if.de_en  & ~ele_if.stall)begin
       ele_if.offset <= ele_if.offset + NUM_LANES; //in this case 2
-      ele_if.done <= next_done;
+      ele_if.done <= ele_if.next_done;
     end
   end
 
@@ -71,9 +71,9 @@ module element_counter (
   end
 
   always_comb begin
-    next_done = 0;
+    ele_if.next_done = 0;
     if (ele_if.offset + 3 >= ele_if.vl) begin
-      next_done = 1; 
+      ele_if.next_done = 1; 
     end
   end
 

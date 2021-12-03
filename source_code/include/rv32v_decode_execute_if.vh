@@ -49,6 +49,10 @@ interface rv32v_decode_execute_if;
   logic in_inv;
   logic[31:0] mask_32bit_lane0, mask_32bit_lane1;
   logic vd_widen;
+  offset_t vs2_offset0, vs2_offset1;
+  logic  is_masked; //vm = 1 in the instruction
+
+
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
   
@@ -68,8 +72,9 @@ interface rv32v_decode_execute_if;
     next_vtype_csr, next_avl_csr,
     rd_data,
     vd_widen,
+    vs2_offset0, vs2_offset1,
+    is_masked, 
     tb_line_num //TESTBENCH ONLY
-
   );
 
   modport execute (
@@ -84,8 +89,9 @@ interface rv32v_decode_execute_if;
     next_vtype_csr, next_avl_csr,
     rd_data, 
     vd_widen,
+    vs2_offset0, vs2_offset1,
+    is_masked, 
     tb_line_num //TESTBENCH ONLY
-
   );
 
 endinterface

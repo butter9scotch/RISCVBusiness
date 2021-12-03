@@ -135,8 +135,11 @@ module arithmetic_unit (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       accumulator <= '0;
-    end else if (aif.reduction_ena) begin
-      accumulator <= result[31:0];
+    end else if (aif.reduction_ena ) begin
+      if ((~aif.is_masked & aif.mask) || aif.is_masked) begin
+        accumulator <= result[31:0];
+      end
+      // if (aif.is_masked & aif.mask)
     end
   end
 
