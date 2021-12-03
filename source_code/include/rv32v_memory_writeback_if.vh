@@ -5,7 +5,9 @@ interface rv32v_memory_writeback_if;
   import rv32v_types_pkg::*;
 
   logic [31:0] wdat0, wdat1;
-  logic wen0, wen1;
+  // logic wen0, wen1;
+  logic [1:0] wen;
+
   offset_t woffset0, woffset1;
   vlmul_t mul;
 
@@ -22,14 +24,14 @@ interface rv32v_memory_writeback_if;
 
 
   modport memory (
-    output wdat0, wdat1, wen0, wen1, woffset0, woffset1, sew, mul, vd, vl, eew, single_bit_write, 
+    output wdat0, wdat1, wen, woffset0, woffset1, sew, mul, vd, vl, eew, single_bit_write, 
     rd_sel, rd_data, rd_wen,
     tb_line_num //TESTBENCH ONLY
 
   );
 
   modport writeback (
-    input wdat0, wdat1, wen0, wen1, woffset0, woffset1, vd, vl, eew, single_bit_write, 
+    input wdat0, wdat1, wen, woffset0, woffset1, vd, vl, eew, single_bit_write, 
     rd_sel, rd_data, rd_wen,
     tb_line_num //TESTBENCH ONLY
 

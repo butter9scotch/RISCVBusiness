@@ -201,6 +201,7 @@ module rv32v_execute_stage (
 
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
+  assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
   
   // assign vif1.index
   // assign vif1.start
@@ -233,8 +234,8 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
       execute_memory_if.aluresult1  <= '0;
-      execute_memory_if.wen0        <= '0;
-      execute_memory_if.wen1        <= '0;
+      execute_memory_if.wen[0]        <= '0;
+      execute_memory_if.wen[1]        <= '0;
       execute_memory_if.woffset0    <= '0;
       execute_memory_if.woffset1    <= '0;
       execute_memory_if.config_type <= '0;
@@ -260,8 +261,8 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
       execute_memory_if.aluresult1  <= '0;
-      execute_memory_if.wen0        <= '0;
-      execute_memory_if.wen1        <= '0;
+      execute_memory_if.wen[0]        <= '0;
+      execute_memory_if.wen[1]        <= '0;
       execute_memory_if.woffset0    <= '0;
       execute_memory_if.woffset1    <= '0;
       execute_memory_if.config_type <= '0;
@@ -289,8 +290,8 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= aluresult0;
       execute_memory_if.aluresult1  <= aluresult1;
-      execute_memory_if.wen0        <= decode_execute_if.wen0;
-      execute_memory_if.wen1        <= decode_execute_if.wen1;
+      execute_memory_if.wen[0]        <= decode_execute_if.wen[0];
+      execute_memory_if.wen[1]        <= decode_execute_if.wen[1];
       execute_memory_if.woffset0    <= decode_execute_if.woffset0;
       execute_memory_if.woffset1    <= decode_execute_if.woffset1;
       execute_memory_if.config_type <= decode_execute_if.config_type;

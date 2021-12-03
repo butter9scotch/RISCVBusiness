@@ -31,7 +31,7 @@ module multiply_unit (
 
   import rv32v_types_pkg::*;
 
-  logic start_reg, done;
+  logic start_reg, done, next_done;
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32, selected_product, final_product, product_mod, product_3in;
   logic [15:0] product_high_sew16, product_low_sew16;
@@ -45,9 +45,11 @@ module multiply_unit (
     .is_signed(mif.is_signed_mul),
     .start(mif.start_mu),
     .finished(done),
+    .next_finished(next_done),
     .product(product)
   );
 
+  assign mif.next_busy_mu = (start_reg | mif.start_mu) & !next_done;
   assign mif.busy_mu      = (start_reg | mif.start_mu) & !done; 
   assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
   assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);

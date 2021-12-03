@@ -42,8 +42,17 @@ module element_counter (
     end else if (ele_if.clear) begin
       ele_if.offset <= 0;
       ele_if.done <= 0;
-    end else begin
-      ele_if.offset <= next_offset;
+    end else if (ele_if.ex_return & ele_if.de_en) begin
+      ele_if.offset <= ele_if.vstart;
+      ele_if.done <= next_done;
+    end else if (ele_if.offset + NUM_LANES >= ele_if.vl) begin
+      ele_if.offset <= 0;
+      ele_if.done <= next_done;
+    end else if (ele_if.done) begin
+      ele_if.offset <= 0;
+      ele_if.done <= next_done;
+    end else if (ele_if.de_en  & ~ele_if.stall)begin
+      ele_if.offset <= ele_if.offset + NUM_LANES; //in this case 2
       ele_if.done <= next_done;
     end
   end
@@ -63,7 +72,7 @@ module element_counter (
 
   always_comb begin
     next_done = 0;
-    if (next_offset + 3 >= ele_if.vl) begin
+    if (ele_if.offset + 3 >= ele_if.vl) begin
       next_done = 1; 
     end
   end

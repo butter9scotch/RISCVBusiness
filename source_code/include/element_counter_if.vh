@@ -33,13 +33,13 @@ interface element_counter_if();
   logic  done;
 
   word_t vstart, vl;
-  logic stall, ex_return, de_en, clear;
+  logic stall, ex_return, de_en, clear, busy_ex;
   sew_t sew;
 
   modport decode (
     input   vstart, vl,
             stall, ex_return, de_en,
-            sew, clear,
+            sew, clear, busy_ex,
     output  offset,  done
   );
 

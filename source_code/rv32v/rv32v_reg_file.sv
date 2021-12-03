@@ -123,25 +123,29 @@ module rv32v_reg_file (
 
   always_comb begin : WRITE_DATA
     next_registers = registers;
-    if (rfv_if.wen & rfv_if.eew == SEW32) begin //4 byte
-      if (rfv_if.vd_offset < rfv_if.vl) begin
+    if (rfv_if.eew == SEW32) begin //4 byte
+      if (rfv_if.wen[0] & rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:4]       = rfv_if.w_data[0][31:0];
       end
-      if ((rfv_if.vd_offset + 1) < rfv_if.vl) begin
+      if (rfv_if.wen[1] & (rfv_if.vd_offset + 1) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:4] = rfv_if.w_data[1][31:0];
       end
-    end else if (rfv_if.wen & rfv_if.eew == SEW16) begin //2 byte
-      if (rfv_if.vd_offset < rfv_if.vl) begin
+
+      
+    end else if (rfv_if.eew == SEW16) begin //2 byte
+      if (rfv_if.wen[0] & rfv_if.vd_offset < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0] +:2]       = rfv_if.w_data[0][15:0]; 
       end
-      if ((rfv_if.vd_offset + 1) < rfv_if.vl) begin
+      if (rfv_if.wen[1] & (rfv_if.vd_offset + 1) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1] +:2] = rfv_if.w_data[1][15:0];
       end
-    end else if (rfv_if.wen & rfv_if.eew == SEW8) begin //1 byte
-      if ((rfv_if.vd_offset) < rfv_if.vl) begin
+
+      
+    end else if (rfv_if.eew == SEW8) begin //1 byte
+      if (rfv_if.wen[0] & (rfv_if.vd_offset) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[0]]      = rfv_if.w_data[0][7:0]; 
       end
-      if ((rfv_if.vd_offset + 1) < rfv_if.vl) begin
+      if (rfv_if.wen[1] & (rfv_if.vd_offset + 1) < rfv_if.vl) begin
         next_registers[rfv_if.vd + vd_inner_offset][vd_outer_offset[1]]  = rfv_if.w_data[1][7:0]; 
       end
     end
@@ -203,18 +207,18 @@ module rv32v_reg_file (
   end
 
   always_comb begin : VS1_MASK 
-    rfv_if.vs1_mask[0] = registers[rfv_if.vs1][rfv_if.vs1_offset >> 3][rfv_if.vs1_offset [2:0]];
-    rfv_if.vs1_mask[1] = registers[rfv_if.vs1][vs1_offset_lane1  >> 3][vs1_offset_lane1  [2:0]];
+    rfv_if.vs1_mask[0] = registers[0][rfv_if.vs1_offset >> 3][rfv_if.vs1_offset [2:0]];
+    rfv_if.vs1_mask[1] = registers[0][vs1_offset_lane1  >> 3][vs1_offset_lane1  [2:0]];
   end
   
   always_comb begin : VS2_MASK 
-    rfv_if.vs2_mask[0] = registers[rfv_if.vs2][rfv_if.vs2_offset >> 8][rfv_if.vs2_offset [2:0]];
-    rfv_if.vs2_mask[1] = registers[rfv_if.vs2][vs2_offset_lane1  >> 8][vs2_offset_lane1  [2:0]];
+    rfv_if.vs2_mask[0] = registers[0][rfv_if.vs2_offset >> 8][rfv_if.vs2_offset [2:0]];
+    rfv_if.vs2_mask[1] = registers[0][vs2_offset_lane1  >> 8][vs2_offset_lane1  [2:0]];
   end
 
   always_comb begin : VS3_MASK 
-    rfv_if.vs3_mask[0] = registers[rfv_if.vs3][rfv_if.vs3_offset >> 8][rfv_if.vs3_offset [2:0]];
-    rfv_if.vs3_mask[1] = registers[rfv_if.vs3][vs3_offset_lane1  >> 8][vs3_offset_lane1  [2:0]];
+    rfv_if.vs3_mask[0] = registers[0][rfv_if.vs3_offset >> 8][rfv_if.vs3_offset [2:0]];
+    rfv_if.vs3_mask[1] = registers[0][vs3_offset_lane1  >> 8][vs3_offset_lane1  [2:0]];
   end
 
 

@@ -69,12 +69,13 @@ module rv32v_decode_stage (
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = prv_if.vl;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
-  assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
+  assign ele_if.stall     = hu_if.busy_ex | vcu_if.stall;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
   assign ele_if.sew       = sew; 
   assign ele_if.clear     = hu_if.flush_dec;
+  assign ele_if.busy_ex = hu_if.busy_ex;
   // assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
@@ -127,14 +128,14 @@ module rv32v_decode_stage (
   //TODO: iron out exact masking logic based on offsets
   always_comb begin : MASK_BITS
     if (vcu_if.vs1_offset_src == NORMAL) begin
-      mask0 = rfv_if.vs1_mask[0];
-      mask1 = rfv_if.vs1_mask[1];
+      mask0 = ~vcu_if.vm ? rfv_if.vs1_mask[0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs1_mask[1] : 1;
     end else if (vcu_if.vs2_offset_src == NORMAL) begin
-      mask0 = rfv_if.vs2_mask[0];
-      mask1 = rfv_if.vs2_mask[1];
+      mask0 = ~vcu_if.vm ? rfv_if.vs2_mask[0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs2_mask[1] : 1;
     end else begin
-      mask0 = rfv_if.vs3_mask[0];
-      mask1 = rfv_if.vs3_mask[1];
+      mask0 = ~vcu_if.vm ? rfv_if.vs3_mask[0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs3_mask[1] : 1;
     end
   end
 
@@ -257,8 +258,8 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx            <= 'h0;
       decode_execute_if.load              <= 'h0;
       decode_execute_if.store             <= 'h0;
-      decode_execute_if.wen0              <= 'h0;
-      decode_execute_if.wen1              <= 'h0;
+      decode_execute_if.wen[0]              <= 'h0;
+      decode_execute_if.wen[1]              <= 'h0;
       decode_execute_if.stride_val        <= 'h0;
       decode_execute_if.xs1               <= 'h0;
       decode_execute_if.xs2               <= 'h0;
@@ -329,8 +330,8 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx            <= 'h0;
       decode_execute_if.load              <= 'h0;
       decode_execute_if.store             <= 'h0;
-      decode_execute_if.wen0              <= 'h0;
-      decode_execute_if.wen1              <= 'h0;
+      decode_execute_if.wen[0]              <= 'h0;
+      decode_execute_if.wen[1]              <= 'h0;
       decode_execute_if.stride_val        <= 'h0;
       decode_execute_if.xs1               <= 'h0;
       decode_execute_if.xs2               <= 'h0;
@@ -402,8 +403,8 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
       decode_execute_if.load          <= vcu_if.is_load;
       decode_execute_if.store         <= vcu_if.is_store;
-      decode_execute_if.wen0          <= vcu_if.wen;
-      decode_execute_if.wen1          <= vcu_if.wen;
+      decode_execute_if.wen[0]          <= vcu_if.wen & (mask0);
+      decode_execute_if.wen[1]          <= vcu_if.wen & (mask1);
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 

@@ -37,7 +37,7 @@ interface rv32v_reg_file_if();
   sew_t eew;                  //8, 16, 32 bit elements
   logic [VL_WIDTH:0]  vl;  //number of elements in the vector
   offset_t vs1_offset, vs2_offset, vs3_offset, vd_offset;
-  logic wen;
+  logic [1:0] wen;
   logic [1:0] vs1_mask, vs2_mask, vs3_mask;
   // logic vs2_;
   logic single_bit_write;

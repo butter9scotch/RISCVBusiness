@@ -31,6 +31,7 @@ module rv32v_multiplier
 	input logic [1:0] is_signed,
 	input logic start,
 	output logic finished,
+	output logic next_finished,
 	output logic [63:0] product
 );
 	//logic start_reg;
@@ -230,10 +231,12 @@ module rv32v_multiplier
                         ff1 <= '0;
                         ff2 <= '0;
 			finished <= '0;
+			next_finished <= '0;
 		end
 		else begin
                         ff1 <= start;
                         ff2 <= ff1;
+			next_finished <= ff1;
 			finished <= ff2;
 		end
 	end

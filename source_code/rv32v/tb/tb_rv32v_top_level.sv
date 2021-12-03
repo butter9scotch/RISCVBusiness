@@ -29,19 +29,75 @@
 `include "prv_pipeline_if.vh"
 // `include "config_test.svh"
 
+import rv32v_types_pkg::*;
+import rv32i_types_pkg::*;
 
+
+class RegRegI;
+  logic [31:0] instr;
+
+  function new(vopi_t funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
+    this.instr = {funct6, vm, vs2, vs1, funct3, vd, VECTOR};
+  endfunction;
+
+endclass
+
+class RegRegM;
+  logic [31:0] instr;
+
+  function new(vopm_t funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
+    this.instr = {funct6, vm, vs2, vs1, funct3, vd, VECTOR};
+  endfunction;
+
+endclass
+
+class Vsetvl;
+  logic [31:0] instr;
+
+  function new(logic [4:0] rs2, logic [4:0] rs1, logic [4:0] rd);
+    this.instr = {7'b1000000,  rs2, rs1, 3'b111, rd, VECTOR};
+  endfunction;
+
+endclass
+
+class Vsetvli;
+  logic [31:0] instr;
+  bit vma;
+  bit vta;
+
+  function new(sew_t sew, vlmul_t lmul, logic [4:0] rs1, logic [4:0] rd);
+    vma = 0;
+    vta = 0;
+    this.instr = {1'b0, 5'd0, vma, vta, sew, lmul, rs1, 3'b111, rd, VECTOR};
+  endfunction;
+
+endclass
+
+class Vsetivli;
+  logic [31:0] instr;
+  bit vma;
+  bit vta;
+
+  function new(sew_t sew, vlmul_t lmul, logic [4:0] imm5, logic [4:0] rd);
+    vma = 0;
+    vta = 0;
+    this.instr = {2'b11, 4'd0, vma, vta, sew, lmul, imm5, 3'b111, rd, VECTOR};
+  endfunction;
+
+endclass
 
 // `include "instruction.svh"
 
 module tb_rv32v_top_level ();
-  import rv32v_types_pkg::*;
-  import rv32i_types_pkg::*;
 
   parameter PERIOD = 20;
+  parameter MASKED = 0;
+  parameter UNMASKED = 1;
 
   logic CLK, nRST;
   vopm_t op;
 
+  typedef int instr_list_t[];
 
   typedef struct packed {
     vopi_t funct6;
@@ -69,6 +125,8 @@ module tb_rv32v_top_level ();
   logic rd_wen;
   logic [4:0] rd_sel;
   logic [31:0] rd_data;
+  instr_list_t instr_mem [];
+  int testnum;
 
 
 
@@ -116,24 +174,20 @@ module tb_rv32v_top_level ();
 
   task init();
     reset();
-    // prv_if.lmul    = LMUL2;
-    // prv_if.sew     = SEW32;
-    // prv_if.vtype     = {2'b0, LMUL1, SEW32};
-    // prv_if.vl      = 8;
-    // prv_if.vstart  = 0;
-    // prv_if.vlenb   = 16;
     xs1 = 32'd8;
-    xs2 = {24'd0, 2'd0, SEW32, LMUL2};
+    xs2 = {24'd0, 2'd0, SEW32, LMUL2}; //if vsetvl
     scalar_hazard_if_ret = 0;
     returnex = 0;
     fetch_decode_if.fault_insn = 0;
     fetch_decode_if.mal_insn = 0;
     cif.dhit = 0;
     cif.dmemload = 0;
-    
 
-  // rv32v_fetch2_decode_if.decode  fetch_decode_if,
-  // cache_model_if.memory cif
+    load_reg_data(0, {{30{4'hF}}, 8'd0});
+    load_reg_data(1, {32'h3, 32'd10, 32'd1, 32'd8});
+    load_reg_data(2, {32'h7, 32'd6, 32'd5, 32'd4});
+    load_reg_data(3, {32'd3, 32'd10, 32'd1, 32'd1});
+    load_reg_data(4, {32'h7, 32'd6, 32'd5, 32'd4});
 
   endtask
 
@@ -171,29 +225,7 @@ module tb_rv32v_top_level ();
 
   endtask
 
-  task display_vars;
-  //   $display("fetch stage: %h", DUT.fetch_decode_if.decode.instr);
-  //   // $display("avl:   %h", DUT.execute_memory_if.next_avl_csr);
-  endtask
-
-
-  always @(posedge PRIV.priv_block_i.csr_rfile_i.vtype.lmul) begin
-    display_vars();
-  end
-
-  // always @(posedge DUT.fetch_decode_if.decode.instr) begin
-  //   $display("instr: %h", DUT.fetch_decode_if.instr);
-  // end
-
-  // always @(negedge hu_if.decode.busy_dec) begin
-  //   $display("DECODE CHANGED");
-  // end
-
-  // always @(update) begin
-  //   if (~hu_if.busy_dec) $info("busy_de = %d", hu_if.busy_dec);
-  // end
-
-  task build_instr_mem;
+  task read_init_file;
     input string filename;
     output int instr_mem [][];
     int line_buffer [];
@@ -201,7 +233,7 @@ module tb_rv32v_top_level ();
     int hexfile;
     bit [31:0] line;
 
-    hexfile = $fopen("rv32v/tb/vsetivli.hex", "r");   
+    hexfile = $fopen(filename, "r");   
     instr_mem = new [0];
     line_buffer = new [2];
     i = 0;
@@ -221,16 +253,68 @@ module tb_rv32v_top_level ();
 
   endtask
 
-  task execute_test;
+
+  //Add test case (list of instructions in hex) to the list of test cases
+  task add_test_case;
+
+    input int line_buffer [];
+
+    instr_mem = new [instr_mem.size() + 1] (instr_mem);
+    instr_mem[instr_mem.size() - 1] = line_buffer;
+
   endtask
 
-  task stall_fetch;
-    input int idx;
-    do begin
-      if (hu_if.csr_update) begin idx = DUT.memory_writeback_if.tb_line_num; end
-      @(posedge CLK); //wait some time as needed.
-    end while(hu_if.busy_dec);
-  endtask
+  function instr_list_t new_config_vopi_case(
+     sew_t sew,
+     vlmul_t lmul,
+     vopi_t funct6,
+     vfunct3_t funct3,
+     bit vm
+  );
+    // output int [] out;
+
+    Vsetvli v;
+    RegRegI r;
+
+    logic [4:0] vs1, vs2, vd;
+
+    if (lmul == LMUL1) begin vs1 = 1; vs2 = 2; vd = 3; end
+    else if (lmul == LMUL2) begin vs1 = 1; vs2 = 3; vd = 5;  end 
+    else if (lmul == LMUL4) begin vs1 = 1; vs2 = 5; vd = 9;  end 
+    else if (lmul == LMUL8) begin vs1 = 1; vs2 = 9; vd = 15; end 
+
+    v = new(sew, lmul, 1, 2);
+    r = new(funct6, vm, vs2, vs1, funct3, vd);
+
+    return {v.instr, r.instr};
+  
+  endfunction
+
+  function instr_list_t new_config_vopm_case(
+     sew_t sew,
+     vlmul_t lmul,
+     vopm_t funct6,
+     vfunct3_t funct3,
+     bit vm
+  );
+    // output int [] out;
+
+    Vsetvli v;
+    RegRegM r;
+
+    logic [4:0] vs1, vs2, vd;
+
+    if (lmul == LMUL1) begin vs1 = 1; vs2 = 2; vd = 3; end
+    else if (lmul == LMUL2) begin vs1 = 1; vs2 = 3; vd = 5;  end 
+    else if (lmul == LMUL4) begin vs1 = 1; vs2 = 5; vd = 9;  end 
+    else if (lmul == LMUL8) begin vs1 = 1; vs2 = 9; vd = 15; end 
+
+    v = new(sew, lmul, 1, 2);
+    r = new(funct6, vm, vs2, vs1, funct3, vd);
+
+    return {v.instr, r.instr};
+  
+  endfunction
 
   task check_outputs;
     input logic [255:0] expected;
@@ -245,53 +329,41 @@ module tb_rv32v_top_level ();
   vopi_ins ins_i;
   vopm_ins ins_m;
   vop_cfg ins_c;
-  int instr_mem [][];
   int i, old_i;
+  RegRegI rri;
+
+
 
   initial begin : MAIN
+    testnum = 0;
     update = 0;
     fetch_decode_if.instr = 0;
-    init();
-    build_instr_mem("", instr_mem);
-    load_reg_data(0, '1);
-    load_reg_data(1, {32'h3333_3333, 32'd2222_2222, 32'd1111_1111, 32'd0});
-    load_reg_data(2, {32'h7777_7777, 32'd6666_6666, 32'd5555_5555, 32'd4444_4444});
-    load_reg_data(3, {32'd3333_3333, 32'd2222_2222, 32'd1111_1111, 32'd0});
-    load_reg_data(4, {32'h7777_7777, 32'd6666_6666, 32'd5555_5555, 32'd4444_4444});
-    @(posedge CLK);
-    // hexfile = $fopen("rv32v/tb/config.hex", "r");   
-    // i = 1;
-    // while (!$feof(hexfile)) begin 
-    //     $fscanf(hexfile,"%h\n",line); 
-    //     $write("Line Value: %x\n", line);
-    //     ins_i = vopi_ins'(line);
-    //     ins_m = vopm_ins'(line);
-    //     fetch_decode_if.instr = line;
-    //     // fetch_decode_if.tb_instr_num = line;
-    //     @(posedge CLK); //wait some time as needed.
-    //     // display_vars();
-    //     while(hu_if.busy_dec) @(posedge CLK); //wait some time as needed.
-    //     // while (hu_if.busy_dec | hu_if.busy_ex)  begin @(posedge CLK) end; 
-    // end 
-    // //once reading and writing is finished, close the file.
-    // $fclose(hexfile);
-    // #(10)
-    for (i = 0; i < instr_mem.size(); i++) begin
-      // line = instr_mem[i];
-      // $write("Line Value: %x\n", line);
-      ins_i = vopi_ins'(line);
-      ins_m = vopm_ins'(line);
-      ins_c = vop_cfg'(line);
+    // read_init_file("rv32v/tb/init.hex", instr_mem);
+    // add_test_case({32'h0910F2D7, 32'h0011C2D7});
+    // rri = new(VADD, 1'b0, 1, 3, OPIVV, 5);
+    // $display("%x", rri.instr);
+    add_test_case(new_config_vopi_case(SEW32, LMUL2, VADD, OPIVV, UNMASKED));
+    add_test_case(new_config_vopm_case(SEW32, LMUL2, VMUL, OPMVV, UNMASKED));
+    add_test_case(new_config_vopm_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
 
-      xs1 = 32'd32;
+
+    init();
+
+    @(posedge CLK);
+ 
+    for (i = 0; i < instr_mem.size(); i++) begin
+
+      //these are just for visualization
+
       #(PERIOD * 3);
 
-      // $info("line[%1d] is %1d", i, instr_mem[i]);
-      // fetch_decode_if.instr = line;
-      // fetch_decode_if.tb_line_num = i; 
 
-      for (int j = 0; j < instr_mem[i].size(); j++) begin  
+      //Do one test case
+      for (int j = 0; j < instr_mem[i].size(); j++) begin 
         // instr_mem[i][j]
+        ins_i = vopi_ins'(instr_mem[i][j]);
+        ins_m = vopm_ins'(instr_mem[i][j]);
+        ins_c = vop_cfg'(instr_mem[i][j]);
         fetch_decode_if.instr = instr_mem[i][j];
         fetch_decode_if.tb_line_num = j;
         do begin
@@ -304,7 +376,10 @@ module tb_rv32v_top_level ();
       repeat (1) @(posedge CLK);
       #(1);
       check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
+      repeat (10) @(posedge CLK);
+        // testcase 
       init();
+      testnum++;
     end
       
     #(PERIOD * 3);

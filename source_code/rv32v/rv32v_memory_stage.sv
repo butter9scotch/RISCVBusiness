@@ -83,8 +83,8 @@ module rv32v_memory_stage (
     if (nRST == 0) begin
       memory_writeback_if.wdat0     <= '0;
       memory_writeback_if.wdat1     <= '0;
-      memory_writeback_if.wen0      <= '0;
-      memory_writeback_if.wen1      <= '0;
+      memory_writeback_if.wen[0]      <= '0;
+      memory_writeback_if.wen[1]      <= '0;
       memory_writeback_if.woffset0  <= '0;
       memory_writeback_if.woffset1  <= '0;
       memory_writeback_if.rd_wen    <= '0;
@@ -97,8 +97,8 @@ module rv32v_memory_stage (
     end else if (hu_if.flush_mem) begin
       memory_writeback_if.wdat0     <= '0;
       memory_writeback_if.wdat1     <= '0;
-      memory_writeback_if.wen0      <= '0;
-      memory_writeback_if.wen1      <= '0;
+      memory_writeback_if.wen[0]      <= '0;
+      memory_writeback_if.wen[1]      <= '0;
       memory_writeback_if.woffset0  <= '0;
       memory_writeback_if.woffset1  <= '0;
       memory_writeback_if.rd_wen    <= '0;
@@ -111,8 +111,8 @@ module rv32v_memory_stage (
     end else if (!hu_if.stall_mem) begin
       memory_writeback_if.wdat0     <= wdat0;
       memory_writeback_if.wdat1     <= wdat1;
-      memory_writeback_if.wen0      <= execute_memory_if.wen0;
-      memory_writeback_if.wen1      <= execute_memory_if.wen1;
+      memory_writeback_if.wen[0]      <= execute_memory_if.wen[0];
+      memory_writeback_if.wen[1]      <= execute_memory_if.wen[1];
       memory_writeback_if.woffset0  <= execute_memory_if.woffset0;
       memory_writeback_if.woffset1  <= execute_memory_if.woffset1;
 

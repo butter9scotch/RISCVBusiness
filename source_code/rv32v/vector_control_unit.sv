@@ -285,6 +285,9 @@ module vector_control_unit
 
   //select mask unit
   assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
+                              vcu_if.reduction_ena ? RED : 
+                              vcu_if.mul_ena ? MUL : 
+                              vcu_if.div_ena ? DIV : 
                               vcu_if.mask_ena  ? MASK :
                               vcu_if.perm_ena  ? PEM :
                               vcu_if.is_load ? LOAD_UNIT : 
@@ -311,8 +314,8 @@ module vector_control_unit
 
   always_comb begin
     case(vcu_if.opcode)
-      LOAD_FP: vcu_if.wen   = 1'b1;
-      VECTOR:  vcu_if.wen = is_vopi || is_vopm;
+      LOAD_FP: vcu_if.wen   = 2'b11;
+      VECTOR:  vcu_if.wen = {is_vopi || is_vopm, is_vopi || is_vopm};
       STORE_FP: vcu_if.wen   = 1'b0;
       default:  vcu_if.wen   = 1'b0;
     endcase
