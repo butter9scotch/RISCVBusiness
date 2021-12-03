@@ -72,14 +72,14 @@ module vector_control_unit
   assign vcu_if.zimm_11 = vcu_if.instr[30:20];
   assign vcu_if.zimm_10 = vcu_if.instr[29:20];
 
-  assign vcu_if.vd_widen   = (vcu_if.opcode == LOAD_FP) && ((op_decoded == VWREDSUMU) || (op_decoded == VWREDSUM) || 
-                            (op_decoded == VWADDU) || (op_decoded == VWADD) || (op_decoded == VWSUBU) || 
-                            (op_decoded == VWSUB) || (op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || 
-                            (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W) || (op_decoded == VWMULU) || 
-                            (op_decoded == VWMULSU) || (op_decoded == VWMUL) || (op_decoded == VWMACCU) || 
-                            (op_decoded == VWMACC) || (op_decoded == VWMACCUS) || (op_decoded == VWMACCSU));
-  assign vcu_if.vs2_widen = (vcu_if.opcode == LOAD_FP) && ((op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || 
-                            (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W));
+  assign vcu_if.vd_widen   = (vcu_if.opcode == VECTOR) && ((op_decoded == OP_VWREDSUMU) || (op_decoded == OP_VWREDSUM) || 
+                            (op_decoded == OP_VWADDU) || (op_decoded == OP_VWADD) || (op_decoded == OP_VWSUBU) || 
+                            (op_decoded == OP_VWSUB) || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W) || 
+                            (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W) || (op_decoded == OP_VWMULU) || 
+                            (op_decoded == OP_VWMULSU) || (op_decoded == OP_VWMUL) || (op_decoded == OP_VWMACCU) || 
+                            (op_decoded == OP_VWMACC) || (op_decoded == OP_VWMACCUS) || (op_decoded == OP_VWMACCSU));
+  assign vcu_if.vs2_widen = (vcu_if.opcode == LOAD_FP) && ((op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W) || 
+                            (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W));
 
   //intermediary variables 
   assign vcu_if.is_load  = (vcu_if.opcode == STORE_FP) && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
@@ -384,10 +384,10 @@ module vector_control_unit
   //op in the execution stage is signed
   always_comb begin
     case(op_decoded)
-      VADD, VSUB, VRSUB, VMIN, VMAX, VMSEQ, VMSNE, VMSLT, VMSLE, VMSGT, VSADD, VSSUB, VSMUL, VSSRL, VNCLIP, 
-      VWREDSUM, VREDSUM, VREDMIN, VREDMAX, VAADD, VASUB, VSEXT_VF8, VSEXT_VF4, VSEXT_VF2, VDIV, VREM, VMUL, 
-      VMULHSU, VMULH, VMADD, VNMSUB, VMACC, VNMSAC, VWADD, VWSUB, VWADD_W, VWSUB_W, VWMULSU, VWMUL, VWMACC, 
-      VWMACCUS, VWMACCSU:  vcu_if.is_signed = 1;
+      OP_VADD, OP_VSUB, OP_VRSUB, OP_VMIN, OP_VMAX, OP_VMSEQ, OP_VMSNE, OP_VMSLT, OP_VMSLE, OP_VMSGT, OP_VSADD, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VNCLIP, 
+      OP_VWREDSUM, OP_VREDSUM, OP_VREDMIN, OP_VREDMAX, OP_VAADD, OP_VASUB, OP_VSEXT_VF8, OP_VSEXT_VF4, OP_VSEXT_VF2, OP_VDIV, OP_VREM, OP_VMUL, 
+      OP_VMULHSU, OP_VMULH, OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWADD, OP_VWSUB, OP_VWADD_W, OP_VWSUB_W, OP_VWMULSU, OP_VWMUL, OP_VWMACC, 
+      OP_VWMACCUS, OP_VWMACCSU:  vcu_if.is_signed = 1;
       default: vcu_if.is_signed = 0;
     endcase
   end
@@ -542,8 +542,8 @@ module vector_control_unit
     endcase
   end
 
-  assign vcu_if.win       = (op_decoded == VWADDU_W) || (op_decoded == VWADD_W) || (op_decoded == VWSUBU_W) || (op_decoded == VWSUB_W);
-  assign vcu_if.woutu     = (op_decoded == VWADDU) || (op_decoded == VWSUBU) || (op_decoded == VWADDU_W) || (op_decoded == VWSUBU_W) || (op_decoded == VWMULU) || (op_decoded == VWMULSU);
-  assign vcu_if.zext_w    = (op_decoded == VWADDU_W) || (op_decoded == VWSUBU_W);
-
+  assign vcu_if.win    = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W)  || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W);
+  assign vcu_if.woutu  = (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU)   || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWMULU) || (op_decoded == OP_VWMULSU);
+  assign vcu_if.zext_w = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU);
+  // assign vcu_if.vd_widen  = 
 endmodule

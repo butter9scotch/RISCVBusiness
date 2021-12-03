@@ -208,7 +208,10 @@ module rv32v_execute_stage (
   // assign vif1.win
   // assign vif1.woutu
   // assign vif1.zext_w
-
+  assign vif0.vd_widen = decode_execute_if.vd_widen;
+  assign vif0.is_signed = decode_execute_if.is_signed;
+  assign vif1.vd_widen = decode_execute_if.vd_widen;
+  assign vif1.is_signed = decode_execute_if.is_signed;
 
 
 

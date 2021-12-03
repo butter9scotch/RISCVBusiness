@@ -68,19 +68,52 @@ module arithmetic_unit (
   assign f8s         = aif.sew == SEW8  ? {{31{vsdata2[0]}}, vsdata2[0]}:
                        aif.sew == SEW16 ? {{30{vsdata2[1]}}, vsdata2[1:0]}:
                        {{28{vsdata2[3]}}, vsdata2[3:0]};
-  assign finaldata2  = aif.sew == SEW8 & aif.win & aif.zext_w ? {24'd0, vsdata2[7:0]} :
-                       aif.sew == SEW8 & aif.win & !aif.zext_w ? {{24{vsdata2[7]}}, vsdata2[7:0]} :
-                       aif.sew == SEW16 & aif.win & aif.zext_w ? {16'd0, vsdata2[15:0]} :
-                       aif.sew == SEW16 & aif.win & !aif.zext_w ? {{16{vsdata2[15]}}, vsdata2[15:0]} :
+
+
+                       //aif.zext_w = zero extend source
+                       //aif.vd_widen = widen vd
+                       //aif.win = widen vs2
+
+                       //SEW 8, widening NOT widening vs2
+  assign finaldata2  = aif.sew == SEW8 & aif.vd_widen & ~aif.win & aif.zext_w  ? {24'd0, vsdata2[7:0]} :
+                       aif.sew == SEW8 & aif.vd_widen & ~aif.win & !aif.zext_w ? {{24{vsdata2[7]}}, vsdata2[7:0]} :
+
+                       //SEW 8, widening AND widening vs2
+                       aif.sew == SEW8 & aif.vd_widen & aif.win & !aif.zext_w   ? {16'd0, vsdata2[15:0]} :
+                       aif.sew == SEW8 & aif.vd_widen & aif.win & !aif.zext_w   ? {{16{vsdata2[15]}}, vsdata2[15:0]} :
+                       
+                       //SEW 16, widening NOT widening vs2
+                       aif.sew == SEW16 & aif.vd_widen & ~aif.win & aif.zext_w  ? {16'd0, vsdata2[15:0]} :
+                       aif.sew == SEW16 & aif.vd_widen & ~aif.win & !aif.zext_w ? {{16{vsdata2[15]}}, vsdata2[15:0]} :
+
+                       //SEW 16, widening AND widening vs2 -- this is just normal
                        aif.rev ? vsdata1 :
                        vsdata2;
+  
   assign finalresult = aif.sew == SEW8 & aif.woutu ? {16'd0, result[15:0]} :
-                       result[31:0];       
+                       result[31:0]; 
 
-  assign vsdata1 = (aif.reduction_ena & (aif.index != 0) & (aif.index != 1)) ? accumulator : aif.vs1_data;
+
+  // if (aif.vd_widen & !aif.zext_w) begin
+  //   if (aif.sew == SEW8) begin
+  //     finalresult = {16'd0, {8{result[7]}}, result[7:0]};
+  //   end else if (aif.sew == SEW16) begin
+  //     finalresult = {{16{result[15]}}, result[15:0]};
+  //   end else begin
+  //     finalresult = result[31:0];
+  //   end
+  // end
+
+  assign vsdata1 = (aif.reduction_ena & (aif.index != 0) & (aif.index != 1)) ? accumulator : 
+                    (aif.sew == SEW8 & aif.vd_widen & !aif.zext_w )  ? {{24{aif.vs1_data[7]}}, aif.vs1_data[7:0]}  : 
+                    (aif.sew == SEW16 & aif.vd_widen & !aif.zext_w ) ? {{16{aif.vs1_data[15]}}, aif.vs1_data[15:0]} : 
+                    aif.vs1_data;
+  
+  assign sdata1  = aif.rev ? vsdata2 : vsdata1;
+
+
   assign vsdata2 = aif.vs2_data;
   assign vsdata3 = aif.vs3_data;
-  assign sdata1  = aif.rev ? vsdata2 : vsdata1;
   //assign sdata2  = aif.rev ? vsdata1 : vsdata2;
   assign carryin = aif.carryin_ena ? aif.mask : 0;
   assign as_res  = aif.adc_sbc ? result + carryin : result - carryin;

@@ -23,13 +23,15 @@ interface vector_lane_if;
   ma_t mask_type;
   logic is_signed, wdata_du, busy_du, exception_du;
   logic next_busy_mu, next_busy;
+  logic vd_widen;
+
   modport vector_lane (
-    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1,
+    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1, vd_widen,
     output  lane_result, busy, next_busy, exception
   );
 
   modport arithmetic_unit (
-    input   vs1_data, vs2_data, vs3_data, result_type, offset, aluop, start, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena, sew,  comp_type, minmax_type, ext_type, carryin_ena, win, zext_w, woutu, index,
+    input   vs1_data, vs2_data, vs3_data, result_type, offset, aluop, start, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena, sew,  comp_type, minmax_type, ext_type, carryin_ena, win, zext_w, woutu, index, vd_widen, is_signed,
     output  wdata_a, busy_a, exception_a
   );
 

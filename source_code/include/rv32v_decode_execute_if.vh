@@ -48,9 +48,10 @@ interface rv32v_decode_execute_if;
   logic out_inv;
   logic in_inv;
   logic[31:0] mask_32bit_lane0, mask_32bit_lane1;
+  logic vd_widen;
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
-
+  
 
 
 
@@ -66,6 +67,7 @@ interface rv32v_decode_execute_if;
     win, woutu, zext_w, vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1, vstart,
     next_vtype_csr, next_avl_csr,
     rd_data,
+    vd_widen,
     tb_line_num //TESTBENCH ONLY
 
   );
@@ -80,7 +82,8 @@ interface rv32v_decode_execute_if;
     adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type, win, woutu, zext_w,
     vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1, vstart,
     next_vtype_csr, next_avl_csr,
-    rd_data,
+    rd_data, 
+    vd_widen,
     tb_line_num //TESTBENCH ONLY
 
   );

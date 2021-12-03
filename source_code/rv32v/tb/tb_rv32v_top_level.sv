@@ -93,6 +93,7 @@ module tb_rv32v_top_level ();
   parameter PERIOD = 20;
   parameter MASKED = 0;
   parameter UNMASKED = 1;
+  parameter VL = 16;
 
   logic CLK, nRST;
   vopm_t op;
@@ -174,7 +175,7 @@ module tb_rv32v_top_level ();
 
   task init();
     reset();
-    xs1 = 32'd8;
+    // xs1 = VL;
     xs2 = {24'd0, 2'd0, SEW32, LMUL2}; //if vsetvl
     scalar_hazard_if_ret = 0;
     returnex = 0;
@@ -184,10 +185,14 @@ module tb_rv32v_top_level ();
     cif.dmemload = 0;
 
     load_reg_data(0, {{30{4'hF}}, 8'd0});
-    load_reg_data(1, {32'h3, 32'd10, 32'd1, 32'd8});
-    load_reg_data(2, {32'h7, 32'd6, 32'd5, 32'd4});
-    load_reg_data(3, {32'd3, 32'd10, 32'd1, 32'd1});
+    load_reg_data(1, {128'd0});
+    load_reg_data(2, {128'd0});
+    load_reg_data(3, {32'h3, 32'd2, 32'd1, 32'd0});
     load_reg_data(4, {32'h7, 32'd6, 32'd5, 32'd4});
+    // load_reg_data(1, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd1, 16'hFFF1});
+    // load_reg_data(2, {16'hF, 16'hE, 16'hD, 16'hC, 16'hB, 16'hA, 16'h9, 16'h8});
+    // load_reg_data(3, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd0, 16'hFFF2});
+    // load_reg_data(4, {16'hF, 16'hE, 16'hD, 16'hC, 16'hB, 16'hA, 16'h9, 16'h8});
 
   endtask
 
@@ -267,6 +272,7 @@ module tb_rv32v_top_level ();
   function instr_list_t new_config_vopi_case(
      sew_t sew,
      vlmul_t lmul,
+     int vl,
      vopi_t funct6,
      vfunct3_t funct3,
      bit vm
@@ -283,6 +289,8 @@ module tb_rv32v_top_level ();
     else if (lmul == LMUL4) begin vs1 = 1; vs2 = 5; vd = 9;  end 
     else if (lmul == LMUL8) begin vs1 = 1; vs2 = 9; vd = 15; end 
 
+    xs1 = vl;
+
     v = new(sew, lmul, 1, 2);
     r = new(funct6, vm, vs2, vs1, funct3, vd);
 
@@ -293,6 +301,7 @@ module tb_rv32v_top_level ();
   function instr_list_t new_config_vopm_case(
      sew_t sew,
      vlmul_t lmul,
+     int vl,
      vopm_t funct6,
      vfunct3_t funct3,
      bit vm
@@ -308,6 +317,8 @@ module tb_rv32v_top_level ();
     else if (lmul == LMUL2) begin vs1 = 1; vs2 = 3; vd = 5;  end 
     else if (lmul == LMUL4) begin vs1 = 1; vs2 = 5; vd = 9;  end 
     else if (lmul == LMUL8) begin vs1 = 1; vs2 = 9; vd = 15; end 
+
+    xs1 = vl;
 
     v = new(sew, lmul, 1, 2);
     r = new(funct6, vm, vs2, vs1, funct3, vd);
@@ -342,9 +353,12 @@ module tb_rv32v_top_level ();
     // add_test_case({32'h0910F2D7, 32'h0011C2D7});
     // rri = new(VADD, 1'b0, 1, 3, OPIVV, 5);
     // $display("%x", rri.instr);
-    add_test_case(new_config_vopi_case(SEW32, LMUL2, VADD, OPIVV, UNMASKED));
-    add_test_case(new_config_vopm_case(SEW32, LMUL2, VMUL, OPMVV, UNMASKED));
-    add_test_case(new_config_vopm_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
+    add_test_case(new_config_vopi_case(SEW32, LMUL2, 8,  VADD,   OPIVV, UNMASKED));
+    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
+    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWSUB_W,  OPMVV, UNMASKED));
+    add_test_case(new_config_vopm_case(SEW32, LMUL2, 8, VREDSUM, OPMVV, UNMASKED));
+    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWADD_W,  OPMVV, UNMASKED));
+    // add_test_case(new_config_vopm_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
 
 
     init();
@@ -376,7 +390,7 @@ module tb_rv32v_top_level ();
       repeat (1) @(posedge CLK);
       #(1);
       check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
-      repeat (10) @(posedge CLK);
+      // repeat (10) @(posedge CLK);
         // testcase 
       init();
       testnum++;

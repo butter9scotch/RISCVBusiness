@@ -125,6 +125,16 @@ module rv32v_decode_stage (
 
   end
 
+  always_comb begin
+    rfv_if.vs2_sew = sew;
+    if (vcu_if.win) begin
+      case(sew)
+        SEW32, SEW16: rfv_if.vs2_sew = SEW32;
+        SEW8: rfv_if.vs2_sew = SEW16;
+      endcase
+    end
+  end
+
   //TODO: iron out exact masking logic based on offsets
   always_comb begin : MASK_BITS
     if (vcu_if.vs1_offset_src == NORMAL) begin
@@ -234,15 +244,7 @@ module rv32v_decode_stage (
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
-  always_comb begin
-    rfv_if.vs2_sew = sew;
-    if (vcu_if.vs2_widen) begin
-      case(sew)
-        SEW32, SEW16: rfv_if.vs2_sew = SEW32;
-        SEW8: rfv_if.vs2_sew = SEW16;
-      endcase
-    end
-  end
+
                                               
                                               
   always_ff @(posedge CLK, negedge nRST) begin
@@ -314,6 +316,7 @@ module rv32v_decode_stage (
       decode_execute_if.vstart <= '0;
       decode_execute_if.next_vtype_csr <= '0;
       decode_execute_if.next_avl_csr <= '0;
+      decode_execute_if.vd_widen            <= 'h0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -386,6 +389,7 @@ module rv32v_decode_stage (
       decode_execute_if.next_vtype_csr <= '0;
       decode_execute_if.next_avl_csr <= '0;
       decode_execute_if.rd_data            <= 'h0;
+      decode_execute_if.vd_widen            <= 'h0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -459,6 +463,7 @@ module rv32v_decode_stage (
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
       decode_execute_if.rd_data            <= 'h0;
+      decode_execute_if.vd_widen            <= vcu_if.vd_widen;
 
       
       //TESTBENCH ONLY
