@@ -33,7 +33,7 @@ interface rv32v_decode_execute_if;
   logic adc_sbc;
   logic carry_borrow_ena;
   logic carryin_ena;
-  logic comp_type;
+  comp_t comp_type;
   logic rev;
   ext_t ext_type;
   // logic index;
@@ -51,7 +51,7 @@ interface rv32v_decode_execute_if;
   logic vd_widen;
   offset_t vs2_offset0, vs2_offset1;
   logic  is_masked; //vm = 1 in the instruction
-
+  logic vd_narrow;
 
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
@@ -73,7 +73,7 @@ interface rv32v_decode_execute_if;
     rd_data,
     vd_widen,
     vs2_offset0, vs2_offset1,
-    is_masked, 
+    is_masked, vd_narrow,
     tb_line_num //TESTBENCH ONLY
   );
 
@@ -90,7 +90,7 @@ interface rv32v_decode_execute_if;
     rd_data, 
     vd_widen,
     vs2_offset0, vs2_offset1,
-    is_masked, 
+    is_masked, vd_narrow,
     tb_line_num //TESTBENCH ONLY
   );
 

@@ -214,11 +214,16 @@ module rv32v_execute_stage (
   assign vif0.vd_widen  = decode_execute_if.vd_widen;
   assign vif0.is_signed = decode_execute_if.is_signed;
   assign vif0.index     = decode_execute_if.vs2_offset0;
+  assign vif0.vd_narrow = decode_execute_if.vd_narrow;
+
   // assign vif0.mask      = decode_execute_if.mask0;
 
   assign vif1.vd_widen  = decode_execute_if.vd_widen;
   assign vif1.is_signed = decode_execute_if.is_signed;
   assign vif1.index     = decode_execute_if.vs2_offset1;
+  assign vif1.vd_narrow = decode_execute_if.vd_narrow;
+   
+
   // assign vif1.mask      = decode_execute_if.mask1;
 
 

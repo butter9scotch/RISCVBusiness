@@ -116,11 +116,16 @@ module rv32v_decode_stage (
         SEW32, SEW16: next_decode_execute_if_eew = SEW32;
         SEW8: next_decode_execute_if_eew = SEW16;
       endcase
+    end else if (vcu_if.vd_narrow) begin
+      case(sew)
+        SEW32 : next_decode_execute_if_eew = SEW16;
+        SEW16, SEW8: next_decode_execute_if_eew = SEW8;
+      endcase
     end 
-    // if (vcu_if.vd_narrow) begin
-    //   case(prv_if.sew)
-    //     SEW32 : decode_execute_if.eew = SEW16;
-    //     SEW16, SEW8: decode_execute_if.eew = SEW8;
+    // else if (vcu_if.aluop == VALU_EXT) begin
+    //   case(vcu_if.ext_type)
+    //     F4Z, F4S: next_decode_execute_if_eew = (sew == SEW8) ? SEW32 : sew;
+    //     F2Z, F2S: next_decode_execute_if_eew = (sew == SEW8) ? SEW16 : (sew == SEW16) ? SEW32 : sew;
     //   endcase
     // end
 
@@ -132,6 +137,11 @@ module rv32v_decode_stage (
       case(sew)
         SEW32, SEW16: rfv_if.vs2_sew = SEW32;
         SEW8: rfv_if.vs2_sew = SEW16;
+      endcase
+    end else if (vcu_if.aluop == VALU_EXT) begin
+      case (vcu_if.ext_type)
+        F4Z, F4S: rfv_if.vs2_sew = (sew == SEW32) ? SEW8 : sew;
+        F2Z, F2S: rfv_if.vs2_sew = (sew == SEW32) ? SEW16 : (sew == SEW16) ? SEW8 : sew;
       endcase
     end
   end
@@ -271,8 +281,8 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx            <= 'h0;
       decode_execute_if.load              <= 'h0;
       decode_execute_if.store             <= 'h0;
-      decode_execute_if.wen[0]              <= 'h0;
-      decode_execute_if.wen[1]              <= 'h0;
+      decode_execute_if.wen[0]            <= 'h0;
+      decode_execute_if.wen[1]            <= 'h0;
       decode_execute_if.stride_val        <= 'h0;
       decode_execute_if.xs1               <= 'h0;
       decode_execute_if.xs2               <= 'h0;
@@ -333,6 +343,7 @@ module rv32v_decode_stage (
       decode_execute_if.vs2_offset1          <= 'h0;
 
       decode_execute_if.is_masked <= 'h0;
+      decode_execute_if.vd_narrow <= 0;
 
 
       //TESTBENCH ONLY
@@ -413,6 +424,9 @@ module rv32v_decode_stage (
 
       decode_execute_if.is_masked <= 'h0;
 
+      decode_execute_if.vd_narrow <= 0;
+
+
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
 
@@ -436,8 +450,8 @@ module rv32v_decode_stage (
       decode_execute_if.xs2           <= xs2; 
       decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
       decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; //vs1_data1 is not good?
-      decode_execute_if.vs2_lane0     <= rfv_if.vs2_data[0];
-      decode_execute_if.vs2_lane1     <= rfv_if.vs2_data[1];
+      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : rfv_if.vs2_data[0];
+      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[1][15:0]} : vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[1][7:0]} : rfv_if.vs2_data[1];
       decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
       decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
       decode_execute_if.imm           <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
@@ -491,6 +505,8 @@ module rv32v_decode_stage (
       decode_execute_if.vs2_offset1       <= vs2_offset1;
 
       decode_execute_if.is_masked         <= vcu_if.vm;
+
+      decode_execute_if.vd_narrow <= vcu_if.vd_narrow;
 
 
       //TESTBENCH ONLY

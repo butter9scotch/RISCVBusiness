@@ -45,7 +45,7 @@ interface rv32v_reg_file_if();
   modport rf (
     input w_data, vs1, vs2, vs3, vd, wen, 
           sew, eew, vs2_sew, vl, //for wb stage
-          vs1_offset, vs2_offset, vs3_offset, vd_offset,
+          vs1_offset, vs2_offset, vs3_offset, vd_offset, single_bit_write,
           
     output vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask
   );

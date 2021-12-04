@@ -50,25 +50,14 @@ module arithmetic_unit (
   assign shamnt      = aif.sew == SEW8 & !aif.win ? {4'd0, vsdata1[2:0]}:
                        (aif.sew == SEW8 & aif.win) || (aif.sew == SEW16 & !aif.win) ? {3'd0, vsdata1[3:0]}:
                        {2'b0, vsdata1[4:0]};
-  assign f2z         = aif.sew == SEW8  ? {28'd0, vsdata2[3:0]}:
-                       aif.sew == SEW16 ? {24'd0, vsdata2[7:0]}:
-                       {16'd0, vsdata2[15:0]};
-  assign f4z         = aif.sew == SEW8  ? {30'd0, vsdata2[1:0]}:
-                       aif.sew == SEW16 ? {28'd0, vsdata2[3:0]}:
-                       {24'd0, vsdata2[7:0]};
-  assign f8z         = aif.sew == SEW8  ? {31'd0, vsdata2[0]}:
-                       aif.sew == SEW16 ? {30'd0, vsdata2[1:0]}:
-                       {28'd0, vsdata2[3:0]};
-  assign f2s         = aif.sew == SEW8  ? {{28{vsdata2[3]}}, vsdata2[3:0]}:
-                       aif.sew == SEW16 ? {{24{vsdata2[7]}}, vsdata2[7:0]}:
-                       {{16{vsdata2[15]}}, vsdata2[15:0]};
-  assign f4s         = aif.sew == SEW8  ? {{30{vsdata2[1]}}, vsdata2[1:0]}:
-                       aif.sew == SEW16 ? {{28{vsdata2[3]}}, vsdata2[3:0]}:
-                       {{24{vsdata2[7]}}, vsdata2[7:0]};
-  assign f8s         = aif.sew == SEW8  ? {{31{vsdata2[0]}}, vsdata2[0]}:
-                       aif.sew == SEW16 ? {{30{vsdata2[1]}}, vsdata2[1:0]}:
-                       {{28{vsdata2[3]}}, vsdata2[3:0]};
+  assign f2z         = aif.sew == SEW32  ? {16'd0, vsdata2[15:0]}:
+                       aif.sew == SEW16 ? {24'd0, vsdata2[7:0]}: vsdata2;
+  assign f4z         = aif.sew == SEW32  ? {24'd0, vsdata2[7:0]}: vsdata2;
 
+  assign f2s         = aif.sew == SEW32  ? {{16{vsdata2[15]}}, vsdata2[15:0]}: 
+                       aif.sew == SEW16 ? {{24{vsdata2[7]}}, vsdata2[7:0]}: vsdata2;
+                      //  {{16{vsdata2[15]}}, vsdata2[15:0]};
+  assign f4s         = aif.sew == SEW32  ? {{24{vsdata2[7]}}, vsdata2[7:0]}: vsdata2;
 
                        //aif.zext_w = zero extend source
                        //aif.vd_widen = widen vd
@@ -120,9 +109,12 @@ module arithmetic_unit (
   assign op3res  = aif.carry_borrow_ena ? {31'd0, as_res[32]} : as_res[31:0];
   assign merge   = aif.mask ? vsdata1 : vsdata2;
   assign sltu    = vsdata2 < vsdata1;
-  assign slt     = vsdata1_msb & !vsdata2_msb ? 1:
-                   !vsdata1_msb & vsdata2_msb ? 0:
-                   sltu;
+  // assign slt     = vsdata1_msb & !vsdata2_msb ? 1:
+                  //  !vsdata1_msb & vsdata2_msb ? 0:
+                  //  sltu;
+  assign slt     =  aif.sew == SEW8 ? $signed(vsdata2[7:0]) < $signed(vsdata1[7:0]) : 
+                    aif.sew == SEW16 ? $signed(vsdata2[15:0]) < $signed(vsdata1[15:0]) : 
+                    $signed(vsdata2) < $signed(vsdata1);
   assign seq     = vsdata1 == vsdata2;
   assign sleu    = sltu || seq;
   assign sle     = slt || seq;
@@ -150,8 +142,8 @@ module arithmetic_unit (
       F2S   : ext = f2s;
       F4Z   : ext = f4z;
       F4S   : ext = f4s;
-      F8Z   : ext = f8z;
-      F8S   : ext = f8s;
+      // F8Z   : ext = f8z;
+      // F8S   : ext = f8s;
       default : ext = '0;
     endcase
   end             
@@ -165,8 +157,8 @@ module arithmetic_unit (
       VSLT   : comp = {31'd0, slt};
       VSLEU  : comp = sleu;
       VSLE   : comp = sle;
-      VSGTU  : comp = sleu == 0;
-      VSGT   : comp = sle == 0;
+      VSGTU  : comp = ~sleu;
+      VSGT   : comp = ~sle ;
       default : comp = '0;
     endcase
   end
@@ -182,12 +174,14 @@ module arithmetic_unit (
     endcase
   end
 
+  logic [31:0] s;
+  assign s = $signed(vsdata2);
   // Main ALU
   always_comb begin 
     case (aif.aluop)
       VALU_SLL   : result = vsdata2 << shamnt;
       VALU_SRL   : result = vsdata2 >> shamnt;
-      VALU_SRA   : result = $signed(vsdata2) >>> shamnt;
+      VALU_SRA   : result = aif.vd_narrow & (aif.sew == SEW32) ? {16'd0, $signed(vsdata2[15:0]) >>> shamnt} : aif.vd_narrow & (aif.sew == SEW16) ? {24'd0, $signed(vsdata2[7:0]) >>> shamnt} : $signed(vsdata2) >>> shamnt;
       VALU_ADD   : result = finaldata2 + vsdata1;
       VALU_SUB   : result = finaldata2 - sdata1;
       VALU_AND   : result = vsdata2 & vsdata1;
@@ -197,6 +191,7 @@ module arithmetic_unit (
       VALU_MERGE : result = merge;
       VALU_MOVE  : result = vsdata1;
       VALU_MM    : result = mm;
+      VALU_EXT   : result = ext;
       default   : result = '0;
     endcase
   end

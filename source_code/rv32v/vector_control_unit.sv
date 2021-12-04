@@ -182,12 +182,12 @@ module vector_control_unit
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VFIRST)  ? OP_VFIRST :
                                           (vfunct3 == OPMVX) && (vcu_if.vs2 == VMV_S_X) ? OP_VMV_S_X : BAD_OP;
                       end 
-        VXUNARY0:     begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF8) ?  OP_VZEXT_VF8 : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF8) ?  OP_VSEXT_VF8 : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF4) ?  OP_VZEXT_VF4 : 
+        VXUNARY0:     begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF4) ?  OP_VZEXT_VF4 : 
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF4) ?  OP_VSEXT_VF4 : 
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF2) ?  OP_VZEXT_VF2 : 
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF2) ?  OP_VSEXT_VF2 : BAD_OP;
+                                          // (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF8) ?  OP_VZEXT_VF8 : 
+                                          // (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF8) ?  OP_VSEXT_VF8 : 
                       end 
         VMUNARY0:     begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSBF) ? OP_VMSBF : 
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSOF) ? OP_VMSOF : 
@@ -435,6 +435,7 @@ module vector_control_unit
   end
 
   always_comb begin
+    vcu_if.comp_type = VSEQ;
     case(op_decoded)
       OP_VMSEQ:	 vcu_if.comp_type = VSEQ;
       OP_VMSNE:  vcu_if.comp_type = VSNE;
@@ -442,9 +443,8 @@ module vector_control_unit
       OP_VMSLT:  vcu_if.comp_type = VSLT;
       OP_VMSLEU: vcu_if.comp_type = VSLEU;
       OP_VMSLE:  vcu_if.comp_type = VSLE;
-      OP_VMSLE:  vcu_if.comp_type = VSGTU;
-      OP_VMSLE:  vcu_if.comp_type = VSGT;
-      default:   vcu_if.comp_type = VSEQ;
+      OP_VMSGTU:  vcu_if.comp_type = VSGTU;
+      OP_VMSGT:  vcu_if.comp_type = VSGT;
     endcase
   end
 
@@ -545,5 +545,6 @@ module vector_control_unit
   assign vcu_if.win    = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W)  || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W);
   assign vcu_if.woutu  = (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU)   || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWMULU) || (op_decoded == OP_VWMULSU);
   assign vcu_if.zext_w = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU);
+  assign vcu_if.vd_narrow = (op_decoded == OP_VNSRA) || (op_decoded == OP_VNSRL);
   // assign vcu_if.vd_widen  = 
 endmodule
