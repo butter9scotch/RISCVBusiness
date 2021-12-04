@@ -49,6 +49,7 @@ module divide_unit (
   assign dif.busy_du      = (start_reg | dif.start_div) & !done; 
   assign dif.wdata_du     = dif.div_type ? quotient : remainder;
   assign dif.exception_du = dif.vs1_data == 0;  // Divide by 0
+  assign dif.done_du = done;  
 
   // Fix corner case: Operate only 1 or 2 element consecutively
   always_ff @ (posedge CLK, negedge nRST) begin

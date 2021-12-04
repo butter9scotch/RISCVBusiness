@@ -63,8 +63,8 @@ module vector_lane (
     .lsif(vif)
   ); 
 
-  logic au, ru, mlu, dv, mau, pu, lu, su, prev_dv;
-  always_ff @(posedge CLK or negedge nRST) begin
+  logic au, ru, mlu, dv, mau, pu, lu, su, prev_dv, start_reg, done_reg;
+  /*always_ff @(posedge CLK or negedge nRST) begin
     if (~nRST) begin
       vif.start_div <= 0;
       prev_dv <= 0;
@@ -76,7 +76,18 @@ module vector_lane (
       if (~prev_dv & dv) 
         vif.start_div <= 1;
     end
-  end
+  end */
+
+  always_ff @(posedge CLK or negedge nRST) begin
+    if (~nRST) begin
+      start_reg <= 0;
+      done_reg <= 0;
+    end else begin
+      start_reg <= dv;
+      done_reg <= vif.done_du; 
+    end
+  end 
+  assign vif.start_div = (dv ^ start_reg) | (done_reg & dv);
 
   // Connecting signals
   assign au  = vif.fu_type == ARITH;
@@ -90,6 +101,7 @@ module vector_lane (
   assign vif.start_mu = mlu;
   // assign vif.start_div = dv;
   assign vif.start_ma = mau;
+  assign vif.mul_on = mlu;
 
   
   assign vif.busy_a   = 0;   

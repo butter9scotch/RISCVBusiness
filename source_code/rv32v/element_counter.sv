@@ -45,7 +45,7 @@ module element_counter (
     end else if (ele_if.ex_return & ele_if.de_en) begin
       ele_if.offset <= ele_if.vstart;
       ele_if.done <= ele_if.next_done;
-    end else if (ele_if.offset + NUM_LANES >= ele_if.vl) begin
+    end else if (ele_if.offset + NUM_LANES >= ele_if.vl & ~ele_if.busy_ex) begin
       ele_if.offset <= 0;
       ele_if.done <= ele_if.next_done;
     end else if (ele_if.done) begin

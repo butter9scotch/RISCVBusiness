@@ -37,7 +37,7 @@ module rv32v_execute_stage (
   import rv32v_types_pkg::*;
 
   logic [31:0] aluresult0, aluresult1, portb0, base_addr, addr_buffer, coherence_res;
-  logic ls;
+  logic ls, latch_ena;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -238,10 +238,42 @@ module rv32v_execute_stage (
     end
   end
 
+  // Pipelien wen, woffset for MUL
+  offset_t woffset0_ff0, woffset0_ff1, woffset0_ff2, woffset1_ff0, woffset1_ff1, woffset1_ff2, next_woffset0, next_woffset1;
+  logic [1:0] wen_ff0, wen_ff1, wen_ff2, next_wen;
+  assign next_woffset0 = vif0.mul_on ? woffset0_ff2 : decode_execute_if.woffset0;
+  assign next_woffset1 = vif0.mul_on ? woffset1_ff2 : decode_execute_if.woffset1;
+  assign next_wen      = vif0.mul_on ? wen_ff2 : decode_execute_if.wen;
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      woffset0_ff0 <= '0;
+      woffset0_ff1 <= '0;
+      woffset0_ff2 <= '0;
+      woffset1_ff0 <= '0;
+      woffset1_ff1 <= '0;
+      woffset1_ff2 <= '0;
+      wen_ff0 <= '0;
+      wen_ff1 <= '0;
+      wen_ff2 <= '0;
+    end else begin
+      woffset0_ff0 <= decode_execute_if.woffset0;
+      woffset0_ff1 <= woffset0_ff0;
+      woffset0_ff2 <= woffset0_ff1;
+      woffset1_ff0 <= decode_execute_if.woffset1;
+      woffset1_ff1 <= woffset1_ff0;
+      woffset1_ff2 <= woffset1_ff0;
+      wen_ff0 <= decode_execute_if.wen;
+      wen_ff1 <= wen_ff0;
+      wen_ff2 <= wen_ff1;
+    end
+  end
+
   // Pipeline Latch
   assign ls = decode_execute_if.load | decode_execute_if.store;
   assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
   assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
+  assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       execute_memory_if.load        <= '0;
@@ -299,17 +331,17 @@ module rv32v_execute_stage (
 
 
 
-    end else if (!hu_if.stall_ex) begin
+    end else if (latch_ena) begin
       execute_memory_if.load        <= decode_execute_if.load;
       execute_memory_if.store       <= decode_execute_if.store;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= decode_execute_if.reduction_ena ? aluresult0 + aluresult1 : aluresult0;
       execute_memory_if.aluresult1  <= aluresult1;
-      execute_memory_if.wen[0]        <= decode_execute_if.wen[0];
-      execute_memory_if.wen[1]        <= decode_execute_if.wen[1];
-      execute_memory_if.woffset0    <= decode_execute_if.woffset0;
-      execute_memory_if.woffset1    <= decode_execute_if.woffset1;
+      execute_memory_if.wen[0]        <= next_wen[0];
+      execute_memory_if.wen[1]        <= next_wen[1];
+      execute_memory_if.woffset0    <= next_woffset0;
+      execute_memory_if.woffset1    <= next_woffset1;
       execute_memory_if.config_type <= decode_execute_if.config_type;
       execute_memory_if.vtype       <= decode_execute_if.vtype;
 
