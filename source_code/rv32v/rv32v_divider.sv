@@ -59,7 +59,7 @@ module rv32v_divider
 	always_ff @(posedge CLK, negedge nRST) begin
         if (nRST == 0) begin
 			finished <= 1'b0;
-        end else if(start) begin
+        end else if(start | finished) begin
             finished <= 1'b0;
         end else if(div_done) begin
             finished <= 1'b1;

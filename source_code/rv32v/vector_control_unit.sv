@@ -473,7 +473,7 @@ module vector_control_unit
   //div_type;
   always_comb begin
     case (op_decoded)
-      VDIVU: vcu_if.div_type = 1;
+      OP_VDIVU, OP_VDIV: vcu_if.div_type = 1;
       default: vcu_if.div_type = 0;
     endcase
   end
