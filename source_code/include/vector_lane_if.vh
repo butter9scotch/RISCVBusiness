@@ -25,11 +25,11 @@ interface vector_lane_if;
   logic next_busy_mu, next_busy;
   logic vd_widen;
   offset_t index;
-  logic is_masked, done_du;
+  logic is_masked, done_du, mul_on;
 
   modport vector_lane (
     input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked,
-    output  lane_result, busy, next_busy, exception
+    output  lane_result, busy, next_busy, exception, done_mu, mul_on
   );
 
   modport arithmetic_unit (
@@ -39,7 +39,7 @@ interface vector_lane_if;
 
   modport multiply_unit (
     input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low,
-    output  wdata_mu, busy_mu, exception_mu, next_busy_mu
+    output  wdata_mu, busy_mu, exception_mu, next_busy_mu, done_mu
   );
 
   modport divide_unit (

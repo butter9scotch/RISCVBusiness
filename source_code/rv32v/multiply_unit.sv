@@ -55,6 +55,7 @@ module multiply_unit (
   assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
   assign mif.wdata_mu     = mif.multiply_type ? product_mod + mif.vs3_data : final_product;
   assign mif.exception_mu = 0; // TODO
+  assign mif.done_mu      = done; 
 
   // Fix corner case: Operate only 1 or 2 element consecutively
   always_ff @ (posedge CLK, negedge nRST) begin

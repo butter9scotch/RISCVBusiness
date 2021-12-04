@@ -101,6 +101,7 @@ module vector_lane (
   assign vif.start_mu = mlu;
   // assign vif.start_div = dv;
   assign vif.start_ma = mau;
+  assign vif.mul_on = mlu;
 
   
   assign vif.busy_a   = 0;   
