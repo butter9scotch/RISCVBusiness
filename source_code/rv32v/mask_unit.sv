@@ -70,9 +70,9 @@ module mask_unit (
 
   always_comb begin 
     case (mu_if.mask_type)
-      VMASK_AND   : mu_if.wdata_m = mu_if.vs2_data & in1;
-      VMASK_OR    : mu_if.wdata_m = mu_if.vs2_data | in1;
-      VMASK_XOR   : mu_if.wdata_m = mu_if.vs2_data ^ in1;
+      VMASK_AND   : mu_if.wdata_m = mu_if.out_inv ? ~(mu_if.vs2_data & in1) : (mu_if.vs2_data & in1);
+      VMASK_OR    : mu_if.wdata_m = mu_if.out_inv ? ~(mu_if.vs2_data | in1) : (mu_if.vs2_data | in1);
+      VMASK_XOR   : mu_if.wdata_m = mu_if.out_inv ? ~(mu_if.vs2_data ^ in1) : (mu_if.vs2_data ^ in1);
       VMASK_POPC  : mu_if.wdata_m = add_out;
       VMASK_FIRST : mu_if.wdata_m = first_element;
       VMASK_SBF   : mu_if.wdata_m = ~(constant << encoder_out);
