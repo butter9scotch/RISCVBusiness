@@ -215,6 +215,7 @@ module rv32v_execute_stage (
   assign vif0.is_signed = decode_execute_if.is_signed;
   assign vif0.index     = decode_execute_if.vs2_offset0;
   assign vif0.vd_narrow = decode_execute_if.vd_narrow;
+  // assign vif0.mask_32bit = decode_execute_if.vs2_lane0;
 
   // assign vif0.mask      = decode_execute_if.mask0;
 
@@ -222,6 +223,7 @@ module rv32v_execute_stage (
   assign vif1.is_signed = decode_execute_if.is_signed;
   assign vif1.index     = decode_execute_if.vs2_offset1;
   assign vif1.vd_narrow = decode_execute_if.vd_narrow;
+  // assign vif1.mask_32bit = decode_execute_if.vs2_lane1;
    
 
   // assign vif1.mask      = decode_execute_if.mask1;
@@ -244,6 +246,32 @@ module rv32v_execute_stage (
   assign next_woffset0 = vif0.mul_on ? woffset0_ff2 : decode_execute_if.woffset0;
   assign next_woffset1 = vif0.mul_on ? woffset1_ff2 : decode_execute_if.woffset1;
   assign next_wen      = vif0.mul_on ? wen_ff2 : decode_execute_if.wen;
+
+  logic [31:0] reduction_alu_result;
+  logic sltu, slt;
+  always_comb begin
+    sltu = aluresult1 < aluresult0;
+    slt  =  decode_execute_if.sew == SEW8  ? $signed(aluresult1[7:0])  < $signed(aluresult0[7:0]) : 
+            decode_execute_if.sew == SEW16 ? $signed(aluresult1[15:0]) < $signed(aluresult0[15:0]) : 
+                                              $signed(aluresult1)       < $signed(aluresult0);
+    case (decode_execute_if.aluop)
+      VALU_ADD   : reduction_alu_result = aluresult0 + aluresult1;
+      VALU_AND   : reduction_alu_result = aluresult0 & aluresult1;
+      VALU_OR    : reduction_alu_result = aluresult0 | aluresult1;
+      VALU_XOR   : reduction_alu_result = aluresult0 ^ aluresult1;
+      VALU_MM    : begin
+        case (decode_execute_if.minmax_type)
+          MIN  : reduction_alu_result = slt  ? aluresult1 : aluresult0;
+          MINU : reduction_alu_result = sltu ? aluresult1 : aluresult0;
+          MAX  : reduction_alu_result = slt  ? aluresult0 : aluresult1;
+          MAXU : reduction_alu_result = sltu ? aluresult0 : aluresult1;
+        endcase
+      end  
+      default: reduction_alu_result = 32'hbad0bad0;
+    endcase
+  end
+
+
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
@@ -336,7 +364,7 @@ module rv32v_execute_stage (
       execute_memory_if.store       <= decode_execute_if.store;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
-      execute_memory_if.aluresult0  <= decode_execute_if.reduction_ena ? aluresult0 + aluresult1 : aluresult0;
+      execute_memory_if.aluresult0  <= decode_execute_if.reduction_ena ? reduction_alu_result : aluresult0;
       execute_memory_if.aluresult1  <= aluresult1;
       execute_memory_if.wen[0]        <= next_wen[0];
       execute_memory_if.wen[1]        <= next_wen[1];

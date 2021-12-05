@@ -196,11 +196,11 @@ module vector_control_unit
                                           (vfunct3 == OPMVV) && (vcu_if.vs1 == VID)   ? OP_VID   : BAD_OP;
                       end 
         VCOMPRESS:    op_decoded = (vfunct3 == OPMVV)                       ? OP_VCOMPRESS : BAD_OP;
-        VMANDNOT:     op_decoded = (vfunct3 == OPMVV)                       ? OP_VMANDNOT : BAD_OP;
+        VMANDN:     op_decoded = (vfunct3 == OPMVV)                       ? OP_VMANDN : BAD_OP;
         VMAND:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMAND : BAD_OP;
         VMOR:         op_decoded = (vfunct3 == OPMVV)                       ? OP_VMOR : BAD_OP;
         VMXOR:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMXOR : BAD_OP;
-        VMORNOT:      op_decoded = (vfunct3 == OPMVV)                       ? OP_VMORNOT : BAD_OP;
+        VMORN:      op_decoded = (vfunct3 == OPMVV)                       ? OP_VMORN : BAD_OP;
         VMNAND:       op_decoded = (vfunct3 == OPMVV)                       ? OP_VMNAND : BAD_OP;
         VMNOR:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMNOR : BAD_OP;
         VMXNOR:       op_decoded = (vfunct3 == OPMVV)                       ? OP_VMXNOR : BAD_OP;
@@ -272,12 +272,12 @@ module vector_control_unit
       OP_VMSGT, OP_VSRL, OP_VSRA, OP_VNSRL, OP_VNSRA, OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, 
       OP_VZEXT_VF2, OP_VSEXT_VF2, OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
       OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.arith_ena = 1;
-      OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, VREDMAX: vcu_if.reduction_ena = 1;
-      OP_VREM, OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, VWMUL: vcu_if.mul_ena = 1;
-      OP_VDIVU, OP_VDIV, OP_VREMU, VREM: vcu_if.div_ena = 1;
-      OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDNOT, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORNOT, OP_VMNAND, OP_VMNOR, VMXNOR: vcu_if.mask_ena = 1;
-      OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, VCOMPRESS: vcu_if.perm_ena = 1;
-      OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, VASUB: vcu_if.fixed_point_ena = 1;
+      OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: vcu_if.reduction_ena = 1;
+      OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.mul_ena = 1;
+      OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: vcu_if.div_ena = 1;
+      OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: vcu_if.mask_ena = 1;
+      OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: vcu_if.perm_ena = 1;
+      OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB: vcu_if.fixed_point_ena = 1;
     endcase
   end
   assign vcu_if.loadstore_ena = vcu_if.is_load | vcu_if.is_store; 
@@ -306,8 +306,8 @@ module vector_control_unit
 
 
   //write to 1 bit instead of 1 element
-  assign vcu_if.single_bit_op  = (funct6_opi == VMSEQ) || (funct6_opi == VMSNE) || (funct6_opi == VMSLTU) || (funct6_opi == VMSLT) || (funct6_opi == VMSLEU) || 
-                                  (funct6_opi == VMSLE) || (funct6_opi == VMSGTU) || (funct6_opi == VMSGT);
+  assign vcu_if.single_bit_op  = (op_decoded == OP_VMSEQ) || (op_decoded == OP_VMSNE) || (op_decoded == OP_VMSLTU) || (op_decoded == OP_VMSLT) || (op_decoded == OP_VMSLEU) || 
+                                  (op_decoded == OP_VMSLE) || (op_decoded == OP_VMSGTU) || (op_decoded == OP_VMSGT);
 
 
   // Assign register write enable
@@ -335,20 +335,26 @@ module vector_control_unit
   
   always_comb begin
     vcu_if.vs2_offset_src = VS2_SRC_NORMAL;
-    case(funct6_opi)
-      VSLIDEDOWN: begin 
-        if  (vfunct3 == OPIVX) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_RS1; // i + rs1; 
-        else if (vfunct3 == OPIVI) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_UIMM; //i +uimm 
-        else if (vfunct3 == OPMVX) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_1; //i +1 --> this turns into slide1down 
-      end
-      VRGATHER: begin
-        if (vfunct3 == OPIVV) vcu_if.vs2_offset_src = VS2_SRC_VS1; // vs1[i]
-        else if (vfunct3 == OPIVX) vcu_if.vs2_offset_src = VS2_SRC_RS1; // x[rs1]
-        else if (vfunct3 == OPIVI) vcu_if.vs2_offset_src = VS2_SRC_UIMM; // uimm
-      end
-      VSLIDEUP: if (vfunct3 == OPIVV) vcu_if.vs2_offset_src = VS2_SRC_VS1; // vs1[i], this actually turns into a gather instr
-      default:  vcu_if.vs2_offset_src = 0;
-    endcase
+    if (op_decoded == OP_VSLIDE1UP) begin
+      vcu_if.vs2_offset_src = VS2_SRC_IDX_MINUS_1;
+    end else if (op_decoded == OP_VSLIDE1DOWN) begin
+      vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_1;
+    end else begin
+      case(funct6_opi)
+        VSLIDEDOWN: begin 
+          if      (vfunct3 == OPIVX) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_RS1; // i + rs1; 
+          else if (vfunct3 == OPIVI) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_UIMM; //i +uimm 
+          else if (vfunct3 == OPMVX) vcu_if.vs2_offset_src = VS2_SRC_IDX_PLUS_1; //i +1 --> this turns into slide1down 
+        end
+        VRGATHER: begin
+          if (vfunct3 == OPIVV) vcu_if.vs2_offset_src = VS2_SRC_VS1; // vs1[i]
+          else if (vfunct3 == OPIVX) vcu_if.vs2_offset_src = VS2_SRC_RS1; // x[rs1]
+          else if (vfunct3 == OPIVI) vcu_if.vs2_offset_src = VS2_SRC_UIMM; // uimm
+        end
+        VSLIDEUP: if (vfunct3 == OPIVV) vcu_if.vs2_offset_src = VS2_SRC_VS1; // vs1[i], this actually turns into a gather instr
+        default:  vcu_if.vs2_offset_src = 0;
+      endcase
+    end
 
     if ((funct6_opm == VWXUNARY0) && (vwxunary0_t'(vcu_if.vs1) == VMV_X_S)) begin
       vcu_if.vs2_offset_src = VS2_SRC_ZERO; //vs2[0]
@@ -363,12 +369,13 @@ module vector_control_unit
     vcu_if.vd_offset_src = VD_SRC_NORMAL; //i
     if (vcu_if.reduction_ena) begin 
       vcu_if.vd_offset_src = VD_SRC_ZERO; //0
+    // end else if (op_decoded == OP_VSLIDE1UP) begin
+    //   vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_1; // i + 1
     end else if (is_vopi) begin
       case  (funct6_opi)
         VSLIDEUP:  begin
             if (vfunct3 == OPIVX) vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_RS1; // i + rs1
             else if (vfunct3 == OPIVI) vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_UIMM; // i + uimm
-            else if (vfunct3 == OPMVX) vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_1; // i + 1
           end
         VCOMPRESS: vcu_if.vd_offset_src = VD_SRC_COMPRESS; //use special counter
       endcase
@@ -401,7 +408,7 @@ module vector_control_unit
       OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX, OP_VAADDU, OP_VAADD, 
       OP_VASUBU, OP_VASUB, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VPOPC, OP_VFIRST, OP_VMV_S_X, OP_VZEXT_VF8, 
       OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, OP_VZEXT_VF2, OP_VSEXT_VF2, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, 
-      OP_VCOMPRESS, OP_VMANDNOT, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORNOT, OP_VMNAND, OP_VMNOR, OP_VMXNOR, OP_VWADDU, OP_VWADD, OP_VWSUBU, 
+      OP_VCOMPRESS, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR, OP_VWADDU, OP_VWADD, OP_VWSUBU, 
       OP_VWSUB, OP_VWADDU_W, OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W:  vcu_if.result_type =    NORMAL; 
       OP_VMADC, OP_VMSBC: vcu_if.result_type = A_S; 
       OP_VSMUL, OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.result_type = MULTI;
@@ -420,8 +427,8 @@ module vector_control_unit
       OP_VREDSUM, OP_VAADDU, OP_VAADD, OP_VWADDU, OP_VWADD, OP_VWADDU_W, OP_VWADD_W: vcu_if.aluop = VALU_ADD;
       OP_VSUB, OP_VRSUB, OP_VSBC, OP_VMSBC, OP_VSSUBU, OP_VSSUB, 
       OP_VASUBU, OP_VASUB, OP_VWSUBU, OP_VWSUB, OP_VWSUBU_W, OP_VWSUB_W: vcu_if.aluop = VALU_SUB;       
-      OP_VAND, OP_VREDAND, OP_VMANDNOT, OP_VMAND, OP_VMNAND: vcu_if.aluop = VALU_AND;
-      OP_VOR, OP_VREDOR, OP_VMOR, OP_VMORNOT, OP_VMNOR:     vcu_if.aluop = VALU_OR;
+      OP_VAND, OP_VREDAND, OP_VMANDN, OP_VMAND, OP_VMNAND: vcu_if.aluop = VALU_AND;
+      OP_VOR, OP_VREDOR, OP_VMOR, OP_VMORN, OP_VMNOR:     vcu_if.aluop = VALU_OR;
       OP_VXOR, OP_VREDXOR, OP_VMXOR, OP_VMXNOR: vcu_if.aluop = VALU_XOR;
       OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, OP_VMSGT: vcu_if.aluop = VALU_COMP;    
       OP_VMERGE: vcu_if.aluop = VALU_MERGE;
@@ -452,8 +459,8 @@ module vector_control_unit
     case(op_decoded)
       OP_VMIN, OP_VREDMIN:    vcu_if.minmax_type = MIN;
       OP_VMINU, OP_VREDMINU:  vcu_if.minmax_type = MINU;
-      OP_VMAX, OP_VREDMAXU:   vcu_if.minmax_type = MAX;
-      OP_VMAXU, OP_VREDMAX:   vcu_if.minmax_type = MAXU;
+      OP_VMAX, OP_VREDMAX:   vcu_if.minmax_type = MAX;
+      OP_VMAXU, OP_VREDMAXU:   vcu_if.minmax_type = MAXU;
     default:                  vcu_if.minmax_type = MIN;
     endcase
   end
@@ -528,11 +535,6 @@ module vector_control_unit
     endcase
   end
 
-  assign vcu_if.adc_sbc = (op_decoded == VADC) || (op_decoded == VMADC);
-  assign vcu_if.carry_borrow_ena = (op_decoded == VMADC) || (op_decoded == VMSBC);
-  assign vcu_if.rev = (op_decoded == VRSUB);
-
-
   always_comb begin : CARRYIN_ENA
     case(op_decoded)
     VADC, VSBC:   vcu_if.carryin_ena = 1;
@@ -542,9 +544,34 @@ module vector_control_unit
     endcase
   end
 
-  assign vcu_if.win    = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W)  || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W);
-  assign vcu_if.woutu  = (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU)   || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWMULU) || (op_decoded == OP_VWMULSU);
-  assign vcu_if.zext_w = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU);
-  assign vcu_if.vd_narrow = (op_decoded == OP_VNSRA) || (op_decoded == OP_VNSRL);
+  always_comb begin
+    case(op_decoded)
+      OP_VMANDN, OP_VMAND, OP_VMNAND: vcu_if.mask_type = VMASK_AND;
+      OP_VMOR, OP_VMORN, OP_VMNOR:    vcu_if.mask_type = VMASK_OR;
+      OP_VMXOR, OP_VMXNOR:              vcu_if.mask_type = VMASK_XOR;
+      OP_VPOPC:                         vcu_if.mask_type = VMASK_POPC;
+      OP_VFIRST:                        vcu_if.mask_type = VMASK_FIRST;
+      OP_VMSBF:                         vcu_if.mask_type = VMASK_SBF;
+      OP_VMSOF:                         vcu_if.mask_type = VMASK_SIF;
+      OP_VMSIF:                         vcu_if.mask_type = VMASK_SOF;
+      OP_VIOTA:                         vcu_if.mask_type = VMASK_IOTA;
+      OP_VID:                           vcu_if.mask_type = VMASK_ID;
+      default: vcu_if.mask_type = 0;
+    endcase
+  end
+
+  
+  assign vcu_if.adc_sbc      = (op_decoded == VADC) || (op_decoded == VMADC);
+  assign vcu_if.carry_borrow_ena = (op_decoded == VMADC) || (op_decoded == VMSBC);
+  assign vcu_if.rev          = (op_decoded == VRSUB);
+
+  assign vcu_if.win          = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W)  || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W);
+  assign vcu_if.woutu        = (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU)   || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWMULU) || (op_decoded == OP_VWMULSU);
+  assign vcu_if.zext_w       = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU) || (op_decoded == OP_VWREDSUMU);
+  assign vcu_if.vd_narrow    = (op_decoded == OP_VNSRA)    || (op_decoded == OP_VNSRL);
+  assign vcu_if.mask_logical = (op_decoded == OP_VMANDN)   || (op_decoded == OP_VMAND)    || (op_decoded == OP_VMOR) || (op_decoded == OP_VMXOR) || (op_decoded == OP_VMORN) || (op_decoded == OP_VMNAND) || (op_decoded == OP_VMNOR) || (op_decoded == OP_VMXNOR); 
+  assign vcu_if.out_inv      = (op_decoded == OP_VMNAND)   || (op_decoded == OP_VMNOR)    || (op_decoded == OP_VMXNOR);
+  assign vcu_if.in_inv       = (op_decoded == OP_VMORN)    || (op_decoded == OP_VMANDN);
+
   // assign vcu_if.vd_widen  = 
 endmodule

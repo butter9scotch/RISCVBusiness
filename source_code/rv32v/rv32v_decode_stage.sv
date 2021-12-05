@@ -61,14 +61,14 @@ module rv32v_decode_stage (
 
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
-  assign sew = sew_t'(prv_if.vtype[5:3]);
+  assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]);
   assign lmul = vlmul_t'(prv_if.vtype[2:0]);
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
-  assign ele_if.vl        = prv_if.vl;  
+  assign ele_if.vl        = vcu_if.mask_logical ? 4 : prv_if.vl;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.stall     = hu_if.busy_ex | vcu_if.stall;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
@@ -76,14 +76,15 @@ module rv32v_decode_stage (
   assign ele_if.de_en     = vcu_if.de_en;   
   assign ele_if.sew       = sew; 
   assign ele_if.clear     = hu_if.flush_dec;
-  assign ele_if.busy_ex = hu_if.busy_ex;
+  assign ele_if.busy_ex   = hu_if.busy_ex;
+  assign ele_if.slide1up  = vcu_if.vd_offset_src == VD_SRC_IDX_PLUS_1;
   // assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
 
-  assign vstart = 0; //TODO
+  // assign vstart = 0; //TODO
   // assign hu_if.busy_dec = vcu_if.de_en | (ele_if.offset != 0 && ~ele_if.done);
   // assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
 
@@ -122,13 +123,6 @@ module rv32v_decode_stage (
         SEW16, SEW8: next_decode_execute_if_eew = SEW8;
       endcase
     end 
-    // else if (vcu_if.aluop == VALU_EXT) begin
-    //   case(vcu_if.ext_type)
-    //     F4Z, F4S: next_decode_execute_if_eew = (sew == SEW8) ? SEW32 : sew;
-    //     F2Z, F2S: next_decode_execute_if_eew = (sew == SEW8) ? SEW16 : (sew == SEW16) ? SEW32 : sew;
-    //   endcase
-    // end
-
   end
 
   always_comb begin
@@ -201,6 +195,10 @@ module rv32v_decode_stage (
             vs2_offset0 = ele_if.offset + 1;
             vs2_offset1 = ele_if.offset + 2; 
       end
+      VS2_SRC_IDX_MINUS_1: begin 
+            vs2_offset0 = ele_if.offset - 1;
+            vs2_offset1 = ele_if.offset; 
+      end
       VS2_SRC_VS1: begin 
             vs2_offset0 = rfv_if.vs1_data[0];
             vs2_offset1 = rfv_if.vs1_data[1];
@@ -270,161 +268,173 @@ module rv32v_decode_stage (
                                               
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
-      decode_execute_if.stride_type       <= 'h0;
-      decode_execute_if.rd_wen            <= 'h0;
-      decode_execute_if.rd_data            <= 'h0;
-      decode_execute_if.config_type       <= 'h0;
-      decode_execute_if.mask0             <= 'h0;
-      decode_execute_if.mask1             <= 'h0;
-      decode_execute_if.reduction_ena     <= 'h0;
-      decode_execute_if.is_signed         <= 'h0;
-      decode_execute_if.ls_idx            <= 'h0;
-      decode_execute_if.load              <= 'h0;
-      decode_execute_if.store             <= 'h0;
-      decode_execute_if.wen[0]            <= 'h0;
-      decode_execute_if.wen[1]            <= 'h0;
-      decode_execute_if.stride_val        <= 'h0;
-      decode_execute_if.xs1               <= 'h0;
-      decode_execute_if.xs2               <= 'h0;
-      decode_execute_if.vs1_lane0         <= 'h0;
-      decode_execute_if.vs1_lane1         <= 'h0;
-      decode_execute_if.vs3_lane0         <= 'h0;
-      decode_execute_if.vs3_lane1         <= 'h0;
-      decode_execute_if.vs2_lane0         <= 'h0;
-      decode_execute_if.vs2_lane1         <= 'h0;
-      decode_execute_if.imm               <= 'h0;
-      decode_execute_if.storedata0        <= 'h0;
-      decode_execute_if.storedata1        <= 'h0;
-      decode_execute_if.rd_sel            <= 'h0;
-      decode_execute_if.woffset0          <= 'h0;
-      decode_execute_if.woffset1          <= 'h0;
-      decode_execute_if.fu_type           <= 'h0;
-      decode_execute_if.result_type       <= 'h0;
-      decode_execute_if.aluop             <= 'h0;
-      decode_execute_if.rs1_type          <= 'h0;
-      decode_execute_if.rs2_type          <= 'h0;
-      decode_execute_if.minmax_type       <= 'h0;
-      decode_execute_if.eew               <= 'h0;
-      decode_execute_if.vl                <= 'h0;
-      decode_execute_if.vlenb             <= 'h0;
-      decode_execute_if.vtype             <= 'h0;
+      decode_execute_if.stride_type       <= '0;
+      decode_execute_if.rd_wen            <= '0;
+      decode_execute_if.rd_data           <= '0;
+      decode_execute_if.config_type       <= '0;
+      decode_execute_if.mask0             <= '0;
+      decode_execute_if.mask1             <= '0;
+      decode_execute_if.reduction_ena     <= '0;
+      decode_execute_if.is_signed         <= '0;
+      decode_execute_if.ls_idx            <= '0;
+      decode_execute_if.load              <= '0;
+      decode_execute_if.store             <= '0;
+      decode_execute_if.wen[0]            <= '0;
+      decode_execute_if.wen[1]            <= '0;
+      decode_execute_if.stride_val        <= '0;
+      decode_execute_if.xs1               <= '0;
+      decode_execute_if.xs2               <= '0;
+      decode_execute_if.vs1_lane0         <= '0;
+      decode_execute_if.vs1_lane1         <= '0;
+      decode_execute_if.vs3_lane0         <= '0;
+      decode_execute_if.vs3_lane1         <= '0;
+      decode_execute_if.vs2_lane0         <= '0;
+      decode_execute_if.vs2_lane1         <= '0;
+      decode_execute_if.imm               <= '0;
+      decode_execute_if.storedata0        <= '0;
+      decode_execute_if.storedata1        <= '0;
+      decode_execute_if.rd_sel            <= '0;
+      decode_execute_if.woffset0          <= '0;
+      decode_execute_if.woffset1          <= '0;
+      decode_execute_if.fu_type           <= '0;
+      decode_execute_if.result_type       <= '0;
+      decode_execute_if.aluop             <= '0;
+      decode_execute_if.rs1_type          <= '0;
+      decode_execute_if.rs2_type          <= '0;
+      decode_execute_if.minmax_type       <= '0;
+      decode_execute_if.eew               <= '0;
+      decode_execute_if.vl                <= '0;
+      decode_execute_if.vlenb             <= '0;
+      decode_execute_if.vtype             <= '0;
       
-      decode_execute_if.div_type          <= 'h0;
-      decode_execute_if.is_signed_div     <= 'h0;
-      decode_execute_if.high_low          <= 'h0;
-      decode_execute_if.is_signed_mul     <= 'h0;
-      decode_execute_if.mul_widen_ena     <= 'h0;
-      decode_execute_if.multiply_pos_neg  <= 'h0;
-      decode_execute_if.multiply_type     <= 'h0;
+      decode_execute_if.div_type          <= '0;
+      decode_execute_if.is_signed_div     <= '0;
+      decode_execute_if.high_low          <= '0;
+      decode_execute_if.is_signed_mul     <= '0;
+      decode_execute_if.mul_widen_ena     <= '0;
+      decode_execute_if.multiply_pos_neg  <= '0;
+      decode_execute_if.multiply_type     <= '0;
       //new
-      decode_execute_if.sew               <= 'h0;
-      decode_execute_if.lmul              <= 'h0;
+      decode_execute_if.sew               <= '0;
+      decode_execute_if.lmul              <= '0;
       //arith signals
-      decode_execute_if.comp_type         <= 'h0;
-      decode_execute_if.adc_sbc           <= 'h0;
-      decode_execute_if.carry_borrow_ena  <= 'h0;
-      decode_execute_if.carryin_ena       <= 'h0;
-      decode_execute_if.rev               <= 'h0;
-      decode_execute_if.ext_type          <= 'h0;
+      decode_execute_if.comp_type         <= '0;
+      decode_execute_if.adc_sbc           <= '0;
+      decode_execute_if.carry_borrow_ena  <= '0;
+      decode_execute_if.carryin_ena       <= '0;
+      decode_execute_if.rev               <= '0;
+      decode_execute_if.ext_type          <= '0;
 
-      decode_execute_if.woutu             <= 'h0;
-      decode_execute_if.win               <= 'h0;
-      decode_execute_if.zext_w            <= 'h0;
+      decode_execute_if.woutu             <= '0;
+      decode_execute_if.win               <= '0;
+      decode_execute_if.zext_w            <= '0;
 
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
 
-      decode_execute_if.vstart <= '0;
-      decode_execute_if.next_vtype_csr <= '0;
-      decode_execute_if.next_avl_csr <= '0;
-      decode_execute_if.vd_widen            <= 'h0;
+      decode_execute_if.vstart            <= '0;
+      decode_execute_if.next_vtype_csr    <= '0;
+      decode_execute_if.next_avl_csr      <= '0;
+      decode_execute_if.vd_widen          <= '0;
 
-      decode_execute_if.vs2_offset0          <= 'h0;
-      decode_execute_if.vs2_offset1          <= 'h0;
+      decode_execute_if.vs2_offset0       <= '0;
+      decode_execute_if.vs2_offset1       <= '0;
 
-      decode_execute_if.is_masked <= 'h0;
-      decode_execute_if.vd_narrow <= 0;
+      decode_execute_if.is_masked         <= '0;
+      decode_execute_if.vd_narrow         <= '0;
 
+      decode_execute_if.mask_type         <= '0;
+
+      decode_execute_if.mask_32bit_lane0  <= '0;
+      decode_execute_if.mask_32bit_lane1  <= '0;
+      decode_execute_if.out_inv           <= '0;
+      decode_execute_if.in_inv            <= '0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
 
 
     end else if(hu_if.flush_dec) begin
-      decode_execute_if.stride_type       <= 'h0;
-      decode_execute_if.rd_wen            <= 'h0;
-      decode_execute_if.config_type       <= 'h0;
-      decode_execute_if.mask0             <= 'h0;
-      decode_execute_if.mask1             <= 'h0;
-      decode_execute_if.reduction_ena     <= 'h0;
-      decode_execute_if.is_signed         <= 'h0;
-      decode_execute_if.ls_idx            <= 'h0;
-      decode_execute_if.load              <= 'h0;
-      decode_execute_if.store             <= 'h0;
-      decode_execute_if.wen[0]              <= 'h0;
-      decode_execute_if.wen[1]              <= 'h0;
-      decode_execute_if.stride_val        <= 'h0;
-      decode_execute_if.xs1               <= 'h0;
-      decode_execute_if.xs2               <= 'h0;
-      decode_execute_if.vs1_lane0         <= 'h0;
-      decode_execute_if.vs1_lane1         <= 'h0;
-      decode_execute_if.vs3_lane0         <= 'h0;
-      decode_execute_if.vs3_lane1         <= 'h0;
-      decode_execute_if.vs2_lane0         <= 'h0;
-      decode_execute_if.vs2_lane1         <= 'h0;
-      decode_execute_if.imm               <= 'h0;
-      decode_execute_if.storedata0        <= 'h0;
-      decode_execute_if.storedata1        <= 'h0;
-      decode_execute_if.rd_sel            <= 'h0;
-      decode_execute_if.woffset0          <= 'h0;
-      decode_execute_if.woffset1          <= 'h0;
-      decode_execute_if.fu_type           <= 'h0;
-      decode_execute_if.result_type       <= 'h0;
-      decode_execute_if.aluop             <= 'h0;
-      decode_execute_if.rs1_type          <= 'h0;
-      decode_execute_if.rs2_type          <= 'h0;
-      decode_execute_if.minmax_type       <= 'h0;
-      decode_execute_if.eew               <= 'h0; 
-      decode_execute_if.vl                <= 'h0;      
-      decode_execute_if.vlenb             <= 'h0;   
-      decode_execute_if.vtype             <= 'h0;   
+      decode_execute_if.stride_type       <= '0;
+      decode_execute_if.rd_wen            <= '0;
+      decode_execute_if.config_type       <= '0;
+      decode_execute_if.mask0             <= '0;
+      decode_execute_if.mask1             <= '0;
+      decode_execute_if.reduction_ena     <= '0;
+      decode_execute_if.is_signed         <= '0;
+      decode_execute_if.ls_idx            <= '0;
+      decode_execute_if.load              <= '0;
+      decode_execute_if.store             <= '0;
+      decode_execute_if.wen[0]            <= '0;
+      decode_execute_if.wen[1]            <= '0;
+      decode_execute_if.stride_val        <= '0;
+      decode_execute_if.xs1               <= '0;
+      decode_execute_if.xs2               <= '0;
+      decode_execute_if.vs1_lane0         <= '0;
+      decode_execute_if.vs1_lane1         <= '0;
+      decode_execute_if.vs3_lane0         <= '0;
+      decode_execute_if.vs3_lane1         <= '0;
+      decode_execute_if.vs2_lane0         <= '0;
+      decode_execute_if.vs2_lane1         <= '0;
+      decode_execute_if.imm               <= '0;
+      decode_execute_if.storedata0        <= '0;
+      decode_execute_if.storedata1        <= '0;
+      decode_execute_if.rd_sel            <= '0;
+      decode_execute_if.woffset0          <= '0;
+      decode_execute_if.woffset1          <= '0;
+      decode_execute_if.fu_type           <= '0;
+      decode_execute_if.result_type       <= '0;
+      decode_execute_if.aluop             <= '0;
+      decode_execute_if.rs1_type          <= '0;
+      decode_execute_if.rs2_type          <= '0;
+      decode_execute_if.minmax_type       <= '0;
+      decode_execute_if.eew               <= '0; 
+      decode_execute_if.vl                <= '0;      
+      decode_execute_if.vlenb             <= '0;   
+      decode_execute_if.vtype             <= '0;   
 
-      decode_execute_if.div_type          <= 'h0;
-      decode_execute_if.is_signed_div     <= 'h0;
-      decode_execute_if.high_low          <= 'h0;
-      decode_execute_if.is_signed_mul     <= 'h0;
-      decode_execute_if.mul_widen_ena     <= 'h0;
-      decode_execute_if.multiply_pos_neg  <= 'h0;
-      decode_execute_if.multiply_type     <= 'h0;
+      decode_execute_if.div_type          <= '0;
+      decode_execute_if.is_signed_div     <= '0;
+      decode_execute_if.high_low          <= '0;
+      decode_execute_if.is_signed_mul     <= '0;
+      decode_execute_if.mul_widen_ena     <= '0;
+      decode_execute_if.multiply_pos_neg  <= '0;
+      decode_execute_if.multiply_type     <= '0;
       //new
-      decode_execute_if.sew               <= 'h0;
-      decode_execute_if.lmul              <= 'h0;
+      decode_execute_if.sew               <= '0;
+      decode_execute_if.lmul              <= '0;
       //missing arith
-      decode_execute_if.comp_type         <= 'h0;
-      decode_execute_if.adc_sbc           <= 'h0;
-      decode_execute_if.carry_borrow_ena  <= 'h0;
-      decode_execute_if.carryin_ena       <= 'h0;
-      decode_execute_if.rev               <= 'h0;
-      decode_execute_if.ext_type          <= 'h0;
+      decode_execute_if.comp_type         <= '0;
+      decode_execute_if.adc_sbc           <= '0;
+      decode_execute_if.carry_borrow_ena  <= '0;
+      decode_execute_if.carryin_ena       <= '0;
+      decode_execute_if.rev               <= '0;
+      decode_execute_if.ext_type          <= '0;
 
-      decode_execute_if.woutu             <= 'h0;
-      decode_execute_if.win               <= 'h0;
-      decode_execute_if.zext_w            <= 'h0;
+      decode_execute_if.woutu             <= '0;
+      decode_execute_if.win               <= '0;
+      decode_execute_if.zext_w            <= '0;
 
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
-      decode_execute_if.vstart <= '0;
-      decode_execute_if.next_vtype_csr <= '0;
-      decode_execute_if.next_avl_csr <= '0;
-      decode_execute_if.rd_data            <= 'h0;
-      decode_execute_if.vd_widen            <= 'h0;
+      decode_execute_if.vstart            <= '0;
+      decode_execute_if.next_vtype_csr    <= '0;
+      decode_execute_if.next_avl_csr      <= '0;
+      decode_execute_if.rd_data           <= '0;
+      decode_execute_if.vd_widen          <= '0;
 
-      decode_execute_if.vs2_offset0          <= 'h0;
-      decode_execute_if.vs2_offset1          <= 'h0;
+      decode_execute_if.vs2_offset0       <= '0;
+      decode_execute_if.vs2_offset1       <= '0;
 
-      decode_execute_if.is_masked <= 'h0;
+      decode_execute_if.is_masked         <= '0;
 
-      decode_execute_if.vd_narrow <= 0;
+      decode_execute_if.vd_narrow         <= '0;
+
+      decode_execute_if.mask_type         <= '0;
+      decode_execute_if.mask_32bit_lane0  <= '0;
+      decode_execute_if.mask_32bit_lane1  <= '0;
+      decode_execute_if.out_inv           <= '0;
+      decode_execute_if.in_inv           <= '0;
 
 
       //TESTBENCH ONLY
@@ -450,8 +460,15 @@ module rv32v_decode_stage (
       decode_execute_if.xs2           <= xs2; 
       decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
       decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; //vs1_data1 is not good?
-      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : rfv_if.vs2_data[0];
-      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[1][15:0]} : vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[1][7:0]} : rfv_if.vs2_data[1];
+      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : 
+                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : 
+                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
+                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset0 == prv_if.vl) ? xs1 : 
+                                          rfv_if.vs2_data[0];
+      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[1][15:0]} : 
+                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[1][7:0]} : 
+                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset1 == prv_if.vl) ? xs1 : 
+                                          rfv_if.vs2_data[1];
       decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
       decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
       decode_execute_if.imm           <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
@@ -495,10 +512,10 @@ module rv32v_decode_stage (
       decode_execute_if.vd                <= vcu_if.vd;
       decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
 
-      decode_execute_if.vstart            <= vstart;
+      decode_execute_if.vstart            <= prv_if.vstart;
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data           <= 'h0;
+      decode_execute_if.rd_data           <= '0;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;
@@ -506,7 +523,13 @@ module rv32v_decode_stage (
 
       decode_execute_if.is_masked         <= vcu_if.vm;
 
-      decode_execute_if.vd_narrow <= vcu_if.vd_narrow;
+      decode_execute_if.vd_narrow         <= vcu_if.vd_narrow;
+      decode_execute_if.mask_type         <= vcu_if.mask_type;
+
+      decode_execute_if.mask_32bit_lane0  <= rfv_if.mask_32bit_lane0;
+      decode_execute_if.mask_32bit_lane1  <= rfv_if.mask_32bit_lane1;
+      decode_execute_if.out_inv           <= vcu_if.out_inv;
+      decode_execute_if.in_inv           <= vcu_if.in_inv;
 
 
       //TESTBENCH ONLY

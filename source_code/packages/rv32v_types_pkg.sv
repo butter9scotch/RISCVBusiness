@@ -166,11 +166,11 @@ package rv32v_types_pkg;
     VXUNARY0 = 6'b010010,
     VMUNARY0 = 6'b010100,
     VCOMPRESS = 6'b010111,
-    VMANDNOT = 6'b011000,
+    VMANDN = 6'b011000,
     VMAND = 6'b011001,
     VMOR = 6'b011010,
     VMXOR = 6'b011011,
-    VMORNOT = 6'b011100,
+    VMORN = 6'b011100,
     VMNAND = 6'b011101,
     VMNOR = 6'b011110,
     VMXNOR = 6'b011111,
@@ -280,11 +280,11 @@ package rv32v_types_pkg;
     OP_VIOTA,
     OP_VID,
     OP_VCOMPRESS,
-    OP_VMANDNOT,
+    OP_VMANDN,
     OP_VMAND,
     OP_VMOR,
     OP_VMXOR,
-    OP_VMORNOT,
+    OP_VMORN,
     OP_VMNAND,
     OP_VMNOR,
     OP_VMXNOR,
@@ -410,7 +410,8 @@ package rv32v_types_pkg;
     VMASK_SBF   = 4'b0101,
     VMASK_SIF   = 4'b0110,
     VMASK_SOF   = 4'b0111,
-    VMASK_IOTA  = 4'b1000
+    VMASK_IOTA  = 4'b1000,
+    VMASK_ID    = 4'b1001
   } ma_t;
 
   typedef enum logic [2:0] {
@@ -433,11 +434,12 @@ package rv32v_types_pkg;
     VS1_SRC_ZERO = 1 
   } vs1_offset_src_t;
 
-  typedef enum logic [2:0] { 
+  typedef enum logic [3:0] { 
     VS2_SRC_NORMAL = 0,
     VS2_SRC_IDX_PLUS_RS1,
     VS2_SRC_IDX_PLUS_UIMM,
     VS2_SRC_IDX_PLUS_1,
+    VS2_SRC_IDX_MINUS_1,
     VS2_SRC_VS1,
     VS2_SRC_RS1,
     VS2_SRC_UIMM,

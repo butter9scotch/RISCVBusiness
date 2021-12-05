@@ -93,7 +93,9 @@ module arithmetic_unit (
   //   end
   // end
 
-  assign vsdata1 = (aif.reduction_ena & (aif.index != 0) & (aif.index != 1)) ? accumulator : 
+  assign vsdata1 =  aif.reduction_ena & (aif.aluop == VALU_AND) && (aif.index == 1) ? aif.vs1_data :
+                    aif.reduction_ena & (aif.aluop == VALU_MM)  && (aif.index == 1) ? aif.vs1_data :
+                    (aif.reduction_ena & (aif.index != 0)) ? accumulator : 
                     (aif.sew == SEW8 & aif.vd_widen & !aif.zext_w )  ? {{24{aif.vs1_data[7]}}, aif.vs1_data[7:0]}  : 
                     (aif.sew == SEW16 & aif.vd_widen & !aif.zext_w ) ? {{16{aif.vs1_data[15]}}, aif.vs1_data[15:0]} : 
                     aif.vs1_data;
@@ -124,13 +126,27 @@ module arithmetic_unit (
   assign maxu    = sltu ? vsdata1 : vsdata2; 
  
   // Reduction Unit
+  // assign next_accumulator = ((~aif.is_masked & aif.mask) || aif.is_masked) ? result[31:0] : accumulator;
+  logic [31:0] next_accumulator;
+
+  always_comb begin
+    if ((~aif.is_masked & aif.mask) || aif.is_masked) begin
+      next_accumulator = result[31:0];
+    end else if (aif.index == 0) begin
+      next_accumulator = aif.vs1_data;
+    end else begin
+      next_accumulator = accumulator;
+    end
+  end
+
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       accumulator <= '0;
     end else if (aif.reduction_ena ) begin
-      if ((~aif.is_masked & aif.mask) || aif.is_masked) begin
-        accumulator <= result[31:0];
-      end
+      // if ((~aif.is_masked & aif.mask) || aif.is_masked) begin
+        // accumulator <= result[31:0];
+      // end
+      accumulator <= next_accumulator;
       // if (aif.is_masked & aif.mask)
     end
   end
@@ -199,7 +215,7 @@ module arithmetic_unit (
   // Output Sel
   always_comb begin 
     case (aif.result_type)
-      NORMAL    : aif.wdata_a = finalresult;
+      NORMAL    : aif.wdata_a = aif.reduction_ena ? next_accumulator : finalresult;
       A_S       : aif.wdata_a = op3res;
       MUL       : aif.wdata_a = 0;
       DIV       : aif.wdata_a = 0;

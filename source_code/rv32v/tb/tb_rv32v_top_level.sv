@@ -32,20 +32,13 @@
 import rv32v_types_pkg::*;
 import rv32i_types_pkg::*;
 
+//have all instructions inherit from one instruction parent class
+//have an array of instructions, these contain the values of xs1, xs2
 
-class RegRegI;
+class RegReg;
   logic [31:0] instr;
 
-  function new(vopi_t funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
-    this.instr = {funct6, vm, vs2, vs1, funct3, vd, VECTOR};
-  endfunction;
-
-endclass
-
-class RegRegM;
-  logic [31:0] instr;
-
-  function new(vopm_t funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
+  function new(logic [5:0] funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
     this.instr = {funct6, vm, vs2, vs1, funct3, vd, VECTOR};
   endfunction;
 
@@ -184,13 +177,15 @@ module tb_rv32v_top_level ();
     cif.dhit = 0;
     cif.dmemload = 0;
 
-    load_reg_data(0, {{32{4'hF}}, 8'd0});
+    load_reg_data(0, {{30{4'hF}}, 8'b1111_0010});
     // load_reg_data(1, {128'd0});
     // load_reg_data(2, {128'd0});
-    load_reg_data(1, {32'h3,  32'd2,  32'd1,  32'h0});
-    load_reg_data(2, {32'h7,  32'd6,  32'd5,  32'd4});
-    load_reg_data(3, {32'h0008_0007, 32'h0006_0005,  32'h0004_0003,  32'h8102_8101});
-    load_reg_data(4, {32'd7,  32'd6,  32'd5,  32'hFFFF_FFFF});
+    load_reg_data(4, {16'hf, 16'he, 16'hd, 16'hc, 16'hb, 16'ha, 16'h9, 16'h8});
+    load_reg_data(3, {16'h7, 16'h6, 16'h5, 16'h4, 16'h3, 16'd2, 16'd1, 16'h0});
+    // load_reg_data(3, {32'h7, 32'h3,  32'hFFFF,  32'h8000_0002});
+    // load_reg_data(4, {32'h1F,  32'hF,  32'hF,  32'hB});
+    load_reg_data(1, {{8{16'hFF}}});
+    load_reg_data(2, {{32{4'hF}}});
     // load_reg_data(1, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd1, 16'hFFF1});
     // load_reg_data(2, {16'hF, 16'hE, 16'hD, 16'hC, 16'hB, 16'hA, 16'h9, 16'h8});
     // load_reg_data(3, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd0, 16'hFFF2});
@@ -271,7 +266,7 @@ module tb_rv32v_top_level ();
 
   endtask
 
-  function instr_list_t new_config_vopi_case(
+  function instr_list_t new_config_vop_case(
      sew_t sew,
      vlmul_t lmul,
      int vl,
@@ -282,36 +277,7 @@ module tb_rv32v_top_level ();
     // output int [] out;
 
     Vsetvli v;
-    RegRegI r;
-
-    logic [4:0] vs1, vs2, vd;
-
-    if (lmul == LMUL1) begin vs1 = 1; vs2 = 2; vd = 3; end
-    else if (lmul == LMUL2) begin vs1 = 1; vs2 = 3; vd = 5;  end 
-    else if (lmul == LMUL4) begin vs1 = 1; vs2 = 5; vd = 9;  end 
-    else if (lmul == LMUL8) begin vs1 = 1; vs2 = 9; vd = 15; end 
-
-    xs1 = vl;
-
-    v = new(sew, lmul, 1, 2);
-    r = new(funct6, vm, vs2, vs1, funct3, vd);
-
-    return {v.instr, r.instr};
-  
-  endfunction
-
-  function instr_list_t new_config_vopm_case(
-     sew_t sew,
-     vlmul_t lmul,
-     int vl,
-     vopm_t funct6,
-     vfunct3_t funct3,
-     bit vm
-  );
-    // output int [] out;
-
-    Vsetvli v;
-    RegRegM r;
+    RegReg r;
 
     logic [4:0] vs1, vs2, vd;
 
@@ -330,7 +296,7 @@ module tb_rv32v_top_level ();
   endfunction
 
   
-  function instr_list_t new_config_vopm_reg_case(
+  function instr_list_t new_config_vop_reg_case(
      sew_t sew,
      vlmul_t lmul,
      int vl,
@@ -342,7 +308,7 @@ module tb_rv32v_top_level ();
     // output int [] out;
 
     Vsetvli v;
-    RegRegM r;
+    RegReg r;
 
     logic [4:0]  vs2, vd;
 
@@ -374,7 +340,7 @@ module tb_rv32v_top_level ();
   vopm_ins ins_m;
   vop_cfg ins_c;
   int i, old_i;
-  RegRegI rri;
+  RegReg rri;
 
 
 
@@ -386,14 +352,14 @@ module tb_rv32v_top_level ();
     // add_test_case({32'h0910F2D7, 32'h0011C2D7});
     // rri = new(VADD, 1'b0, 1, 3, OPIVV, 5);
     // $display("%x", rri.instr);
-    add_test_case(new_config_vopi_case(SEW32, LMUL2, 8,  VADD, OPIVV, UNMASKED));
-    // add_test_case(new_config_vopi_case(SEW32, LMUL2, 8,  VRSUB, OPIVI, UNMASKED));
-    // add_test_case(new_config_vopi_case(SEW32, LMUL2, 8,  VSEXT_VF2, OPMVV, UNMASKED));
-    add_test_case(new_config_vopm_reg_case(SEW32, LMUL2, 8,  VXUNARY0, OPMVV, UNMASKED, VZEXT_VF4));
-    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
-    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWSUB_W,  OPMVV, UNMASKED));
-    // add_test_case(new_config_vopm_case(SEW16, LMUL2, 16, VWADD_W,  OPMVV, UNMASKED));
-    // add_test_case(new_config_vopm_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
+    add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VADD, OPIVV, UNMASKED));
+    // add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VRSUB, OPIVI, UNMASKED));
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 16,  VMAND, OPMVV, UNMASKED));
+    // add_test_case(new_config_vop_reg_case(SEW32, LMUL2, 8,  VXUNARY0, OPMVV, UNMASKED, VZEXT_VF4));
+    // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
+    // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUB_W,  OPMVV, UNMASKED));
+    // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWADD_W,  OPMVV, UNMASKED));
+    // add_test_case(new_config_vop_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
 
 
     init();
@@ -425,7 +391,7 @@ module tb_rv32v_top_level ();
       repeat (1) @(posedge CLK);
       #(1);
       check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
-      // repeat (10) @(posedge CLK);
+      // repeat (4) @(posedge CLK);
         // testcase 
       init();
       testnum++;

@@ -60,7 +60,11 @@ module element_counter (
   always_comb begin
     next_offset = ele_if.offset;
     if (ele_if.ex_return & ele_if.de_en) begin
-      next_offset = ele_if.vstart;
+      // if (ele_if.slide1up) begin
+      //   next_offset = ele_if.vstart + 1;
+      // end else begin
+      // end
+        next_offset = ele_if.vstart;
     end else if (ele_if.offset + NUM_LANES >= ele_if.vl) begin
       next_offset = 0;
     end else if (ele_if.done) begin

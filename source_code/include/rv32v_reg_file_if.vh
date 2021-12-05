@@ -32,13 +32,14 @@ interface rv32v_reg_file_if();
   import rv32i_types_pkg::*;
 
   word_t  [NUM_LANES - 1:0]  w_data, vs1_data, vs2_data, vs3_data;
+  word_t  mask_32bit_lane0, mask_32bit_lane1;
   logic   [4:0] vs1, vs2, vs3, vd;
-  sew_t sew, vs2_sew;                  //8, 16, 32 bit elements
-  sew_t eew;                  //8, 16, 32 bit elements
-  logic [VL_WIDTH:0]  vl;  //number of elements in the vector
+  sew_t   sew, vs2_sew;                  //8, 16, 32 bit elements
+  sew_t   eew;                  //8, 16, 32 bit elements
+  logic   [VL_WIDTH:0]  vl;  //number of elements in the vector
   offset_t vs1_offset, vs2_offset, vs3_offset, vd_offset;
-  logic [1:0] wen;
-  logic [1:0] vs1_mask, vs2_mask, vs3_mask;
+  logic   [1:0] wen;
+  logic   [1:0] vs1_mask, vs2_mask, vs3_mask;
   // logic vs2_;
   logic single_bit_write;
 
@@ -47,12 +48,12 @@ interface rv32v_reg_file_if();
           sew, eew, vs2_sew, vl, //for wb stage
           vs1_offset, vs2_offset, vs3_offset, vd_offset, single_bit_write,
           
-    output vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask
+    output vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask, mask_32bit_lane0, mask_32bit_lane1
   );
   
   modport decode (
     input  vs1, vs2, vs3, vs1_offset, vs2_offset, vs3_offset, sew, vs2_sew, vl,
-    output   vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask
+    output   vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask, mask_32bit_lane0, mask_32bit_lane1
   );
 
   modport writeback (

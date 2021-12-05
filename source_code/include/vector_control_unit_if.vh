@@ -95,6 +95,9 @@ interface vector_control_unit_if();
   logic win;
   logic woutu;
   logic zext_w;
+  logic mask_logical;
+  logic out_inv, in_inv;
+  ma_t mask_type;
 
   modport vcu (
     input instr,
@@ -148,7 +151,11 @@ interface vector_control_unit_if();
     rev,
     win,
     woutu,
-    zext_w
+    zext_w,
+    mask_logical,
+    mask_type,
+    out_inv,
+    in_inv
   );
 
 

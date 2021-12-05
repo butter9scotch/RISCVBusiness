@@ -47,7 +47,8 @@ module iota_logic (
   assign out7 = out6 + temp[5];
   assign out8 = out7 + temp[6];
   assign max  = (count == iif.max) | (count == 64);
-  assign iif.busy = (iif.start | busy_reg) & ~max;
+  // assign iif.busy = (iif.start | busy_reg) & ~max;
+  assign iif.busy = 0;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
