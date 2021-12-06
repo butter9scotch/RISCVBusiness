@@ -28,6 +28,7 @@
 `include "rv32v_hazard_unit_if.vh"
 `include "prv_pipeline_if.vh"
 `include "microop_buffer_if.vh"
+`include "compress_offset_unit_if.vh"
 
 module rv32v_decode_stage (
   input logic CLK, nRST, halt,
@@ -47,10 +48,12 @@ module rv32v_decode_stage (
   
   vector_control_unit_if vcu_if();
   element_counter_if ele_if();
+  compress_offset_unit_if cou_if();
   // microop_buffer_if uop_if();
 
   vector_control_unit vcu(.*);
   element_counter  element_counter(.*);
+  compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); // TODO: assign busy signal, wen signal and checking_mask0_1 signal
   // microop_buffer uop_buffer(.*);
 
   sew_t sew;
@@ -63,6 +66,10 @@ module rv32v_decode_stage (
 
   assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]);
   assign lmul = vlmul_t'(prv_if.vtype[2:0]);
+
+  // compress offset unit assigns
+  assign cou_if.ena = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
+  assign cou_if.done = ele_if.done;
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
@@ -243,8 +250,10 @@ module rv32v_decode_stage (
         woffset1 = ele_if.offset + 2;
       end         
       VD_SRC_COMPRESS: begin   
-        woffset0 = ele_if.offset;      //this will need to change 
-        woffset1 = ele_if.offset + 1; //this will need to change
+        //woffset0 = ele_if.offset;      //this will need to change 
+        //woffset1 = ele_if.offset + 1; //this will need to change
+        woffset0 = cou_if.woffset0;      //this will need to change 
+        woffset1 = cou_if.woffset1; //this will need to change
       end       
     endcase
   end
