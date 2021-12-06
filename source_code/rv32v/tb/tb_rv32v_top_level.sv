@@ -27,6 +27,8 @@
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
 `include "prv_pipeline_if.vh"
+`include "rv32v_top_level_if.vh"
+`include "instruction.svh"
 // `include "config_test.svh"
 
 import rv32v_types_pkg::*;
@@ -35,51 +37,6 @@ import rv32i_types_pkg::*;
 //have all instructions inherit from one instruction parent class
 //have an array of instructions, these contain the values of xs1, xs2
 
-class RegReg;
-  logic [31:0] instr;
-
-  function new(logic [5:0] funct6, bit vm, logic [4:0] vs2, logic [4:0] vs1, vfunct3_t funct3, logic [4:0] vd);
-    this.instr = {funct6, vm, vs2, vs1, funct3, vd, VECTOR};
-  endfunction;
-
-endclass
-
-class Vsetvl;
-  logic [31:0] instr;
-
-  function new(logic [4:0] rs2, logic [4:0] rs1, logic [4:0] rd);
-    this.instr = {7'b1000000,  rs2, rs1, 3'b111, rd, VECTOR};
-  endfunction;
-
-endclass
-
-class Vsetvli;
-  logic [31:0] instr;
-  bit vma;
-  bit vta;
-
-  function new(sew_t sew, vlmul_t lmul, logic [4:0] rs1, logic [4:0] rd);
-    vma = 0;
-    vta = 0;
-    this.instr = {1'b0, 5'd0, vma, vta, sew, lmul, rs1, 3'b111, rd, VECTOR};
-  endfunction;
-
-endclass
-
-class Vsetivli;
-  logic [31:0] instr;
-  bit vma;
-  bit vta;
-
-  function new(sew_t sew, vlmul_t lmul, logic [4:0] imm5, logic [4:0] rd);
-    vma = 0;
-    vta = 0;
-    this.instr = {2'b11, 4'd0, vma, vta, sew, lmul, imm5, 3'b111, rd, VECTOR};
-  endfunction;
-
-endclass
-
-// `include "instruction.svh"
 
 module tb_rv32v_top_level ();
 
@@ -122,6 +79,15 @@ module tb_rv32v_top_level ();
   instr_list_t instr_mem [];
   int testnum;
 
+  // Outputs to the DUT
+  //logic [31:0] xs1, xs2;
+  assign top_if.xs1 = xs1;
+  assign top_if.xs2 = xs2;
+  //logic scalar_hazard_if_ret;
+  assign top_if.scalar_hazard_if_ret = scalar_hazard_if_ret;
+  //logic returnex;
+  assign top_if.returnex = returnex;
+
 
 
   rv32v_fetch2_decode_if  fetch_decode_if();
@@ -129,6 +95,7 @@ module tb_rv32v_top_level ();
   rv32v_hazard_unit_if hu_if();
   prv_pipeline_if prv_if();
   core_interrupt_if interrupt_if();
+  rv32v_top_level_if top_if();
 
 
   rv32v_top_level      DUT (.*);
@@ -177,17 +144,29 @@ module tb_rv32v_top_level ();
     cif.dhit = 0;
     cif.dmemload = 0;
 
-    load_reg_data(0, {{30{4'hF}}, 8'b1111_1111});
+    //load_reg_data(0, {{30{4'hF}}, 8'b1111_1111});
+    //load_reg_data(0, {{30{4'hF}}, 8'hFF});
+    load_reg_data(0, {{30{4'hF}}, 8'h55});
     // load_reg_data(1, {128'd0});
     // load_reg_data(2, {128'd0});
-    load_reg_data(4, {16'hf, 16'he, 16'hd, 16'hc, 16'hb, 16'ha, 16'h9, 16'h8});
-    load_reg_data(3, {16'h7, 16'h6, 16'h5, 16'h4, 16'h3, 16'd2, 16'd1, 16'h0});
+
+    // SEW 32, lmul 2, so 8 32 bit elements
+    // should add to 78787878  with adc
+    load_reg_data(1, {32'h3, 32'h2, 32'h1, 32'h0}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(2, {32'h7, 32'h6, 32'h5, 32'h4}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(3, {32'h4, 32'h5, 32'h6, 32'h7}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(4, {32'h0, 32'h1, 32'h2, 32'h3}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    //load_reg_data(4, {16'hf, 16'he, 16'hd, 16'hc, 16'hb, 16'ha, 16'h9, 16'h8});
+    //load_reg_data(3, {16'h7, 16'h6, 16'h5, 16'h4, 16'h3, 16'd2, 16'd1, 16'h0});
     // load_reg_data(3, {32'h7, 32'h3,  32'hFFFF,  32'h8000_0002});
     // load_reg_data(4, {32'h1F,  32'hF,  32'hF,  32'hB});
     // load_reg_data(1, {{8{16'hFF}}});
     load_reg_data(2, {{32{4'hF}}});
     load_reg_data(1, {{8{16'h5555}}});
     load_reg_data(3, {{2{32'h0010_0000}}, 32'h1000_0000, 32'd0});
+    //load_reg_data(2, {{32{4'hF}}});
+    //load_reg_data(1, {{8{16'h5555}}});
+    //load_reg_data(3, {{4{32'h7000_0000}}});
     // load_reg_data(3, {{8{16'haaa}}});
     // load_reg_data(1, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd1, 16'hFFF1});
     // load_reg_data(2, {16'hF, 16'hE, 16'hD, 16'hC, 16'hB, 16'hA, 16'h9, 16'h8});
@@ -355,18 +334,18 @@ module tb_rv32v_top_level ();
     // add_test_case({32'h0910F2D7, 32'h0011C2D7});
     // rri = new(VADD, 1'b0, 1, 3, OPIVV, 5);
     // $display("%x", rri.instr);
-    add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VADD, OPIVV, UNMASKED));
+    add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VSBC, OPIVV, MASKED));
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VRSUB, OPIVI, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16,  VMUNARY0, OPMVV, UNMASKED));
     add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
     add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSIF));
     add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSOF));
+    //add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
     // add_test_case(new_config_vop_reg_case(SEW32, LMUL2, 8,  VXUNARY0, OPMVV, UNMASKED, VZEXT_VF4));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUB_W,  OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWADD_W,  OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW32, LMUL2, VDIV, OPMVV, UNMASKED));
-
 
     init();
 
