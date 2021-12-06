@@ -152,18 +152,20 @@ module tb_rv32v_top_level ();
 
     // SEW 32, lmul 2, so 8 32 bit elements
     // should add to 78787878  with adc
-    load_reg_data(1, {32'h3, 32'h2, 32'h1, 32'h0}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(2, {32'h7, 32'h6, 32'h5, 32'h4}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(3, {32'h4, 32'h5, 32'h6, 32'h7}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(4, {32'h0, 32'h1, 32'h2, 32'h3}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(1, {32'h3, 32'h2, 32'h1, 32'h1}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(2, {32'h7, 32'h6, 32'h5, 32'h0000_0008}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(3, {32'h6, 32'h4, 32'h2, 32'h1}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(4, {32'he, 32'hc, 32'ha, 32'hF000_0002}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    // load_reg_data(3, {32'h4, 32'h5, 32'h6, 32'h7}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    // load_reg_data(4, {32'h0, 32'h1, 32'h2, 32'h3}); //, 16'h3, 16'h2, 16'h1, 16'h0});
     //load_reg_data(4, {16'hf, 16'he, 16'hd, 16'hc, 16'hb, 16'ha, 16'h9, 16'h8});
     //load_reg_data(3, {16'h7, 16'h6, 16'h5, 16'h4, 16'h3, 16'd2, 16'd1, 16'h0});
     // load_reg_data(3, {32'h7, 32'h3,  32'hFFFF,  32'h8000_0002});
     // load_reg_data(4, {32'h1F,  32'hF,  32'hF,  32'hB});
     // load_reg_data(1, {{8{16'hFF}}});
-    load_reg_data(2, {{32{4'hF}}});
-    load_reg_data(1, {{8{16'h5555}}});
-    load_reg_data(3, {{2{32'h0010_0000}}, 32'h1000_0000, 32'd0});
+    // load_reg_data(2, {{32{4'hF}}});
+    // load_reg_data(1, {{8{16'h5555}}});
+    // load_reg_data(3, {{2{32'h0010_0000}}, 32'h1000_0000, 32'd0});
     //load_reg_data(2, {{32{4'hF}}});
     //load_reg_data(1, {{8{16'h5555}}});
     //load_reg_data(3, {{4{32'h7000_0000}}});
@@ -260,6 +262,7 @@ module tb_rv32v_top_level ();
 
     Vsetvli v;
     RegReg r;
+    RegReg a;
 
     logic [4:0] vs1, vs2, vd;
 
@@ -272,8 +275,10 @@ module tb_rv32v_top_level ();
 
     v = new(sew, lmul, 1, 2);
     r = new(funct6, vm, vs2, vs1, funct3, vd);
+    a = new(VADD, 1, 31, 0, OPIVI, 31);
 
-    return {v.instr, r.instr};
+    return {v.instr, r.instr, a.instr};
+    // return {v.instr, r.instr};
   
   endfunction
 
@@ -334,12 +339,14 @@ module tb_rv32v_top_level ();
     // add_test_case({32'h0910F2D7, 32'h0011C2D7});
     // rri = new(VADD, 1'b0, 1, 3, OPIVV, 5);
     // $display("%x", rri.instr);
-    add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VSBC, OPIVV, MASKED));
+    // add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VMULHU, OPMVV, UNMASKED));
+    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VSMUL, OPIVI, UNMASKED, 0));
+    // add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VMUL, OPMVV, MASKED));
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VRSUB, OPIVI, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16,  VMUNARY0, OPMVV, UNMASKED));
-    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
-    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSIF));
-    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSOF));
+    // add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
+    // add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSIF));
+    // add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSOF));
     //add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
     // add_test_case(new_config_vop_reg_case(SEW32, LMUL2, 8,  VXUNARY0, OPMVV, UNMASKED, VZEXT_VF4));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
@@ -369,15 +376,16 @@ module tb_rv32v_top_level ();
         do begin
           if (hu_if.csr_update) begin j = DUT.memory_writeback_if.tb_line_num; end
           @(posedge CLK); //wait some time as needed.
+          #(1);
         end while(hu_if.busy_dec);      
         @(posedge CLK);
         // while(hu_if.busy_dec) @(posedge CLK);
       end
-      repeat (1) @(posedge CLK);
+      // repeat (1) @(posedge CLK);
       display_reg_file();
       #(1);
       // check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
-      repeat (2) @(posedge CLK);
+      // repeat (10) @(posedge CLK);
         // testcase 
       init();
       testnum++;

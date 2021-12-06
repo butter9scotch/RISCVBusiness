@@ -351,6 +351,8 @@ module rv32v_decode_stage (
       decode_execute_if.mask_32bit_lane1  <= '0;
       decode_execute_if.out_inv           <= '0;
       decode_execute_if.in_inv            <= '0;
+      decode_execute_if.decode_done       <= '0;
+
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -437,6 +439,8 @@ module rv32v_decode_stage (
       decode_execute_if.mask_32bit_lane1  <= '0;
       decode_execute_if.out_inv           <= '0;
       decode_execute_if.in_inv           <= '0;
+      decode_execute_if.decode_done       <= '0;
+
 
 
       //TESTBENCH ONLY
@@ -532,6 +536,7 @@ module rv32v_decode_stage (
       decode_execute_if.mask_32bit_lane1  <= rfv_if.mask_32bit_lane1;
       decode_execute_if.out_inv           <= vcu_if.out_inv;
       decode_execute_if.in_inv           <= vcu_if.in_inv;
+      decode_execute_if.decode_done       <= ele_if.done;
 
 
       //TESTBENCH ONLY

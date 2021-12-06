@@ -218,6 +218,9 @@ module rv32v_execute_stage (
   assign vif0.is_signed = decode_execute_if.is_signed;
   assign vif0.index     = decode_execute_if.vs2_offset0;
   assign vif0.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif0.decode_done = decode_execute_if.decode_done;
+  // assign vif0.mul_ena = decode_execute_if.fu_type == MUL;
+
   // assign vif0.mask_32bit = decode_execute_if.vs2_lane0;
 
   // assign vif0.mask      = decode_execute_if.mask0;
@@ -226,6 +229,9 @@ module rv32v_execute_stage (
   assign vif1.is_signed = decode_execute_if.is_signed;
   assign vif1.index     = decode_execute_if.vs2_offset1;
   assign vif1.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif1.decode_done = decode_execute_if.decode_done;
+  // assign vif1.mul_ena = decode_execute_if.fu_type == MUL;
+
   // assign vif1.mask_32bit = decode_execute_if.vs2_lane1;
    
 
@@ -243,7 +249,7 @@ module rv32v_execute_stage (
     end
   end
 
-  // Pipelien wen, woffset for MUL
+  // Pipeline wen, woffset for MUL
   offset_t woffset0_ff0, woffset0_ff1, woffset0_ff2, woffset1_ff0, woffset1_ff1, woffset1_ff2, next_woffset0, next_woffset1;
   logic [1:0] wen_ff0, wen_ff1, wen_ff2, next_wen;
   assign next_woffset0 = vif0.mul_on ? woffset0_ff2 : decode_execute_if.woffset0;
@@ -274,7 +280,7 @@ module rv32v_execute_stage (
     endcase
   end
 
-
+  logic done_ff2, done_ff0, done_ff1;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
@@ -287,6 +293,22 @@ module rv32v_execute_stage (
       wen_ff0 <= '0;
       wen_ff1 <= '0;
       wen_ff2 <= '0;
+      done_ff0 <= 0;
+      done_ff1 <= 0;
+      done_ff2 <= 0;
+    end else if (hu_if.flush_ex) begin
+      woffset0_ff0 <= 0;
+      woffset0_ff1 <= 0;
+      woffset0_ff2 <= 0;
+      woffset1_ff0 <= 0;
+      woffset1_ff1 <= 0;
+      woffset1_ff2 <= 0;
+      wen_ff0 <= 0;
+      wen_ff1 <= 0;
+      wen_ff2 <= 0;
+      done_ff0 <= 0;
+      done_ff1 <= 0;
+      done_ff2  <= 0;
     end else begin
       woffset0_ff0 <= decode_execute_if.woffset0;
       woffset0_ff1 <= woffset0_ff0;
@@ -297,6 +319,9 @@ module rv32v_execute_stage (
       wen_ff0 <= decode_execute_if.wen;
       wen_ff1 <= wen_ff0;
       wen_ff2 <= wen_ff1;
+      done_ff0 <= decode_execute_if.decode_done & (decode_execute_if.fu_type == MUL);
+      done_ff1 <= done_ff0;
+      done_ff2 <= done_ff1;
     end
   end
 
@@ -370,8 +395,8 @@ module rv32v_execute_stage (
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         decode_execute_if.reduction_ena ? reduction_alu_result : aluresult0;
-      execute_memory_if.aluresult1  <= ones_aluresult1 ? 32'hFFFF_FFFF : 
-                                        zero_aluresult1 ? 0 : aluresult1;
+      execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
+                                        zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : aluresult1;
       // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
       execute_memory_if.wen[0]        <= next_wen[0];

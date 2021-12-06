@@ -31,7 +31,8 @@ module multiply_unit (
 
   import rv32v_types_pkg::*;
 
-  logic start_reg, done, next_done;
+  logic start_reg, next_start_reg;
+  logic done, next_done;
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32, selected_product, final_product, product_mod, product_3in;
   logic [15:0] product_high_sew16, product_low_sew16;
@@ -43,7 +44,7 @@ module multiply_unit (
     .multiplicand(mif.vs2_data),
     .multiplier(mif.vs1_data),
     .is_signed(mif.is_signed_mul),
-    .start(mif.start_mu),
+    .start(start_reg),
     .finished(done),
     .next_finished(next_done),
     .product(product)
@@ -58,15 +59,33 @@ module multiply_unit (
   assign mif.done_mu      = done; 
 
   // Fix corner case: Operate only 1 or 2 element consecutively
+
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       start_reg <= '0;
-    end else if (done) begin
+    end else if (mif.decode_done) begin
       start_reg <= 0;
     end else if (mif.start_mu) begin
       start_reg <= 1;
     end
   end
+
+  // logic done1, done2;
+  // always_ff @(posedge CLK, negedge nRST) begin
+  //   if (~nRST) begin
+  //     done1 <= mif.decode_done;
+  //     done2 <= done1;
+  //     done <= done2;
+  //   end else if (done) begin
+  //     done1 <= 0;
+  //     done2 <= 0;
+  //     done  <= 0;
+  //   end else begin
+  //     done1 <= mif.decode_done & mif.mul_ena;
+  //     done2 <= done1;
+  //     done <= done2;
+  //   end
+  // end
 
   assign product_low_sew32  = product[31:0];
   assign product_high_sew32 = product[63:32]; 

@@ -76,7 +76,7 @@ module element_counter (
 
   always_comb begin
     ele_if.next_done = 0;
-    if (ele_if.offset + 3 >= ele_if.vl) begin
+    if ((ele_if.offset + 3 >= ele_if.vl && (ele_if.vl > 0)) && ele_if.de_en) begin
       ele_if.next_done = 1; 
     end
   end
