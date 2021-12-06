@@ -402,7 +402,7 @@ module vector_control_unit
   always_comb begin
     case(op_decoded)
       OP_VADD, OP_VSUB, OP_VRSUB, OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VAND, OP_VOR, OP_VXOR, OP_VRGATHER, 
-      OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VADC, OP_VSBC, OP_VMERGE, OP_VMV, OP_VMSEQ, OP_VMSNE, 
+      OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VMERGE, OP_VMV, OP_VMSEQ, OP_VMSNE, 
       OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, OP_VMSGT, OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSLL, 
       OP_VSRL, OP_VSRA, OP_VSSRL, OP_VSSRA, OP_VNSRL, OP_VNSRA, OP_VNCLIPU, OP_VNCLIP, OP_VWREDSUMU, OP_VWREDSUM, 
       OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX, OP_VAADDU, OP_VAADD, 
@@ -411,6 +411,7 @@ module vector_control_unit
       OP_VCOMPRESS, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR, OP_VWADDU, OP_VWADD, OP_VWSUBU, 
       OP_VWSUB, OP_VWADDU_W, OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W:  vcu_if.result_type =    NORMAL; 
       OP_VMADC, OP_VMSBC: vcu_if.result_type = A_S; 
+      OP_VADC, OP_VSBC: vcu_if.result_type = A_S;
       OP_VSMUL, OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.result_type = MULTI;
       OP_VDIVU, OP_VDIV: vcu_if.result_type = DIVI;
       OP_VREMU, OP_VREM: vcu_if.result_type = REM;
@@ -537,9 +538,9 @@ module vector_control_unit
 
   always_comb begin : CARRYIN_ENA
     case(op_decoded)
-    VADC, VSBC:   vcu_if.carryin_ena = 1;
+    OP_VADC, OP_VSBC:   vcu_if.carryin_ena = 1;
     //VMADC, VMSBC: ONLY USES mask as a carry-in if mask bit is 1
-    VMADC, VMSBC: vcu_if.carryin_ena = (vcu_if.instr[25] == 1) ?  1 : 0;
+    OP_VMADC, OP_VMSBC: vcu_if.carryin_ena = (vcu_if.instr[25] == 1) ?  1 : 0;
     default: vcu_if.carryin_ena = 0;
     endcase
   end
@@ -561,9 +562,9 @@ module vector_control_unit
   end
 
   
-  assign vcu_if.adc_sbc      = (op_decoded == VADC) || (op_decoded == VMADC);
-  assign vcu_if.carry_borrow_ena = (op_decoded == VMADC) || (op_decoded == VMSBC);
-  assign vcu_if.rev          = (op_decoded == VRSUB);
+  assign vcu_if.adc_sbc      = (op_decoded == OP_VADC) || (op_decoded == OP_VMADC);
+  assign vcu_if.carry_borrow_ena = (op_decoded == OP_VMADC) || (op_decoded == OP_VMSBC);
+  assign vcu_if.rev          = (op_decoded == OP_VRSUB);
 
   assign vcu_if.win          = (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W)  || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W);
   assign vcu_if.woutu        = (op_decoded == OP_VWADDU)   || (op_decoded == OP_VWSUBU)   || (op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWMULU) || (op_decoded == OP_VWMULSU);

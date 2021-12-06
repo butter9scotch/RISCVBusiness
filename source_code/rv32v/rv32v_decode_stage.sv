@@ -159,8 +159,8 @@ module rv32v_decode_stage (
       wen0 = ele_if.next_done;
       wen1 = 0;
     end else begin
-      wen0 = vcu_if.wen & (mask0);
-      wen1 = vcu_if.wen & (mask1);
+      wen0 = (vcu_if.result_type == A_S) ? 1 : vcu_if.wen & (mask0);
+      wen1 = (vcu_if.result_type == A_S) ? 1: vcu_if.wen & (mask1);
     end
   end
 
