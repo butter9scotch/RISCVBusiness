@@ -285,13 +285,13 @@ module vector_control_unit
 
   //select mask unit
   assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
-                              vcu_if.reduction_ena ? RED : 
-                              vcu_if.mul_ena ? MUL : 
-                              vcu_if.div_ena ? DIV : 
-                              vcu_if.mask_ena  ? MASK :
-                              vcu_if.perm_ena  ? PEM :
-                              vcu_if.is_load ? LOAD_UNIT : 
-                              vcu_if.is_store ? STORE_UNIT : ARITH; 
+                          vcu_if.reduction_ena ? RED : 
+                          vcu_if.mul_ena ? MUL : 
+                          vcu_if.div_ena ? DIV : 
+                          vcu_if.mask_ena  ? MASK :
+                          vcu_if.perm_ena  ? PEM :
+                          vcu_if.is_load ? LOAD_UNIT : 
+                          vcu_if.is_store ? STORE_UNIT : ARITH; 
 
 
 
@@ -436,7 +436,8 @@ module vector_control_unit
       OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VREDMINU, 
       OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: vcu_if.aluop = VALU_MM;
       OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, OP_VZEXT_VF2, 
-      OP_VSEXT_VF2, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID:   vcu_if.aluop = VALU_EXT;
+      OP_VSEXT_VF2: vcu_if.aluop = VALU_EXT;
+      OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID:   vcu_if.aluop = VALU_MASK;
       default: vcu_if.aluop = VALU_SLL;
     endcase
   end
@@ -496,7 +497,7 @@ module vector_control_unit
   //high_low;
   always_comb begin
     case (op_decoded)
-      VMULHU, VMULHSU, VMULH: vcu_if.high_low = 1;
+      OP_VMULHU, OP_VMULHSU, OP_VMULH: vcu_if.high_low = 1;
       default: vcu_if.high_low = 0;
     endcase
   end
@@ -504,9 +505,9 @@ module vector_control_unit
   //is_signed_mul;
   always_comb begin
     case (op_decoded)
-      VMULHU, VMUL, VMADD, VNMSUB, VMACC, VNMSAC, VWMUL, VWMACC: vcu_if.is_signed_mul = 2'b11;
-      VMULH, VWMULSU, VWMACCSU: vcu_if.is_signed_mul = 2'b10;
-      VWMACCUS: vcu_if.is_signed_mul = 2'b01;
+      OP_VMULHU, OP_VMUL, OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMUL, OP_VWMACC: vcu_if.is_signed_mul = 2'b11;
+      OP_VMULH, OP_VWMULSU, OP_VWMACCSU: vcu_if.is_signed_mul = 2'b10;
+      OP_VWMACCUS: vcu_if.is_signed_mul = 2'b01;
       default: vcu_if.is_signed_mul = 0;
     endcase
   end
@@ -514,7 +515,7 @@ module vector_control_unit
   //mul_widen_ena;
   always_comb begin
     case (op_decoded)
-      VWMULU, VWMULSU, VWMUL, VWMACCU, VWMACC, VWMACCUS, VWMACCSU: vcu_if.mul_widen_ena = 1;
+      OP_VWMULU, OP_VWMULSU, OP_VWMUL, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.mul_widen_ena = 1;
       default: vcu_if.mul_widen_ena = 0;
     endcase
   end
@@ -522,7 +523,7 @@ module vector_control_unit
   //multiply_pos_neg;
   always_comb begin
     case (op_decoded)
-      VMADD, VMACC, VWMACCU, VWMACC: vcu_if.multiply_pos_neg = 1 ;
+      OP_VMADD, OP_VMACC, OP_VWMACCU, OP_VWMACC: vcu_if.multiply_pos_neg = 1 ;
       default: vcu_if.multiply_pos_neg = 0;
     endcase
   end
@@ -530,7 +531,7 @@ module vector_control_unit
   //multiply_type;
   always_comb begin
     case (op_decoded)
-      VMADD, VNMSUB, VMACC, VNMSAC, VWMACCU, VWMACC, VWMACCUS, VWMACCSU: vcu_if.multiply_type = 1 ;
+      OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.multiply_type = 1 ;
       default: vcu_if.multiply_type = 0;
     endcase
   end
@@ -548,14 +549,14 @@ module vector_control_unit
     case(op_decoded)
       OP_VMANDN, OP_VMAND, OP_VMNAND: vcu_if.mask_type = VMASK_AND;
       OP_VMOR, OP_VMORN, OP_VMNOR:    vcu_if.mask_type = VMASK_OR;
-      OP_VMXOR, OP_VMXNOR:              vcu_if.mask_type = VMASK_XOR;
-      OP_VPOPC:                         vcu_if.mask_type = VMASK_POPC;
-      OP_VFIRST:                        vcu_if.mask_type = VMASK_FIRST;
-      OP_VMSBF:                         vcu_if.mask_type = VMASK_SBF;
-      OP_VMSOF:                         vcu_if.mask_type = VMASK_SIF;
-      OP_VMSIF:                         vcu_if.mask_type = VMASK_SOF;
-      OP_VIOTA:                         vcu_if.mask_type = VMASK_IOTA;
-      OP_VID:                           vcu_if.mask_type = VMASK_ID;
+      OP_VMXOR, OP_VMXNOR:            vcu_if.mask_type = VMASK_XOR;
+      OP_VPOPC:                       vcu_if.mask_type = VMASK_POPC;
+      OP_VFIRST:                      vcu_if.mask_type = VMASK_FIRST;
+      OP_VMSBF:                       vcu_if.mask_type = VMASK_SBF;
+      OP_VMSIF:                       vcu_if.mask_type = VMASK_SIF;
+      OP_VMSOF:                       vcu_if.mask_type = VMASK_SOF;
+      OP_VIOTA:                       vcu_if.mask_type = VMASK_IOTA;
+      OP_VID:                         vcu_if.mask_type = VMASK_ID;
       default: vcu_if.mask_type = 0;
     endcase
   end

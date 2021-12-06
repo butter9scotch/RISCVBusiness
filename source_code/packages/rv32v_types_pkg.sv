@@ -372,7 +372,8 @@ package rv32v_types_pkg;
     VALU_MERGE = 4'b1001,
     VALU_MOVE  = 4'b1010,
     VALU_MM    = 4'b1011,
-    VALU_EXT   = 4'b1100
+    VALU_EXT   = 4'b1100,
+    VALU_MASK   = 4'b1101
   } valuop_t;
 
   typedef enum logic [2:0] {

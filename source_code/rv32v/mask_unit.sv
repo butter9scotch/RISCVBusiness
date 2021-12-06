@@ -76,8 +76,8 @@ module mask_unit (
       VMASK_POPC  : mu_if.wdata_m = add_out;
       VMASK_FIRST : mu_if.wdata_m = first_element;
       VMASK_SBF   : mu_if.wdata_m = ~(constant << encoder_out);
-      VMASK_SIF   : mu_if.wdata_m = ~(constant << (encoder_out+1));
-      VMASK_SOF   : mu_if.wdata_m = 32'd1 << encoder_out;
+      VMASK_SIF   : mu_if.wdata_m = encoder_out == 0 ? 0 : ~(constant << (encoder_out+1));
+      VMASK_SOF   : mu_if.wdata_m = encoder_out == 0 ? 0 : 32'd1 << encoder_out;
       VMASK_IOTA  : mu_if.wdata_m = mu_if.iota_res; 
       default     : mu_if.wdata_m = '0;
     endcase

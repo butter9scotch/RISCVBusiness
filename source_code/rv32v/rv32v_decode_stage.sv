@@ -127,7 +127,9 @@ module rv32v_decode_stage (
 
   always_comb begin
     rfv_if.vs2_sew = sew;
-    if (vcu_if.win) begin
+    if (vcu_if.mask_ena == MASK) begin
+      rfv_if.vs2_sew = SEW32;
+    end else if (vcu_if.win) begin
       case(sew)
         SEW32, SEW16: rfv_if.vs2_sew = SEW32;
         SEW8: rfv_if.vs2_sew = SEW16;
@@ -137,7 +139,7 @@ module rv32v_decode_stage (
         F4Z, F4S: rfv_if.vs2_sew = (sew == SEW32) ? SEW8 : sew;
         F2Z, F2S: rfv_if.vs2_sew = (sew == SEW32) ? SEW16 : (sew == SEW16) ? SEW8 : sew;
       endcase
-    end
+    end 
   end
 
   //TODO: iron out exact masking logic based on offsets

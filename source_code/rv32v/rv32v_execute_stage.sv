@@ -40,7 +40,7 @@ module rv32v_execute_stage (
   logic ls, latch_ena;
 
   logic mask_bit_found;
-  logic zero_aluresult1;
+  logic zero_aluresult1, ones_aluresult0, ones_aluresult1;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -367,9 +367,13 @@ module rv32v_execute_stage (
       execute_memory_if.store       <= decode_execute_if.store;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
-      execute_memory_if.aluresult0  <= mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
+      execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
+                                        mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         decode_execute_if.reduction_ena ? reduction_alu_result : aluresult0;
-      execute_memory_if.aluresult1  <= zero_aluresult1 ? 0 : aluresult1;
+      execute_memory_if.aluresult1  <= ones_aluresult1 ? 32'hFFFF_FFFF : 
+                                        zero_aluresult1 ? 0 : aluresult1;
+      // ones_aluresult0 ? 32'hFFFF_FFFF : 
+                                        
       execute_memory_if.wen[0]        <= next_wen[0];
       execute_memory_if.wen[1]        <= next_wen[1];
       execute_memory_if.woffset0    <= next_woffset0;
@@ -395,16 +399,17 @@ module rv32v_execute_stage (
     end
   end
 
-
-  assign zero_aluresult1 = (~(&aluresult0) | mask_bit_found) & (decode_execute_if.fu_type == MASK);
+  assign ones_aluresult0 = ~mask_bit_found & (aluresult0 == 0) & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF));
+  assign ones_aluresult1 = ~mask_bit_found & (aluresult1 == 0);
+  assign zero_aluresult1 = mask_bit_found | (aluresult0 != 0) ;
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       mask_bit_found <= 0;
     end else if (~(decode_execute_if.fu_type == MASK)) begin
       mask_bit_found <= 0;
-    end else if (~mask_bit_found & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF))) begin
-      if (~(&aluresult0) | ~(&aluresult1)) begin
+    end else if (~mask_bit_found & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF) || (decode_execute_if.mask_type == VMASK_SOF))) begin
+      if ((aluresult0 != 0) || (aluresult1 != 0)) begin
         mask_bit_found <= 1;
       end
     end

@@ -187,7 +187,7 @@ module tb_rv32v_top_level ();
     // load_reg_data(1, {{8{16'hFF}}});
     load_reg_data(2, {{32{4'hF}}});
     load_reg_data(1, {{8{16'h5555}}});
-    load_reg_data(3, {{4{32'h7000_0000}}});
+    load_reg_data(3, {{2{32'h0010_0000}}, 32'h1000_0000, 32'd0});
     // load_reg_data(3, {{8{16'haaa}}});
     // load_reg_data(1, {16'h7, 16'd6, 16'd5, 16'd4, 16'h3, 16'd2, 16'd1, 16'hFFF1});
     // load_reg_data(2, {16'hF, 16'hE, 16'hD, 16'hC, 16'hB, 16'hA, 16'h9, 16'h8});
@@ -359,6 +359,8 @@ module tb_rv32v_top_level ();
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8,  VRSUB, OPIVI, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16,  VMUNARY0, OPMVV, UNMASKED));
     add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSBF));
+    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSIF));
+    add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VMUNARY0, OPMVV, UNMASKED, VMSOF));
     // add_test_case(new_config_vop_reg_case(SEW32, LMUL2, 8,  VXUNARY0, OPMVV, UNMASKED, VZEXT_VF4));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUBU_W, OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VWSUB_W,  OPMVV, UNMASKED));
@@ -393,8 +395,9 @@ module tb_rv32v_top_level ();
         // while(hu_if.busy_dec) @(posedge CLK);
       end
       repeat (1) @(posedge CLK);
+      display_reg_file();
       #(1);
-      check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
+      // check_outputs({32'hAAAA, 32'hc, 32'ha, 32'h8, 32'h6, 32'h4, 32'h2, 32'h0});
       repeat (2) @(posedge CLK);
         // testcase 
       init();
@@ -402,7 +405,6 @@ module tb_rv32v_top_level ();
     end
       
     #(PERIOD * 3);
-    display_reg_file();
     // op = VWMACCSU;
     // if (op inside {VWMACCSU, VWMACCUS}) $write("\n\n\n\nSUCCESS\n\n\n\n");
 
