@@ -34,8 +34,54 @@
 import rv32v_types_pkg::*;
 import rv32i_types_pkg::*;
 
+typedef struct packed {
+  vopi_t funct6;
+  logic vm;
+  logic [4:0] rs2;
+  logic [4:0] rs1;
+  vfunct3_t funct3;
+  logic [4:0] rd;
+  opcode_t op;
+} vopi_ins;
+
+typedef struct packed {
+  vopm_t funct6;
+  logic vm;
+  logic [4:0] rs2;
+  logic [4:0] rs1;
+  vfunct3_t funct3;
+  logic [4:0] rd;
+  opcode_t op;
+} vopm_ins;
+
 //have all instructions inherit from one instruction parent class
 //have an array of instructions, these contain the values of xs1, xs2
+
+class Driver;
+
+  vopi_ins ins_i;
+  vopm_ins ins_m;
+  vop_cfg ins_c;
+  virtual rv32v_fetch2_decode_if.fetch fd_if;
+
+  function new(virtual rv32v_fetch2_decode_if.fetch fd_if);
+    this.fd_if = fd_if;
+    this.fd_if.fault_insn = 0;
+    this.fd_if.mal_insn = 0;
+  endfunction
+
+  function set_instr(logic [31:0] instr);
+    this.ins_i = vopi_ins'(instr);
+    this.ins_m = vopm_ins'(instr);
+    this.ins_c = vop_cfg'(instr);
+    this.fd_if.instr = instr;
+  endfunction
+
+  function set_tb_line_num(int i);
+    this.fd_if.tb_line_num = i;
+  endfunction
+
+endclass
 
 
 module tb_rv32v_top_level ();
@@ -50,25 +96,7 @@ module tb_rv32v_top_level ();
 
   typedef int instr_list_t[];
 
-  typedef struct packed {
-    vopi_t funct6;
-    logic vm;
-    logic [4:0] rs2;
-    logic [4:0] rs1;
-    vfunct3_t funct3;
-    logic [4:0] rd;
-    opcode_t op;
-  } vopi_ins;
 
-  typedef struct packed {
-    vopm_t funct6;
-    logic vm;
-    logic [4:0] rs2;
-    logic [4:0] rs1;
-    vfunct3_t funct3;
-    logic [4:0] rd;
-    opcode_t op;
-  } vopm_ins;
 
   logic [31:0] xs1, xs2;
   logic scalar_hazard_if_ret;
@@ -78,6 +106,7 @@ module tb_rv32v_top_level ();
   logic [31:0] rd_data;
   instr_list_t instr_mem [];
   int testnum;
+
 
   // Outputs to the DUT
   //logic [31:0] xs1, xs2;
@@ -100,6 +129,11 @@ module tb_rv32v_top_level ();
 
   rv32v_top_level      DUT (.*);
   priv_wrapper PRIV (.prv_pipe_if(prv_if), .*);
+  Driver driver;
+
+
+  
+  
   logic update;
 
 
@@ -184,7 +218,7 @@ module tb_rv32v_top_level ();
     automatic int sum;
     sum = 0;
     for (i = VLENB - 1; i >= 0; i--) begin
-      sum += DUT.reg_file.registers[rs][i];
+      sum |= DUT.reg_file.registers[rs][i];
     end
     if (sum != 0) begin
       $write("register[%d]: ", rs);
@@ -208,34 +242,6 @@ module tb_rv32v_top_level ();
       display_reg(i);
     end
     $write("\n");
-
-  endtask
-
-  task read_init_file;
-    input string filename;
-    output int instr_mem [][];
-    int line_buffer [];
-    int i;
-    int hexfile;
-    bit [31:0] line;
-
-    hexfile = $fopen(filename, "r");   
-    instr_mem = new [0];
-    line_buffer = new [2];
-    i = 0;
-    while (!$feof(hexfile)) begin 
-      $fscanf(hexfile,"%h\n",line); 
-      line_buffer[0] = line;
-      $fscanf(hexfile,"%h\n",line); 
-      line_buffer[1] = line;
-      
-      instr_mem = new [i + 1] (instr_mem);
-      instr_mem[i] = line_buffer;
-      i = i + 1;
-      // #(1);
-    end
-    $fclose(hexfile);
-    // return instr_mem;
 
   endtask
 
@@ -323,15 +329,14 @@ module tb_rv32v_top_level ();
 
   int hexfile;
   bit [31:0] line;
-  vopi_ins ins_i;
-  vopm_ins ins_m;
-  vop_cfg ins_c;
+
   int i, old_i;
   RegReg rri;
 
 
 
   initial begin : MAIN
+    driver = new(fetch_decode_if);
     testnum = 0;
     update = 0;
     fetch_decode_if.instr = 0;
@@ -368,11 +373,8 @@ module tb_rv32v_top_level ();
       //Do one test case
       for (int j = 0; j < instr_mem[i].size(); j++) begin 
         // instr_mem[i][j]
-        ins_i = vopi_ins'(instr_mem[i][j]);
-        ins_m = vopm_ins'(instr_mem[i][j]);
-        ins_c = vop_cfg'(instr_mem[i][j]);
-        fetch_decode_if.instr = instr_mem[i][j];
-        fetch_decode_if.tb_line_num = j;
+        driver.set_instr (instr_mem[i][j]);
+        driver.set_tb_line_num (j);
         do begin
           if (hu_if.csr_update) begin j = DUT.memory_writeback_if.tb_line_num; end
           @(posedge CLK); //wait some time as needed.
