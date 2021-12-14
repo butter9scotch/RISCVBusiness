@@ -205,7 +205,7 @@ module arithmetic_unit (
       VALU_XOR   : result = vsdata2 ^ vsdata1;
       VALU_COMP  : result = comp;
       VALU_MERGE : result = merge;
-      VALU_MOVE  : result = vsdata1;
+      // VALU_MOVE  : result = vsdata1;
       VALU_MM    : result = mm;
       VALU_EXT   : result = ext;
       default   : result = '0;

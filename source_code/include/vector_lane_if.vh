@@ -28,6 +28,7 @@ interface vector_lane_if;
   logic is_masked, vd_narrow;
   logic  done_du, mul_on;
   logic decode_done; // decode done 3 cycles delayed
+  logic mul_wait;
   // , mul_ena;
 
   // modport vector_lane (
@@ -36,7 +37,7 @@ interface vector_lane_if;
 
   modport vector_lane (
     input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, 
-    mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked, vd_narrow, decode_done,
+    mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked, vd_narrow, decode_done, mul_wait,
     output  lane_result, busy, next_busy, exception, done_mu, mul_on
   );
 

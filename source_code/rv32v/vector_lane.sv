@@ -101,7 +101,7 @@ module vector_lane (
   assign vif.start_mu = mlu;
   // assign vif.start_div = dv;
   assign vif.start_ma = mau;
-  assign vif.mul_on = mlu;
+  assign vif.mul_on = mlu | vif.mul_wait;
 
   
   assign vif.busy_a   = 0;   
@@ -118,8 +118,8 @@ module vector_lane (
   assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls | vif.busy_du;
   //  | vif.busy_mu;
   assign vif.exception   = vif.exception_a | vif.exception_p | vif.exception_m |  vif.exception_du | vif.exception_mu;
-  assign vif.lane_result = (au | ru) ? vif.wdata_a :
-                           (mlu) ? vif.wdata_mu :
+  assign vif.lane_result = (au | ru) & ~vif.mul_wait ? vif.wdata_a :
+                           (mlu | vif.mul_wait) ? vif.wdata_mu :
                            (dv) ? vif.wdata_du :
                            (mau) ? vif.wdata_m :
                            (pu) ? vif.wdata_p :

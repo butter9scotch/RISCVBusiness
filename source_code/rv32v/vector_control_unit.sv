@@ -45,6 +45,7 @@ module vector_control_unit
   logic is_vopi, is_vopm;
   vopi_t funct6_opi;
   vopm_t funct6_opm;
+  logic move_ena;
   
 
   assign instr_r   = rtype_t'(vcu_if.instr);
@@ -244,6 +245,10 @@ module vector_control_unit
     end
   end
 
+  assign vcu_if.vmv_type = (op_decoded == OP_VMV1R) ? ONE :
+                    (op_decoded == OP_VMV2R) ? TWO :
+                    (op_decoded == OP_VMV4R) ? FOUR :
+                    (op_decoded == OP_VMV8R) ? EIGHT : NOT_VMV;
 
 
   //vs1 source
@@ -270,6 +275,7 @@ module vector_control_unit
     vcu_if.mask_ena = 0;
     vcu_if.perm_ena = 0;
     vcu_if.fixed_point_ena = 0;
+    move_ena = 0;
     if ((vcu_if.opcode == VECTOR) && (vfunct3 != OPCFG)) begin
       case (op_decoded)
         OP_VADD, OP_VSUB, OP_VRSUB, OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VAND, OP_VOR, OP_VXOR, OP_VADC, OP_VMADC, 
@@ -283,6 +289,7 @@ module vector_control_unit
         OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: vcu_if.mask_ena = 1;
         OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: vcu_if.perm_ena = 1;
         OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB: vcu_if.fixed_point_ena = 1;
+        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: move_ena = 1;
       endcase
     end
   end
@@ -292,12 +299,14 @@ module vector_control_unit
   //select mask unit
   assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
                           vcu_if.reduction_ena ? RED : 
-                          vcu_if.mul_ena ? MUL : 
-                          vcu_if.div_ena ? DIV : 
+                          vcu_if.mul_ena   ? MUL : 
+                          vcu_if.div_ena   ? DIV : 
                           vcu_if.mask_ena  ? MASK :
                           vcu_if.perm_ena  ? PEM :
-                          vcu_if.is_load ? LOAD_UNIT : 
-                          vcu_if.is_store ? STORE_UNIT : ARITH; 
+                          move_ena         ? MOVE :
+                          vcu_if.is_load   ? LOAD_UNIT : 
+                          vcu_if.is_store  ? STORE_UNIT : 
+                          ARITH; 
 
 
 
@@ -439,7 +448,7 @@ module vector_control_unit
       OP_VXOR, OP_VREDXOR, OP_VMXOR, OP_VMXNOR: vcu_if.aluop = VALU_XOR;
       OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, OP_VMSGT: vcu_if.aluop = VALU_COMP;    
       OP_VMERGE: vcu_if.aluop = VALU_MERGE;
-      OP_VMV, OP_VMV_X_S, OP_VMV_S_X: vcu_if.aluop = VALU_MOVE;
+      // OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: vcu_if.aluop = VALU_MOVE;
       OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VREDMINU, 
       OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: vcu_if.aluop = VALU_MM;
       OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, OP_VZEXT_VF2, 

@@ -99,6 +99,8 @@ interface vector_control_unit_if();
   logic out_inv, in_inv;
   ma_t mask_type;
 
+  vmv_type_t vmv_type;
+
   modport vcu (
     input instr,
     output dwen, dren, wen,
@@ -155,7 +157,8 @@ interface vector_control_unit_if();
     mask_logical,
     mask_type,
     out_inv,
-    in_inv
+    in_inv,
+    vmv_type
   );
 
 

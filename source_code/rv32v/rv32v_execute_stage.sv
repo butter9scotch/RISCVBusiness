@@ -41,6 +41,10 @@ module rv32v_execute_stage (
 
   logic mask_bit_found;
   logic zero_aluresult1, ones_aluresult0, ones_aluresult1;
+  logic mul_done_ff2, mul_done_ff0, mul_done_ff1, mul_done_ff3;
+  logic mlu_ff0, mlu_ff1, mlu_ff2;
+  sew_t eew_ff0, eew_ff1, eew_ff2;
+  logic [4:0] vd_ff0, vd_ff1, vd_ff2;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -207,6 +211,7 @@ module rv32v_execute_stage (
 
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
+  //  | mul_done_ff0 | mul_done_ff1 | mul_done_ff2 | mul_done_ff3;
   assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
   
   // assign vif1.index
@@ -252,9 +257,11 @@ module rv32v_execute_stage (
   // Pipeline wen, woffset for MUL
   offset_t woffset0_ff0, woffset0_ff1, woffset0_ff2, woffset1_ff0, woffset1_ff1, woffset1_ff2, next_woffset0, next_woffset1;
   logic [1:0] wen_ff0, wen_ff1, wen_ff2, next_wen;
-  assign next_woffset0 = vif0.mul_on ? woffset0_ff2 : decode_execute_if.woffset0;
-  assign next_woffset1 = vif0.mul_on ? woffset1_ff2 : decode_execute_if.woffset1;
-  assign next_wen      = vif0.mul_on ? wen_ff2 : decode_execute_if.wen;
+  // assign next_woffset0 = vif0.mul_on ? woffset0_ff2 : decode_execute_if.woffset0;
+  assign next_woffset0 = vif0.mul_on |  mul_done_ff0 | mul_done_ff1 | mul_done_ff2  ? woffset0_ff2 : decode_execute_if.woffset0;
+  // assign next_woffset1 = vif0.mul_on ? woffset1_ff2 : decode_execute_if.woffset1;
+  assign next_woffset1 = vif1.mul_on | mul_done_ff0 | mul_done_ff1 | mul_done_ff2  ? woffset1_ff2 : decode_execute_if.woffset1;
+  assign next_wen      = vif0.mul_on | mul_done_ff0 | mul_done_ff1 | mul_done_ff2  ? wen_ff2 : decode_execute_if.wen;
 
   logic [31:0] reduction_alu_result;
   logic sltu, slt;
@@ -280,7 +287,6 @@ module rv32v_execute_stage (
     endcase
   end
 
-  logic done_ff2, done_ff0, done_ff1;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
@@ -293,9 +299,21 @@ module rv32v_execute_stage (
       wen_ff0 <= '0;
       wen_ff1 <= '0;
       wen_ff2 <= '0;
-      done_ff0 <= 0;
-      done_ff1 <= 0;
-      done_ff2 <= 0;
+      mul_done_ff0 <= 0;
+      mul_done_ff1 <= 0;
+      mul_done_ff2 <= 0;
+      mlu_ff0 <= 0;
+      mlu_ff1 <= 0;
+      mlu_ff2 <= 0;
+      eew_ff0 <= 0;
+      eew_ff1 <= 0;
+      eew_ff2 <= 0;
+      vd_ff0  <= 0;
+      vd_ff1  <= 0;
+      vd_ff2  <= 0;
+
+
+      // mul_done_ff3 <= 0;
     end else if (hu_if.flush_ex) begin
       woffset0_ff0 <= 0;
       woffset0_ff1 <= 0;
@@ -306,9 +324,21 @@ module rv32v_execute_stage (
       wen_ff0 <= 0;
       wen_ff1 <= 0;
       wen_ff2 <= 0;
-      done_ff0 <= 0;
-      done_ff1 <= 0;
-      done_ff2  <= 0;
+      mul_done_ff0 <= 0;
+      mul_done_ff1 <= 0;
+      mul_done_ff2  <= 0;
+      mlu_ff0 <= 0;
+      mlu_ff1 <= 0;
+      mlu_ff2 <= 0;
+      eew_ff0 <= 0;
+      eew_ff1 <= 0;
+      eew_ff2 <= 0;
+      vd_ff0  <= 0;
+      vd_ff1  <= 0;
+      vd_ff2  <= 0;
+
+
+      // mul_done_ff3 <= 0;
     end else begin
       woffset0_ff0 <= decode_execute_if.woffset0;
       woffset0_ff1 <= woffset0_ff0;
@@ -319,17 +349,32 @@ module rv32v_execute_stage (
       wen_ff0 <= decode_execute_if.wen;
       wen_ff1 <= wen_ff0;
       wen_ff2 <= wen_ff1;
-      done_ff0 <= decode_execute_if.decode_done & (decode_execute_if.fu_type == MUL);
-      done_ff1 <= done_ff0;
-      done_ff2 <= done_ff1;
+      mul_done_ff0 <= decode_execute_if.decode_done & (decode_execute_if.fu_type == MUL);
+      mul_done_ff1 <= mul_done_ff0;
+      mul_done_ff2 <= mul_done_ff1;
+      mlu_ff0 <= decode_execute_if.fu_type == MUL;
+      mlu_ff1 <= mlu_ff0;
+      mlu_ff2 <= mlu_ff1;
+      eew_ff0 <= decode_execute_if.sew;
+      eew_ff1 <= eew_ff0;
+      eew_ff2 <= eew_ff1;
+      vd_ff0  <= decode_execute_if.vd;
+      vd_ff1  <= vd_ff0;
+      vd_ff2  <= vd_ff1;
+
+      // mul_done_ff3 <= mul_done_ff2;
     end
   end
+
+  assign vif0.mul_wait =  mlu_ff0 | mlu_ff1 | mlu_ff2;
+  assign vif1.mul_wait = mlu_ff0 | mlu_ff1 | mlu_ff2;
 
   // Pipeline Latch
   assign ls = decode_execute_if.load | decode_execute_if.store;
   assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
   assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
-  assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
+  // assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
+  assign latch_ena = ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       execute_memory_if.load        <= '0;
@@ -338,8 +383,8 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
       execute_memory_if.aluresult1  <= '0;
-      execute_memory_if.wen[0]        <= '0;
-      execute_memory_if.wen[1]        <= '0;
+      execute_memory_if.wen[0]      <= '0;
+      execute_memory_if.wen[1]      <= '0;
       execute_memory_if.woffset0    <= '0;
       execute_memory_if.woffset1    <= '0;
       execute_memory_if.config_type <= '0;
@@ -365,18 +410,18 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
       execute_memory_if.aluresult1  <= '0;
-      execute_memory_if.wen[0]        <= '0;
-      execute_memory_if.wen[1]        <= '0;
+      execute_memory_if.wen[0]      <= '0;
+      execute_memory_if.wen[1]      <= '0;
       execute_memory_if.woffset0    <= '0;
       execute_memory_if.woffset1    <= '0;
       execute_memory_if.config_type <= '0;
       execute_memory_if.vl          <= '0;
       execute_memory_if.vtype       <= '0;
-      execute_memory_if.vd                <= '0;
-      execute_memory_if.eew               <= '0;
+      execute_memory_if.vd          <= '0;
+      execute_memory_if.eew         <= '0;
       execute_memory_if.single_bit_write  <= '0;
-      execute_memory_if.next_vtype_csr  <= '0;
-      execute_memory_if.next_avl_csr  <= '0;
+      execute_memory_if.next_vtype_csr    <= '0;
+      execute_memory_if.next_avl_csr      <= '0;
 
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
@@ -394,21 +439,25 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
-                                        decode_execute_if.reduction_ena ? reduction_alu_result : aluresult0;
+                                        decode_execute_if.reduction_ena ? reduction_alu_result : 
+                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
-                                        zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : aluresult1;
+                                        zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : 
+                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane1 : aluresult1;
       // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
-      execute_memory_if.wen[0]        <= next_wen[0];
-      execute_memory_if.wen[1]        <= next_wen[1];
+      execute_memory_if.wen[0]      <= next_wen[0];
+      execute_memory_if.wen[1]      <= next_wen[1];
       execute_memory_if.woffset0    <= next_woffset0;
       execute_memory_if.woffset1    <= next_woffset1;
       execute_memory_if.config_type <= decode_execute_if.config_type;
       execute_memory_if.vtype       <= decode_execute_if.vtype;
 
       execute_memory_if.vl          <= decode_execute_if.vl;
-      execute_memory_if.vd          <= decode_execute_if.vd;
-      execute_memory_if.eew         <= decode_execute_if.eew;
+      // execute_memory_if.vd          <= decode_execute_if.vd;
+      execute_memory_if.vd          <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
+      // execute_memory_if.eew         <= decode_execute_if.eew;
+      execute_memory_if.eew         <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
       execute_memory_if.next_vtype_csr  <= decode_execute_if.next_vtype_csr;
       execute_memory_if.next_avl_csr  <= decode_execute_if.next_avl_csr;

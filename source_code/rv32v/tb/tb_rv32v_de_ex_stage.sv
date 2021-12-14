@@ -213,10 +213,6 @@ module tb_rv32v_de_ex_stage ();
         @(posedge CLK);
         while (hu_if.busy_dec) 
         begin @(posedge CLK); end
-        // @(posedge CLK); //wait some time as needed.
-        // while(hu_if.busy_dec == 1) begin
-          // @(posedge CLK);
-        // end
     end 
     //once reading and writing is finished, close the file.
     $fclose(hexfile);

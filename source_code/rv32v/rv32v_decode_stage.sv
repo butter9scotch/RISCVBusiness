@@ -75,13 +75,14 @@ module rv32v_decode_stage (
   assign vcu_if.instr = fetch_decode_if.instr;
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
-  assign ele_if.vl        = vcu_if.mask_logical ? 4 : prv_if.vl;  
+  assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
+                            (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : 
+                            (VLENB >> sew) << vcu_if.vmv_type;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.stall     = hu_if.busy_ex | vcu_if.stall;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
-  assign ele_if.sew       = sew; 
   assign ele_if.clear     = hu_if.flush_dec;
   assign ele_if.busy_ex   = hu_if.busy_ex;
   assign ele_if.slide1up  = vcu_if.vd_offset_src == VD_SRC_IDX_PLUS_1;
@@ -150,7 +151,7 @@ module rv32v_decode_stage (
   end
 
   //TODO: iron out exact masking logic based on offsets
-  always_comb begin : MASK_BITS
+  always_comb begin : MASK_BITS 
     if (vcu_if.vs1_offset_src == NORMAL) begin
       mask0 = ~vcu_if.vm ? rfv_if.vs1_mask[0] : 1;
       mask1 = ~vcu_if.vm ? rfv_if.vs1_mask[1] : 1;
@@ -474,7 +475,7 @@ module rv32v_decode_stage (
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
       decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
-      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; //vs1_data1 is not good?
+      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; 
       decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : 
                                           vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : 
                                           vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
@@ -484,24 +485,24 @@ module rv32v_decode_stage (
                                           vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[1][7:0]} : 
                                           vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset1 == prv_if.vl) ? xs1 : 
                                           rfv_if.vs2_data[1];
-      decode_execute_if.vs3_lane0     <= rfv_if.vs3_data[0];
-      decode_execute_if.vs3_lane1     <= rfv_if.vs3_data[1];
-      decode_execute_if.imm           <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
-      decode_execute_if.storedata0    <= rfv_if.vs3_data[0];
-      decode_execute_if.storedata1    <= rfv_if.vs3_data[1];
-      decode_execute_if.rd_sel        <= vcu_if.vd;
-      decode_execute_if.woffset0      <=  woffset0; //TODO: add decision logic here
-      decode_execute_if.woffset1      <=  woffset1; //TODO: add decision logic here
-      decode_execute_if.fu_type       <= vcu_if.fu_type;
-      decode_execute_if.result_type   <= vcu_if.result_type;
-      decode_execute_if.aluop         <= vcu_if.aluop;
-      decode_execute_if.rs1_type      <= vcu_if.rs1_type;
-      decode_execute_if.rs2_type      <= vcu_if.rs2_type;
-      decode_execute_if.minmax_type   <= vcu_if.minmax_type;
-      decode_execute_if.eew           <= next_decode_execute_if_eew; //TODO: after adding widening, change this     
-      decode_execute_if.vl            <= prv_if.vl;      
-      decode_execute_if.vlenb         <= prv_if.vlenb;   
-      decode_execute_if.vtype         <= prv_if.vtype;   
+      decode_execute_if.vs3_lane0         <= rfv_if.vs3_data[0];
+      decode_execute_if.vs3_lane1         <= rfv_if.vs3_data[1];
+      decode_execute_if.imm               <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
+      decode_execute_if.storedata0        <= rfv_if.vs3_data[0];
+      decode_execute_if.storedata1        <= rfv_if.vs3_data[1];
+      decode_execute_if.rd_sel            <= vcu_if.vd;
+      decode_execute_if.woffset0          <=  woffset0; 
+      decode_execute_if.woffset1          <=  woffset1; 
+      decode_execute_if.fu_type           <= vcu_if.fu_type;
+      decode_execute_if.result_type       <= vcu_if.result_type;
+      decode_execute_if.aluop             <= vcu_if.aluop;
+      decode_execute_if.rs1_type          <= vcu_if.rs1_type;
+      decode_execute_if.rs2_type          <= vcu_if.rs2_type;
+      decode_execute_if.minmax_type       <= vcu_if.minmax_type;
+      decode_execute_if.eew               <= next_decode_execute_if_eew; 
+      decode_execute_if.vl                <= (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : (VLENB >> sew) << vcu_if.vmv_type; 
+      decode_execute_if.vlenb             <= prv_if.vlenb;   
+      decode_execute_if.vtype             <= prv_if.vtype;   
       decode_execute_if.div_type          <= vcu_if.div_type;
       decode_execute_if.is_signed_div     <= vcu_if.is_signed_div;
       decode_execute_if.high_low          <= vcu_if.high_low;
@@ -544,7 +545,7 @@ module rv32v_decode_stage (
       decode_execute_if.mask_32bit_lane0  <= rfv_if.mask_32bit_lane0;
       decode_execute_if.mask_32bit_lane1  <= rfv_if.mask_32bit_lane1;
       decode_execute_if.out_inv           <= vcu_if.out_inv;
-      decode_execute_if.in_inv           <= vcu_if.in_inv;
+      decode_execute_if.in_inv            <= vcu_if.in_inv;
       decode_execute_if.decode_done       <= ele_if.done;
 
 

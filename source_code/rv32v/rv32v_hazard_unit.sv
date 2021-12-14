@@ -21,7 +21,8 @@ module rv32v_hazard_unit (
 
   // execute stage
   assign hu_if.flush_ex = hu_if.csr_update;
-  assign hu_if.stall_ex = hu_if.busy_mem | hu_if.busy_ex;
+  // assign hu_if.stall_ex = hu_if.busy_mem | hu_if.busy_ex;
+  assign hu_if.stall_ex = hu_if.busy_mem;
 
   // memory stage
   assign hu_if.flush_mem = 0;

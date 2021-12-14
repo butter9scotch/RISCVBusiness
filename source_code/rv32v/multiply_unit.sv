@@ -50,8 +50,8 @@ module multiply_unit (
     .product(product)
   );
 
-  assign mif.next_busy_mu = (start_reg | mif.start_mu) & !next_done;
-  assign mif.busy_mu      = (start_reg | mif.start_mu) & !done; 
+  // assign mif.next_busy_mu = (start_reg | mif.start_mu) & !next_done;
+  // assign mif.busy_mu      = (start_reg | mif.start_mu) & !done; 
   assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
   assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
   assign mif.wdata_mu     = mif.multiply_type ? product_mod + mif.vs3_data : final_product;

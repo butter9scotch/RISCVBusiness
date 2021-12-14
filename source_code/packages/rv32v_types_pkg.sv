@@ -352,15 +352,16 @@ package rv32v_types_pkg;
   typedef logic [7:0] byte_t;
   typedef byte_t [VLENB-1:0]  vreg_t;
 
-  typedef enum logic [2:0] {
-    ARITH   = 3'b000,
-    RED     = 3'b001,
-    MUL     = 3'b010,
-    DIV     = 3'b011,
-    MASK    = 3'b100,
-    PEM     = 3'b101,
-    LOAD_UNIT    = 3'b110,
-    STORE_UNIT   = 3'b111
+  typedef enum logic [3:0] {
+    ARITH       = 4'b0000,
+    RED         = 4'b0001,
+    MUL         = 4'b0010,
+    DIV         = 4'b0011,
+    MASK        = 4'b0100,
+    PEM         = 4'b0101,
+    LOAD_UNIT   = 4'b0110,
+    STORE_UNIT  = 4'b0111,
+    MOVE         = 4'b1000
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -374,7 +375,7 @@ package rv32v_types_pkg;
     VALU_XOR   = 4'b0111,
     VALU_COMP  = 4'b1000,
     VALU_MERGE = 4'b1001,
-    VALU_MOVE  = 4'b1010,
+    // VALU_MOVE  = 4'b1010,
     VALU_MM    = 4'b1011,
     VALU_EXT   = 4'b1100,
     VALU_MASK   = 4'b1101
@@ -471,6 +472,14 @@ package rv32v_types_pkg;
     logic [4:0] rd;
     rv32i_types_pkg::opcode_t op;
   } vop_cfg;
+
+  typedef enum logic [2:0] {
+    ONE = 0,
+    TWO = 1,
+    FOUR = 2, 
+    EIGHT = 3,
+    NOT_VMV = 7
+  } vmv_type_t;
 
 
 endpackage
