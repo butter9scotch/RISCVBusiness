@@ -70,7 +70,7 @@ interface vector_control_unit_if();
   rs_t rs2_type;
   logic stride_type;
 // TODO:
-  logic is_signed; //op in the execution units is signed 
+  sign_type_t is_signed;
   logic ls_idx;
   // result_type,  multiply_type, multiply_pos_neg, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena,  minmax_type, carryin_ena, win, zext_w, woutu, index,
   logic vd_widen, vd_narrow;

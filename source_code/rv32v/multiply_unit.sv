@@ -30,8 +30,9 @@ module multiply_unit (
 );
 
   import rv32v_types_pkg::*;
-
+  
   logic start_reg, next_start_reg;
+  logic [31:0] vs1_data, vs2_data;
   logic done, next_done;
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32, selected_product, final_product, product_mod, product_3in;
@@ -41,8 +42,8 @@ module multiply_unit (
   rv32v_multiplier MULU (
     .CLK(CLK),
     .nRST(nRST),
-    .multiplicand(mif.vs2_data),
-    .multiplier(mif.vs1_data),
+    .multiplicand(vs2_data),
+    .multiplier(vs1_data),
     .is_signed(mif.is_signed_mul),
     .start(start_reg),
     .finished(done),
@@ -57,6 +58,11 @@ module multiply_unit (
   assign mif.wdata_mu     = mif.multiply_type ? product_mod + mif.vs3_data : final_product;
   assign mif.exception_mu = 0; // TODO
   assign mif.done_mu      = done; 
+  
+  assign vs1_data =  (mif.sew == SEW16) & mif.is_signed_mul[0] ? {{16{mif.vs1_data[15]}}, mif.vs1_data[15:0]}: 
+                     (mif.sew == SEW8)  & mif.is_signed_mul[0] ? {{24{mif.vs1_data[7]}}, mif.vs1_data[7:0]}: mif.vs1_data;
+  assign vs2_data = (mif.sew == SEW16)  & mif.is_signed_mul[1] ? {{16{mif.vs2_data[15]}}, mif.vs2_data[15:0]}: 
+                    (mif.sew == SEW8)   & mif.is_signed_mul[1] ? {{24{mif.vs2_data[7]}}, mif.vs2_data[7:0]}: mif.vs2_data;
 
   // Fix corner case: Operate only 1 or 2 element consecutively
 

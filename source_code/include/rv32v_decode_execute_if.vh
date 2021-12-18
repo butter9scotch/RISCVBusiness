@@ -4,9 +4,10 @@
 interface rv32v_decode_execute_if;
   import rv32v_types_pkg::*;
 
-  logic stride_type, rd_wen, mask0, mask1, reduction_ena, is_signed, ls_idx, load, store, vill;
+  logic stride_type, rd_wen, mask0, mask1, reduction_ena, ls_idx, load, store, vill;
+  sign_type_t is_signed;
   logic [1:0] wen;
-
+  
   cfgsel_t config_type;
   logic [31:0] stride_val, xs1, xs2,  vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, vs2_lane0, vs2_lane1, imm, storedata0, storedata1;
   logic [31:0] rd_data; // scalar data using rd

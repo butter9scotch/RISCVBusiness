@@ -21,7 +21,8 @@ interface vector_lane_if;
   mm_t minmax_type;
   ext_t ext_type;
   ma_t mask_type;
-  logic is_signed, busy_du, exception_du;
+  logic busy_du, exception_du;
+  sign_type_t is_signed;
   logic next_busy_mu, next_busy;
   logic vd_widen;
   offset_t index;
@@ -47,12 +48,12 @@ interface vector_lane_if;
   );
 
   modport multiply_unit (
-    input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, decode_done, 
+    input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, decode_done, is_signed,
     output  wdata_mu, busy_mu, exception_mu, next_busy_mu, done_mu
   );
 
   modport divide_unit (
-    input   vs1_data, vs2_data, start_div, div_type, is_signed_div,
+    input   vs1_data, vs2_data, start_div, div_type, is_signed_div, is_signed,
     output  wdata_du, busy_du, exception_du, done_du
   );
 

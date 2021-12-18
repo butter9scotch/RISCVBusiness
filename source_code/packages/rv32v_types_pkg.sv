@@ -481,6 +481,13 @@ package rv32v_types_pkg;
     NOT_VMV = 7
   } vmv_type_t;
 
+  typedef enum logic [1:0] {
+    SIGNED = 2'b11,
+    SIGNED_UNSIGNED = 2'b10,
+    UNSIGNED_SIGNED = 2'b01,
+    UNSIGNED = 0
+  } sign_type_t;
+
 
 endpackage
 `endif

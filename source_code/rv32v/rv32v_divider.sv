@@ -29,7 +29,7 @@ module rv32v_divider
 (
 	input logic CLK, 
 	input logic nRST, 
-  	input logic start,
+  input logic start,
 	input logic is_signed, //new
 	input logic [NUM_BITS-1:0] dividend, 
 	input logic [NUM_BITS-1:0] divisor, 

@@ -156,9 +156,9 @@ module tb_rv32v_top_level ();
     // SEW 32, lmul 2, so 8 32 bit elements
     // should add to 78787878  with adc
     load_reg_data(1, {32'h3, 32'h2, 32'h1, 32'h1}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(2, {32'h7, 32'h6, 32'h5, 32'h0000_0008}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(3, {32'h6, 32'h4, 32'h2, 32'h1}); //, 16'h3, 16'h2, 16'h1, 16'h0});
-    load_reg_data(4, {32'he, 32'hc, 32'ha, 32'h0000_0002}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(2, {32'h7, 32'h6, 32'h5, 32'h0002_0003}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(3, {32'h8, 32'h5, 32'h2, 32'h1}); //, 16'h3, 16'h2, 16'h1, 16'h0});
+    load_reg_data(4, {32'hf, 32'hd, 32'hb, 32'hFFFF_FFFE}); //, 16'h3, 16'h2, 16'h1, 16'h0});
     // load_reg_data(11, {32'h9, 32'h9, 32'h9, 32'h9}); //, 16'h3, 16'h2, 16'h1, 16'h0});
     // load_reg_data(12, {32'ha, 32'ha, 32'ha, 32'ha}); //, 16'h3, 16'h2, 16'h1, 16'h0});
     // load_reg_data(13, {32'h9, 32'h9, 32'h9, 32'h9}); //, 16'h3, 16'h2, 16'h1, 16'h0});
@@ -352,8 +352,10 @@ module tb_rv32v_top_level ();
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VMULHU, OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VREDSUM, OPMVV, UNMASKED));
     // add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VMUL, OPMVV, UNMASKED)); //VMV
-    add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VMUL, OPMVV, UNMASKED)); //VMV
-    add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VMUL, OPMVV, UNMASKED)); //VMV
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VMUL,    OPMVV, UNMASKED)); //VMV
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VMULHU,  OPMVV, UNMASKED)); //VMV
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VMULHSU, OPMVV, UNMASKED)); //VMV
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VMULH,   OPMVV, UNMASKED)); //VMV
     // add_test_case(new_config_vop_reg_case(SEW16, LMUL2, 16, VSMUL, OPIVI, UNMASKED, 0));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VADD, OPIVV, MASKED));
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 16, VADD, OPIVV, UNMASKED));
