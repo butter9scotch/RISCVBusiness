@@ -3,7 +3,7 @@
 module rv32v_hazard_unit (
   rv32v_hazard_unit_if.hazard_unit hu_if
 );
-  //import rv32v_types_pkg::*;
+  //import rv32i_types_pkg::*;
 
   // TODO: Add exception signal to flush
 

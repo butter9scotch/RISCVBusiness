@@ -27,7 +27,7 @@
 `define ELEMENT_COUNTER_IF_VH
 interface element_counter_if();
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
   
   offset_t offset;
   logic  done, next_done;

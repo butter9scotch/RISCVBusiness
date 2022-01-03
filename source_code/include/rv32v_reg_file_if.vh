@@ -28,8 +28,8 @@
 
 interface rv32v_reg_file_if();
 
-  import rv32v_types_pkg::*;
   import rv32i_types_pkg::*;
+  // import rv32i_types_pkg::*;
 
   word_t  [NUM_LANES - 1:0]  w_data, vs1_data, vs2_data, vs3_data;
   word_t  mask_32bit_lane0, mask_32bit_lane1;

@@ -2,7 +2,7 @@
 `define VECTOR_LANE_IF_VH
 
 interface vector_lane_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
   logic[31:0] stride, lane_result;
   fu_t fu_type;
   logic[2:0] load_store_type;

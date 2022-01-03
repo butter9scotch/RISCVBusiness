@@ -2,7 +2,7 @@
 `define ADDRESS_SCHEDULER_IF_VH
 
 interface address_scheduler_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
   logic [31:0] addr0, addr1, storedata0, storedata1;
   logic [31:0] final_addr, final_storedata;
   logic [1:0] byte_ena;

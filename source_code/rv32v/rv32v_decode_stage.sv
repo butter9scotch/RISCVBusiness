@@ -42,7 +42,7 @@ module rv32v_decode_stage (
 );
 
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   parameter TODO = 0;
   

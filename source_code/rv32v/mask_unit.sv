@@ -28,7 +28,7 @@ module mask_unit (
   vector_lane_if.mask_unit mu_if
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic [31:0] in1, result, aluresult, encoder_result, constant, anded, add_out, first_element;
   logic [4:0] encoder_out, add_out0, add_out1, add_out2, add_out3;

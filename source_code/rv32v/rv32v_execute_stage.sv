@@ -34,7 +34,7 @@ module rv32v_execute_stage (
   rv32v_execute_memory_if.execute execute_memory_if
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic [31:0] aluresult0, aluresult1, portb0, base_addr, addr_buffer, coherence_res;
   logic ls, latch_ena;
@@ -69,6 +69,8 @@ module rv32v_execute_stage (
   // Data select 
   assign vif0.vs3_data = decode_execute_if.vs3_lane0; // Needed for mul-add instr
   assign vif1.vs3_data = decode_execute_if.vs3_lane1; // Needed for mul-add instr
+
+  
   always_comb begin
     case(decode_execute_if.rs1_type)
       V:
@@ -214,7 +216,6 @@ module rv32v_execute_stage (
   //  | mul_done_ff0 | mul_done_ff1 | mul_done_ff2 | mul_done_ff3;
   assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
   
-  // assign vif1.index
   // assign vif1.start
   // assign vif1.win
   // assign vif1.woutu
@@ -355,7 +356,7 @@ module rv32v_execute_stage (
       mlu_ff0 <= decode_execute_if.fu_type == MUL;
       mlu_ff1 <= mlu_ff0;
       mlu_ff2 <= mlu_ff1;
-      eew_ff0 <= decode_execute_if.sew;
+      eew_ff0 <= decode_execute_if.eew;
       eew_ff1 <= eew_ff0;
       eew_ff2 <= eew_ff1;
       vd_ff0  <= decode_execute_if.vd;

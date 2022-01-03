@@ -27,8 +27,8 @@
 `define VECTOR_CONTROL_UNIT_IF_VH
 interface vector_control_unit_if();
   import alu_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
 
   word_t instr;
   

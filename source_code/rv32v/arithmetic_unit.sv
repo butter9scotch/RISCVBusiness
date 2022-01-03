@@ -29,7 +29,7 @@ module arithmetic_unit (
   vector_lane_if.arithmetic_unit aif
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic [31:0] vsdata1, vsdata2, vsdata3, other, sdata1, op3res, merge, comp, min, minu, max, maxu, mm, ext, f2z, f2s, f4z, f4s, f8z, f8s, finaldata2, finalresult, accumulator;
   logic [32:0] as_res, result;

@@ -33,8 +33,8 @@ module vector_control_unit
   //input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
   // import alu_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
   // import machine_mode_types_1_11_pkg::*;
 
   rtype_t instr_r;
@@ -45,7 +45,7 @@ module vector_control_unit
   logic is_vopi, is_vopm;
   vopi_t funct6_opi;
   vopm_t funct6_opm;
-  logic move_ena;
+  logic move_ena, madd_ena;
   
 
   assign instr_r   = rtype_t'(vcu_if.instr);
@@ -64,9 +64,7 @@ module vector_control_unit
   assign lumop               = lumop_t'(vcu_if.instr[24:20]);
   assign funct6_opi          = vopi_t'(vcu_if.instr[31:26]);
   assign funct6_opm          = vopm_t'(vcu_if.instr[31:26]);  
-  assign vfunct3             = vfunct3_t'(instr_r.funct3);
-
-  
+  assign vfunct3             = vfunct3_t'(vcu_if.instr[14:12]);
 
   // Assign the immediate values
   assign vcu_if.imm_5   = vcu_if.instr[19:15];
@@ -267,7 +265,38 @@ module vector_control_unit
                                   ((funct6_opi == VWXUNARY0) && 
                                   ((vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VFIRST)))) && 
                                   (vcu_if.opcode == VECTOR); 
+  // always_comb begin
+  //   vcu_if.arith_ena = 0;
+  //   vcu_if.reduction_ena = 0;
+  //   vcu_if.mul_ena = 0;
+  //   vcu_if.div_ena = 0;
+  //   vcu_if.mask_ena = 0;
+  //   vcu_if.perm_ena = 0;
+  //   vcu_if.fixed_point_ena = 0;
+  //   move_ena = 0;
+  //   madd_ena = 0;
+  //   if ((vcu_if.opcode == VECTOR) && (vfunct3 != OPCFG)) begin
+  //     case (op_decoded)
+  //       OP_VADD, OP_VSUB, OP_VRSUB, OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VAND, OP_VOR, OP_VXOR, OP_VADC, OP_VMADC, 
+  //       OP_VSBC, OP_VMSBC, OP_VMERGE, OP_VMERGE, OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, 
+  //       OP_VMSGT, OP_VSRL, OP_VSRA, OP_VNSRL, OP_VNSRA, OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, 
+  //       OP_VZEXT_VF2, OP_VSEXT_VF2,   OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
+  //       OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W: vcu_if.arith_ena = 1;
+  //       OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: vcu_if.reduction_ena = 1;
+  //       OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.mul_ena = 1;
+  //       OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: vcu_if.div_ena = 1;
+  //       OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: vcu_if.mask_ena = 1;
+  //       OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: vcu_if.perm_ena = 1;
+  //       OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB: vcu_if.fixed_point_ena = 1;
+  //       OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: move_ena = 1;
+  //       OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: madd_ena = 1;
+  //     endcase
+  //   end
+  // end
+
+
   always_comb begin
+    vcu_if.fu_type = ARITH;
     vcu_if.arith_ena = 0;
     vcu_if.reduction_ena = 0;
     vcu_if.mul_ena = 0;
@@ -275,38 +304,66 @@ module vector_control_unit
     vcu_if.mask_ena = 0;
     vcu_if.perm_ena = 0;
     vcu_if.fixed_point_ena = 0;
-    move_ena = 0;
+
+    if (vcu_if.is_load) vcu_if.fu_type = LOAD_UNIT;
+    if (vcu_if.is_store) vcu_if.fu_type = STORE_UNIT;
     if ((vcu_if.opcode == VECTOR) && (vfunct3 != OPCFG)) begin
       case (op_decoded)
         OP_VADD, OP_VSUB, OP_VRSUB, OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VAND, OP_VOR, OP_VXOR, OP_VADC, OP_VMADC, 
         OP_VSBC, OP_VMSBC, OP_VMERGE, OP_VMERGE, OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, 
         OP_VMSGT, OP_VSRL, OP_VSRA, OP_VNSRL, OP_VNSRA, OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, 
-        OP_VZEXT_VF2, OP_VSEXT_VF2, OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
-        OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.arith_ena = 1;
-        OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: vcu_if.reduction_ena = 1;
-        OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.mul_ena = 1;
-        OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: vcu_if.div_ena = 1;
-        OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: vcu_if.mask_ena = 1;
-        OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: vcu_if.perm_ena = 1;
-        OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB: vcu_if.fixed_point_ena = 1;
-        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: move_ena = 1;
+        OP_VZEXT_VF2, OP_VSEXT_VF2,   OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
+        OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W: begin vcu_if.fu_type = ARITH; vcu_if.arith_ena = 1; end
+        OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: begin vcu_if.fu_type = RED; vcu_if.reduction_ena = 1; end
+        OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: begin vcu_if.fu_type = MUL; vcu_if.mul_ena = 1; end
+        OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: begin vcu_if.fu_type = DIV; vcu_if.div_ena = 1; end 
+        OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: begin vcu_if.fu_type = MASK; vcu_if.mask_ena = 1; end
+        OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: begin vcu_if.fu_type = PEM; vcu_if.perm_ena = 1; end
+        OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB:begin  vcu_if.fu_type = FIXED_POINT; vcu_if.fixed_point_ena = 1; end
+        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: begin vcu_if.fu_type = MOVE; end
+        OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: begin vcu_if.fu_type = MADD; end
+        default:   begin 
+                vcu_if.fu_type = ARITH;
+                vcu_if.arith_ena = 0;
+                vcu_if.reduction_ena = 0;
+                vcu_if.mul_ena = 0;
+                vcu_if.div_ena = 0;
+                vcu_if.mask_ena = 0;
+                vcu_if.perm_ena = 0;
+                vcu_if.fixed_point_ena = 0;
+        end
       endcase
     end
   end
-  assign vcu_if.loadstore_ena = vcu_if.is_load | vcu_if.is_store; 
-    
 
-  //select mask unit
-  assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
-                          vcu_if.reduction_ena ? RED : 
-                          vcu_if.mul_ena   ? MUL : 
-                          vcu_if.div_ena   ? DIV : 
-                          vcu_if.mask_ena  ? MASK :
-                          vcu_if.perm_ena  ? PEM :
-                          move_ena         ? MOVE :
-                          vcu_if.is_load   ? LOAD_UNIT : 
-                          vcu_if.is_store  ? STORE_UNIT : 
-                          ARITH; 
+
+  assign vcu_if.loadstore_ena = vcu_if.is_load | vcu_if.is_store; 
+
+  // //select mask unit
+  // assign vcu_if.fu_type =  :
+  //                          : 
+  //                          : 
+  //                         vcu_if.div_ena   ? DIV :  
+  //                         vcu_if.mask_ena  ? MASK :
+  //                         vcu_if.perm_ena  ? PEM :
+  //                         move_ena         ? MOVE :
+  //                         madd_ena         ? MADD :
+  //                         vcu_if.is_load   ? LOAD_UNIT : 
+  //                         vcu_if.is_store  ? STORE_UNIT : 
+  //                         ARITH; 
+
+  //   assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
+  //                         vcu_if.reduction_ena ? RED : 
+  //                         vcu_if.mul_ena   ? MUL : 
+  //                         vcu_if.div_ena   ? DIV :  
+  //                         vcu_if.mask_ena  ? MASK :
+  //                         vcu_if.perm_ena  ? PEM :
+  //                         move_ena         ? MOVE :
+  //                         madd_ena         ? MADD :
+  //                         vcu_if.is_load   ? LOAD_UNIT : 
+  //                         vcu_if.is_store  ? STORE_UNIT : 
+  //                         ARITH; 
+
 
 
 
@@ -330,7 +387,7 @@ module vector_control_unit
   always_comb begin
     case(vcu_if.opcode)
       LOAD_FP: vcu_if.wen   = 2'b11;
-      VECTOR:  vcu_if.wen = {is_vopi || is_vopm, is_vopi || is_vopm};
+      VECTOR:  vcu_if.wen = {is_vopi | is_vopm, is_vopi | is_vopm};
       STORE_FP: vcu_if.wen   = 1'b0;
       default:  vcu_if.wen   = 1'b0;
     endcase
@@ -427,8 +484,7 @@ module vector_control_unit
       OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, OP_VZEXT_VF2, OP_VSEXT_VF2, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, 
       OP_VCOMPRESS, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR, OP_VWADDU, OP_VWADD, OP_VWSUBU, 
       OP_VWSUB, OP_VWADDU_W, OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W:  vcu_if.result_type =    NORMAL; 
-      OP_VMADC, OP_VMSBC: vcu_if.result_type = A_S; 
-      OP_VADC, OP_VSBC: vcu_if.result_type = A_S;
+      OP_VMADC, OP_VMSBC, OP_VADC, OP_VSBC: vcu_if.result_type = A_S; 
       OP_VSMUL, OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: vcu_if.result_type = MULTI;
       OP_VDIVU, OP_VDIV: vcu_if.result_type = DIVI;
       OP_VREMU, OP_VREM: vcu_if.result_type = REM;

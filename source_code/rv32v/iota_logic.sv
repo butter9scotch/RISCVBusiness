@@ -29,7 +29,7 @@ module iota_logic (
   iota_logic_if.iota_logic iif
 );    
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic [63:0] temp;
   logic [31:0] out1, out2, out3, out4, out5, out6, out7, out8;

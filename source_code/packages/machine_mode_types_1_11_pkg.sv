@@ -26,7 +26,8 @@
 `define MACHINE_MODE_TYPES_1_11_PKG_SV
 
 package machine_mode_types_1_11_pkg;
-  import rv32v_types_pkg::*;
+  // import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   typedef enum logic [11:0] {
     /* Machine Mode Addresses */

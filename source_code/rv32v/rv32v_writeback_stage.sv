@@ -11,7 +11,7 @@ module rv32v_writeback_stage(
 
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   assign rd_wen   = memory_writeback_if.rd_wen;
   assign rd_sel   = memory_writeback_if.rd_sel;

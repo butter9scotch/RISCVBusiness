@@ -35,7 +35,7 @@ module rv32v_memory_stage (
   rv32v_memory_writeback_if.memory memory_writeback_if,
   prv_pipeline_if.pipe prv_if
 );
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   logic [31:0] data0, wdat0, wdat1;

@@ -29,7 +29,7 @@ module address_scheduler (
   address_scheduler_if.address_scheduler asif
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic misalign0, misalign1, daccess;
 

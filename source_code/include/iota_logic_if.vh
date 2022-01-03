@@ -2,7 +2,7 @@
 `define IOTA_LOGIC_IF_VH
 
 interface iota_logic_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
   logic [63:0] mask_bits;
   logic start;
   sew_t sew;

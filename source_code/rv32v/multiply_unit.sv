@@ -29,7 +29,7 @@ module multiply_unit (
   vector_lane_if.multiply_unit mif
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
   
   logic start_reg, next_start_reg;
   logic [31:0] vs1_data, vs2_data;

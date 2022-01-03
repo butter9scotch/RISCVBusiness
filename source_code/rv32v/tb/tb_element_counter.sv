@@ -27,7 +27,7 @@
 `timescale 1ns/100ps
 
 module tb_element_counter ();
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
 
   parameter NUM_TESTS = 19;

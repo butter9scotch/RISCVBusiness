@@ -28,8 +28,8 @@ module element_counter (
   input CLK, nRST,
   element_counter_if.decode ele_if
 );
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
   offset_t next_offset;
   // logic next_done;
 

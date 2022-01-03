@@ -30,7 +30,7 @@ module compress_offset_unit(
   compress_offset_unit_if.compress_offset_unit cou_if
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   // TODO: assign mask2bit logics
 

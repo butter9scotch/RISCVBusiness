@@ -33,7 +33,7 @@
 interface prv_pipeline_if();
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
 
   // exception signals
   logic fault_insn, mal_insn, illegal_insn, fault_l, mal_l, fault_s, mal_s,

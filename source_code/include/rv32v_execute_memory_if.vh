@@ -2,7 +2,7 @@
 `define RV32V_EXECUTE_MEMORY_IF_VH
 
 interface rv32v_execute_memory_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic load, store;
   logic [1:0] wen;

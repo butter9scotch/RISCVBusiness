@@ -29,7 +29,7 @@ module divide_unit (
   vector_lane_if.divide_unit dif
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic start_reg, done;
   logic [31:0] quotient, remainder;

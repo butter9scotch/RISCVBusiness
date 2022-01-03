@@ -26,7 +26,7 @@
 // `define TESTBENCH
 
 module tb_rv32v_reg_file ();
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
 
   parameter NUM_TESTS = 19;

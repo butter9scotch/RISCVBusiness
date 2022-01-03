@@ -2,7 +2,7 @@
 `define RV32V_DECODE_EXECUTE_IF_VH
 
 interface rv32v_decode_execute_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic stride_type, rd_wen, mask0, mask1, reduction_ena, ls_idx, load, store, vill;
   sign_type_t is_signed;

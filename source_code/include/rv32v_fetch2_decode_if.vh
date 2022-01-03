@@ -27,8 +27,8 @@
 
 interface rv32v_fetch2_decode_if();
 
-  import rv32v_types_pkg::*;
   import rv32i_types_pkg::*;
+  // import rv32i_types_pkg::*;
 
   word_t        instr;
   logic         mal_insn;

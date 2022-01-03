@@ -33,7 +33,7 @@
 // `include "instruction.svh"
 
 module tb_rv32v_decode_stage ();
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
 
   parameter PERIOD = 20;

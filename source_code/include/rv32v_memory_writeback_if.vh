@@ -2,7 +2,7 @@
 `define RV32V_MEMORY_WRITEBACK_IF_VH
 
 interface rv32v_memory_writeback_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic [31:0] wdat0, wdat1;
   // logic wen0, wen1;

@@ -32,6 +32,7 @@ package rv32v_types_pkg;
   parameter VLEN = 1 << 7; 
   parameter VLENB = VLEN / 8; //VLEN in bytes- TODO change to use csr val
   parameter NUM_LANES = 2;
+  // import rv32i_types_pkg::opcode_t;
 
 
   typedef enum logic [2:0]  {
@@ -353,15 +354,17 @@ package rv32v_types_pkg;
   typedef byte_t [VLENB-1:0]  vreg_t;
 
   typedef enum logic [3:0] {
-    ARITH       = 4'b0000,
-    RED         = 4'b0001,
-    MUL         = 4'b0010,
-    DIV         = 4'b0011,
-    MASK        = 4'b0100,
-    PEM         = 4'b0101,
-    LOAD_UNIT   = 4'b0110,
-    STORE_UNIT  = 4'b0111,
-    MOVE         = 4'b1000
+    ARITH,
+    RED,
+    MUL,
+    DIV,
+    MASK,
+    PEM,
+    FIXED_POINT,
+    LOAD_UNIT,
+    STORE_UNIT,
+    MOVE,
+    MADD,
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -470,7 +473,7 @@ package rv32v_types_pkg;
     logic [4:0] rs1;
     vfunct3_t funct3;
     logic [4:0] rd;
-    rv32i_types_pkg::opcode_t op;
+    // rv32i_types_pkg::opcode_t op;
   } vop_cfg;
 
   typedef enum logic [2:0] {

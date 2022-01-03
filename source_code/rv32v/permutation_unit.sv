@@ -28,7 +28,7 @@ module permutation_unit (
   vector_lane_if.permutation_unit pu_if
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   assign pu_if.wdata_p = pu_if.vs2_data;
 

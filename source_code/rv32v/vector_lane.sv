@@ -29,7 +29,7 @@ module vector_lane (
   vector_lane_if vif
 );
 
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   // Instantiate fall functional unit
 
@@ -63,7 +63,7 @@ module vector_lane (
     .lsif(vif)
   ); 
 
-  logic au, ru, mlu, dv, mau, pu, lu, su, prev_dv, start_reg, done_reg;
+  logic au, ru, mlu, dv, mau, pu, lu, su, maddu, prev_dv, start_reg, done_reg;
   /*always_ff @(posedge CLK or negedge nRST) begin
     if (~nRST) begin
       vif.start_div <= 0;
@@ -98,10 +98,11 @@ module vector_lane (
   assign pu  = vif.fu_type == PEM;
   assign lu  = vif.fu_type == LOAD_UNIT;
   assign su  = vif.fu_type == STORE_UNIT;
-  assign vif.start_mu = mlu;
-  // assign vif.start_div = dv;
+  assign maddu = vif.fu_type == MADD;
+
+  assign vif.start_mu = mlu | maddu;
   assign vif.start_ma = mau;
-  assign vif.mul_on = mlu | vif.mul_wait;
+  assign vif.mul_on = mlu | maddu | vif.mul_wait ;
 
   
   assign vif.busy_a   = 0;   
@@ -118,7 +119,7 @@ module vector_lane (
   assign vif.busy        = vif.busy_a | vif.busy_p | vif.busy_m | vif.busy_ls | vif.busy_du;
   //  | vif.busy_mu;
   assign vif.exception   = vif.exception_a | vif.exception_p | vif.exception_m |  vif.exception_du | vif.exception_mu;
-  assign vif.lane_result = (au | ru) & ~vif.mul_wait ? vif.wdata_a :
+  assign vif.lane_result = ((au | ru) & ~vif.mul_wait) | maddu ? vif.wdata_a :
                            (mlu | vif.mul_wait) ? vif.wdata_mu :
                            (dv) ? vif.wdata_du :
                            (mau) ? vif.wdata_m :

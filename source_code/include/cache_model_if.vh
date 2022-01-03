@@ -2,7 +2,8 @@
 `define CACHE_MODEL_IF_VH
 
 interface cache_model_if;
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic dhit, ren, wen;
   logic [1:0] byte_ena;

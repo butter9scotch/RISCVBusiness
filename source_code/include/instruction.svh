@@ -1,8 +1,8 @@
 // `ifndef TRANSACTION_SVH
 // `define TRANSACTION_SVH
 
-import rv32v_types_pkg::*;
 import rv32i_types_pkg::*;
+// import rv32i_types_pkg::*;
 
 class instruction;
     bit [4:0] vd;

@@ -3,7 +3,7 @@
 ##############################################################################
 
 HEADER_FILES := -incdir ./include 
-PKG_FILES := packages/rv32v_types_pkg.sv packages/rv32i_types_pkg.sv packages/alu_types_pkg.sv packages/machine_mode_types_1_11_pkg.sv  packages/machine_mode_types_pkg.sv packages/pipe5_types_pkg.sv 
+PKG_FILES :=  packages/rv32i_types_pkg.sv packages/alu_types_pkg.sv packages/machine_mode_types_1_11_pkg.sv  packages/machine_mode_types_pkg.sv packages/pipe5_types_pkg.sv 
 
 # STANDARD_CORE_FILES = rv32v/$(TOP_LEVEL_FILE).sv rv32v/microop_buffer.sv rv32v/element_counter.sv rv32v/rv32v_reg_file.sv rv32v/vector_control_unit.sv 
 # STANDARD_CORE_FILES = rv32v/*.sv
@@ -78,6 +78,7 @@ clean:
 	@rm -f *.log*
 	@rm -f *.rpt.old
 	@rm -f irun.*
+	@rm -f *.diag
 	@echo -e "Done\n\n"
 	
 print_vars:
@@ -91,11 +92,8 @@ print_vars:
 # Synthesis Target
 ##############################################################################
 
-source:
-	$(IRUN)  $(PKG_FILES) $(HEADER_FILES) $(STANDARD_CORE_FILES) $(TB) $(SRC_FILE) $(TEST)
-
-deex:
-	$(IRUN)  $(PKG_FILES) $(HEADER_FILES) $(DE_EX_FILES) rv32v/tb/tb_rv32v_de_ex_stage.sv $(SRC_FILE) $(TEST)
-	
-top_level: 
+top_level_gui:
 	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)
+top_level_no_gui:
+	@irun  -access +rwc -lwdgen -timescale 1ns/100ps -shm $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)
+		

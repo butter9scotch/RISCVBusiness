@@ -3,7 +3,7 @@
 `define RV32V_TOP_LEVEL_IF_VH
 
 interface rv32v_top_level_if;
-  import rv32v_types_pkg::*;
+  import rv32i_types_pkg::*;
 
   logic rd_wen;
   logic [4:0] rd_sel;

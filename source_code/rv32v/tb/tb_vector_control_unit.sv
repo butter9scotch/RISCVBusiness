@@ -26,7 +26,7 @@
 `include "instruction.svh"
 
 module tb_vector_control_unit ();
-  import rv32v_types_pkg::*;
+  // import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
 
   int testnum;
