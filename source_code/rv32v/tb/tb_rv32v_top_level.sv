@@ -299,14 +299,14 @@ module tb_rv32v_top_level ();
 
   endfunction
 
-  function bit [31:0] check_32(
+  function bit [31:0] check_normal(
     vop_decoded_t op,
+    bit vm,
     int vs1, vs2, vd
   );
 
     case (op)
     OP_VADD: begin
-      // $info ("%h-%h-%h", vs1, vs2, vd);
         return (vs1 + vs2) ;
     end
     OP_VSUB: begin
@@ -315,6 +315,39 @@ module tb_rv32v_top_level ();
     OP_VRSUB: begin
         return (vs1 - vs2);
     end
+    OP_VMINU: begin
+        return vs1 > vs2 ? vs2 : vs1;
+    end
+    OP_VMIN: begin
+        return $signed(vs1) > $signed(vs2) ? vs2 : vs1;
+    end
+    OP_VMAXU: begin
+        return vs1 < vs2 ? vs2 : vs1;
+    end
+    OP_VMAX: begin
+        return $signed(vs1) < $signed(vs2) ? vs2 : vs1;
+    end
+    OP_VAND: begin
+        return vs1 & vs2 ;
+    end
+    OP_VOR: begin
+        return vs1 | vs2 ;
+    end
+    OP_VXOR: begin
+        return vs1 ^ vs2 ;
+    end
+
+    OP_VADC: begin
+        return vs1 + vs2 + vm;
+    end
+    OP_VMADC: begin
+        return vs1 + vs2; //TODO: FIGURE OUT WAY TO CHECK CARRY BIT
+    end
+
+    OP_VMUL: begin
+        return vs1 * vs2; //TODO: FIGURE OUT WAY TO CHECK CARRY BIT
+    end
+
 
     //Multiply-add 
     OP_VMACC: begin
@@ -323,7 +356,7 @@ module tb_rv32v_top_level ();
     OP_VNMSAC: begin
         return (vs1 * vs2) * -1 + vd;
     end
-    OP_VMACC: begin
+    OP_VMADD: begin
         return (vs1 * vd) + vs2;
     end
     OP_VNMSUB: begin
@@ -335,10 +368,10 @@ module tb_rv32v_top_level ();
 
   function bit checker(
     vop_decoded_t op,
-    logic [127:0] data0, //vm
-    logic [127:0] data1, //vs1
-    logic [127:0] data2, //vs2
-    logic [127:0] data3, //vs3
+    logic [127:0] vm, //vm
+    logic [127:0] vs1, //vs1
+    logic [127:0] vs2, //vs2
+    logic [127:0] vs3, //vs3
     logic [127:0] actual
   );
     logic [31:0] expected;
@@ -351,8 +384,15 @@ module tb_rv32v_top_level ();
       u = i * 32 + 31;
       l = i * 32;
       
-      expected = check_32(op, data1[l+:32], data2[l+:32], data3[l+:32]);
-      result[i] = check_32(op, data1[l+:32], data2[l+:32], data3[l+:32]) == actual[l+:32];
+      // if (op in {OP_VWMACCU, OP_VWMACC, OP_VWMACCSU, OP_VWMACCUS}) begin
+        //assume 16 bit input
+        // sign extend 
+        // vs1 = {{16{vs1[]}}}
+      // end
+      expected = check_normal(op, vm[i], vs1[l+:32], vs2[l+:32], vs3[l+:32]);
+
+      result[i] = expected == actual[l+:32];
+
       if (!result[i]) begin
         $display("Incorrect result. Expected: %h --- actual %h", expected, actual[l+:32]);
       end
@@ -476,13 +516,13 @@ module tb_rv32v_top_level ();
       @(posedge CLK);
     end
 
+    #(PERIOD * 3);
     
     op = decode(line_buffer[1]);
     actual = DUT.reg_file.registers[3][15:0];
     display_reg_file();
     checker(op, data0, data1, data2, data3, actual);
       
-    #(PERIOD * 3);
 
   endtask
 
@@ -589,36 +629,70 @@ module tb_rv32v_top_level ();
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 8, VWMULSU, OPMVV, UNMASKED)); //VMV
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 8, VWMUL,   OPMVV, UNMASKED)); //VMV
     
-    // vd[i] = +(vs1[i] * vs2[i]) + vd[i]
-    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VADD, OPIVV, UNMASKED),
-      {{30{4'hF}}, 8'h55},
-      {32'h7, 32'h6, 32'h5, 32'h2},
-      {32'h3, 32'h2, 32'h1, 32'h3},
-      {32'hf, 32'hd, 32'hb, 32'h5}
-    ); 
-    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VMADD, OPMVV, UNMASKED),
-      {{30{4'hF}}, 8'h55},
-      {32'h7, 32'h6, 32'h5, 32'h2},
-      {32'h3, 32'h2, 32'h1, 32'h3},
-      {32'hf, 32'hd, 32'hb, 32'h5}
-    ); 
+    // add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VADD, OPIVV, UNMASKED),
+    //   {{30{4'hF}}, 8'h55},
+    //   {32'h7, 32'h6, 32'h5, 32'h2},
+    //   {32'h3, 32'h2, 32'h1, 32'h3},
+    //   {32'hf, 32'hd, 32'hb, 32'h5}
+    // ); 
 
+    // vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VMUL, OPMVV, UNMASKED),
+      {{30{4'hF}}, 8'h55},
+      {32'h7, 32'h6, 32'h5, 32'h2},
+      {32'h3, 32'h2, 32'h1, 32'h3},
+      {32'hf, 32'hd, 32'hb, 32'h5}
+    ); 
+    // add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VMACC, OPMVV, UNMASKED),
+    //   {{30{4'hF}}, 8'h55},
+    //   {32'h7, 32'h6, 32'h5, 32'h2},
+    //   {32'h3, 32'h2, 32'h1, 32'h3},
+    //   {32'hf, 32'hd, 32'hb, 32'h5}
+    // ); 
+    // // vd[i] = -(vs1[i] * vd[i]) + vs2[i]
+    // add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VNMSAC, OPMVV, UNMASKED), //VMV
+    //   {{30{4'hF}}, 8'h55},
+    //   {32'h7, 32'h6, 32'h5, 32'h2},
+    //   {32'h3, 32'h2, 32'h1, 32'h3},
+    //   {32'hf, 32'hd, 32'hb, 32'h5}
+    // );
+    // // vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+    // add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VNMSUB, OPMVV, UNMASKED), //VMV
+    //   {{30{4'hF}}, 8'h55},
+    //   {32'h7, 32'h6, 32'h5, 32'h2},
+    //   {32'h3, 32'h2, 32'h1, 32'h3},
+    //   {32'hf, 32'hd, 32'hb, 32'h5}
+    // );
+    // // vd[i] = (vs1[i] * vd[i]) + vs2[i]
+    // add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VMADD, OPMVV, UNMASKED), //VMV
+    //   {{30{4'hF}}, 8'h55},
+    //   {32'h7, 32'h6, 32'h5, 32'h2},
+    //   {32'h3, 32'h2, 32'h1, 32'h3},
+    //   {32'hf, 32'hd, 32'hb, 32'h5}
+    // );
+
+    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VWMACCU, OPMVV, UNMASKED),
+      {{30{4'hF}}, 8'h55},
+      {32'h7, 32'h6, 32'h5, 32'h2},
+      {32'h3, 32'h2, 32'h1, 32'h3},
+      {32'hf, 32'hd, 32'hb, 32'h5}
+    ); 
+    // vd[i] = -(vs1[i] * vd[i]) + vs2[i]
+    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VWMACC, OPMVV, UNMASKED), 
+      {{30{4'hF}}, 8'h55},
+      {32'h7, 32'h6, 32'h5, 32'h2},
+      {32'h3, 32'h2, 32'h1, 32'h3},
+      {32'hf, 32'hd, 32'hb, 32'h5}
+    );
     // vd[i] = -(vs1[i] * vs2[i]) + vd[i]
-    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VNMSUB, OPMVV, UNMASKED), //VMV
+    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VWMACCUS, OPMVV, UNMASKED), 
       {{30{4'hF}}, 8'h55},
       {32'h7, 32'h6, 32'h5, 32'h2},
       {32'h3, 32'h2, 32'h1, 32'h3},
       {32'hf, 32'hd, 32'hb, 32'h5}
     );
     // vd[i] = (vs1[i] * vd[i]) + vs2[i]
-    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VMACC, OPMVV, UNMASKED), //VMV
-      {{30{4'hF}}, 8'h55},
-      {32'h7, 32'h6, 32'h5, 32'h2},
-      {32'h3, 32'h2, 32'h1, 32'h3},
-      {32'hf, 32'hd, 32'hb, 32'h5}
-    );
-    // vd[i] = -(vs1[i] * vd[i]) + vs2[i]
-    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VNMSAC, OPMVV, UNMASKED), //VMV
+    add_test_case(new_config_vop_case(SEW32, LMUL1, 4, VWMACCSU, OPMVV, UNMASKED), 
       {{30{4'hF}}, 8'h55},
       {32'h7, 32'h6, 32'h5, 32'h2},
       {32'h3, 32'h2, 32'h1, 32'h3},

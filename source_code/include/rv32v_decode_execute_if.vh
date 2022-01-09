@@ -29,7 +29,7 @@ interface rv32v_decode_execute_if;
   logic [1:0] is_signed_mul;
   logic mul_widen_ena;
   logic multiply_pos_neg;
-  logic multiply_type;
+  multiply_type_t multiply_type;
 
   logic adc_sbc;
   logic carry_borrow_ena;

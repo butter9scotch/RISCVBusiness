@@ -32,17 +32,18 @@ module multiply_unit (
   import rv32i_types_pkg::*;
   
   logic start_reg, next_start_reg;
-  logic [31:0] vs1_data, vs2_data;
+  logic [31:0] vs1_data, vs2_data, vs3_data;
   logic done, next_done;
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32, selected_product, final_product, product_mod, product_3in;
   logic [15:0] product_high_sew16, product_low_sew16;
   logic [7:0] product_high_sew8, product_low_sew8;
+  logic [31:0] multiplicand;
 
   rv32v_multiplier MULU (
     .CLK(CLK),
     .nRST(nRST),
-    .multiplicand(vs2_data),
+    .multiplicand(multiplicand),
     .multiplier(vs1_data),
     .is_signed(mif.is_signed_mul),
     .start(start_reg),
@@ -54,15 +55,51 @@ module multiply_unit (
   // assign mif.next_busy_mu = (start_reg | mif.start_mu) & !next_done;
   // assign mif.busy_mu      = (start_reg | mif.start_mu) & !done; 
   assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
-  assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
-  assign mif.wdata_mu     = mif.multiply_type ? product_mod + mif.vs3_data : final_product;
+  // assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
+  assign product_mod      = mif.multiply_pos_neg ? (0-final_product) : final_product;
+  // assign mif.wdata_mu     = mif.multiply_type == MACC ? product_mod + mif.vs3_data : final_product;
   assign mif.exception_mu = 0; // TODO
   assign mif.done_mu      = done; 
+
+  assign multiplicand = (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs3_data : vs2_data;
+
+  logic [31:0] vs3_data_ff0, vs3_data_ff1, vs3_data_ff2;
+  multiply_type_t multiply_type_ff0, multiply_type_ff1, multiply_type_ff2;
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      vs3_data_ff0 <= 0;
+      vs3_data_ff1 <= 0;
+      vs3_data_ff2 <= 0;
+      multiply_type_ff0 <= NOT_FUSED_MUL;
+      multiply_type_ff1 <= 0;
+      multiply_type_ff2 <= 0;
+    end else begin
+      vs3_data_ff0 <= (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs2_data : vs3_data;
+      vs3_data_ff1 <= vs3_data_ff0;
+      vs3_data_ff2 <= vs3_data_ff1;
+      multiply_type_ff0 <= mif.multiply_type;
+      multiply_type_ff1 <= multiply_type_ff0;
+      multiply_type_ff2 <= multiply_type_ff1;
+
+    end
+  end
+
+  always_comb begin
+    case (multiply_type_ff2) 
+      MACC: mif.wdata_mu = product_mod + vs3_data_ff2;
+      MADD: mif.wdata_mu = product_mod + vs3_data_ff2;
+      MSAC: mif.wdata_mu = vs3_data_ff2 - product_mod;
+      MSUB: mif.wdata_mu = vs3_data_ff2 - product_mod;
+      default: mif.wdata_mu = final_product;
+    endcase
+  end
   
   assign vs1_data =  (mif.sew == SEW16) & mif.is_signed_mul[0] ? {{16{mif.vs1_data[15]}}, mif.vs1_data[15:0]}: 
                      (mif.sew == SEW8)  & mif.is_signed_mul[0] ? {{24{mif.vs1_data[7]}}, mif.vs1_data[7:0]}: mif.vs1_data;
   assign vs2_data = (mif.sew == SEW16)  & mif.is_signed_mul[1] ? {{16{mif.vs2_data[15]}}, mif.vs2_data[15:0]}: 
                     (mif.sew == SEW8)   & mif.is_signed_mul[1] ? {{24{mif.vs2_data[7]}}, mif.vs2_data[7:0]}: mif.vs2_data;
+  assign vs3_data = (mif.sew == SEW16)  & mif.is_signed_mul[1] ? {{16{mif.vs3_data[15]}}, mif.vs3_data[15:0]}: 
+                    (mif.sew == SEW8)   & mif.is_signed_mul[1] ? {{24{mif.vs3_data[7]}}, mif.vs3_data[7:0]}: mif.vs3_data;
 
   // Fix corner case: Operate only 1 or 2 element consecutively
 

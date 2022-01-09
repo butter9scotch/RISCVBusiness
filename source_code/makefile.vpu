@@ -94,6 +94,7 @@ print_vars:
 
 top_level_gui:
 	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)
+
 top_level_no_gui:
 	@irun  -access +rwc -lwdgen -timescale 1ns/100ps -shm $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)
 		

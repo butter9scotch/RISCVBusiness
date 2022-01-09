@@ -215,7 +215,7 @@ module rv32v_reg_file (
    always_comb begin : VS3_DATA
     rfv_if.vs3_data[0] = 32'hDED0DED0;
     rfv_if.vs3_data[1] = 32'hDED1DED1;
-    if (rfv_if.vs3_offset <= rfv_if.vl) begin
+    // if (rfv_if.vs3_offset <= rfv_if.vl) begin
       if (rfv_if.sew == SEW32) begin
         rfv_if.vs3_data[0] = registers[rfv_if.vs3 + vs3_inner_offset[0]][vs3_outer_offset[0] +:4];
         rfv_if.vs3_data[1] = registers[rfv_if.vs3 + vs3_inner_offset[1]][vs3_outer_offset[1] +:4];
@@ -226,7 +226,7 @@ module rv32v_reg_file (
         rfv_if.vs3_data[0] = {24'h0, registers[rfv_if.vs3 + vs3_inner_offset[0]][vs3_outer_offset[0]]};
         rfv_if.vs3_data[1] = {24'h0, registers[rfv_if.vs3 + vs3_inner_offset[1]][vs3_outer_offset[1]]};
       end
-    end
+    // end
   end
 
   always_comb begin : VS1_MASK 

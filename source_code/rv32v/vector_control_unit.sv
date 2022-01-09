@@ -315,13 +315,13 @@ module vector_control_unit
         OP_VZEXT_VF2, OP_VSEXT_VF2,   OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
         OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W: begin vcu_if.fu_type = ARITH; vcu_if.arith_ena = 1; end
         OP_VWREDSUMU, OP_VWREDSUM, OP_VREDSUM, OP_VREDAND, OP_VREDOR, OP_VREDXOR, OP_VREDMINU, OP_VREDMIN, OP_VREDMAXU, OP_VREDMAX: begin vcu_if.fu_type = RED; vcu_if.reduction_ena = 1; end
-        OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: begin vcu_if.fu_type = MUL; vcu_if.mul_ena = 1; end
+         OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU,
+         OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: begin vcu_if.fu_type = MUL; vcu_if.mul_ena = 1; end
         OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: begin vcu_if.fu_type = DIV; vcu_if.div_ena = 1; end 
         OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: begin vcu_if.fu_type = MASK; vcu_if.mask_ena = 1; end
         OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: begin vcu_if.fu_type = PEM; vcu_if.perm_ena = 1; end
         OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB:begin  vcu_if.fu_type = FIXED_POINT; vcu_if.fixed_point_ena = 1; end
         OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: begin vcu_if.fu_type = MOVE; end
-        OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: begin vcu_if.fu_type = MADD; end
         default:   begin 
                 vcu_if.fu_type = ARITH;
                 vcu_if.arith_ena = 0;
@@ -500,7 +500,7 @@ module vector_control_unit
       OP_VADD, OP_VADC, OP_VMADC, OP_VSADDU, OP_VSADD, OP_VWREDSUMU, OP_VWREDSUM, 
       OP_VREDSUM, OP_VAADDU, OP_VAADD, OP_VWADDU, OP_VWADD, OP_VWADDU_W, OP_VWADD_W: vcu_if.aluop = VALU_ADD;
       OP_VSUB, OP_VRSUB, OP_VSBC, OP_VMSBC, OP_VSSUBU, OP_VSSUB, 
-      OP_VASUBU, OP_VASUB, OP_VWSUBU, OP_VWSUB, OP_VWSUBU_W, OP_VWSUB_W: vcu_if.aluop = VALU_SUB;       
+      OP_VASUBU, OP_VASUB, OP_VWSUBU, OP_VWSUB, OP_VWSUBU_W, OP_VWSUB_W, OP_VNMSUB, OP_VNMSAC: vcu_if.aluop = VALU_SUB;       
       OP_VAND, OP_VREDAND, OP_VMANDN, OP_VMAND, OP_VMNAND: vcu_if.aluop = VALU_AND;
       OP_VOR, OP_VREDOR, OP_VMOR, OP_VMORN, OP_VMNOR:     vcu_if.aluop = VALU_OR;
       OP_VXOR, OP_VREDXOR, OP_VMXOR, OP_VMXNOR: vcu_if.aluop = VALU_XOR;
@@ -605,8 +605,11 @@ module vector_control_unit
   //multiply_type;
   always_comb begin
     case (op_decoded)
-      OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.multiply_type = 1 ;
-      default: vcu_if.multiply_type = 0;
+      OP_VMACC, OP_VWMACCU, OP_VWMACC, OP_VWMACCUS, OP_VWMACCSU: vcu_if.multiply_type = MACC;
+      OP_VNMSUB: vcu_if.multiply_type = MSUB;
+      OP_VMADD:  vcu_if.multiply_type = MADD;
+      OP_VNMSAC: vcu_if.multiply_type = MSAC;
+      default:   vcu_if.multiply_type = NOT_FUSED_MUL;
     endcase
   end
 

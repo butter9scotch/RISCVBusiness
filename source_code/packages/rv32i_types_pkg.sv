@@ -551,8 +551,7 @@ package rv32i_types_pkg;
     FIXED_POINT,
     LOAD_UNIT,
     STORE_UNIT,
-    MOVE,
-    MADD
+    MOVE
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -678,6 +677,14 @@ package rv32i_types_pkg;
     UNSIGNED_SIGNED = 2'b01,
     UNSIGNED = 0
   } sign_type_t;
+
+  typedef enum logic [2:0] { 
+    NOT_FUSED_MUL,
+    MADD,
+    MSUB,
+    MACC,
+    MSAC
+  } multiply_type_t;
 
 
 
