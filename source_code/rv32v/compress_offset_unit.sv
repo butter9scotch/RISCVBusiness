@@ -32,46 +32,38 @@ module compress_offset_unit(
 
   import rv32i_types_pkg::*;
 
-  // TODO: assign mask2bit logics
+  offset_t woffset0, woffset1, next_woffset0, next_woffset1, prev_woffset, cout;
 
-  offset_t next_woffset0, next_woffset1, prev_woffset, cout;
-  logic [1:0] mask_bit_checking, mask2bit;
-  logic done_mask1; // 0: Checking mask bit 1, 1: Checking mask bit 0
-
-  assign mask_bit_checking = done_mask1 ? ~mask2bit : mask2bit;
-  assign cou_if.checking_mask0_1 = ~done_mask1;
+  assign cou_if.woffset0 = next_woffset0;
+  assign cou_if.woffset1 = next_woffset1;
+  assign cou_if.wen = cou_if.vs1_mask;
+  assign cou_if.busy = cou_if.ena;
+  //assign mask_bit_checking = done_mask1 ? ~mask2bit : mask2bit;
+  //assign cou_if.checking_mask0_1 = ~done_mask1;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
-      cou_if.woffset0 <= '0;
-      cou_if.woffset1 <= '0;
+      woffset0 <= '0;
+      woffset1 <= '0;
       prev_woffset <= '0;
-      cou_if.busy <= '0;
-    end else if (done_mask1 && cou_if.done) begin // When element counter reaches 2*VL
-      cou_if.woffset0 <= '0;
-      cou_if.woffset1 <= '0;
+      //cou_if.busy <= '0;
+    end else if (cou_if.done) begin // When element counter reaches VL
+      woffset0 <= '0;
+      woffset1 <= '0;
       prev_woffset <= '0;
-      cou_if.busy <= '0; 
+      //cou_if.busy <= '0; 
     end else if (cou_if.ena) begin
-      cou_if.woffset0 <= next_woffset0;
-      cou_if.woffset1 <= next_woffset1;
+      woffset0 <= next_woffset0;
+      woffset1 <= next_woffset1;
       prev_woffset <= cou_if.woffset1 + cout;
-      cou_if.busy <= 1;
-    end
-  end
-
-  always_ff @ (posedge CLK, negedge nRST) begin
-    if (nRST == 0) begin
-      done_mask1 <= 0; 
-    end else if (cou_if.busy && cou_if.done) begin // When element counter reaches VL and 2*VL
-      done_mask1 <= done_mask1 + 1;
+      //cou_if.busy <= 1;
     end
   end
 
   always_comb begin
     next_woffset0 = '0;
     next_woffset1 = '0;
-    case(mask_bit_checking)
+    case(cou_if.vs1_mask)
       2'b00: 
       begin
         next_woffset0 = prev_woffset;
@@ -98,7 +90,5 @@ module compress_offset_unit(
       end
     endcase
   end
-
-  assign cou_if.wen = mask_bit_checking;
 
 endmodule

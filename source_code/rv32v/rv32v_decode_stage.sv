@@ -70,6 +70,7 @@ module rv32v_decode_stage (
   // compress offset unit assigns
   assign cou_if.ena = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
   assign cou_if.done = ele_if.done;
+  assign cou_if.vs1_mask = rfv_if.vs1_mask;
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
@@ -168,6 +169,9 @@ module rv32v_decode_stage (
     if (vcu_if.reduction_ena) begin
       wen0 = ele_if.next_done;
       wen1 = 0;
+    end else if (cou_if.ena) begin
+      wen0 = cou_if.wen[0];
+      wen1 = cou_if.wen[1];
     end else begin
       wen0 = (vcu_if.result_type == A_S) ? 1 : vcu_if.wen & (mask0);
       wen1 = (vcu_if.result_type == A_S) ? 1: vcu_if.wen & (mask1);
@@ -253,8 +257,8 @@ module rv32v_decode_stage (
       VD_SRC_COMPRESS: begin   
         //woffset0 = ele_if.offset;      //this will need to change 
         //woffset1 = ele_if.offset + 1; //this will need to change
-        woffset0 = cou_if.woffset0;      //this will need to change 
-        woffset1 = cou_if.woffset1; //this will need to change
+        woffset0 = cou_if.woffset0;      
+        woffset1 = cou_if.woffset1; 
       end       
     endcase
   end
