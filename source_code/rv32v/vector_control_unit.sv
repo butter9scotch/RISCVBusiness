@@ -469,8 +469,8 @@ module vector_control_unit
       OP_VSMUL, OP_VSSRL, OP_VNCLIP, OP_VWREDSUM, OP_VREDSUM, OP_VREDMIN, OP_VREDMAX, OP_VAADD, OP_VASUB, OP_VSEXT_VF8, 
       OP_VSEXT_VF4, OP_VSEXT_VF2, OP_VDIV, OP_VREM, OP_VMUL, OP_VMULH, OP_VMADD, OP_VNMSUB, OP_VMACC, OP_VNMSAC, OP_VWADD, 
       OP_VWSUB, OP_VWADD_W, OP_VWSUB_W, OP_VWMUL, OP_VWMACC:   vcu_if.is_signed = SIGNED;
-      OP_VWMACCUS: vcu_if.is_signed = UNSIGNED_SIGNED;
-      OP_VMULHSU, OP_VWMACCSU, OP_VWMULSU:  vcu_if.is_signed = SIGNED_UNSIGNED;
+      OP_VMULHSU, OP_VWMACCUS, OP_VWMULSU: vcu_if.is_signed = UNSIGNED_SIGNED; // vs2 is sign extended
+       OP_VWMACCSU:  vcu_if.is_signed = SIGNED_UNSIGNED; // vs1 is sign extended
       default: vcu_if.is_signed = UNSIGNED;
     endcase
   end

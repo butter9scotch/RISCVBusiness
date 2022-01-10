@@ -54,42 +54,56 @@ module multiply_unit (
 
   // assign mif.next_busy_mu = (start_reg | mif.start_mu) & !next_done;
   // assign mif.busy_mu      = (start_reg | mif.start_mu) & !done; 
-  assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
+  // assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
+  assign final_product    =  selected_product;
   // assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
-  assign product_mod      = mif.multiply_pos_neg ? (0-final_product) : final_product;
+  assign product_mod      = mif.multiply_pos_neg ? (0 - final_product) : final_product;
   // assign mif.wdata_mu     = mif.multiply_type == MACC ? product_mod + mif.vs3_data : final_product;
   assign mif.exception_mu = 0; // TODO
   assign mif.done_mu      = done; 
 
   assign multiplicand = (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs3_data : vs2_data;
 
-  logic [31:0] vs3_data_ff0, vs3_data_ff1, vs3_data_ff2;
+  logic [31:0] addend_ff0, addend_ff1, addend_ff2; //This is the thing added to the product during fused multiply
+
   multiply_type_t multiply_type_ff0, multiply_type_ff1, multiply_type_ff2;
+  logic mul_widen_ena_ff0, mul_widen_ena_ff1, mul_widen_ena_ff2;
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
-      vs3_data_ff0 <= 0;
-      vs3_data_ff1 <= 0;
-      vs3_data_ff2 <= 0;
+      addend_ff0 <= 0;
+      addend_ff1 <= 0;
+      addend_ff2 <= 0;
+
       multiply_type_ff0 <= NOT_FUSED_MUL;
       multiply_type_ff1 <= 0;
       multiply_type_ff2 <= 0;
+      
+      mul_widen_ena_ff0 <= 0;
+      mul_widen_ena_ff1 <= 0;
+      mul_widen_ena_ff2 <= 0;
+
     end else begin
-      vs3_data_ff0 <= (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs2_data : vs3_data;
-      vs3_data_ff1 <= vs3_data_ff0;
-      vs3_data_ff2 <= vs3_data_ff1;
+      addend_ff0 <= (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs2_data : vs3_data;
+      addend_ff1 <= addend_ff0;
+      addend_ff2 <= addend_ff1;
+      
       multiply_type_ff0 <= mif.multiply_type;
       multiply_type_ff1 <= multiply_type_ff0;
       multiply_type_ff2 <= multiply_type_ff1;
+      
+      mul_widen_ena_ff0 <= mif.mul_widen_ena;
+      mul_widen_ena_ff1 <= mul_widen_ena_ff0;
+      mul_widen_ena_ff2 <= mul_widen_ena_ff1;
 
     end
   end
 
   always_comb begin
     case (multiply_type_ff2) 
-      MACC: mif.wdata_mu = product_mod + vs3_data_ff2;
-      MADD: mif.wdata_mu = product_mod + vs3_data_ff2;
-      MSAC: mif.wdata_mu = vs3_data_ff2 - product_mod;
-      MSUB: mif.wdata_mu = vs3_data_ff2 - product_mod;
+      MACC: mif.wdata_mu = product_mod + addend_ff2;
+      MADD: mif.wdata_mu = product_mod + addend_ff2;
+      MSAC: mif.wdata_mu = addend_ff2 - product_mod;
+      MSUB: mif.wdata_mu = addend_ff2 - product_mod;
       default: mif.wdata_mu = final_product;
     endcase
   end
@@ -98,10 +112,9 @@ module multiply_unit (
                      (mif.sew == SEW8)  & mif.is_signed_mul[0] ? {{24{mif.vs1_data[7]}}, mif.vs1_data[7:0]}: mif.vs1_data;
   assign vs2_data = (mif.sew == SEW16)  & mif.is_signed_mul[1] ? {{16{mif.vs2_data[15]}}, mif.vs2_data[15:0]}: 
                     (mif.sew == SEW8)   & mif.is_signed_mul[1] ? {{24{mif.vs2_data[7]}}, mif.vs2_data[7:0]}: mif.vs2_data;
-  assign vs3_data = (mif.sew == SEW16)  & mif.is_signed_mul[1] ? {{16{mif.vs3_data[15]}}, mif.vs3_data[15:0]}: 
-                    (mif.sew == SEW8)   & mif.is_signed_mul[1] ? {{24{mif.vs3_data[7]}}, mif.vs3_data[7:0]}: mif.vs3_data;
+  assign vs3_data = (mif.sew == SEW16)  ? {{16{mif.vs3_data[15]}}, mif.vs3_data[15:0]}: 
+                    (mif.sew == SEW8)   ? {{24{mif.vs3_data[7]}}, mif.vs3_data[7:0]}: mif.vs3_data;
 
-  // Fix corner case: Operate only 1 or 2 element consecutively
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
@@ -140,9 +153,11 @@ module multiply_unit (
     case (mif.sew) 
       SEW8:
         if (mif.high_low) selected_product = product_high_sew8;
+        else if (mif.mul_widen_ena) selected_product = product_low_sew16;
         else selected_product = product_low_sew8;
       SEW16:
         if (mif.high_low) selected_product = product_high_sew16;
+        else if (mul_widen_ena_ff2) selected_product = product_low_sew32;
         else selected_product = product_low_sew16;
       SEW32:
         if (mif.high_low) selected_product = product_high_sew32;

@@ -673,8 +673,8 @@ package rv32i_types_pkg;
 
   typedef enum logic [1:0] {
     SIGNED = 2'b11,
-    SIGNED_UNSIGNED = 2'b10,
-    UNSIGNED_SIGNED = 2'b01,
+    SIGNED_UNSIGNED = 2'b01,
+    UNSIGNED_SIGNED = 2'b10,
     UNSIGNED = 0
   } sign_type_t;
 
