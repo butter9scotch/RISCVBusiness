@@ -45,6 +45,7 @@ module rv32v_execute_stage (
   logic mlu_ff0, mlu_ff1, mlu_ff2;
   sew_t eew_ff0, eew_ff1, eew_ff2;
   logic [4:0] vd_ff0, vd_ff1, vd_ff2;
+  logic iota_or_id;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -474,9 +475,10 @@ module rv32v_execute_stage (
     end
   end
 
+  assign iota_or_id = (decode_execute_if.mask_type == VMASK_IOTA) | (decode_execute_if.mask_type == VMASK_ID);
   assign ones_aluresult0 = ~mask_bit_found & (aluresult0 == 0) & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF));
-  assign ones_aluresult1 = ~mask_bit_found & (aluresult1 == 0);
-  assign zero_aluresult1 = mask_bit_found | (aluresult0 != 0) ;
+  assign ones_aluresult1 = ~mask_bit_found & (aluresult1 == 0) & ~iota_or_id;
+  assign zero_aluresult1 = (mask_bit_found | (aluresult0 != 0)) & ~iota_or_id;
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
