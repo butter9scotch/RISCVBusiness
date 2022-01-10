@@ -47,7 +47,7 @@ module compress_offset_unit(
       woffset1 <= '0;
       prev_woffset <= '0;
       //cou_if.busy <= '0;
-    end else if (cou_if.done) begin // When element counter reaches VL
+    end else if (cou_if.done | cou_if.reset) begin // When element counter reaches VL
       woffset0 <= '0;
       woffset1 <= '0;
       prev_woffset <= '0;

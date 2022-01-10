@@ -443,13 +443,15 @@ module vector_control_unit
       vcu_if.vd_offset_src = VD_SRC_ZERO; //0
     // end else if (op_decoded == OP_VSLIDE1UP) begin
     //   vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_1; // i + 1
+    end else if (is_vopm && funct6_opm == VCOMPRESS) begin
+       vcu_if.vd_offset_src = VD_SRC_COMPRESS; 
     end else if (is_vopi) begin
       case  (funct6_opi)
         VSLIDEUP:  begin
             if (vfunct3 == OPIVX) vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_RS1; // i + rs1
             else if (vfunct3 == OPIVI) vcu_if.vd_offset_src = VD_SRC_IDX_PLUS_UIMM; // i + uimm
           end
-        VCOMPRESS: vcu_if.vd_offset_src = VD_SRC_COMPRESS; //use special counter
+        //VCOMPRESS: vcu_if.vd_offset_src = VD_SRC_COMPRESS; //use special counter
       endcase
     end
   end

@@ -5,13 +5,13 @@ interface compress_offset_unit_if;
 
   import rv32i_types_pkg::*;
 
-  logic ena, busy, checking_mask0_1, done;
+  logic ena, busy, checking_mask0_1, done, reset;
   offset_t woffset0, woffset1;
   logic [1:0] wen, vs1_mask;
 
 
   modport compress_offset_unit (
-    input ena, done, vs1_mask,
+    input ena, done, vs1_mask, reset,
     output wen, woffset0, woffset1, busy
   );
 

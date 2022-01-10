@@ -53,7 +53,7 @@ module rv32v_decode_stage (
 
   vector_control_unit vcu(.*);
   element_counter  element_counter(.*);
-  compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); // TODO: assign busy signal, wen signal and checking_mask0_1 signal
+  compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); 
   // microop_buffer uop_buffer(.*);
 
   sew_t sew;
@@ -71,6 +71,7 @@ module rv32v_decode_stage (
   assign cou_if.ena = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
   assign cou_if.done = ele_if.done;
   assign cou_if.vs1_mask = rfv_if.vs1_mask;
+  assign cou_if.reset = hu_if.csr_update;
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
@@ -106,6 +107,8 @@ module rv32v_decode_stage (
 
   sew_t next_decode_execute_if_eew;
 
+  assign hu_if.busy_dec = vcu_if.de_en & ~ele_if.done; // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
+/*
   always_ff @(posedge CLK, negedge nRST) begin
     if(~nRST)begin
       hu_if.busy_dec <= 0;
@@ -117,7 +120,7 @@ module rv32v_decode_stage (
         hu_if.busy_dec <= 0;
       end
     end
-  end
+  end */
 
   always_comb begin
     next_decode_execute_if_eew = sew;
