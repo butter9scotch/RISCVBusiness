@@ -79,6 +79,7 @@ module rv32v_decode_stage (
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
                             (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : 
+                            (vcu_if.vmv_type == SCALAR) ? 1 : 
                             (VLENB >> sew) << vcu_if.vmv_type;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.stall     = hu_if.busy_ex | vcu_if.stall;  
@@ -507,7 +508,9 @@ module rv32v_decode_stage (
       decode_execute_if.rs2_type          <= vcu_if.rs2_type;
       decode_execute_if.minmax_type       <= vcu_if.minmax_type;
       decode_execute_if.eew               <= next_decode_execute_if_eew; 
-      decode_execute_if.vl                <= (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : (VLENB >> sew) << vcu_if.vmv_type; 
+      decode_execute_if.vl                <= (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
+                                             (vcu_if.vmv_type == SCALAR) ? 1 : 
+                                              (VLENB >> sew) << vcu_if.vmv_type; 
       decode_execute_if.vlenb             <= prv_if.vlenb;   
       decode_execute_if.vtype             <= prv_if.vtype;   
       decode_execute_if.div_type          <= vcu_if.div_type;
@@ -538,7 +541,7 @@ module rv32v_decode_stage (
       decode_execute_if.vstart            <= prv_if.vstart;
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data           <= '0;
+      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;

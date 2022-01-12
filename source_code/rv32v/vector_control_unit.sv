@@ -146,10 +146,10 @@ module vector_control_unit
         VSSUB:      op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ? OP_VSSUB : BAD_OP;
         VSLL:       op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ||	(vfunct3 == OPIVI) ? OP_VSLL : BAD_OP;
         VSMUL:      op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) & ~vcu_if.vm ?  OP_VSMUL : 
-                                 	(vfunct3 == OPIVI) & (vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd0)) ? OP_VMV1R : 
-                                 	(vfunct3 == OPIVI) &  vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd1) ? OP_VMV2R : 
-                                  	(vfunct3 == OPIVI) &   vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd3) ? OP_VMV4R : 
-                                  	(vfunct3 == OPIVI) &   vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd7) ? OP_VMV8R : BAD_OP;
+                                 (vfunct3 == OPIVI) & (vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd0)) ? OP_VMV1R : 
+                                 (vfunct3 == OPIVI) &  vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd1) ? OP_VMV2R : 
+                                 (vfunct3 == OPIVI) &   vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd3) ? OP_VMV4R : 
+                                 (vfunct3 == OPIVI) &   vcu_if.vm & (vcu_if.imm_5[2:0] == 3'd7) ? OP_VMV8R : BAD_OP;
         VSRL:       op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ||	(vfunct3 == OPIVI) ? OP_VSRL : BAD_OP;
         VSRA:       op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ||	(vfunct3 == OPIVI) ? OP_VSRA : BAD_OP;
         VSSRL:      op_decoded = (vfunct3 == OPIVV) ||	(vfunct3 == OPIVX) ||	(vfunct3 == OPIVI) ? OP_VSSRL : BAD_OP;
@@ -170,40 +170,43 @@ module vector_control_unit
         VREDAND:      op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDAND   : BAD_OP;
         VREDOR:       op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDOR    : BAD_OP;
         VREDXOR:      op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDXOR   : BAD_OP;
-        VREDMINU:     op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMINU    : BAD_OP;
+        VREDMINU:     op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMINU  : BAD_OP;
         VREDMIN:      op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMIN   : BAD_OP;
-        VREDMAXU:     op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMAXU    : BAD_OP;
+        VREDMAXU:     op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMAXU  : BAD_OP;
         VREDMAX:      op_decoded = (vfunct3 == OPMVV)	 ? OP_VREDMAX   : BAD_OP;
         VAADDU:       op_decoded = (vfunct3 == OPMVV) ||	(vfunct3 == OPMVX) ? OP_VAADDU   : BAD_OP;
         VAADD:        op_decoded = (vfunct3 == OPMVV) ||	(vfunct3 == OPMVX) ? OP_VAADD    : BAD_OP;
         VASUBU:       op_decoded = (vfunct3 == OPMVV) ||	(vfunct3 == OPMVX) ? OP_VASUBU   : BAD_OP;
         VASUB:        op_decoded = (vfunct3 == OPMVV) ||	(vfunct3 == OPMVX) ? OP_VASUB    : BAD_OP;
         VSLIDE1UP:    op_decoded = (vfunct3 == OPMVX) ? OP_VSLIDE1UP   : BAD_OP;
-        VSLIDE1DOWN:  op_decoded = (vfunct3 == OPMVX) ? OP_VSLIDE1DOWN   : BAD_OP;
-        VWXUNARY0:    begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VMV_X_S) ? OP_VMV_X_S : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VPOPC)   ? OP_VPOPC : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VFIRST)  ? OP_VFIRST :
-                                          (vfunct3 == OPMVX) && (vcu_if.vs2 == VMV_S_X) ? OP_VMV_S_X : BAD_OP;
+        VSLIDE1DOWN:  op_decoded = (vfunct3 == OPMVX) ? OP_VSLIDE1DOWN : BAD_OP;
+        VWXUNARY0:    begin 
+                      op_decoded = (vfunct3 == OPMVV) && (vcu_if.vs1 == VMV_X_S) ? OP_VMV_X_S : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VPOPC)   ? OP_VPOPC : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VFIRST)  ? OP_VFIRST :
+                                   (vfunct3 == OPMVX) && (vcu_if.vs2 == VMV_S_X) ? OP_VMV_S_X : BAD_OP;
                       end 
-        VXUNARY0:     begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF4) ?  OP_VZEXT_VF4 : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF4) ?  OP_VSEXT_VF4 : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF2) ?  OP_VZEXT_VF2 : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF2) ?  OP_VSEXT_VF2 : BAD_OP;
+        VXUNARY0:     begin 
+                      op_decoded = (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF4) ?  OP_VZEXT_VF4 : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF4) ?  OP_VSEXT_VF4 : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF2) ?  OP_VZEXT_VF2 : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF2) ?  OP_VSEXT_VF2 : BAD_OP;
                                           // (vfunct3 == OPMVV) && (vcu_if.vs1 == VZEXT_VF8) ?  OP_VZEXT_VF8 : 
                                           // (vfunct3 == OPMVV) && (vcu_if.vs1 == VSEXT_VF8) ?  OP_VSEXT_VF8 : 
                       end 
-        VMUNARY0:     begin op_decoded =  (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSBF) ? OP_VMSBF : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSOF) ? OP_VMSOF : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSIF) ? OP_VMSIF : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VIOTA) ? OP_VIOTA : 
-                                          (vfunct3 == OPMVV) && (vcu_if.vs1 == VID)   ? OP_VID   : BAD_OP;
+        VMUNARY0:     begin 
+                      op_decoded = (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSBF) ? OP_VMSBF : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSOF) ? OP_VMSOF : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VMSIF) ? OP_VMSIF : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VIOTA) ? OP_VIOTA : 
+                                   (vfunct3 == OPMVV) && (vcu_if.vs1 == VID)   ? OP_VID   : BAD_OP;
                       end 
         VCOMPRESS:    op_decoded = (vfunct3 == OPMVV)                       ? OP_VCOMPRESS : BAD_OP;
-        VMANDN:     op_decoded = (vfunct3 == OPMVV)                       ? OP_VMANDN : BAD_OP;
+        VMANDN:       op_decoded = (vfunct3 == OPMVV)                       ? OP_VMANDN : BAD_OP;
         VMAND:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMAND : BAD_OP;
         VMOR:         op_decoded = (vfunct3 == OPMVV)                       ? OP_VMOR : BAD_OP;
         VMXOR:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMXOR : BAD_OP;
-        VMORN:      op_decoded = (vfunct3 == OPMVV)                       ? OP_VMORN : BAD_OP;
+        VMORN:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMORN : BAD_OP;
         VMNAND:       op_decoded = (vfunct3 == OPMVV)                       ? OP_VMNAND : BAD_OP;
         VMNOR:        op_decoded = (vfunct3 == OPMVV)                       ? OP_VMNOR : BAD_OP;
         VMXNOR:       op_decoded = (vfunct3 == OPMVV)                       ? OP_VMXNOR : BAD_OP;
@@ -243,10 +246,17 @@ module vector_control_unit
     end
   end
 
-  assign vcu_if.vmv_type = (op_decoded == OP_VMV1R) ? ONE :
-                    (op_decoded == OP_VMV2R) ? TWO :
-                    (op_decoded == OP_VMV4R) ? FOUR :
-                    (op_decoded == OP_VMV8R) ? EIGHT : NOT_VMV;
+
+  always_comb begin
+    case (op_decoded)
+      OP_VMV_X_S, OP_VMV_S_X: vcu_if.vmv_type = SCALAR;
+      OP_VMV1R: vcu_if.vmv_type = ONE;
+      OP_VMV2R: vcu_if.vmv_type = TWO;
+      OP_VMV4R: vcu_if.vmv_type = FOUR;
+      OP_VMV8R: vcu_if.vmv_type = EIGHT;
+      default: vcu_if.vmv_type = NOT_VMV;
+    endcase
+  end
 
 
   //vs1 source
@@ -261,10 +271,10 @@ module vector_control_unit
                                 (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
   
   assign vcu_if.xs2_scalar_src = (vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED);
-  assign vcu_if.rd_scalar_src = ((vfunct3 == OPCFG) || 
-                                  ((funct6_opi == VWXUNARY0) && 
-                                  ((vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VFIRST)))) && 
-                                  (vcu_if.opcode == VECTOR); 
+  assign vcu_if.rd_scalar_src = (vfunct3 == OPCFG) || (op_decoded == OP_VMV_X_S);
+                                  // ((funct6_opi == VWXUNARY0) && 
+                                  // ((vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VFIRST)))) && 
+                                  // (vcu_if.opcode == VECTOR); 
   // always_comb begin
   //   vcu_if.arith_ena = 0;
   //   vcu_if.reduction_ena = 0;

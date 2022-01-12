@@ -668,6 +668,7 @@ package rv32i_types_pkg;
     TWO = 1,
     FOUR = 2, 
     EIGHT = 3,
+    SCALAR,
     NOT_VMV = 7
   } vmv_type_t;
 
