@@ -70,7 +70,7 @@ interface vector_lane_if;
 
   modport loadstore_unit (
     input   porta0, porta1, portb0, portb1, porta_sel, portb_sel,
-    output  in_addr, out_addr
+    output  in_addr, out_addr, wdata_ls
   );
 
 endinterface

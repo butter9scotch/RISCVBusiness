@@ -4,21 +4,22 @@
 interface rv32v_decode_execute_if;
   import rv32i_types_pkg::*;
 
-  logic stride_type, rd_wen, mask0, mask1, reduction_ena, ls_idx, load, store, vill;
+  logic rd_wen, mask0, mask1, reduction_ena, ls_idx, load, store, vill;
   sign_type_t is_signed;
-  logic [1:0] wen;
+  logic [1:0] wen, stride_type;
   
   cfgsel_t config_type;
   logic [31:0] stride_val, xs1, xs2,  vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, vs2_lane0, vs2_lane1, imm, storedata0, storedata1;
   logic [31:0] rd_data; // scalar data using rd
   logic [4:0] rd_sel, vd;
+  logic [3:0] nf;
   offset_t woffset0, woffset1;
   fu_t fu_type;
   athresult_t result_type;
   valuop_t aluop;
   rs_t rs1_type, rs2_type;
   vlmul_t lmul;
-  sew_t sew,  eew;
+  sew_t sew,  eew, eew_loadstore;
   logic [VL_WIDTH:0] vlenb, vtype; // range of [1, 128]
   logic [31:0] vl, vstart;
   mm_t minmax_type;
@@ -76,7 +77,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done,
+    decode_done, nf, eew_loadstore,
     tb_line_num //TESTBENCH ONLY
   );
 
@@ -94,7 +95,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done,
+    decode_done, nf, eew_loadstore,
     tb_line_num //TESTBENCH ONLY
   );
 

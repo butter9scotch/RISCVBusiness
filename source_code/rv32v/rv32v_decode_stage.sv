@@ -56,7 +56,7 @@ module rv32v_decode_stage (
   compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); 
   // microop_buffer uop_buffer(.*);
 
-  sew_t sew;
+  sew_t sew, eew_loadstore;
   vlmul_t lmul;
   logic [31:0] vstart;
   vop_cfg vop_c;
@@ -64,7 +64,8 @@ module rv32v_decode_stage (
 
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
-  assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]);
+  assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]); 
+  assign eew_loadstore = sew_t'(fetch_decode_if.instr[14:12]); 
   assign lmul = vlmul_t'(prv_if.vtype[2:0]);
 
   // compress offset unit assigns
@@ -370,6 +371,9 @@ module rv32v_decode_stage (
       decode_execute_if.in_inv            <= '0;
       decode_execute_if.decode_done       <= '0;
 
+      decode_execute_if.nf                <= '0;
+      decode_execute_if.eew_loadstore     <= '0;
+
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -458,7 +462,8 @@ module rv32v_decode_stage (
       decode_execute_if.in_inv           <= '0;
       decode_execute_if.decode_done       <= '0;
 
-
+      decode_execute_if.nf             <= '0;
+      decode_execute_if.eew_loadstore     <= '0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -555,6 +560,8 @@ module rv32v_decode_stage (
       decode_execute_if.in_inv            <= vcu_if.in_inv;
       decode_execute_if.decode_done       <= ele_if.done;
 
+      decode_execute_if.nf                <= vcu_if.nf;
+      decode_execute_if.eew_loadstore     <= eew_loadstore;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;

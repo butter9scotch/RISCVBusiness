@@ -68,7 +68,7 @@ interface vector_control_unit_if();
 
   rs_t rs1_type;
   rs_t rs2_type;
-  logic stride_type;
+  logic [1:0] stride_type;
 // TODO:
   sign_type_t is_signed;
   logic ls_idx;

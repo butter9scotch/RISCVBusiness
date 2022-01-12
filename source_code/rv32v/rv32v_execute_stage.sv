@@ -36,7 +36,9 @@ module rv32v_execute_stage (
 
   import rv32i_types_pkg::*;
 
-  logic [31:0] aluresult0, aluresult1, portb0, base_addr, addr_buffer, coherence_res;
+  logic [31:0] aluresult0, aluresult1, portb0, base_addr, base_addr_new, base_addr1, base_addr2, base_addr3, base_addr4, base_addr5, base_addr6, base_addr7, addr_buffer, coherence_res, segment_unit_stride;
+  logic [7:0] eew_loadstore;
+  logic [4:0] base_addr_offset, nfield;
   logic ls, latch_ena;
 
   logic mask_bit_found;
@@ -55,11 +57,54 @@ module rv32v_execute_stage (
   vector_lane V1 (CLK, nRST, vif1);
   iota_logic IL (CLK, nRST, iif);
 
-  assign portb0    = decode_execute_if.stride_type ? decode_execute_if.stride_val : 4;
-  assign base_addr = decode_execute_if.xs1;
+  // To scalar reg logic
   assign rd_wen    = decode_execute_if.rd_wen | decode_execute_if.config_type;
   assign rd_sel    = decode_execute_if.rd_sel;
   assign rd_data   = decode_execute_if.config_type ? decode_execute_if.vl : coherence_res; //TODO: Add coherence unit signal
+
+  // Load store logic
+  assign base_addr_offset = eew_loadstore >> 3;
+  assign nfield = decode_execute_if.nf + 1;
+  assign portb0    = decode_execute_if.stride_type == 2 ? segment_unit_stride :
+                     decode_execute_if.stride_type == 1 ? decode_execute_if.stride_val :
+                     4;
+  assign base_addr = decode_execute_if.xs1;
+  assign base_addr1 = base_addr + base_addr_offset;
+  assign base_addr2 = base_addr1 + base_addr_offset;
+  assign base_addr3 = base_addr2 + base_addr_offset;
+  assign base_addr4 = base_addr3 + base_addr_offset;
+  assign base_addr5 = base_addr4 + base_addr_offset;
+  assign base_addr6 = base_addr5 + base_addr_offset;
+  assign base_addr7 = base_addr6 + base_addr_offset;
+  always_comb begin
+    case(decode_execute_if.nf)
+      3'd0: base_addr_new = base_addr;
+      3'd1: base_addr_new = base_addr1;
+      3'd2: base_addr_new = base_addr2;
+      3'd3: base_addr_new = base_addr3;
+      3'd4: base_addr_new = base_addr4;
+      3'd5: base_addr_new = base_addr5;
+      3'd6: base_addr_new = base_addr6;
+      3'd7: base_addr_new = base_addr7;
+      default: base_addr_new = base_addr;
+    endcase
+  end
+  always_comb begin
+    case(decode_execute_if.eew_loadstore)
+      SEW8: begin
+        eew_loadstore = 8;
+        segment_unit_stride = nfield;    // segment_unit_stride = nf * eew / 8
+      end
+      SEW16: begin
+        eew_loadstore = 16;
+        segment_unit_stride = nfield << 1;
+      end
+      default: begin
+        eew_loadstore = 32;
+        segment_unit_stride = nfield << 2;
+      end
+    endcase
+  end
 
   // Iota logic signals
   assign iif.mask_bits = {vif1.vs2_data, vif0.vs2_data};
@@ -132,7 +177,7 @@ module rv32v_execute_stage (
   assign vif0.mask            = decode_execute_if.mask0;
   assign vif0.reduction_ena   = decode_execute_if.reduction_ena;
   assign vif0.porta0          = addr_buffer;
-  assign vif0.porta1          = base_addr;
+  assign vif0.porta1          = base_addr_new;
   assign vif0.portb0          = portb0;
   assign vif0.portb1          = decode_execute_if.vs2_lane0;
   assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0);
@@ -160,7 +205,7 @@ module rv32v_execute_stage (
   assign vif1.mask            = decode_execute_if.mask1;
   assign vif1.reduction_ena   = decode_execute_if.reduction_ena;
   assign vif1.porta0          = vif0.out_addr;
-  assign vif1.porta1          = base_addr;
+  assign vif1.porta1          = base_addr_new;
   assign vif1.portb0          = portb0;
   assign vif1.portb1          = decode_execute_if.vs2_lane1;
   assign vif1.porta_sel       = decode_execute_if.ls_idx;
@@ -373,8 +418,10 @@ module rv32v_execute_stage (
 
   // Pipeline Latch
   assign ls = decode_execute_if.load | decode_execute_if.store;
-  assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
-  assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
+  //assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
+  //assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
+  assign aluresult0 = vif0.lane_result;
+  assign aluresult1 = vif1.lane_result;
   // assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
   assign latch_ena = ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
