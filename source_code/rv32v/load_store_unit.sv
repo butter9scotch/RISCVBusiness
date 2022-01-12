@@ -8,5 +8,6 @@ module loadstore_unit (
   assign lsif.in_addr = lsif.porta_sel ? lsif.porta1 : lsif.porta0;
   assign portb = lsif.portb_sel ? lsif.portb1 : lsif.portb0;
   assign lsif.out_addr = lsif.in_addr + portb;
+  assign lsif.wdata_ls = lsif.portb_sel ? lsif.out_addr : lsif.in_addr;
 endmodule
 

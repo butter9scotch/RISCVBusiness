@@ -382,9 +382,11 @@ module vector_control_unit
                             vcu_if.imm_op ? I : V;
 
   
-  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_STRIDED);
+  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.nf != '0) ? 2 : // Segment unit stride
+                               (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_STRIDED) ? 1 : // Normal strided or Segment strided
+                                0;
 
-  assign vcu_if.rs2_type = vcu_if.stride_type == 1 ? X : V;
+  assign vcu_if.rs2_type = vcu_if.stride_type == 1 ? X : V; // TODO: double check
 
 
   //write to 1 bit instead of 1 element

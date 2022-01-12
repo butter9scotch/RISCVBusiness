@@ -79,6 +79,7 @@ module mask_unit (
       VMASK_SIF   : mu_if.wdata_m = encoder_out == 0 ? 0 : ~(constant << (encoder_out+1));
       VMASK_SOF   : mu_if.wdata_m = encoder_out == 0 ? 0 : 32'd1 << encoder_out;
       VMASK_IOTA  : mu_if.wdata_m = mu_if.iota_res; 
+      VMASK_ID    : mu_if.wdata_m = mu_if.offset; 
       default     : mu_if.wdata_m = '0;
     endcase
   end
