@@ -489,6 +489,7 @@ module rv32v_execute_stage (
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         decode_execute_if.reduction_ena ? reduction_alu_result : 
+                                        decode_execute_if.fu_type == MOVE_SCALAR ? decode_execute_if.vs1_lane0 :
                                         decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
                                         zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : 

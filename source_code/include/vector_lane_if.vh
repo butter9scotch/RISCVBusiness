@@ -64,7 +64,7 @@ interface vector_lane_if;
   );
 
   modport permutation_unit (
-    input   vs1_data, vs2_data,
+    input   vs1_data, vs2_data, 
     output  wdata_p, busy_p, exception_p
   );
 

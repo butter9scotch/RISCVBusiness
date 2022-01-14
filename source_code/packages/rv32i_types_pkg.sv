@@ -551,7 +551,8 @@ package rv32i_types_pkg;
     FIXED_POINT,
     LOAD_UNIT,
     STORE_UNIT,
-    MOVE
+    MOVE, 
+    MOVE_SCALAR
   } fu_t;
 
   typedef enum logic [3:0] {

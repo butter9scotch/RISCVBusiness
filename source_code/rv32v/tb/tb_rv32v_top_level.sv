@@ -584,7 +584,8 @@ module tb_rv32v_top_level ();
      vopm_t funct6,
      vfunct3_t funct3,
      bit vm, 
-     logic [4:0] vs1
+     logic [4:0] vs1, 
+     logic [4:0] vs2
   );
     // output int [] out;
 
@@ -593,12 +594,12 @@ module tb_rv32v_top_level ();
     RegReg a;
 
 
-    logic [4:0]  vs2, vd;
+    logic [4:0]   vd;
 
-    if (lmul == LMUL1) begin  vs2 = 2; vd = 3; end
-    else if (lmul == LMUL2) begin vs2 = 3; vd = 5;  end 
-    else if (lmul == LMUL4) begin vs2 = 5; vd = 9;  end 
-    else if (lmul == LMUL8) begin vs2 = 9; vd = 17; end 
+    if (lmul == LMUL1) begin  vd = 3; end
+    else if (lmul == LMUL2) begin vd = 5;  end 
+    else if (lmul == LMUL4) begin vd = 9;  end 
+    else if (lmul == LMUL8) begin vd = 17; end 
 
     xs1 = vl;
 
@@ -712,11 +713,12 @@ module tb_rv32v_top_level ();
     //   {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'hFFFE},
     //   {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'h1}
     // );
-    add_test_case(new_config_vop_reg_case(SEW32, LMUL1, 16, VWXUNARY0, OPMVV, UNMASKED, VMV_X_S), 
-      {{30{4'hF}}, 8'h55},
-      {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'h1},
-      {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'hFFFE},
-      {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'h1}
+    add_test_case(new_config_vop_reg_case(SEW32, LMUL1, 4, VMUNARY0, OPMVV, MASKED, OP_VIOTA, 5'd0), 
+      {{30{4'hF}}, 8'hFF},
+      {32'h1, 32'h1, 32'h1, 32'h1},
+      {32'h2, 32'h2, 32'h2, 32'h2},
+      128'd0
+      // {32'h0, 32'h0, 16'h4, 16'h3, 16'h2, 16'h1}
     );
 
     // add_test_case(new_config_vop_case(SEW16, LMUL2, 8, VWMULU,  OPMVV, UNMASKED)); //VMV

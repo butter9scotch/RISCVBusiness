@@ -35,9 +35,6 @@ module arithmetic_unit (
   logic [32:0] as_res, result;
   logic [6:0] shamt;
   logic vsdata1_msb, vsdata2_msb, sltu, slt, seq, sle, sleu, carryin;
-  // assign aif.win = 0; //TODO: CHANGE THIS
-  // assign aif.woutu = 0; //TODO: CHANGE THIS
-  // assign aif.zext_w = 0; //TODO: CHANGE THIS
   
 
   // SEW dependent signals
@@ -111,9 +108,6 @@ module arithmetic_unit (
   assign op3res  = aif.carry_borrow_ena ? {31'd0, as_res[32]} : as_res[31:0];
   assign merge   = aif.mask ? vsdata1 : vsdata2;
   assign sltu    = vsdata2 < vsdata1;
-  // assign slt     = vsdata1_msb & !vsdata2_msb ? 1:
-                  //  !vsdata1_msb & vsdata2_msb ? 0:
-                  //  sltu;
   assign slt     =  aif.sew == SEW8 ? $signed(vsdata2[7:0]) < $signed(vsdata1[7:0]) : 
                     aif.sew == SEW16 ? $signed(vsdata2[15:0]) < $signed(vsdata1[15:0]) : 
                     $signed(vsdata2) < $signed(vsdata1);
@@ -126,7 +120,6 @@ module arithmetic_unit (
   assign maxu    = sltu ? vsdata1 : vsdata2; 
  
   // Reduction Unit
-  // assign next_accumulator = ((~aif.is_masked & aif.mask) || aif.is_masked) ? result[31:0] : accumulator;
   logic [31:0] next_accumulator;
 
   always_comb begin

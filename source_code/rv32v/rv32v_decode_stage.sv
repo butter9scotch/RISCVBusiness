@@ -126,7 +126,9 @@ module rv32v_decode_stage (
 
   always_comb begin
     next_decode_execute_if_eew = sew;
-    if (vcu_if.vd_widen) begin
+    if (vcu_if.mask_type == VMASK_IOTA) begin
+      next_decode_execute_if_eew = sew_t'(prv_if.vtype[5:3]);
+    end else if (vcu_if.vd_widen) begin
       case(sew)
         SEW32, SEW16: next_decode_execute_if_eew = SEW32;
         SEW8: next_decode_execute_if_eew = SEW16;
@@ -142,6 +144,7 @@ module rv32v_decode_stage (
   always_comb begin
     rfv_if.vs2_sew = sew;
     if (vcu_if.mask_ena == MASK) begin
+
       rfv_if.vs2_sew = SEW32;
     end else if (vcu_if.win) begin
       case(sew)
@@ -482,12 +485,12 @@ module rv32v_decode_stage (
       decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
       decode_execute_if.load          <= vcu_if.is_load;
       decode_execute_if.store         <= vcu_if.is_store;
-      decode_execute_if.wen[0]        <= wen0;
-      decode_execute_if.wen[1]        <= wen1;
+      decode_execute_if.wen[0]        <= vcu_if.merge_ena | wen0;
+      decode_execute_if.wen[1]        <= vcu_if.merge_ena | wen1;
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
-      decode_execute_if.vs1_lane0     <= rfv_if.vs1_data[0];
+      decode_execute_if.vs1_lane0     <= vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[0];
       decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; 
       decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : 
                                           vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : 
@@ -546,7 +549,7 @@ module rv32v_decode_stage (
       decode_execute_if.vstart            <= prv_if.vstart;
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ;
+      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[0] : 32'hDEAD;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;

@@ -266,10 +266,13 @@ module vector_control_unit
   assign vcu_if.imm_op = ((vfunct3 == OPCFG) || (vfunct3 == OPIVI)) && (vcu_if.opcode == VECTOR); 
   
   //use rs1, rs1, rd. when VMV_X_S, VMV_X_S, VFIRST write to rd
+
+  //choose between using vdat1 and xs1_dat
   assign vcu_if.xs1_scalar_src = vcu_if.is_store || vcu_if.is_load || (vcu_if.cfgsel == VSETVLI) || 
                                 (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVL) || 
                                 (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
-  
+                                
+  //choose between using vdat2 and xs2_dat
   assign vcu_if.xs2_scalar_src = (vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED);
   assign vcu_if.rd_scalar_src = (vfunct3 == OPCFG) || (op_decoded == OP_VMV_X_S);
                                   // ((funct6_opi == VWXUNARY0) && 
@@ -320,7 +323,7 @@ module vector_control_unit
     if ((vcu_if.opcode == VECTOR) && (vfunct3 != OPCFG)) begin
       case (op_decoded)
         OP_VADD, OP_VSUB, OP_VRSUB, OP_VMINU, OP_VMIN, OP_VMAXU, OP_VMAX, OP_VAND, OP_VOR, OP_VXOR, OP_VADC, OP_VMADC, 
-        OP_VSBC, OP_VMSBC, OP_VMERGE, OP_VMERGE, OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, 
+        OP_VSBC, OP_VMSBC, OP_VMERGE, OP_VMSEQ, OP_VMSNE, OP_VMSLTU, OP_VMSLT, OP_VMSLEU, OP_VMSLE, OP_VMSGTU, 
         OP_VMSGT, OP_VSRL, OP_VSRA, OP_VNSRL, OP_VNSRA, OP_VZEXT_VF8, OP_VSEXT_VF8, OP_VZEXT_VF4, OP_VSEXT_VF4, 
         OP_VZEXT_VF2, OP_VSEXT_VF2,   OP_VWADDU, OP_VWADD, OP_VWSUBU, OP_VWSUB, OP_VWADDU_W, 
         OP_VWADD_W, OP_VWSUBU_W, OP_VWSUB_W: begin vcu_if.fu_type = ARITH; vcu_if.arith_ena = 1; end
@@ -329,9 +332,10 @@ module vector_control_unit
          OP_VMULHU, OP_VMUL, OP_VMULHSU, OP_VMULH, OP_VWMULU, OP_VWMULSU, OP_VWMUL: begin vcu_if.fu_type = MUL; vcu_if.mul_ena = 1; end
         OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: begin vcu_if.fu_type = DIV; vcu_if.div_ena = 1; end 
         OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: begin vcu_if.fu_type = MASK; vcu_if.mask_ena = 1; end
-        OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VMV_X_S, OP_VMV_S_X, OP_VCOMPRESS: begin vcu_if.fu_type = PEM; vcu_if.perm_ena = 1; end
+        OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VCOMPRESS: begin vcu_if.fu_type = PEM; vcu_if.perm_ena = 1; end
         OP_VSADDU, OP_VSADD, OP_VSSUBU, OP_VSSUB, OP_VSMUL, OP_VSSRL, OP_VSSRA, OP_VNCLIPU, OP_VNCLIP, OP_VAADDU, OP_VAADD, OP_VASUBU, OP_VASUB:begin  vcu_if.fu_type = FIXED_POINT; vcu_if.fixed_point_ena = 1; end
-        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV, OP_VMV_X_S, OP_VMV_S_X: begin vcu_if.fu_type = MOVE; end
+        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV: begin vcu_if.fu_type = MOVE; end
+        OP_VMV_X_S, OP_VMV_S_X: begin vcu_if.fu_type = MOVE_SCALAR; end
         default:   begin 
                 vcu_if.fu_type = ARITH;
                 vcu_if.arith_ena = 0;
@@ -399,7 +403,9 @@ module vector_control_unit
   always_comb begin
     case(vcu_if.opcode)
       LOAD_FP: vcu_if.wen   = 2'b11;
-      VECTOR:  vcu_if.wen = {is_vopi | is_vopm, is_vopi | is_vopm};
+      VECTOR:  begin 
+               vcu_if.wen = {(is_vopi | is_vopm) & (vcu_if.vmv_type != SCALAR), (is_vopi | is_vopm) & (op_decoded != OP_VMV_X_S)};
+      end
       STORE_FP: vcu_if.wen   = 1'b0;
       default:  vcu_if.wen   = 1'b0;
     endcase
@@ -664,6 +670,6 @@ module vector_control_unit
   assign vcu_if.mask_logical = (op_decoded == OP_VMANDN)   || (op_decoded == OP_VMAND)    || (op_decoded == OP_VMOR) || (op_decoded == OP_VMXOR) || (op_decoded == OP_VMORN) || (op_decoded == OP_VMNAND) || (op_decoded == OP_VMNOR) || (op_decoded == OP_VMXNOR); 
   assign vcu_if.out_inv      = (op_decoded == OP_VMNAND)   || (op_decoded == OP_VMNOR)    || (op_decoded == OP_VMXNOR);
   assign vcu_if.in_inv       = (op_decoded == OP_VMORN)    || (op_decoded == OP_VMANDN);
-
+  assign vcu_if.merge_ena    = (op_decoded == OP_VMERGE);
   // assign vcu_if.vd_widen  = 
 endmodule

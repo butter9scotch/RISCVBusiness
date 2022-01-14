@@ -101,6 +101,7 @@ interface vector_control_unit_if();
 
   vmv_type_t vmv_type;
 
+  logic merge_ena;
   modport vcu (
     input instr,
     output dwen, dren, wen,
@@ -119,7 +120,7 @@ interface vector_control_unit_if();
     vs1_offset_src, vs2_offset_src,
     imm_op,
     xs1_scalar_src, xs2_scalar_src, rd_scalar_src,
-    arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena,
+    arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena, merge_ena,
     fu_type,
     mem_op_width,
     sign_extend,
