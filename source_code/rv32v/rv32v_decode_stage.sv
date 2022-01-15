@@ -56,7 +56,8 @@ module rv32v_decode_stage (
   compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); 
   // microop_buffer uop_buffer(.*);
 
-  sew_t sew, eew_loadstore;
+  sew_t sew;
+  width_t eew_loadstore;
   vlmul_t lmul;
   logic [31:0] vstart;
   vop_cfg vop_c;
@@ -65,7 +66,7 @@ module rv32v_decode_stage (
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
   assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]); 
-  assign eew_loadstore = sew_t'(fetch_decode_if.instr[14:12]); 
+  assign eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
   assign lmul = vlmul_t'(prv_if.vtype[2:0]);
 
   // compress offset unit assigns
@@ -482,7 +483,7 @@ module rv32v_decode_stage (
       decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
       decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
       decode_execute_if.is_signed     <= vcu_if.is_signed;
-      decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
+      decode_execute_if.ls_idx        <= vcu_if.ls_idx;
       decode_execute_if.load          <= vcu_if.is_load;
       decode_execute_if.store         <= vcu_if.is_store;
       decode_execute_if.wen[0]        <= vcu_if.merge_ena | wen0;

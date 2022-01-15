@@ -94,7 +94,7 @@ module address_scheduler (
     case(state)
       IDLE:
       begin
-        asif.busy = 0;
+        if (~daccess) asif.busy = 0;
       end 
       LOAD0:
       begin
@@ -105,6 +105,7 @@ module address_scheduler (
       begin
         asif.final_addr = asif.addr1;
         asif.ren = 1;
+        asif.busy = ~asif.arrived1;
       end 
       STORE0:
       begin

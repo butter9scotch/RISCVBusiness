@@ -91,11 +91,11 @@ module rv32v_execute_stage (
   end
   always_comb begin
     case(decode_execute_if.eew_loadstore)
-      SEW8: begin
+      WIDTH8: begin
         eew_loadstore = 8;
         segment_unit_stride = nfield;    // segment_unit_stride = nf * eew / 8
       end
-      SEW16: begin
+      WIDTH16: begin
         eew_loadstore = 16;
         segment_unit_stride = nfield << 1;
       end
