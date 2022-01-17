@@ -59,7 +59,7 @@ module rv32v_decode_stage (
   sew_t sew;
   width_t eew_loadstore;
   vlmul_t lmul;
-  logic [31:0] vstart;
+  logic [31:0] vstart, ls_vl;
   vop_cfg vop_c;
   logic wen0, wen1;
 
@@ -75,11 +75,17 @@ module rv32v_decode_stage (
   assign cou_if.vs1_mask = rfv_if.vs1_mask;
   assign cou_if.reset = hu_if.csr_update;
 
+  // Load store vl calculation to allow parallelism
+  assign ls_vl = eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
+                 eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
+                 prv_if.vl;
+
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
+                            (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
                             (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : 
                             (vcu_if.vmv_type == SCALAR) ? 1 : 
                             (VLENB >> sew) << vcu_if.vmv_type;  
@@ -181,6 +187,12 @@ module rv32v_decode_stage (
     end else if (cou_if.ena) begin
       wen0 = cou_if.wen[0];
       wen1 = cou_if.wen[1];
+    end else if (vcu_if.is_store) begin
+      wen0 = 0;
+      wen1 = 0;
+    end else if (vcu_if.is_load) begin
+      wen0 = vcu_if.wen & mask0;
+      wen1 = vcu_if.wen & mask1;
     end else begin
       wen0 = (vcu_if.result_type == A_S) ? 1 : vcu_if.wen & (mask0);
       wen1 = (vcu_if.result_type == A_S) ? 1: vcu_if.wen & (mask1);

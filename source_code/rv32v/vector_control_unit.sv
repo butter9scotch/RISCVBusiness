@@ -107,7 +107,7 @@ module vector_control_unit
   // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
 
   // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
-  assign vcu_if.de_en = ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG);
+  assign vcu_if.de_en = (((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG)) | vcu_if.is_load | vcu_if.is_store;
 
   // assign vcu_if.de_en = vcu_if.arith_ena || vcu_if.mask_ena || vcu_if.perm_ena || vcu_if.reduction_ena || vcu_if.loadstore_ena || vcu_if.mul_ena || vcu_if.div_ena || vcu_if.fixed_point_ena; //unit enables
 

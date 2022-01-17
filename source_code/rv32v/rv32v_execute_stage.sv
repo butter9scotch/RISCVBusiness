@@ -167,6 +167,12 @@ module rv32v_execute_stage (
     endcase
   end
 
+  logic ls_ena_ff;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) ls_ena_ff <= 0;
+    else ls_ena_ff <= (decode_execute_if.load | decode_execute_if.store);
+  end
+
   // Vector Lane 0
   //assign vif0.stride          = decode_execute_if.stride;
   assign vif0.fu_type         = decode_execute_if.fu_type;
@@ -179,8 +185,10 @@ module rv32v_execute_stage (
   assign vif0.porta0          = addr_buffer;
   assign vif0.porta1          = base_addr_new;
   assign vif0.portb0          = portb0;
-  assign vif0.portb1          = decode_execute_if.vs2_lane0;
-  assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0);
+  assign vif0.portb1          = decode_execute_if.sew == SEW32 ? decode_execute_if.vs2_lane0 << 2:
+                                decode_execute_if.sew == SEW16 ? decode_execute_if.vs2_lane0 << 1:
+                                decode_execute_if.vs2_lane0;
+  assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0 & ~ls_ena_ff);
   assign vif0.portb_sel       = decode_execute_if.ls_idx;
   assign vif0.is_signed_mul   = decode_execute_if.is_signed;
   assign vif0.multiply_type   = decode_execute_if.multiply_type;
@@ -207,7 +215,9 @@ module rv32v_execute_stage (
   assign vif1.porta0          = vif0.out_addr;
   assign vif1.porta1          = base_addr_new;
   assign vif1.portb0          = portb0;
-  assign vif1.portb1          = decode_execute_if.vs2_lane1;
+  assign vif1.portb1          = decode_execute_if.sew == SEW32 ? decode_execute_if.vs2_lane1 << 2:
+                                decode_execute_if.sew == SEW16 ? decode_execute_if.vs2_lane1 << 1:
+                                decode_execute_if.vs2_lane1;
   assign vif1.porta_sel       = decode_execute_if.ls_idx;
   assign vif1.portb_sel       = decode_execute_if.ls_idx;
   assign vif1.is_signed_mul   = decode_execute_if.is_signed;

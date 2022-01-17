@@ -31,7 +31,7 @@ module address_scheduler (
 
   import rv32i_types_pkg::*;
 
-  logic misalign0, misalign1, daccess;
+  logic misalign0, misalign1, daccess, done;
 
   typedef enum logic [2:0] {IDLE, LOAD0, LOAD1, STORE0, STORE1, EX} state_type;
   state_type state, next_state;
@@ -44,6 +44,12 @@ module address_scheduler (
   assign asif.byte_ena = asif.sew == SEW8 ? 0:
                          asif.sew == SEW16 ? 1:
                          2;
+/*
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) done <= 0;
+    else if (asif.arrived1 & asif.woffset1 == asif.vl) done <= 1;
+    else if (daccess) done <= 0;
+  end */
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) state <= IDLE;
@@ -118,6 +124,7 @@ module address_scheduler (
         asif.final_addr = asif.addr1;
         asif.final_storedata = asif.storedata1; 
         asif.wen = 1;
+        asif.busy = ~asif.dhit;
       end 
       EX:
       begin

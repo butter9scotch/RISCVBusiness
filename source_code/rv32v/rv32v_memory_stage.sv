@@ -61,6 +61,8 @@ module rv32v_memory_stage (
   assign asif.store      = execute_memory_if.store;
   assign asif.dhit       = cif.dhit;
   assign asif.returnex   = returnex;
+  assign asif.woffset1   = execute_memory_if.woffset1;
+  assign asif.vl         = execute_memory_if.vl;
   // To dcache
   assign cif.dmemstore = asif.final_storedata;
   assign cif.dmemaddr  = asif.final_addr;
