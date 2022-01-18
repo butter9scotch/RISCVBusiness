@@ -145,7 +145,15 @@ module rv32v_decode_stage (
         SEW32 : next_decode_execute_if_eew = SEW16;
         SEW16, SEW8: next_decode_execute_if_eew = SEW8;
       endcase
-    end 
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED)) begin
+      case(eew_loadstore)
+        WIDTH32: next_decode_execute_if_eew = SEW32;
+        WIDTH16: next_decode_execute_if_eew = SEW16;
+        WIDTH8: next_decode_execute_if_eew = SEW8;
+      endcase
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UNIT)) begin
+      next_decode_execute_if_eew = SEW32;
+    end
   end
 
   always_comb begin
@@ -163,7 +171,13 @@ module rv32v_decode_stage (
         F4Z, F4S: rfv_if.vs2_sew = (sew == SEW32) ? SEW8 : sew;
         F2Z, F2S: rfv_if.vs2_sew = (sew == SEW32) ? SEW16 : (sew == SEW16) ? SEW8 : sew;
       endcase
-    end 
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UINDEXED || vcu_if.mop == MOP_OINDEXED)) begin
+      case(eew_loadstore)
+        WIDTH32: rfv_if.vs2_sew = SEW32;
+        WIDTH16: rfv_if.vs2_sew = SEW16;
+        WIDTH8: rfv_if.vs2_sew = SEW8;
+      endcase
+    end
   end
 
   //TODO: iron out exact masking logic based on offsets
@@ -296,7 +310,8 @@ module rv32v_decode_stage (
   // assign rfv_if.vs2_offset[1] = vs2_offset1;
   assign rfv_if.vs3_offset = woffset0; // use offset of vd here because same bits in instruction
   // assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
-  assign rfv_if.sew = sew;
+  //assign rfv_if.sew = sew;
+  assign rfv_if.sew = (vcu_if.is_store || vcu_if.is_load) ? next_decode_execute_if_eew : sew;
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;

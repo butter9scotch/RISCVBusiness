@@ -454,6 +454,8 @@ module rv32v_execute_stage (
       execute_memory_if.single_bit_write  <= '0;
       execute_memory_if.next_vtype_csr  <= '0;
       execute_memory_if.next_avl_csr  <= '0;
+      execute_memory_if.eew_loadstore     <= '0;
+      execute_memory_if.ls_idx     <= '0;
 
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
@@ -481,6 +483,8 @@ module rv32v_execute_stage (
       execute_memory_if.single_bit_write  <= '0;
       execute_memory_if.next_vtype_csr    <= '0;
       execute_memory_if.next_avl_csr      <= '0;
+      execute_memory_if.eew_loadstore     <= '0;
+      execute_memory_if.ls_idx     <= '0;
 
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
@@ -521,6 +525,9 @@ module rv32v_execute_stage (
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
       execute_memory_if.next_vtype_csr  <= decode_execute_if.next_vtype_csr;
       execute_memory_if.next_avl_csr  <= decode_execute_if.next_avl_csr;
+
+      execute_memory_if.eew_loadstore     <= decode_execute_if.eew_loadstore;
+      execute_memory_if.ls_idx     <= decode_execute_if.ls_idx ;
 
       execute_memory_if.rd_wen  <= decode_execute_if.rd_wen;
       execute_memory_if.rd_sel  <= decode_execute_if.rd_sel;

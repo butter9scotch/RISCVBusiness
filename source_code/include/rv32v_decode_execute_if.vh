@@ -19,7 +19,8 @@ interface rv32v_decode_execute_if;
   valuop_t aluop;
   rs_t rs1_type, rs2_type;
   vlmul_t lmul;
-  sew_t sew,  eew, eew_loadstore;
+  sew_t sew,  eew;
+  width_t eew_loadstore;
   logic [VL_WIDTH:0] vlenb, vtype; // range of [1, 128]
   logic [31:0] vl, vstart;
   mm_t minmax_type;
