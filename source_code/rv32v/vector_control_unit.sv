@@ -88,9 +88,6 @@ module vector_control_unit
                             (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W) || (op_decoded == OP_VWMULU) || 
                             (op_decoded == OP_VWMULSU) || (op_decoded == OP_VWMUL) || (op_decoded == OP_VWMACCU) || 
                             (op_decoded == OP_VWMACC) || (op_decoded == OP_VWMACCUS) || (op_decoded == OP_VWMACCSU));
-  always_comb begin
-    case ()
-  end
   assign vcu_if.vs2_widen = (vcu_if.opcode == LOAD_FP) && ((op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W) || 
                             (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W));
 

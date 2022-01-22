@@ -189,6 +189,7 @@ module tb_rv32v_top_level ();
   task add_test_case;
 
     input int line_buffer [];
+    input logic [31:0]  xs1_val;
     input logic [127:0] data0 [];
     input logic [127:0] data1 [];
     input logic [127:0] data2 [];
@@ -230,6 +231,7 @@ module tb_rv32v_top_level ();
       fetch_decode_if.instr = line_buffer[instr_idx];
       fetch_decode_if.tb_line_num = instr_idx;
       do begin
+        if (instr_idx == 1) xs1 = xs1_val;
         if (hu_if.csr_update) begin instr_idx = DUT.memory_writeback_if.tb_line_num; end
         // $info("inside wait, csr_update: %d, tb_line_num: %d", );
         @(posedge CLK); 
@@ -347,7 +349,8 @@ module tb_rv32v_top_level ();
     // that changed is the way you load the initial register values into the register
     // file. It's now dynamic arrays of 128 bit registers, so you can initialize 
     // as many registers as you want. 
-    add_test_case(new_config_vop_case(SEW32, LMUL2, 8, VSLIDEUP, OPIVV, UNMASKED), 
+    add_test_case(new_config_vop_case(SEW16, LMUL2, 8, VSLIDEDOWN, OPIVX, UNMASKED), 
+      32'd2, //value of xs1
       '{ //v0
         {32{4'hF}}
         },

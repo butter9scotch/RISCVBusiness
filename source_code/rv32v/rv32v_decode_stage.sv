@@ -132,7 +132,10 @@ module rv32v_decode_stage (
   end
 
   always_comb begin
-    if (vcu_if.reduction_ena) begin
+    if (prv_if.vstart >= prv_if.vl) begin
+      wen0 = 0;
+      wen1 = 0;
+    end else if (vcu_if.reduction_ena) begin
       wen0 = ele_if.next_done;
       wen1 = 0;
     end else if (cou_if.ena) begin
