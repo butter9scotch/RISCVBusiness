@@ -274,7 +274,7 @@ module vector_control_unit
                                 
   //choose between using vdat2 and xs2_dat
   assign vcu_if.xs2_scalar_src = (vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED);
-  assign vcu_if.rd_scalar_src = (vfunct3 == OPCFG) || (op_decoded == OP_VMV_X_S);
+  assign vcu_if.rd_scalar_src = (vfunct3 == OPCFG) || (op_decoded == OP_VMV_X_S) || (op_decoded == OP_VPOPC) || (op_decoded == OP_VFIRST);
                                   // ((funct6_opi == VWXUNARY0) && 
                                   // ((vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VFIRST)))) && 
                                   // (vcu_if.opcode == VECTOR); 
@@ -395,7 +395,7 @@ module vector_control_unit
 
   //write to 1 bit instead of 1 element
   assign vcu_if.single_bit_op  = (op_decoded == OP_VMSEQ) || (op_decoded == OP_VMSNE) || (op_decoded == OP_VMSLTU) || (op_decoded == OP_VMSLT) || (op_decoded == OP_VMSLEU) || 
-                                  (op_decoded == OP_VMSLE) || (op_decoded == OP_VMSGTU) || (op_decoded == OP_VMSGT);
+                                  (op_decoded == OP_VMSLE) || (op_decoded == OP_VMSGTU) || (op_decoded == OP_VMSGT) || (op_decoded == OP_VMADC) || (op_decoded == OP_VMSBC);
 
 
   // Assign register write enable

@@ -11,7 +11,7 @@ interface vector_lane_if;
   logic stall_e_m, exception, porta_sel, portb_sel, start_mu, mul_widen_ena, high_low;
   logic [1:0] is_signed_mul;
   logic is_signed_div, div_type, start_div;
-  logic[31:0] wdata_a, wdata_m, wdata_p, wdata_ls, wdata_mu, wdata_du, vs1_data, vs2_data, vs3_data, porta0, porta1, portb0, portb1, in_addr, out_addr, mask_32bit, mask_32bit_lane0, mask_32bit_lane1, iota_res;
+  logic[31:0] wdata_a, wdata_m, wdata_p, wdata_ls, wdata_mu, wdata_du, vs1_data, vs2_data, vs3_data, porta0, porta1, portb0, portb1, in_addr, out_addr, mask_32bit, mask_32bit_lane0, mask_32bit_lane1, iota_res, wdata_m_ff1;
   offset_t offset;
   logic start_ma, out_inv, in_inv;
   valuop_t aluop;
@@ -31,6 +31,7 @@ interface vector_lane_if;
   logic  done_du, mul_on;
   logic decode_done; // decode done 3 cycles delayed
   logic mul_wait;
+  logic mask_bit_set, mask_bit_set_ff1;
   // , mul_ena;
 
   // modport vector_lane (
@@ -60,7 +61,7 @@ interface vector_lane_if;
 
   modport mask_unit (
     input   vs1_data, vs2_data, start_ma, out_inv, in_inv, mask_type, mask_32bit, iota_res, offset,
-    output  wdata_m, busy_m, exception_m
+    output  wdata_m, wdata_m_ff1, busy_m, exception_m, mask_bit_set, mask_bit_set_ff1
   );
 
   modport permutation_unit (

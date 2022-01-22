@@ -104,7 +104,7 @@ module arithmetic_unit (
   assign vsdata3 = aif.vs3_data;
   //assign sdata2  = aif.rev ? vsdata1 : vsdata2;
   assign carryin = aif.carryin_ena ? aif.mask : 0;
-  assign as_res  = aif.adc_sbc ? result + carryin : result - carryin;
+  assign as_res  = aif.adc_sbc ? result + carryin : result - carryin ;
   assign op3res  = aif.carry_borrow_ena ? {31'd0, as_res[32]} : as_res[31:0];
   assign merge   = aif.mask ? vsdata1 : vsdata2;
   assign sltu    = vsdata2 < vsdata1;

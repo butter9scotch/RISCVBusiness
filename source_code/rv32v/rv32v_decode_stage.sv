@@ -374,6 +374,7 @@ module rv32v_decode_stage (
       decode_execute_if.out_inv           <= '0;
       decode_execute_if.in_inv            <= '0;
       decode_execute_if.decode_done       <= '0;
+      decode_execute_if.rd_scalar_src     <= '0;
 
       decode_execute_if.nf                <= '0;
       decode_execute_if.eew_loadstore     <= '0;
@@ -465,6 +466,7 @@ module rv32v_decode_stage (
       decode_execute_if.out_inv           <= '0;
       decode_execute_if.in_inv           <= '0;
       decode_execute_if.decode_done       <= '0;
+      decode_execute_if.rd_scalar_src     <= '0;
 
       decode_execute_if.nf             <= '0;
       decode_execute_if.eew_loadstore     <= '0;
@@ -568,6 +570,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.nf                <= vcu_if.nf;
       decode_execute_if.eew_loadstore     <= eew_loadstore;
+      decode_execute_if.rd_scalar_src     <= vcu_if.rd_scalar_src;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;

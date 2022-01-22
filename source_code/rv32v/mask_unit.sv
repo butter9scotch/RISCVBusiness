@@ -25,6 +25,7 @@
 `include "vector_lane_if.vh"
 
 module mask_unit (
+  input logic CLK, nRST,
   vector_lane_if.mask_unit mu_if
 );
 
@@ -32,19 +33,28 @@ module mask_unit (
 
   logic [31:0] in1, result, aluresult, encoder_result, constant, anded, add_out, first_element;
   logic [4:0] encoder_out, add_out0, add_out1, add_out2, add_out3;
-  logic mask_bit_set;
+  // logic mu_if.mask_bit_set;
 
   assign in1           = mu_if.in_inv ? ~mu_if.vs1_data : mu_if.vs1_data;
   assign aluresult     = mu_if.out_inv ? ~result : result;
-  assign first_element = mask_bit_set ? encoder_out : '1; // Return -1 when no mask bit is set
+  // assign first_element = mu_if.mask_bit_set ? encoder_out : '1; // Return -1 when no mask bit is set
+  assign first_element = encoder_out; // Return -1 when no mask bit is set
   assign anded         = mu_if.vs2_data & mu_if.mask_32bit;
   assign add_out       = add_out0 + add_out1 + add_out2 + add_out3;
   assign constant      = '1;
-
+  always @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      mu_if.wdata_m_ff1 <= 0;
+      mu_if.mask_bit_set_ff1 <= 0;
+    end else begin
+      mu_if.wdata_m_ff1 <= mu_if.wdata_m;
+      mu_if.mask_bit_set_ff1 <= mu_if.mask_bit_set;
+    end
+  end
   encoder ENC (
     .in(mu_if.vs2_data),
     .ena(mu_if.mask_32bit),
-    .strobe(mask_bit_set), // 0: No mask bit is set
+    .strobe(mu_if.mask_bit_set), // 0: No mask bit is set
     .out(encoder_out)
   );
 

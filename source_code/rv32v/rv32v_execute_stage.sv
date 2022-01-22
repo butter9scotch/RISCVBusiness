@@ -259,37 +259,32 @@ module rv32v_execute_stage (
 
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
-  //  | mul_done_ff0 | mul_done_ff1 | mul_done_ff2 | mul_done_ff3;
   assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
   
-  // assign vif1.start
-  // assign vif1.win
-  // assign vif1.woutu
-  // assign vif1.zext_w
-  assign vif0.vd_widen  = decode_execute_if.vd_widen;
-  assign vif0.is_signed = decode_execute_if.is_signed;
-  assign vif0.index     = decode_execute_if.vs2_offset0;
-  assign vif0.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif0.vd_widen    = decode_execute_if.vd_widen;
+  assign vif0.is_signed   = decode_execute_if.is_signed;
+  assign vif0.index       = decode_execute_if.vs2_offset0;
+  assign vif0.vd_narrow   = decode_execute_if.vd_narrow;
   assign vif0.decode_done = decode_execute_if.decode_done;
-  // assign vif0.mul_ena = decode_execute_if.fu_type == MUL;
 
-  // assign vif0.mask_32bit = decode_execute_if.vs2_lane0;
-
-  // assign vif0.mask      = decode_execute_if.mask0;
-
-  assign vif1.vd_widen  = decode_execute_if.vd_widen;
-  assign vif1.is_signed = decode_execute_if.is_signed;
-  assign vif1.index     = decode_execute_if.vs2_offset1;
-  assign vif1.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif1.vd_widen    = decode_execute_if.vd_widen;
+  assign vif1.is_signed   = decode_execute_if.is_signed;
+  assign vif1.index       = decode_execute_if.vs2_offset1;
+  assign vif1.vd_narrow   = decode_execute_if.vd_narrow;
   assign vif1.decode_done = decode_execute_if.decode_done;
-  // assign vif1.mul_ena = decode_execute_if.fu_type == MUL;
 
-  // assign vif1.mask_32bit = decode_execute_if.vs2_lane1;
-   
-
-  // assign vif1.mask      = decode_execute_if.mask1;
-
-
+  logic [31:0] mout;
+  mask_coherence MCOH(
+    .m0(vif0.mask_bit_set_ff1), 
+    .m1(vif1.mask_bit_set_ff1), 
+    .m2(vif0.mask_bit_set), 
+    .m3(vif1.mask_bit_set),
+    .m0_data(vif0.wdata_m_ff1), 
+    .m1_data(vif1.wdata_m_ff1), 
+    .m2_data(vif0.lane_result), 
+    .m3_data(vif1.lane_result),
+    .mout(mout)
+  );
 
 
   // Address Buffer
@@ -514,7 +509,11 @@ module rv32v_execute_stage (
 
       execute_memory_if.rd_wen  <= decode_execute_if.rd_wen;
       execute_memory_if.rd_sel  <= decode_execute_if.rd_sel;
-      execute_memory_if.rd_data <= decode_execute_if.rd_data;
+      // refactor this later it's too much work right now
+      execute_memory_if.rd_data <= decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_POPC) ?  aluresult0 :
+                                    decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_FIRST) ? mout : 
+                                    decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
+                                    32'hDEAD;
 
             //TESTBENCH ONLY
       execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
@@ -540,4 +539,24 @@ module rv32v_execute_stage (
     end
   end
 
+endmodule
+
+
+module mask_coherence(
+  input logic  m0, m1, m2,  m3, //mask_bit_found signals
+  input logic [31:0] m0_data, m1_data, m2_data,  m3_data, // mask bits from each iteration
+  output logic [31:0] mout
+);
+
+  always_comb begin
+    case ({m3, m2, m1, m0})
+    4'b0000: mout = 32'hFFFF_FFFF;
+    4'b1000: mout = m3_data + 95;
+    4'b0100: mout = m2_data + 63;
+    4'b0010: mout = m1_data + 31;
+    4'b0001: mout = m0_data;
+    default: mout = 32'hDEAD;
+    endcase
+  end
+  
 endmodule

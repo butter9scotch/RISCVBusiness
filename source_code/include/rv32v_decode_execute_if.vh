@@ -55,6 +55,7 @@ interface rv32v_decode_execute_if;
   logic  is_masked; //vm = 1 in the instruction
   logic vd_narrow;
   logic decode_done;
+  logic rd_scalar_src;
 
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
@@ -78,6 +79,7 @@ interface rv32v_decode_execute_if;
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
     decode_done, nf, eew_loadstore,
+    rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );
 
@@ -96,6 +98,7 @@ interface rv32v_decode_execute_if;
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
     decode_done, nf, eew_loadstore,
+    rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );
 
