@@ -41,9 +41,6 @@ interface vector_control_unit_if();
   cfgsel_t cfgsel;
   // mm_t minmax_type;
 
-  logic[4:0] SEW_f8;
-  logic [1:0] eew;
-
   logic dwen, dren, wen; 
   opcode_t opcode; 
   logic [3:0] nf;
@@ -61,7 +58,6 @@ interface vector_control_unit_if();
   logic sign_extend; //sign extend the immediate value
   logic single_bit_op; //move this out to the decode stage top level?
   logic illegal_insn; 
-  logic is_vload, is_vstore;
   logic de_en;
   logic stall;
   logic is_load, is_store;
@@ -99,18 +95,23 @@ interface vector_control_unit_if();
   logic out_inv, in_inv;
   ma_t mask_type;
 
+  vlmul_t lmul;
+  width_t eew_loadstore;
+  sew_t   sew, vs2_sew, eew;
+  // logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+  logic [7:0] vtype;
+
   vmv_type_t vmv_type;
 
   logic merge_ena;
   modport vcu (
-    input instr,
+    input instr, vtype,
     output dwen, dren, wen,
     aluop,
     opcode, 
     nf,
     mop,
     vm,
-    eew,
     cfgsel,
     result_type,
     is_load,
@@ -160,7 +161,12 @@ interface vector_control_unit_if();
     out_inv,
     in_inv,
     ls_idx,
-    vmv_type
+    vmv_type,
+    sew, vs2_sew,
+    lmul,
+    eew,
+    eew_loadstore
+
   );
 
 

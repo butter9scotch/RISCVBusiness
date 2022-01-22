@@ -48,6 +48,17 @@ module vector_control_unit
   logic move_ena, madd_ena;
   
 
+  assign vcu_if.eew_loadstore = width_t'(vcu_if.instr[14:12]); 
+
+  assign vcu_if.sew = vcu_if.mask_ena ? SEW32 : 
+                      op_decoded == OP_VRGATHEREI16 ? SEW16 : 
+                      sew_t'(vcu_if.vtype[5:3]);
+  assign vcu_if.lmul = vlmul_t'(vcu_if.vtype[2:0]);
+  // assign vcu_if.vl     = prv_if.vl;
+  // assign vcu_if.vstart = prv_if.vstart;
+  // assign vcu_if.vlenb  = prv_if.vlenb;
+  // assign vcu_if.vtype  = prv_if.vtype;
+
   assign instr_r   = rtype_t'(vcu_if.instr);
   assign instr_i   = itype_t'(vcu_if.instr);
 
@@ -77,6 +88,9 @@ module vector_control_unit
                             (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W) || (op_decoded == OP_VWMULU) || 
                             (op_decoded == OP_VWMULSU) || (op_decoded == OP_VWMUL) || (op_decoded == OP_VWMACCU) || 
                             (op_decoded == OP_VWMACC) || (op_decoded == OP_VWMACCUS) || (op_decoded == OP_VWMACCSU));
+  always_comb begin
+    case ()
+  end
   assign vcu_if.vs2_widen = (vcu_if.opcode == LOAD_FP) && ((op_decoded == OP_VWADDU_W) || (op_decoded == OP_VWADD_W) || 
                             (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W));
 
@@ -110,6 +124,56 @@ module vector_control_unit
   assign vcu_if.de_en = (((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG)) | vcu_if.is_load | vcu_if.is_store;
 
   // assign vcu_if.de_en = vcu_if.arith_ena || vcu_if.mask_ena || vcu_if.perm_ena || vcu_if.reduction_ena || vcu_if.loadstore_ena || vcu_if.mul_ena || vcu_if.div_ena || vcu_if.fixed_point_ena; //unit enables
+
+  always_comb begin
+    vcu_if.eew = vcu_if.sew;
+    if ((op_decoded == OP_VIOTA) || (op_decoded == OP_VRGATHEREI16)) begin
+      vcu_if.eew = sew_t'(vcu_if.vtype[5:3]);
+    end else if (vcu_if.vd_widen) begin
+      case(vcu_if.sew)
+        SEW32, SEW16: vcu_if.eew = SEW32;
+        SEW8: vcu_if.eew = SEW16;
+      endcase
+    end else if (vcu_if.vd_narrow) begin
+      case(vcu_if.sew)
+        SEW32 : vcu_if.eew = SEW16;
+        SEW16, SEW8: vcu_if.eew = SEW8;
+      endcase
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED)) begin
+      case(vcu_if.eew_loadstore)
+        WIDTH32: vcu_if.eew = SEW32;
+        WIDTH16: vcu_if.eew = SEW16;
+        WIDTH8: vcu_if.eew = SEW8;
+      endcase
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UNIT)) begin
+      vcu_if.eew = SEW32;
+    end
+  end
+
+  always_comb begin
+    vcu_if.vs2_sew = vcu_if.sew;
+    if (vcu_if.mask_ena == MASK) begin
+      vcu_if.vs2_sew = SEW32;
+    end else if (op_decoded == OP_VRGATHEREI16) begin
+      vcu_if.vs2_sew = sew_t'(vcu_if.vtype[5:3]);
+    end else if (vcu_if.win) begin
+      case(vcu_if.sew)
+        SEW32, SEW16: vcu_if.vs2_sew = SEW32;
+        SEW8:         vcu_if.vs2_sew = SEW16;
+      endcase
+    end else if (vcu_if.aluop == VALU_EXT) begin
+      case (vcu_if.ext_type)
+        F4Z, F4S: vcu_if.vs2_sew = (vcu_if.sew == SEW32) ? SEW8 : vcu_if.sew;
+        F2Z, F2S: vcu_if.vs2_sew = (vcu_if.sew == SEW32) ? SEW16 : (vcu_if.sew == SEW16) ? SEW8 : vcu_if.sew;
+      endcase
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UINDEXED || vcu_if.mop == MOP_OINDEXED)) begin
+      case(vcu_if.eew_loadstore)
+        WIDTH32: vcu_if.vs2_sew = SEW32;
+        WIDTH16: vcu_if.vs2_sew = SEW16;
+        WIDTH8: vcu_if.vs2_sew = SEW8;
+      endcase
+    end
+  end
 
 
 
@@ -416,7 +480,7 @@ module vector_control_unit
   end
 
   //stall
-  assign vcu_if.stall = ((vfunct3 == OPIVV) && (funct6_opi == VSLIDEUP)) || ((funct6_opi == VRGATHER) && is_vopi);
+  // assign vcu_if.stall = ((vfunct3 == OPIVV) && (funct6_opi == VSLIDEUP)) || ((funct6_opi == VRGATHER) && is_vopi);
 
 
   // OFFSET SOURCE MUX CONTROL LINES
