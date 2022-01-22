@@ -81,8 +81,12 @@ module vector_control_unit
                             (op_decoded == OP_VWSUBU_W) || (op_decoded == OP_VWSUB_W));
 
   //intermediary variables 
-  assign vcu_if.is_load  = (vcu_if.opcode == STORE_FP) && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
-  assign vcu_if.is_store = (vcu_if.opcode == LOAD_FP)  && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
+  //assign vcu_if.is_load  = (vcu_if.opcode == STORE_FP) && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
+  //assign vcu_if.is_store = (vcu_if.opcode == LOAD_FP)  && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
+  assign vcu_if.is_load  = (vcu_if.opcode == LOAD_FP) && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
+  assign vcu_if.is_store = (vcu_if.opcode == STORE_FP)  && ((vcu_if.mem_op_width == WIDTH8) || (vcu_if.mem_op_width == WIDTH16) || (vcu_if.mem_op_width == WIDTH32));
+  assign vcu_if.ls_idx = (vcu_if.is_load | vcu_if.is_store) & (vcu_if.mop == MOP_OINDEXED | vcu_if.mop == MOP_UINDEXED);
+
 
   //Use OPI vs OPM enum
   assign is_vopi   = (vcu_if.opcode == VECTOR)  && (( vfunct3 == OPIVV) || (vfunct3 == OPIVX) || (vfunct3 == OPIVI));
@@ -103,7 +107,7 @@ module vector_control_unit
   // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
 
   // assign vcu_if.de_en = vcu_if.is_load | vcu_if.is_store | ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn);
-  assign vcu_if.de_en = ((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG);
+  assign vcu_if.de_en = (((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG)) | vcu_if.is_load | vcu_if.is_store;
 
   // assign vcu_if.de_en = vcu_if.arith_ena || vcu_if.mask_ena || vcu_if.perm_ena || vcu_if.reduction_ena || vcu_if.loadstore_ena || vcu_if.mul_ena || vcu_if.div_ena || vcu_if.fixed_point_ena; //unit enables
 

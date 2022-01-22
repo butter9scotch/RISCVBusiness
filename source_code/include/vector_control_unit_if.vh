@@ -159,6 +159,7 @@ interface vector_control_unit_if();
     mask_type,
     out_inv,
     in_inv,
+    ls_idx,
     vmv_type
   );
 

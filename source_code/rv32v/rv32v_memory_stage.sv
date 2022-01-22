@@ -56,11 +56,16 @@ module rv32v_memory_stage (
   assign asif.addr1      = execute_memory_if.aluresult1;
   assign asif.storedata0 = execute_memory_if.storedata0;
   assign asif.storedata1 = execute_memory_if.storedata1;
-  assign asif.sew        = memory_writeback_if.sew; // TODO: From CSR
+  //assign asif.sew        = memory_writeback_if.eew_loadstore; // TODO: From CSR
+  assign asif.sew        = execute_memory_if.eew; // TODO: From CSR
+  assign asif.eew_loadstore  = execute_memory_if.eew_loadstore; 
   assign asif.load       = execute_memory_if.load;
   assign asif.store      = execute_memory_if.store;
   assign asif.dhit       = cif.dhit;
   assign asif.returnex   = returnex;
+  assign asif.woffset1   = execute_memory_if.woffset1;
+  assign asif.vl         = execute_memory_if.vl;
+  assign asif.ls_idx     = execute_memory_if.ls_idx;
   // To dcache
   assign cif.dmemstore = asif.final_storedata;
   assign cif.dmemaddr  = asif.final_addr;

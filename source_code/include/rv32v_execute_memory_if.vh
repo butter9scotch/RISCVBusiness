@@ -14,19 +14,20 @@ interface rv32v_execute_memory_if;
   // logic [VLEN_WIDTH:0] vl; 
   logic [31:0] vl;
   sew_t eew;
-  logic single_bit_write;
+  logic single_bit_write, ls_idx;
   logic [4:0] vd;
   logic [31:0] vstart;
   logic [4:0]  rd_sel;
   logic [31:0] rd_data;
   logic  rd_wen;
+  width_t eew_loadstore;
   int tb_line_num; //TESTBENCH ONLY
 
 
 
   modport execute (
     output load, store, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1,
-    config_type, vl, vtype, eew, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, 
+    config_type, vl, vtype, eew, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen,
     tb_line_num //TESTBENCH ONLY
 
@@ -35,7 +36,7 @@ interface rv32v_execute_memory_if;
 
   modport memory (
     input load, store, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1,
-    config_type, vtype, eew, vl, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr,
+    config_type, vtype, eew, vl, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen ,
     tb_line_num //TESTBENCH ONLY
 

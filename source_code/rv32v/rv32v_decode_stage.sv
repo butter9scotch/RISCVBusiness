@@ -56,16 +56,17 @@ module rv32v_decode_stage (
   compress_offset_unit  compress_offset_unit(CLK, nRST, cou_if); 
   // microop_buffer uop_buffer(.*);
 
-  sew_t sew, eew_loadstore;
+  sew_t sew;
+  width_t eew_loadstore;
   vlmul_t lmul;
-  logic [31:0] vstart;
+  logic [31:0] vstart, ls_vl;
   vop_cfg vop_c;
   logic wen0, wen1;
 
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
   assign sew = vcu_if.mask_ena ? SEW32 : sew_t'(prv_if.vtype[5:3]); 
-  assign eew_loadstore = sew_t'(fetch_decode_if.instr[14:12]); 
+  assign eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
   assign lmul = vlmul_t'(prv_if.vtype[2:0]);
 
   // compress offset unit assigns
@@ -74,11 +75,17 @@ module rv32v_decode_stage (
   assign cou_if.vs1_mask = rfv_if.vs1_mask;
   assign cou_if.reset = hu_if.csr_update;
 
+  // Load store vl calculation to allow parallelism
+  assign ls_vl = eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
+                 eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
+                 prv_if.vl;
+
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
+                            (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
                             (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : 
                             (vcu_if.vmv_type == SCALAR) ? 1 : 
                             (VLENB >> sew) << vcu_if.vmv_type;  
@@ -138,7 +145,15 @@ module rv32v_decode_stage (
         SEW32 : next_decode_execute_if_eew = SEW16;
         SEW16, SEW8: next_decode_execute_if_eew = SEW8;
       endcase
-    end 
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED)) begin
+      case(eew_loadstore)
+        WIDTH32: next_decode_execute_if_eew = SEW32;
+        WIDTH16: next_decode_execute_if_eew = SEW16;
+        WIDTH8: next_decode_execute_if_eew = SEW8;
+      endcase
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UNIT)) begin
+      next_decode_execute_if_eew = SEW32;
+    end
   end
 
   always_comb begin
@@ -156,7 +171,13 @@ module rv32v_decode_stage (
         F4Z, F4S: rfv_if.vs2_sew = (sew == SEW32) ? SEW8 : sew;
         F2Z, F2S: rfv_if.vs2_sew = (sew == SEW32) ? SEW16 : (sew == SEW16) ? SEW8 : sew;
       endcase
-    end 
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_UINDEXED || vcu_if.mop == MOP_OINDEXED)) begin
+      case(eew_loadstore)
+        WIDTH32: rfv_if.vs2_sew = SEW32;
+        WIDTH16: rfv_if.vs2_sew = SEW16;
+        WIDTH8: rfv_if.vs2_sew = SEW8;
+      endcase
+    end
   end
 
   //TODO: iron out exact masking logic based on offsets
@@ -180,6 +201,12 @@ module rv32v_decode_stage (
     end else if (cou_if.ena) begin
       wen0 = cou_if.wen[0];
       wen1 = cou_if.wen[1];
+    end else if (vcu_if.is_store) begin
+      wen0 = 0;
+      wen1 = 0;
+    end else if (vcu_if.is_load) begin
+      wen0 = vcu_if.wen & mask0;
+      wen1 = vcu_if.wen & mask1;
     end else begin
       wen0 = (vcu_if.result_type == A_S) ? 1 : vcu_if.wen & (mask0);
       wen1 = (vcu_if.result_type == A_S) ? 1: vcu_if.wen & (mask1);
@@ -283,7 +310,8 @@ module rv32v_decode_stage (
   // assign rfv_if.vs2_offset[1] = vs2_offset1;
   assign rfv_if.vs3_offset = woffset0; // use offset of vd here because same bits in instruction
   // assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
-  assign rfv_if.sew = sew;
+  //assign rfv_if.sew = sew;
+  assign rfv_if.sew = (vcu_if.is_store || vcu_if.is_load) ? next_decode_execute_if_eew : sew;
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
@@ -484,7 +512,7 @@ module rv32v_decode_stage (
       decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
       decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
       decode_execute_if.is_signed     <= vcu_if.is_signed;
-      decode_execute_if.ls_idx        <= (vcu_if.mop == MOP_OINDEXED) || (vcu_if.mop == MOP_UINDEXED);
+      decode_execute_if.ls_idx        <= vcu_if.ls_idx;
       decode_execute_if.load          <= vcu_if.is_load;
       decode_execute_if.store         <= vcu_if.is_store;
       decode_execute_if.wen[0]        <= vcu_if.merge_ena | wen0;
