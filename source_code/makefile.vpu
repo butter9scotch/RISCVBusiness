@@ -92,6 +92,9 @@ print_vars:
 # Synthesis Target
 ##############################################################################
 
+reg_file:
+	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/rv32v_reg_file.sv rv32v/tb/tb_rv32v_reg_file.sv
+
 top_level_gui:
 	$(IRUN) $(PKG_FILES) $(HEADER_FILES) rv32v/*.sv rv32v/tb/tb_rv32v_top_level.sv $(PRIV_FILES) $(SRC_FILE) $(TEST)
 

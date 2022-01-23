@@ -13,7 +13,7 @@ interface vector_lane_if;
   logic is_signed_div, div_type, start_div;
   logic[31:0] wdata_a, wdata_m, wdata_p, wdata_ls, wdata_mu, wdata_du, vs1_data, vs2_data, vs3_data, porta0, porta1, portb0, portb1, in_addr, out_addr, mask_32bit, mask_32bit_lane0, mask_32bit_lane1, iota_res, wdata_m_ff1;
   offset_t offset;
-  logic start_ma, out_inv, in_inv;
+  logic start_ma;
   valuop_t aluop;
   comp_t comp_type;
   logic start,  multiply_pos_neg, busy, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena, carryin_ena, win, zext_w, woutu, busy_a, busy_m, busy_p, busy_ls, busy_mu, exception_a, exception_m, exception_p, exception_ls, exception_mu, done_mu;
@@ -32,14 +32,9 @@ interface vector_lane_if;
   logic decode_done; // decode done 3 cycles delayed
   logic mul_wait;
   logic mask_bit_set, mask_bit_set_ff1;
-  // , mul_ena;
-
-  // modport vector_lane (
-  //   input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked, vd_narrow,
-  //   output  lane_result, busy, next_busy, exception, done_mu, mul_on
 
   modport vector_lane (
-    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, out_inv, in_inv, mask_type, 
+    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, mask_type, 
     mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked, vd_narrow, decode_done, mul_wait,
     output  lane_result, busy, next_busy, exception, done_mu, mul_on
   );
@@ -60,7 +55,7 @@ interface vector_lane_if;
   );
 
   modport mask_unit (
-    input   vs1_data, vs2_data, start_ma, out_inv, in_inv, mask_type, mask_32bit, iota_res, offset,
+    input   vs1_data, vs2_data, start_ma, mask_type, mask_32bit, iota_res, offset,
     output  wdata_m, wdata_m_ff1, busy_m, exception_m, mask_bit_set, mask_bit_set_ff1
   );
 

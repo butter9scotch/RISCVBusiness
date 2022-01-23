@@ -43,13 +43,13 @@ interface rv32v_reg_file_if #(
   sew_t    [READ_PORTS-1:0]               sew, vs2_sew;
   
   //====================WRITE SIGNALS=========================
-  word_t   [WRITE_PORTS-1:0][LANES-1:0]   w_data;
-  offset_t [WRITE_PORTS-1:0][LANES-1:0]   vd_offset;
-  logic    [WRITE_PORTS-1:0][4:0]         vd;
-  logic    [WRITE_PORTS-1:0][1:0]         wen;
-  logic    [WRITE_PORTS-1:0]              single_bit_write;
-  sew_t    [WRITE_PORTS-1:0]              eew;
-  logic    [WRITE_PORTS-1:0][VL_WIDTH:0]  vl;
+  word_t   [LANES-1:0]                    w_data;
+  offset_t [LANES-1:0]                    vd_offset;
+  logic    [4:0]                          vd;
+  logic    [1:0]                          wen;
+  logic                                   single_bit_write;
+  sew_t                                   eew;
+  logic    [VL_WIDTH:0]                   vl;
   
 
   word_t   mask_32bit_lane0, mask_32bit_lane1;

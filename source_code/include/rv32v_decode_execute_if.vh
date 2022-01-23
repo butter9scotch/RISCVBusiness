@@ -4,7 +4,7 @@
 interface rv32v_decode_execute_if;
   import rv32i_types_pkg::*;
 
-  logic rd_wen, mask0, mask1, reduction_ena, ls_idx, load, store, vill;
+  logic rd_wen, mask0, mask1, reduction_ena, ls_idx, load_ena, store_ena, vill;
   sign_type_t is_signed;
   logic [1:0] wen, stride_type;
   
@@ -49,8 +49,6 @@ interface rv32v_decode_execute_if;
   logic [31:0] next_avl_csr;
 
   ma_t mask_type;
-  logic out_inv;
-  logic in_inv;
   logic[31:0] mask_32bit_lane0, mask_32bit_lane1;
   logic vd_widen;
   offset_t vs2_offset0, vs2_offset1;
@@ -70,11 +68,11 @@ interface rv32v_decode_execute_if;
     eew, vl, vlenb, 
     vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, 
     vs2_lane1, fu_type, result_type, woffset0, woffset1, aluop, mask0, mask1, 
-    reduction_ena, is_signed, ls_idx, load, store, storedata0, storedata1, wen,
+    reduction_ena, is_signed, ls_idx, load_ena, store_ena, storedata0, storedata1, wen,
     minmax_type, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul, vtype,
     lmul, sew,
     adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type,
-    win, woutu, zext_w, vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1, vstart,
+    win, woutu, zext_w, vd, single_bit_write, mask_type, mask_32bit_lane0, mask_32bit_lane1, vstart,
     next_vtype_csr, next_avl_csr,
     rd_data,
     vd_widen,
@@ -89,11 +87,11 @@ interface rv32v_decode_execute_if;
     input stride_type, stride_val, xs1, xs2, rd_wen, config_type, rd_sel, vs1_lane0, 
     vs1_lane1, vs3_lane0, vs3_lane1, rs1_type, imm, rs2_type, vs2_lane0, vs2_lane1, fu_type, 
     result_type, woffset0, woffset1, aluop, mask0, mask1, reduction_ena, is_signed, ls_idx, 
-    load, store, storedata0, storedata1, wen, minmax_type,
+    load_ena, store_ena, storedata0, storedata1, wen, minmax_type,
     eew, lmul, sew, vl, vlenb, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, div_type, is_signed_div, is_signed_mul,
     vtype,
     adc_sbc, carry_borrow_ena, carryin_ena, comp_type, rev, ext_type, win, woutu, zext_w,
-    vd, single_bit_write, mask_type, out_inv, in_inv, mask_32bit_lane0, mask_32bit_lane1, vstart,
+    vd, single_bit_write, mask_type, mask_32bit_lane0, mask_32bit_lane1, vstart,
     next_vtype_csr, next_avl_csr,
     rd_data, 
     vd_widen,

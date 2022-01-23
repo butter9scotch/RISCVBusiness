@@ -174,7 +174,7 @@ module rv32v_execute_stage (
   logic ls_ena_ff;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) ls_ena_ff <= 0;
-    else ls_ena_ff <= (decode_execute_if.load | decode_execute_if.store);
+    else ls_ena_ff <= (decode_execute_if.load_ena | decode_execute_if.store_ena);
   end
 
   // Vector Lane 0
@@ -194,15 +194,13 @@ module rv32v_execute_stage (
                                 decode_execute_if.vs2_lane0;
   assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0 & ~ls_ena_ff);
   assign vif0.portb_sel       = decode_execute_if.ls_idx;
-  assign vif0.is_signed_mul   = decode_execute_if.is_signed;
+  assign vif0.is_signed_mul   = decode_execute_if.is_signed_mul;
   assign vif0.multiply_type   = decode_execute_if.multiply_type;
   assign vif0.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
   assign vif0.mul_widen_ena   = decode_execute_if.mul_widen_ena;
   assign vif0.high_low        = decode_execute_if.high_low;
   assign vif0.div_type        = decode_execute_if.div_type;
-  assign vif0.is_signed_div   = decode_execute_if.is_signed == SIGNED;
-  assign vif0.out_inv         = decode_execute_if.out_inv;
-  assign vif0.in_inv          = decode_execute_if.in_inv;
+  assign vif0.is_signed_div   = decode_execute_if.is_signed_div;
   assign vif0.mask_type       = decode_execute_if.mask_type;
   assign vif0.mask_32bit      = decode_execute_if.mask_32bit_lane0;
   assign vif0.iota_res        = iif.res0;
@@ -224,15 +222,13 @@ module rv32v_execute_stage (
                                 decode_execute_if.vs2_lane1;
   assign vif1.porta_sel       = decode_execute_if.ls_idx;
   assign vif1.portb_sel       = decode_execute_if.ls_idx;
-  assign vif1.is_signed_mul   = decode_execute_if.is_signed;
+  assign vif1.is_signed_mul   = decode_execute_if.is_signed_mul;
   assign vif1.multiply_type   = decode_execute_if.multiply_type;
   assign vif1.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
   assign vif1.mul_widen_ena   = decode_execute_if.mul_widen_ena;
   assign vif1.high_low        = decode_execute_if.high_low;
   assign vif1.div_type        = decode_execute_if.div_type;
-  assign vif1.is_signed_div   = decode_execute_if.is_signed == SIGNED;
-  assign vif1.out_inv         = decode_execute_if.out_inv;
-  assign vif1.in_inv          = decode_execute_if.in_inv;
+  assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
   assign vif1.mask_type       = decode_execute_if.mask_type;
   assign vif1.mask_32bit      = decode_execute_if.mask_32bit_lane1;
   assign vif1.iota_res        = iif.res1;
@@ -426,7 +422,7 @@ module rv32v_execute_stage (
   assign vif1.mul_wait = mlu_ff0 | mlu_ff1 | mlu_ff2;
 
   // Pipeline Latch
-  assign ls = decode_execute_if.load | decode_execute_if.store;
+  assign ls = decode_execute_if.load_ena | decode_execute_if.store_ena;
   //assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
   //assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
   assign aluresult0 = vif0.lane_result;
@@ -435,8 +431,8 @@ module rv32v_execute_stage (
   assign latch_ena = ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
-      execute_memory_if.load        <= '0;
-      execute_memory_if.store       <= '0;
+      execute_memory_if.load_ena        <= '0;
+      execute_memory_if.store_ena       <= '0;
       execute_memory_if.storedata0  <= '0;
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
@@ -464,8 +460,8 @@ module rv32v_execute_stage (
       execute_memory_if.tb_line_num        <= 0;
 
     end else if (hu_if.flush_ex) begin
-      execute_memory_if.load        <= '0;
-      execute_memory_if.store       <= '0;
+      execute_memory_if.load_ena        <= '0;
+      execute_memory_if.store_ena       <= '0;
       execute_memory_if.storedata0  <= '0;
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
@@ -495,8 +491,8 @@ module rv32v_execute_stage (
 
 
     end else if (latch_ena) begin
-      execute_memory_if.load        <= decode_execute_if.load;
-      execute_memory_if.store       <= decode_execute_if.store;
+      execute_memory_if.load_ena        <= decode_execute_if.load_ena;
+      execute_memory_if.store_ena       <= decode_execute_if.store_ena;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 

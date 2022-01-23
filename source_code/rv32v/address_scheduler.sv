@@ -36,12 +36,12 @@ module address_scheduler (
   typedef enum logic [2:0] {IDLE, LOAD0, LOAD1, STORE0, STORE1, EX} state_type;
   state_type state, next_state;
 
-  assign daccess       = asif.load | asif.store;
+  assign daccess       = asif.load_ena | asif.store_ena;
   assign misalign0     = (asif.addr0[1:0] != 2'b00) & daccess;
   assign misalign1     = (asif.addr1[1:0] != 2'b00) & daccess;
   assign asif.arrived0 = state == LOAD0 & asif.dhit;
   assign asif.arrived1 = state == LOAD1 & asif.dhit;
-  assign asif.byte_ena = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) ? 0: // choose csr sew for indexed load/store, otherwise choose instr sew
+  assign asif.byte_ena = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) ? 0: // choose csr sew for indexed load/store_ena, otherwise choose instr sew
                          (asif.eew_loadstore == WIDTH16 & ~asif.ls_idx) | (asif.sew == SEW16 & asif.ls_idx) ? 1:
                          2;
 /*
@@ -62,8 +62,8 @@ module address_scheduler (
       IDLE:
       begin
         if (misalign0) next_state = EX;
-        else if (asif.load) next_state = LOAD0;
-        else if (asif.store) next_state = STORE0;
+        else if (asif.load_ena) next_state = LOAD0;
+        else if (asif.store_ena) next_state = STORE0;
       end 
       LOAD0:
       begin

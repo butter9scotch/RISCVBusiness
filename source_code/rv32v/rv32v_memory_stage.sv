@@ -48,8 +48,8 @@ module rv32v_memory_stage (
   assign hu_if.busy_mem = asif.busy;
   // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
   assign hu_if.exception_mem = asif.exception;
-  assign wdat0 = execute_memory_if.load ? data0 : execute_memory_if.aluresult0;
-  assign wdat1 = execute_memory_if.load ? cif.dmemload : execute_memory_if.aluresult1;
+  assign wdat0 = execute_memory_if.load_ena ? data0 : execute_memory_if.aluresult0;
+  assign wdat1 = execute_memory_if.load_ena ? cif.dmemload : execute_memory_if.aluresult1;
 
   // To address scheduler
   assign asif.addr0      = execute_memory_if.aluresult0;
@@ -59,8 +59,8 @@ module rv32v_memory_stage (
   //assign asif.sew        = memory_writeback_if.eew_loadstore; // TODO: From CSR
   assign asif.sew        = execute_memory_if.eew; // TODO: From CSR
   assign asif.eew_loadstore  = execute_memory_if.eew_loadstore; 
-  assign asif.load       = execute_memory_if.load;
-  assign asif.store      = execute_memory_if.store;
+  assign asif.load_ena       = execute_memory_if.load_ena;
+  assign asif.store_ena      = execute_memory_if.store_ena;
   assign asif.dhit       = cif.dhit;
   assign asif.returnex   = returnex;
   assign asif.woffset1   = execute_memory_if.woffset1;

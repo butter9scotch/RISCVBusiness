@@ -39,18 +39,18 @@ module tb_rv32v_reg_file ();
   logic error_found;
   logic CLK, nRST;
 
-  rv32v_reg_file_if rfv_if();
+  rv32v_reg_file_if # (.READ_PORTS(2), .WRITE_PORTS(1)) rfv_if();
   // element_counter_if ele_if();
 
-  rv32v_reg_file DUT (.*);
+  rv32v_reg_file # (.READ_PORTS(2), .WRITE_PORTS(1)) DUT (.*);
   // element_counter ELE (.*);
   //   .rfv_if(CLK, nRST, rfv_if)
   // );
 
-  assign rfv_if.vs1_offset = ele_if.offset;
-  assign rfv_if.vs2_offset = ele_if.offset;
-  assign rfv_if.vs3_offset = ele_if.offset; //yes it is the same as vs2
-  assign rfv_if.vd_offset =  ele_if.offset;
+  assign rfv_if.vs1_offset = 0;
+  assign rfv_if.vs2_offset = 0;
+  assign rfv_if.vs3_offset = 0;
+  assign rfv_if.vd_offset =  0;
 
 
   initial begin : CLK_INIT
@@ -73,7 +73,8 @@ module tb_rv32v_reg_file ();
     // rfv_if.vs1_offset = 0;
     // rfv_if.vs2_offset = 0;
     // rfv_if.vd_offset  = 0;
-    rfv_if.vl = 127;
+    rfv_if.vl[0] = 127;
+    rfv_if.vl[1] = 127;
     nRST = 0;
     // ele_if.vstart = 0;
     // ele_if.vl = rfv_if.vl;
@@ -133,19 +134,24 @@ module tb_rv32v_reg_file ();
   endtask
 
   task write_reg;
-    input wen;
+    input logic [1:0] wen;
     input sew_t sew;
     input word_t [1:0] dat;
     input [4:0] wsel;
+    input offset_t offset;
     // input offset_t vd_offset;
 
     // @(negedge CLK);
-    rfv_if.vd = wsel;
-    rfv_if.w_data = dat;
-    rfv_if.wen = wen;
-    rfv_if.sew = sew;
-    rfv_if.eew = sew;
-    rfv_if.vs2_sew = sew;
+    rfv_if.vl = 4;
+    rfv_if.single_bit_write  = 0; 
+    rfv_if.vd_offset         = {offset + 1, offset};
+    rfv_if.vd                = wsel;
+    rfv_if.w_data            = dat;
+    rfv_if.wen               = wen;
+    // rfv_if.wen               = 0;
+    rfv_if.sew               = sew;
+    rfv_if.eew               = sew;
+    rfv_if.vs2_sew           = sew;
     
 
 
@@ -165,16 +171,18 @@ module tb_rv32v_reg_file ();
 
     // @(negedge CLK);
     #1;
-    rfv_if.sew = sew;
-    rfv_if.eew = sew;
+    rfv_if.sew[0] = sew;
+    rfv_if.eew[0] = sew;
     // ele_if.sew = sew;
-    rfv_if.vs1 = vs1;
-    rfv_if.vs2 = vs2;
-    rfv_if.vs3 = vs2;
+    rfv_if.vs1[0] = vs1;
+    rfv_if.vs2[0] = vs2;
+    rfv_if.vs3[0] = vs2;
 
-    // rfv_if.vs1_offset = vs1_offset;
-    // rfv_if.vs2_offset = vs2_offset;
-    // rfv_if.vs3_offset = vs2_offset; //yes it is the same as vs2
+
+
+    rfv_if.vs1_offset[0] = {8'd1, 8'd0};
+    rfv_if.vs2_offset[0] = {8'd1, 8'd0};
+    rfv_if.vs3_offset[0] = {8'd1, 8'd0}; //yes it is the same as vs2
 
     // display_reg(vs1);
     // $write ("READ: registers[%d], rdat1: [%x], [%x]\n \
@@ -207,8 +215,9 @@ module tb_rv32v_reg_file ();
     for(int el_idx = 0; el_idx < max_cnt; el_idx+=2) begin
       // ele_if.de_en = 1;
       // data = {data[1] >> (), data[0] >> ()};
-      write_reg(1, sew, data, reg_idx);
+      write_reg(3, sew, data, reg_idx, el_idx);
       read_reg(sew, reg_idx, reg_idx);
+      // if 
       // data = next_data;
     end
     // ele_if.de_en = 0;
@@ -216,6 +225,12 @@ module tb_rv32v_reg_file ();
     display_reg_file();
   endtask
 
+
+  logic [1:0][3:0] a, b;
+  logic [1:0][1:0] sel;
+  logic [1:0][1:0] wen;
+  logic [1:0][31:0] dat_a, dat_b;
+  test T1 (.*);
 
   initial begin : MAIN
     testnum = 0;
@@ -226,63 +241,109 @@ module tb_rv32v_reg_file ();
     #(DELAY);
     nRST = 1;
 
-    newtest("test load");
-    load_reg_data();
-    #(10);
-    display_reg_file();
+    // newtest("test load");
+    // load_reg_data();
+    // #(10);
+    // display_reg_file();
 
+    @(posedge CLK);
+    // newtest("write disable");
+    // write_reg(4'h0, SEW32, {$urandom(), $urandom()}, 0, 0);
 
-
-    newtest("write disable");
-    write_reg(4'h0, SEW32, {$urandom(), $urandom()}, 0);
-
-    //32 bit
-    newtest("32 bit, no offset");
-    for(int i = 0; i < 32; i+=8) begin
-      // $write("----------------------------\n");
-      write_reg(4'hF, SEW32, {$urandom(), $urandom()}, i);
-      read_reg(SEW32, i, i);
-    end
-    display_reg_file();
+    // //32 bit
+    // newtest("32 bit, no offset");
+    // for(int i = 0; i < 32; i+=8) begin
+    //   // $write("----------------------------\n");
+    //   write_reg(4'hF, SEW32, {$urandom(), $urandom()}, i, 0);
+    //   read_reg(SEW32, i, i);
+    // end
+    // display_reg_file();
 
     //16 bit
     newtest("16 bit, no offset");
-    for(int i = 0; i < 32; i+=8) begin
+    for(int i = 0; i < 32; i+=1) begin
       // $write("----------------------------\n");
-      write_reg(4'h3, SEW16, {$urandom(), $urandom()}, i);
+      write_reg(2'h3, SEW16, {$urandom(i), $urandom(i + 1)}, i, 0);
       read_reg(SEW16, i, i);
+      if (rfv_if.vs1_data != {$urandom(i), $urandom(i + 1)}) $display("fail");
     end
     display_reg_file();
     
-    //8 bit
-    newtest("8 bit, no offset");
-    for(int i = 0; i < 32; i+=8) begin
-      // $write("----------------------------\n");
-      write_reg(4'h1, SEW8, {$urandom(), $urandom()}, i);
-      read_reg(SEW8, i, i);
-    end
-    display_reg_file();
+    // //8 bit
+    // newtest("8 bit, no offset");
+    // for(int i = 0; i < 32; i+=8) begin
+    //   // $write("----------------------------\n");
+    //   write_reg(4'h1, SEW8, {$urandom(), $urandom()}, i, 0);
+    //   read_reg(SEW8, i, i);
+    // end
 
-    newtest("32 bit, with offset");
-    write_with_offset(SEW32, 32);
+    // newtest("32 bit, with offset");
+    // write_with_offset(SEW32, 32);
     
-    newtest("16 bit, with offset");
-    write_with_offset(SEW16, 64);
+    // newtest("16 bit, with offset");
+    // write_with_offset(SEW16, 64);
+    // display_reg_file();
 
-    newtest("8 bit, with offset");
-    write_with_offset(SEW8, 128);
+    // newtest("8 bit, with offset");
+    // write_with_offset(SEW8, 128);
 
-    newtest("32 bit, 1 element");
-    write_with_offset(SEW32, 1);
+    // newtest("32 bit, 1 element");
+    // write_with_offset(SEW32, 1);
 
-    newtest("16 bit, 1 element");
-    write_with_offset(SEW16, 1);
+    // newtest("16 bit, 1 element");
+    // write_with_offset(SEW16, 1);
     
-    newtest("8  bit, 1 element");
-    write_with_offset(SEW8, 1);
+    // newtest("8  bit, 1 element");
+    // write_with_offset(SEW8, 1);
 
 
     $finish;
   end : MAIN
 endmodule
 
+
+
+module test(
+  input logic CLK, nRST,
+  input logic [1:0][3:0] a, b,
+  input logic [1:0] sel,
+  input logic [1:0] wen,
+  input logic [1:0][31:0] dat_a, dat_b
+);
+  integer i, j, s, k;
+  logic [3:0][3:0][31:0] regs, next_regs;
+  logic [3:0][3:0][31:0] temp;
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) 
+      regs <= 0;
+    else 
+      regs <= next_regs;
+  end
+
+  always_comb   begin
+    // next_regs = regs;
+    
+    for (i = 0; i < 4; i = i + 1) begin
+      for (j = 0; j < 4; j = j + 1) begin
+        next_regs[i][j] = 0;
+        for (k = 0; k < 2; k = k + 1) begin
+          if ((i == a[k]) && (j == b[k])) begin 
+            // if (k == sel)
+              next_regs[i][j] = dat_a[k]; 
+            // end
+          end
+          // if (i == a && j == a) begin next_regs[i][j] = dat_a; end
+        end
+      end
+    end
+    // for (i = 0; i < 4; i = i + 1) begin
+    //   for (j = 0; j < 4; j = j + 1) begin
+    //     // for (s = 0; s < 2; s = s + 1)
+    //     if (temp[i][j] != 0) next_regs[i][j] = temp[i][j];
+    //     else next_regs[i][j] = 1;
+    //   end
+    // end
+
+  end
+endmodule

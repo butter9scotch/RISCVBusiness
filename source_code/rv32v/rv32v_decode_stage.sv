@@ -264,20 +264,18 @@ module rv32v_decode_stage (
     endcase
   end
 
-    // in:  vs1, vs2, vs1_offset, vs2_offset, sew, 
-    // out: vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask
+  //======================REGFILE INPUTS===========================
+  assign rfv_if.vs1[ZERO]             = vcu_if.vs1;
+  assign rfv_if.vs2[ZERO]             = vcu_if.vs2;
+  assign rfv_if.vs3[ZERO]             = vcu_if.vd;
+  assign rfv_if.vs1_offset[ZERO][0]   = vs1_offset0;
+  assign rfv_if.vs1_offset[ZERO][1]   = vs1_offset1;
+  assign rfv_if.vs2_offset[ZERO][0]   = vs2_offset0;
+  assign rfv_if.vs2_offset[ZERO][1]   = vs2_offset1;
+  assign rfv_if.vs3_offset[ZERO][0]   = woffset0; // use offset of vd here because same bits in instruction
+  assign rfv_if.vs3_offset[ZERO][1]   = woffset1; // use offset of vd here because same bits in instruction
+  assign rfv_if.sew[ZERO] = (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : vcu_if.sew;
 
-  assign rfv_if.vs1[ZERO] = vcu_if.vs1;
-  assign rfv_if.vs2[ZERO] = vcu_if.vs2;
-  assign rfv_if.vs3[ZERO] = vcu_if.vd;
-  assign rfv_if.vs1_offset[ZERO][0] = vs1_offset0;
-  assign rfv_if.vs1_offset[ZERO][1] = vs1_offset1;
-  assign rfv_if.vs2_offset[ZERO][0] = vs2_offset0;
-  assign rfv_if.vs2_offset[ZERO][1] = vs2_offset1;
-  assign rfv_if.vs3_offset[ZERO][0] = woffset0; // use offset of vd here because same bits in instruction
-  assign rfv_if.vs3_offset[ZERO][1] = woffset1; // use offset of vd here because same bits in instruction
-  //assign rfv_if.sew = sew;
-  assign rfv_if.sew[ZERO] = (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : sew;
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
@@ -295,8 +293,8 @@ module rv32v_decode_stage (
       decode_execute_if.reduction_ena     <= '0;
       decode_execute_if.is_signed         <= '0;
       decode_execute_if.ls_idx            <= '0;
-      decode_execute_if.load              <= '0;
-      decode_execute_if.store             <= '0;
+      decode_execute_if.load_ena              <= '0;
+      decode_execute_if.store_ena             <= '0;
       decode_execute_if.wen[0]            <= '0;
       decode_execute_if.wen[1]            <= '0;
       decode_execute_if.stride_val        <= '0;
@@ -365,8 +363,6 @@ module rv32v_decode_stage (
 
       decode_execute_if.mask_32bit_lane0  <= '0;
       decode_execute_if.mask_32bit_lane1  <= '0;
-      decode_execute_if.out_inv           <= '0;
-      decode_execute_if.in_inv            <= '0;
       decode_execute_if.decode_done       <= '0;
       decode_execute_if.rd_scalar_src     <= '0;
 
@@ -388,8 +384,8 @@ module rv32v_decode_stage (
       decode_execute_if.reduction_ena     <= '0;
       decode_execute_if.is_signed         <= '0;
       decode_execute_if.ls_idx            <= '0;
-      decode_execute_if.load              <= '0;
-      decode_execute_if.store             <= '0;
+      decode_execute_if.load_ena              <= '0;
+      decode_execute_if.store_ena             <= '0;
       decode_execute_if.wen[0]            <= '0;
       decode_execute_if.wen[1]            <= '0;
       decode_execute_if.stride_val        <= '0;
@@ -458,8 +454,6 @@ module rv32v_decode_stage (
       decode_execute_if.mask_type         <= '0;
       decode_execute_if.mask_32bit_lane0  <= '0;
       decode_execute_if.mask_32bit_lane1  <= '0;
-      decode_execute_if.out_inv           <= '0;
-      decode_execute_if.in_inv           <= '0;
       decode_execute_if.decode_done       <= '0;
       decode_execute_if.rd_scalar_src     <= '0;
 
@@ -473,46 +467,84 @@ module rv32v_decode_stage (
 
 
     end else if (~hu_if.stall_dec) begin
-      decode_execute_if.stride_type   <= vcu_if.stride_type;
-      decode_execute_if.rd_wen        <= vcu_if.rd_scalar_src; //write to scalar regs
-      decode_execute_if.config_type   <= vcu_if.cfgsel;
-      decode_execute_if.mask0         <= mask0; //double check, will it always be vs1_mask
-      decode_execute_if.mask1         <= mask1; //double check, will it always be vs1_mask
-      decode_execute_if.reduction_ena <= vcu_if.reduction_ena; 
-      decode_execute_if.is_signed     <= vcu_if.is_signed;
-      decode_execute_if.ls_idx        <= vcu_if.ls_idx;
-      decode_execute_if.load          <= vcu_if.is_load;
-      decode_execute_if.store         <= vcu_if.is_store;
-      decode_execute_if.wen[0]        <= vcu_if.merge_ena | wen0;
-      decode_execute_if.wen[1]        <= vcu_if.merge_ena | wen1;
-      decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
-      decode_execute_if.xs1           <= xs1; 
-      decode_execute_if.xs2           <= xs2; 
-      decode_execute_if.vs1_lane0     <= vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[ZERO];
-      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[ZERO][1]; 
-      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][0][15:0]} : 
-                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][0][7:0]} : 
-                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
-                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset0 == prv_if.vl) ? xs1 : 
-                                          rfv_if.vs2_data[ZERO][0];
-      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][1][15:0]} : 
-                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][1][7:0]} : 
-                                          vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset1 == prv_if.vl) ? xs1 : 
-                                          rfv_if.vs2_data[ZERO][1];
-      decode_execute_if.vs3_lane0         <= rfv_if.vs3_data[ZERO][0];
-      decode_execute_if.vs3_lane1         <= rfv_if.vs3_data[ZERO][1];
-      decode_execute_if.imm               <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
-      decode_execute_if.storedata0        <= rfv_if.vs3_data[ZERO][0];
-      decode_execute_if.storedata1        <= rfv_if.vs3_data[ZERO][1];
+      decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src; //write to scalar regs
       decode_execute_if.rd_sel            <= vcu_if.vd;
-      decode_execute_if.woffset0          <=  woffset0; 
-      decode_execute_if.woffset1          <=  woffset1; 
+      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[ZERO][0] : 32'hDEAD;
+
+      decode_execute_if.stride_type       <= vcu_if.stride_type;
+      decode_execute_if.config_type       <= vcu_if.cfgsel;
       decode_execute_if.fu_type           <= vcu_if.fu_type;
       decode_execute_if.result_type       <= vcu_if.result_type;
-      decode_execute_if.aluop             <= vcu_if.aluop;
+      decode_execute_if.minmax_type       <= vcu_if.minmax_type;
+      decode_execute_if.comp_type         <= vcu_if.comp_type;
+      decode_execute_if.ext_type          <= vcu_if.ext_type;
+
+
+      decode_execute_if.ls_idx            <= vcu_if.ls_idx;
+      decode_execute_if.load_ena          <= vcu_if.is_load;
+      decode_execute_if.store_ena         <= vcu_if.is_store;
+      decode_execute_if.stride_val        <= xs2; //from xs2 field in instr; 
+      decode_execute_if.reduction_ena     <= vcu_if.reduction_ena; 
+      
+      //======================REGFILE DATA===========================
+      decode_execute_if.mask0             <= mask0; 
+      decode_execute_if.mask1             <= mask1; 
+
+      decode_execute_if.vs1_lane0         <=  vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[ZERO];
+      decode_execute_if.vs2_lane0         <=  vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][0][15:0]} : 
+                                              vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][0][7:0]} : 
+                                              vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
+                                              vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset0 == prv_if.vl) ? xs1 : 
+                                              rfv_if.vs2_data[ZERO][0];
+      decode_execute_if.vs3_lane0         <=  rfv_if.vs3_data[ZERO][0];
+
+      decode_execute_if.vs1_lane1         <=  rfv_if.vs1_data[ZERO][1]; 
+      decode_execute_if.vs2_lane1         <=  vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][1][15:0]} : 
+                                              vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][1][7:0]} : 
+                                              vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset1 == prv_if.vl) ? xs1 : 
+                                              rfv_if.vs2_data[ZERO][1];
+      decode_execute_if.vs3_lane1         <=  rfv_if.vs3_data[ZERO][1];
+      
+      //======================STORE UNIT===========================
+      decode_execute_if.storedata0        <= rfv_if.vs3_data[ZERO][0];
+      decode_execute_if.storedata1        <= rfv_if.vs3_data[ZERO][1];
+      
+      //======================WRITE DATA===========================
+      decode_execute_if.woffset0          <=  woffset0; 
+      decode_execute_if.woffset1          <=  woffset1; 
+      decode_execute_if.vd                <= vcu_if.vd;
+      decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
+      decode_execute_if.wen[0]            <= vcu_if.merge_ena | wen0;
+      decode_execute_if.wen[1]            <= vcu_if.merge_ena | wen1;
+      decode_execute_if.vd_widen          <= vcu_if.vd_widen;
+      decode_execute_if.vd_narrow         <= vcu_if.vd_narrow;
+
+
+
       decode_execute_if.rs1_type          <= vcu_if.rs1_type;
       decode_execute_if.rs2_type          <= vcu_if.rs2_type;
-      decode_execute_if.minmax_type       <= vcu_if.minmax_type;
+
+      
+      //======================DIV SIGNALS===========================
+      decode_execute_if.div_type          <= vcu_if.div_type;
+      decode_execute_if.is_signed_div     <= vcu_if.is_signed == SIGNED;
+
+      //======================MUL SIGNALS===========================
+      decode_execute_if.high_low          <= vcu_if.high_low;
+      decode_execute_if.is_signed_mul     <= vcu_if.is_signed;
+      decode_execute_if.mul_widen_ena     <= vcu_if.mul_widen_ena;
+      decode_execute_if.multiply_pos_neg  <= vcu_if.multiply_pos_neg;
+      decode_execute_if.multiply_type     <= vcu_if.multiply_type;
+      //new
+
+      //======================INSTR SIGNALS===========================
+      decode_execute_if.xs1               <= xs1; 
+      decode_execute_if.xs2               <= xs2; 
+      decode_execute_if.imm               <= vcu_if.sign_extend ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
+
+      //======================CONFIG SIGNALS===========================
+      decode_execute_if.sew               <= sew;
+      decode_execute_if.lmul              <= lmul;
       decode_execute_if.eew               <= vcu_if.eew; 
       decode_execute_if.vl                <= (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
                                              (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
@@ -520,50 +552,36 @@ module rv32v_decode_stage (
                                               (VLENB >> sew) << vcu_if.vmv_type; 
       decode_execute_if.vlenb             <= prv_if.vlenb;   
       decode_execute_if.vtype             <= prv_if.vtype;   
-      decode_execute_if.div_type          <= vcu_if.div_type;
-      decode_execute_if.is_signed_div     <= vcu_if.is_signed_div;
-      decode_execute_if.high_low          <= vcu_if.high_low;
-      decode_execute_if.is_signed_mul     <= vcu_if.is_signed_mul;
-      decode_execute_if.mul_widen_ena     <= vcu_if.mul_widen_ena;
-      decode_execute_if.multiply_pos_neg  <= vcu_if.multiply_pos_neg;
-      decode_execute_if.multiply_type     <= vcu_if.multiply_type;
-      //new
-      decode_execute_if.sew               <= sew;
-      decode_execute_if.lmul              <= lmul;
-      //missing arith signals
-      decode_execute_if.comp_type         <= vcu_if.comp_type;
+      decode_execute_if.vstart            <= prv_if.vstart;
+      
+
+      //======================ARITH SIGNALS===========================
+      decode_execute_if.aluop             <= vcu_if.aluop;
       decode_execute_if.adc_sbc           <= vcu_if.adc_sbc;
       decode_execute_if.carry_borrow_ena  <= vcu_if.carry_borrow_ena;
       decode_execute_if.carryin_ena       <= vcu_if.carryin_ena;
       decode_execute_if.rev               <= vcu_if.rev;
-      decode_execute_if.ext_type          <= vcu_if.ext_type;
 
       decode_execute_if.woutu             <= vcu_if.woutu;
       decode_execute_if.win               <= vcu_if.win;
       decode_execute_if.zext_w            <= vcu_if.zext_w;
 
-      decode_execute_if.vd                <= vcu_if.vd;
-      decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
 
-      decode_execute_if.vstart            <= prv_if.vstart;
+
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[ZERO][0] : 32'hDEAD;
-      decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;
       decode_execute_if.vs2_offset1       <= vs2_offset1;
 
       decode_execute_if.is_masked         <= vcu_if.vm;
 
-      decode_execute_if.vd_narrow         <= vcu_if.vd_narrow;
       decode_execute_if.mask_type         <= vcu_if.mask_type;
 
       decode_execute_if.mask_32bit_lane0  <= rfv_if.mask_32bit_lane0;
       decode_execute_if.mask_32bit_lane1  <= rfv_if.mask_32bit_lane1;
-      decode_execute_if.out_inv           <= vcu_if.out_inv;
-      decode_execute_if.in_inv            <= vcu_if.in_inv;
       decode_execute_if.decode_done       <= ele_if.done;
+      decode_execute_if.is_signed         <= vcu_if.is_signed;
 
       decode_execute_if.nf                <= vcu_if.nf;
       decode_execute_if.eew_loadstore     <= vcu_if.eew_loadstore;

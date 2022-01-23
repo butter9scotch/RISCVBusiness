@@ -367,7 +367,44 @@ module tb_rv32v_top_level ();
         }
     );
 
+    add_test_case(
+      new_config_vop_case(SEW16, LMUL2, 8, VADD, OPIVX, UNMASKED), 
+      32'd2, //value of xs1
+      '{ //v0
+        {32{4'hF}}
+        },
+      '{ //vs1
+        {16'd0, 16'd1, 16'd2, 16'd3, 16'd0, 16'd1, $urandom()}, 
+        {16'h10, 16'h11, 16'h12, 16'h13, 16'h10, 16'h11, $urandom()}, 
+        {32'd0, 32'd1, 32'd2, 32'd3}
+        }, 
+      '{ //vs2
+        {32'd0, 32'd1, 32'd2, 32'd3}, 
+        {32'd4, 32'd5, 32'd6, 32'd7}
+        }, 
+      '{ //vs3
+        128'd0
+        }
+    );
 
+    add_test_case(
+      new_config_vop_case(SEW16, LMUL2, 8, VADD, OPIVV, UNMASKED), 
+      32'd2, //value of xs1
+      '{ //v0
+        {32{4'hF}}
+        },
+      '{ //vs1
+        {16'd0, 16'd1, 16'd2, 16'd3, 16'd0, 16'd1, 16'd2, 16'd3}, 
+        {32'd0, 32'd1, 32'd2, 32'd3}
+        }, 
+      '{ //vs2
+        {32'd0, 32'd1, 32'd2, 32'd3}, 
+        {32'd4, 32'd5, 32'd6, 32'd7}
+        }, 
+      '{ //vs3
+        128'd0
+        }
+    );
 
     // op = VWMACCSU;
     // if (op inside {VWMACCSU, VWMACCUS}) $write("\n\n\n\nSUCCESS\n\n\n\n");

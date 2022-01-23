@@ -60,9 +60,9 @@ module rv32v_reg_file # (
   offset_t  [READ_PORTS-1:0][LANES-1:0]         vs2_offset_lane;
   offset_t  [READ_PORTS-1:0][LANES-1:0]         vs3_offset_lane;
 
-  logic     [READ_PORTS-1:0][LANES-1:0][2:0]    vd_inner_offset;
-  logic     [READ_PORTS-1:0][LANES-1:0][3:0]    vd_outer_offset;  
-  offset_t  [READ_PORTS-1:0][LANES-1:0]         vd_offset_lane;
+  logic     [LANES-1:0][2:0]    vd_inner_offset;
+  logic     [LANES-1:0][3:0]    vd_outer_offset;  
+  offset_t  [LANES-1:0]         vd_offset_lane;
   // set lower 2 bits to zero to round down instead of division
 
   vreg_t [NUM_REGS-1:0] registers, next_registers;
@@ -191,51 +191,51 @@ module rv32v_reg_file # (
     next_registers = registers;
 
     
-    for (windex = 0; windex < WRITE_PORTS; windex = windex + 1) begin
+    // for (windex = 0; windex < WRITE_PORTS; windex = windex + 1) begin
       for (j = 0; j < LANES; j = j + 1) begin
-          vd_offset_lane[windex][j]  = rfv_if.vd_offset[windex][j];
+          vd_offset_lane[j]  = rfv_if.vd_offset[j];
         //=======================VD=====================
         //==================INNER OFFSET================
-        case (rfv_if.eew[windex])
-          SEW32:   vd_inner_offset[windex][j] = vd_offset_lane[windex][j][4:2];
-          SEW16:   vd_inner_offset[windex][j] = vd_offset_lane[windex][j][5:3];
-          default: vd_inner_offset[windex][j] = vd_offset_lane[windex][j][6:4];
+        case (rfv_if.eew)
+          SEW32:   vd_inner_offset[j] = vd_offset_lane[j][4:2];
+          SEW16:   vd_inner_offset[j] = vd_offset_lane[j][5:3];
+          default: vd_inner_offset[j] = vd_offset_lane[j][6:4];
         endcase
         //==================OUTER OFFSET================
-        case (rfv_if.eew[windex])
-          SEW32:   vd_outer_offset[windex][j] = {vd_offset_lane[windex][j][1:0], 2'b00};
-          SEW16:   vd_outer_offset[windex][j] = {vd_offset_lane[windex][j][2:0], 1'b0};
-          default: vd_outer_offset[windex][j] =  vd_offset_lane[windex][j][3:0];
+        case (rfv_if.eew)
+          SEW32:   vd_outer_offset[j] = {vd_offset_lane[j][1:0], 2'b00};
+          SEW16:   vd_outer_offset[j] = {vd_offset_lane[j][2:0], 1'b0};
+          default: vd_outer_offset[j] =  vd_offset_lane[j][3:0];
         endcase
         //=======================SINGLE BIT WRITE====================
-        if (rfv_if.single_bit_write[windex]) begin : SINGLE_BIT
-          if (rfv_if.wen[windex][j] && vd_offset_lane[windex][j] < rfv_if.vl[windex]) begin
-            next_registers[rfv_if.vd[windex]][vd_offset_lane[windex][j] >> 3][vd_offset_lane[windex][j][2:0]] = rfv_if.w_data[windex][j][0];
+        if (rfv_if.single_bit_write) begin : SINGLE_BIT
+          if (rfv_if.wen[j] && vd_offset_lane[j] < rfv_if.vl) begin
+            next_registers[rfv_if.vd][vd_offset_lane[j] >> 3][vd_offset_lane[j][2:0]] = rfv_if.w_data[j][0];
           end
         end else begin
           case (rfv_if.eew)
           //=======================WRITE, SEW32====================
             SEW32: begin 
-              if (rfv_if.wen[windex][j] && vd_offset_lane[windex][j] < rfv_if.vl[windex]) begin
-                next_registers[rfv_if.vd[windex] + vd_inner_offset[windex][j]][vd_outer_offset[windex][j]+:4] = rfv_if.w_data[windex][j][31:0];
+              if (rfv_if.wen[j] && vd_offset_lane[j] < rfv_if.vl) begin
+                next_registers[rfv_if.vd + vd_inner_offset[j]][vd_outer_offset[j]+:4] = rfv_if.w_data[j][31:0];
               end
             end
           //=======================WRITE, SEW16====================
             SEW16: begin 
-              if (rfv_if.wen[windex][j] && vd_offset_lane[windex][j] < rfv_if.vl[windex]) begin
-                next_registers[rfv_if.vd[windex] + vd_inner_offset[windex][j]][vd_outer_offset[windex][j] +:2] = rfv_if.w_data[windex][j][15:0]; 
+              if (rfv_if.wen[j] && vd_offset_lane[j] < rfv_if.vl) begin
+                next_registers[rfv_if.vd + vd_inner_offset[j]][vd_outer_offset[j] +:2] = rfv_if.w_data[j][15:0]; 
               end
             end
           //=======================WRITE, SEW8====================
             SEW8: begin
-              if (rfv_if.wen[windex][j] && vd_offset_lane[windex][j] < rfv_if.vl[windex]) begin
-                next_registers[rfv_if.vd[windex] + vd_inner_offset[windex][j]][vd_outer_offset[windex][j]]  = rfv_if.w_data[windex][j][7:0]; 
+              if (rfv_if.wen[j] && vd_offset_lane[j] < rfv_if.vl) begin
+                next_registers[rfv_if.vd + vd_inner_offset[j]][vd_outer_offset[j]]  = rfv_if.w_data[j][7:0]; 
               end
             end
           endcase
         end
       end
-    end
+    // end
 
     // `ifdef TESTBENCH
       if (tb_ctrl) begin next_registers[tb_sel][15:0] = tb_data; end 
