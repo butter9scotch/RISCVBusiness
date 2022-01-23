@@ -24,6 +24,7 @@ interface rv32v_decode_execute_if;
   logic [VL_WIDTH:0] vlenb, vtype; // range of [1, 128]
   logic [31:0] vl, vstart;
   mm_t minmax_type;
+  lumop_t lumop;
 
   logic div_type;
   logic is_signed_div;
@@ -79,7 +80,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore,
+    decode_done, nf, eew_loadstore, lumop,
     rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );
@@ -98,7 +99,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore,
+    decode_done, nf, eew_loadstore, lumop,
     rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );
