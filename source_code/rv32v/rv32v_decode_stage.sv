@@ -44,6 +44,10 @@ module rv32v_decode_stage (
   import rv32i_types_pkg::*;
   import rv32i_types_pkg::*;
 
+//right now the register file is configured to have an array of read and write ports
+
+  parameter ZERO = 0; 
+
   vector_control_unit_if vcu_if();
   element_counter_if ele_if();
   compress_offset_unit_if cou_if();
@@ -70,7 +74,7 @@ module rv32v_decode_stage (
   // compress offset unit assigns
   assign cou_if.ena       = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
   assign cou_if.done      = ele_if.done;
-  assign cou_if.vs1_mask  = rfv_if.vs1_mask;
+  assign cou_if.vs1_mask  = rfv_if.vs1_mask[ZERO];
   assign cou_if.reset     = hu_if.csr_update;
 
   // Load store vl calculation to allow parallelism
@@ -138,18 +142,18 @@ module rv32v_decode_stage (
   sew_t next_decode_execute_if_eew;
 
   assign hu_if.busy_dec = vcu_if.de_en & ~ele_if.done; // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
-  assign rfv_if.vs2_sew = vcu_if.vs2_sew;
+  assign rfv_if.vs2_sew[ZERO] = vcu_if.vs2_sew;
 
   always_comb begin : MASK_BITS 
     if (vcu_if.vs1_offset_src == NORMAL) begin
-      mask0 = ~vcu_if.vm ? rfv_if.vs1_mask[0] : 1;
-      mask1 = ~vcu_if.vm ? rfv_if.vs1_mask[1] : 1;
+      mask0 = ~vcu_if.vm ? rfv_if.vs1_mask[ZERO][0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs1_mask[ZERO][1] : 1;
     end else if (vcu_if.vs2_offset_src == NORMAL) begin
-      mask0 = ~vcu_if.vm ? rfv_if.vs2_mask[0] : 1;
-      mask1 = ~vcu_if.vm ? rfv_if.vs2_mask[1] : 1;
+      mask0 = ~vcu_if.vm ? rfv_if.vs2_mask[ZERO][0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs2_mask[ZERO][1] : 1;
     end else begin
-      mask0 = ~vcu_if.vm ? rfv_if.vs3_mask[0] : 1;
-      mask1 = ~vcu_if.vm ? rfv_if.vs3_mask[1] : 1;
+      mask0 = ~vcu_if.vm ? rfv_if.vs3_mask[ZERO][0] : 1;
+      mask1 = ~vcu_if.vm ? rfv_if.vs3_mask[ZERO][1] : 1;
     end
   end
 
@@ -211,8 +215,8 @@ module rv32v_decode_stage (
             vs2_offset1 = ele_if.offset; 
       end
       VS2_SRC_VS1: begin 
-            vs2_offset0 = rfv_if.vs1_data[0];
-            vs2_offset1 = rfv_if.vs1_data[1];
+            vs2_offset0 = rfv_if.vs1_data[ZERO][0];
+            vs2_offset1 = rfv_if.vs1_data[ZERO][1];
       end
       VS2_SRC_RS1: begin 
             vs2_offset0 = xs1;
@@ -263,17 +267,17 @@ module rv32v_decode_stage (
     // in:  vs1, vs2, vs1_offset, vs2_offset, sew, 
     // out: vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask
 
-  assign rfv_if.vs1 = vcu_if.vs1;
-  assign rfv_if.vs2 = vcu_if.vs2;
-  assign rfv_if.vs3 = vcu_if.vd;
-  assign rfv_if.vs1_offset[0] = vs1_offset0;
-  assign rfv_if.vs1_offset[1] = vs1_offset1;
-  assign rfv_if.vs2_offset[0] = vs2_offset0;
-  assign rfv_if.vs2_offset[1] = vs2_offset1;
-  assign rfv_if.vs3_offset[0] = woffset0; // use offset of vd here because same bits in instruction
-  assign rfv_if.vs3_offset[1] = woffset1; // use offset of vd here because same bits in instruction
+  assign rfv_if.vs1[ZERO] = vcu_if.vs1;
+  assign rfv_if.vs2[ZERO] = vcu_if.vs2;
+  assign rfv_if.vs3[ZERO] = vcu_if.vd;
+  assign rfv_if.vs1_offset[ZERO][0] = vs1_offset0;
+  assign rfv_if.vs1_offset[ZERO][1] = vs1_offset1;
+  assign rfv_if.vs2_offset[ZERO][0] = vs2_offset0;
+  assign rfv_if.vs2_offset[ZERO][1] = vs2_offset1;
+  assign rfv_if.vs3_offset[ZERO][0] = woffset0; // use offset of vd here because same bits in instruction
+  assign rfv_if.vs3_offset[ZERO][1] = woffset1; // use offset of vd here because same bits in instruction
   //assign rfv_if.sew = sew;
-  assign rfv_if.sew = (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : sew;
+  assign rfv_if.sew[ZERO] = (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : sew;
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 : 
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
@@ -484,22 +488,22 @@ module rv32v_decode_stage (
       decode_execute_if.stride_val    <= xs2; //from xs2 field in instr; 
       decode_execute_if.xs1           <= xs1; 
       decode_execute_if.xs2           <= xs2; 
-      decode_execute_if.vs1_lane0     <= vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[0];
-      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[1]; 
-      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[0][15:0]} : 
-                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[0][7:0]} : 
+      decode_execute_if.vs1_lane0     <= vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[ZERO];
+      decode_execute_if.vs1_lane1     <= rfv_if.vs1_data[ZERO][1]; 
+      decode_execute_if.vs2_lane0     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][0][15:0]} : 
+                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][0][7:0]} : 
                                           vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
                                           vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset0 == prv_if.vl) ? xs1 : 
-                                          rfv_if.vs2_data[0];
-      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[1][15:0]} : 
-                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[1][7:0]} : 
+                                          rfv_if.vs2_data[ZERO][0];
+      decode_execute_if.vs2_lane1     <= vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][1][15:0]} : 
+                                          vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][1][7:0]} : 
                                           vcu_if.vs2_offset_src == VS2_SRC_IDX_PLUS_1 & (vs2_offset1 == prv_if.vl) ? xs1 : 
-                                          rfv_if.vs2_data[1];
-      decode_execute_if.vs3_lane0         <= rfv_if.vs3_data[0];
-      decode_execute_if.vs3_lane1         <= rfv_if.vs3_data[1];
+                                          rfv_if.vs2_data[ZERO][1];
+      decode_execute_if.vs3_lane0         <= rfv_if.vs3_data[ZERO][0];
+      decode_execute_if.vs3_lane1         <= rfv_if.vs3_data[ZERO][1];
       decode_execute_if.imm               <= vcu_if.is_signed ? sign_ext_imm5 : zero_ext_imm5; // sign extend, i think this works
-      decode_execute_if.storedata0        <= rfv_if.vs3_data[0];
-      decode_execute_if.storedata1        <= rfv_if.vs3_data[1];
+      decode_execute_if.storedata0        <= rfv_if.vs3_data[ZERO][0];
+      decode_execute_if.storedata1        <= rfv_if.vs3_data[ZERO][1];
       decode_execute_if.rd_sel            <= vcu_if.vd;
       decode_execute_if.woffset0          <=  woffset0; 
       decode_execute_if.woffset1          <=  woffset1; 
@@ -544,7 +548,7 @@ module rv32v_decode_stage (
       decode_execute_if.vstart            <= prv_if.vstart;
       decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
       decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
-      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[0] : 32'hDEAD;
+      decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[ZERO][0] : 32'hDEAD;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;

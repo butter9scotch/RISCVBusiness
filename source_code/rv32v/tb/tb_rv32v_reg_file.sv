@@ -40,10 +40,10 @@ module tb_rv32v_reg_file ();
   logic CLK, nRST;
 
   rv32v_reg_file_if rfv_if();
-  element_counter_if ele_if();
+  // element_counter_if ele_if();
 
   rv32v_reg_file DUT (.*);
-  element_counter ELE (.*);
+  // element_counter ELE (.*);
   //   .rfv_if(CLK, nRST, rfv_if)
   // );
 
@@ -75,13 +75,13 @@ module tb_rv32v_reg_file ();
     // rfv_if.vd_offset  = 0;
     rfv_if.vl = 127;
     nRST = 0;
-    ele_if.vstart = 0;
-    ele_if.vl = rfv_if.vl;
-    ele_if.stall = 0;
-    ele_if.ex_return = 0;
-    ele_if.de_en = 0;
-    ele_if.sew = SEW32;
-    ele_if.clear = 0;
+    // ele_if.vstart = 0;
+    // ele_if.vl = rfv_if.vl;
+    // ele_if.stall = 0;
+    // ele_if.ex_return = 0;
+    // ele_if.de_en = 0;
+    // ele_if.sew = SEW32;
+    // ele_if.clear = 0;
 
     @(posedge CLK);
     nRST = 1;
@@ -167,7 +167,7 @@ module tb_rv32v_reg_file ();
     #1;
     rfv_if.sew = sew;
     rfv_if.eew = sew;
-    ele_if.sew = sew;
+    // ele_if.sew = sew;
     rfv_if.vs1 = vs1;
     rfv_if.vs2 = vs2;
     rfv_if.vs3 = vs2;
@@ -201,17 +201,17 @@ module tb_rv32v_reg_file ();
     data_temp = data;
     // max_cnt = 128 / (1 << sew);
     reg_idx = 0;
-    ele_if.de_en = 0;
+    // ele_if.de_en = 0;
     rfv_if.vl = max_cnt;
 
     for(int el_idx = 0; el_idx < max_cnt; el_idx+=2) begin
-      ele_if.de_en = 1;
+      // ele_if.de_en = 1;
       // data = {data[1] >> (), data[0] >> ()};
       write_reg(1, sew, data, reg_idx);
       read_reg(sew, reg_idx, reg_idx);
       // data = next_data;
     end
-    ele_if.de_en = 0;
+    // ele_if.de_en = 0;
 
     display_reg_file();
   endtask
