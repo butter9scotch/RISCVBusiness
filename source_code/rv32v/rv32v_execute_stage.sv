@@ -77,17 +77,21 @@ module rv32v_execute_stage (
   assign base_addr6 = base_addr5 + base_addr_offset;
   assign base_addr7 = base_addr6 + base_addr_offset;
   always_comb begin
-    case(decode_execute_if.nf)
-      3'd0: base_addr_new = base_addr;
-      3'd1: base_addr_new = base_addr1;
-      3'd2: base_addr_new = base_addr2;
-      3'd3: base_addr_new = base_addr3;
-      3'd4: base_addr_new = base_addr4;
-      3'd5: base_addr_new = base_addr5;
-      3'd6: base_addr_new = base_addr6;
-      3'd7: base_addr_new = base_addr7;
-      default: base_addr_new = base_addr;
-    endcase
+    if (decode_execute_if.lumop == LUMOP_UNIT_FULLREG) begin
+      base_addr_new = base_addr;
+    end else begin
+      case(decode_execute_if.nf)
+        3'd0: base_addr_new = base_addr;
+        3'd1: base_addr_new = base_addr1;
+        3'd2: base_addr_new = base_addr2;
+        3'd3: base_addr_new = base_addr3;
+        3'd4: base_addr_new = base_addr4;
+        3'd5: base_addr_new = base_addr5;
+        3'd6: base_addr_new = base_addr6;
+        3'd7: base_addr_new = base_addr7;
+        default: base_addr_new = base_addr;
+      endcase
+    end
   end
   always_comb begin
     case(decode_execute_if.eew_loadstore)

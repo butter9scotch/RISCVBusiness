@@ -23,7 +23,7 @@ interface rv32v_hazard_unit_if;
   );
 
   modport decode (
-    input stall_dec, flush_dec, busy_ex, next_busy_ex, csr_update,
+    input stall_dec, flush_dec, busy_ex, busy_mem, next_busy_ex, csr_update,
     output busy_dec
   );
 

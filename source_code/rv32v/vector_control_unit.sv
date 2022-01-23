@@ -72,7 +72,7 @@ module vector_control_unit
   assign vcu_if.nf           = vcu_if.instr[31:29];
   assign vcu_if.mop          = mop_t'(vcu_if.instr[27:26]);
   assign vcu_if.vm           = vcu_if.instr[25];
-  assign lumop               = lumop_t'(vcu_if.instr[24:20]);
+  assign vcu_if.lumop               = lumop_t'(vcu_if.instr[24:20]);
   assign funct6_opi          = vopi_t'(vcu_if.instr[31:26]);
   assign funct6_opm          = vopm_t'(vcu_if.instr[31:26]);  
   assign vfunct3             = vfunct3_t'(vcu_if.instr[14:12]);
@@ -451,7 +451,7 @@ module vector_control_unit
                             vcu_if.imm_op ? I : V;
 
   
-  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.nf != '0) ? 2 : // Segment unit stride
+  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.lumop == LUMOP_UNIT) && (vcu_if.nf != '0) ? 2 : // Segment unit stride
                                (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_STRIDED) ? 1 : // Normal strided or Segment strided
                                 0;
 

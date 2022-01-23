@@ -61,6 +61,7 @@ interface vector_control_unit_if();
   logic de_en;
   logic stall;
   logic is_load, is_store;
+  lumop_t lumop;
 
   rs_t rs1_type;
   rs_t rs2_type;
@@ -165,7 +166,8 @@ interface vector_control_unit_if();
     sew, vs2_sew,
     lmul,
     eew,
-    eew_loadstore
+    eew_loadstore,
+    lumop
 
   );
 

@@ -57,7 +57,7 @@ module rv32v_decode_stage (
   sew_t sew;
   width_t eew_loadstore;
   vlmul_t lmul;
-  logic [31:0] vstart, ls_vl;
+  logic [31:0] vstart, ls_vl, num_ele_each_reg, num_ele_each_reg1, num_ele_each_reg2, num_ele_each_reg3, num_ele_each_reg4, num_ele_each_reg5, num_ele_each_reg6, num_ele_each_reg7, total_vl_for_lsreg;
   vop_cfg vop_c;
   logic wen0, wen1;
 
@@ -74,9 +74,31 @@ module rv32v_decode_stage (
   assign cou_if.reset     = hu_if.csr_update;
 
   // Load store vl calculation to allow parallelism
-  assign ls_vl = vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
+  assign ls_vl = vcu_if.lumop == LUMOP_UNIT_FULLREG ? total_vl_for_lsreg :
+                 vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
                  vcu_if.eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
                  prv_if.vl;
+  assign num_ele_each_reg = VLEN >> 5;
+  assign num_ele_each_reg1 = num_ele_each_reg + num_ele_each_reg;
+  assign num_ele_each_reg2 = num_ele_each_reg1 + num_ele_each_reg;
+  assign num_ele_each_reg3 = num_ele_each_reg2 + num_ele_each_reg;
+  assign num_ele_each_reg4 = num_ele_each_reg3 + num_ele_each_reg;
+  assign num_ele_each_reg5 = num_ele_each_reg4 + num_ele_each_reg;
+  assign num_ele_each_reg6 = num_ele_each_reg5 + num_ele_each_reg;
+  assign num_ele_each_reg7 = num_ele_each_reg6 + num_ele_each_reg;
+  always_comb begin
+    case(vcu_if.nf)
+      3'd0: total_vl_for_lsreg = num_ele_each_reg;
+      3'd1: total_vl_for_lsreg = num_ele_each_reg1;
+      3'd2: total_vl_for_lsreg = num_ele_each_reg2;
+      3'd3: total_vl_for_lsreg = num_ele_each_reg3;
+      3'd4: total_vl_for_lsreg = num_ele_each_reg4;
+      3'd5: total_vl_for_lsreg = num_ele_each_reg5;
+      3'd6: total_vl_for_lsreg = num_ele_each_reg6;
+      3'd7: total_vl_for_lsreg = num_ele_each_reg7;
+      default: total_vl_for_lsreg = num_ele_each_reg;
+    endcase
+  end
 
   // vector control unit assigns
   assign vcu_if.instr = fetch_decode_if.instr;
@@ -89,12 +111,12 @@ module rv32v_decode_stage (
                             (vcu_if.vmv_type == SCALAR) ? 1 : 
                             (VLENB >> sew) << vcu_if.vmv_type;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
-  assign ele_if.stall     = hu_if.busy_ex;  
+  assign ele_if.stall     = hu_if.busy_ex | hu_if.busy_mem;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
   assign ele_if.de_en     = vcu_if.de_en;   
   assign ele_if.clear     = hu_if.flush_dec;
-  assign ele_if.busy_ex   = hu_if.busy_ex;
+  assign ele_if.busy_ex   = hu_if.busy_ex | hu_if.busy_mem;
   assign ele_if.slide1up  = vcu_if.vd_offset_src == VD_SRC_IDX_PLUS_1;
   // assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
 
@@ -346,6 +368,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.nf                <= '0;
       decode_execute_if.eew_loadstore     <= '0;
+      decode_execute_if.lumop             <= '0;
 
 
       //TESTBENCH ONLY
@@ -438,6 +461,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.nf             <= '0;
       decode_execute_if.eew_loadstore     <= '0;
+      decode_execute_if.lumop             <= '0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -486,7 +510,8 @@ module rv32v_decode_stage (
       decode_execute_if.rs2_type          <= vcu_if.rs2_type;
       decode_execute_if.minmax_type       <= vcu_if.minmax_type;
       decode_execute_if.eew               <= vcu_if.eew; 
-      decode_execute_if.vl                <= (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
+      decode_execute_if.vl                <= (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
+                                             (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
                                              (vcu_if.vmv_type == SCALAR) ? 1 : 
                                               (VLENB >> sew) << vcu_if.vmv_type; 
       decode_execute_if.vlenb             <= prv_if.vlenb;   
@@ -538,6 +563,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.nf                <= vcu_if.nf;
       decode_execute_if.eew_loadstore     <= vcu_if.eew_loadstore;
+      decode_execute_if.lumop             <= vcu_if.lumop;
       decode_execute_if.rd_scalar_src     <= vcu_if.rd_scalar_src;
 
       //TESTBENCH ONLY
