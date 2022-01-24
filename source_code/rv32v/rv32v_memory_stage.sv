@@ -39,6 +39,7 @@ module rv32v_memory_stage (
   import machine_mode_types_1_11_pkg::*;
 
   logic [31:0] data0, wdat0, wdat1, final_wdat0, final_wdat1;
+  logic [5:0] addr0_shifted, addr1_shifted;
 
   address_scheduler_if asif ();
 
@@ -47,10 +48,12 @@ module rv32v_memory_stage (
 
   assign hu_if.busy_mem = asif.busy;
   // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
+  assign addr0_shifted = asif.addr0[1:0] << 3;
+  assign addr1_shifted = asif.addr1[1:0] << 3;
   assign hu_if.exception_mem = asif.exception;
-  assign final_wdat0 = execute_memory_if.segment_type ? data0 >> (asif.addr0[1:0] << 3) : // data0 / 8bit
+  assign final_wdat0 = execute_memory_if.segment_type ? data0 >> addr0_shifted : // data0 / 8bit
                        data0; 
-  assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> (asif.addr1[1:0] << 3) :
+  assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> addr1_shifted :
                        cif.dmemload; 
   assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
   assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
