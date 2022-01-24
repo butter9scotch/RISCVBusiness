@@ -4,7 +4,7 @@
 interface rv32v_execute_memory_if;
   import rv32i_types_pkg::*;
 
-  logic load_ena, store_ena;
+  logic load_ena, store_ena, segment_type;
   logic [1:0] wen;
   logic [31:0] storedata0, storedata1, aluresult0, aluresult1;
   offset_t woffset0, woffset1;
@@ -26,7 +26,7 @@ interface rv32v_execute_memory_if;
 
 
   modport execute (
-    output load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1,
+    output load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vl, vtype, eew, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen,
     tb_line_num //TESTBENCH ONLY
@@ -35,7 +35,7 @@ interface rv32v_execute_memory_if;
 
 
   modport memory (
-    input load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1,
+    input load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vtype, eew, vl, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen ,
     tb_line_num //TESTBENCH ONLY

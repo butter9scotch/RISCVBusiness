@@ -4,7 +4,7 @@
 interface rv32v_decode_execute_if;
   import rv32i_types_pkg::*;
 
-  logic rd_wen, mask0, mask1, reduction_ena, ls_idx, load_ena, store_ena, vill;
+  logic rd_wen, mask0, mask1, reduction_ena, ls_idx, load_ena, store_ena, vill, segment_type;
   sign_type_t is_signed;
   logic [1:0] wen, stride_type;
   
@@ -79,8 +79,8 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore, lumop, nf_count,
-    rd_scalar_src,
+    decode_done, nf, eew_loadstore, lumop, nf_count, segment_type,
+    rd_scalar_src, 
     vmv_type,
 
     tb_line_num //TESTBENCH ONLY
@@ -100,7 +100,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore, lumop, nf_count,
+    decode_done, nf, eew_loadstore, lumop, nf_count, segment_type,
     rd_scalar_src,
     vmv_type,
 

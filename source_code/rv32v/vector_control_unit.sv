@@ -127,7 +127,7 @@ module vector_control_unit
         SEW32 : vcu_if.eew = SEW16;
         SEW16, SEW8: vcu_if.eew = SEW8;
       endcase
-    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED)) begin
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED || (vcu_if.mop == MOP_UNIT && vcu_if.nf != '0))) begin
       case(vcu_if.eew_loadstore)
         WIDTH32: vcu_if.eew = SEW32;
         WIDTH16: vcu_if.eew = SEW16;

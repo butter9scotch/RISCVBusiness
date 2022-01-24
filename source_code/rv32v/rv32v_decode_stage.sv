@@ -60,10 +60,10 @@ module rv32v_decode_stage (
 
   sew_t sew;
   width_t eew_loadstore;
-  vlmul_t lmul;
+  vlmul_t lmul, emul;
   logic [31:0] vstart, ls_vl, num_ele_each_reg, num_ele_each_reg1, num_ele_each_reg2, num_ele_each_reg3, num_ele_each_reg4, num_ele_each_reg5, num_ele_each_reg6, num_ele_each_reg7, total_vl_for_lsreg, nf_count_reg, next_nf_count_reg, buffered_instr, next_buffered_instr;
   vop_cfg vop_c;
-  logic wen0, wen1, nf_count_ena, nf_count_ena_ff1, nf_count_ena_ff2;
+  logic wen0, wen1, nf_count_ena, nf_count_ena_ff1, nf_count_ena_ff2, segment_type;
   offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
   logic [4:0] new_vd;
 
@@ -76,6 +76,7 @@ module rv32v_decode_stage (
   assign sew = vcu_if.sew; 
   // assign eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
   assign lmul = vcu_if.lmul;
+  assign segment_type = vcu_if.nf != '0 && (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
 
   // compress offset unit assigns
   assign cou_if.ena       = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
@@ -85,8 +86,10 @@ module rv32v_decode_stage (
 
   // Load store vl calculation to allow parallelism
   assign ls_vl = vcu_if.lumop == LUMOP_UNIT_FULLREG ? total_vl_for_lsreg :
-                 vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
-                 vcu_if.eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
+                 vcu_if.nf != '0 ? prv_if.vl :
+                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
+                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
+                 sew == SEW16 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 1 :
                  prv_if.vl;
   assign num_ele_each_reg = VLEN >> 5;
   assign num_ele_each_reg1 = num_ele_each_reg + num_ele_each_reg;
@@ -99,15 +102,80 @@ module rv32v_decode_stage (
   assign nf_count_ena = ((woffset0 == ele_if.vl - 1) | (woffset1 == ele_if.vl - 1)) & (vcu_if.nf != 0) & (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
   assign next_buffered_instr = {fetch_decode_if.instr[31:12], new_vd, fetch_decode_if.instr[6:0]};
   //assign next_nf_count_reg = nf_count_ena ? nf_count_reg + 1 : nf_count_reg;
-  always_comb begin
+  always_comb begin // EMUL = EEW/SEW * LMUL
     case(lmul)
-       LMUL1: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg; // (0, 1j, 2j ....)
+       LMUL1: begin
+         if (sew == SEW8) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL1;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL2;
+           else emul = LMUL4;
+         end else if (sew == SEW16) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMULHALF; 
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL1;
+           else emul = LMUL2;
+         end else begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMULFOURTH;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMULHALF;
+           else emul = LMUL1;
+         end
+       end
+       LMUL2: begin
+         if (sew == SEW8) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL2;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL4; 
+           else emul = LMUL8;
+         end else if (sew == SEW16) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL1;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL2;
+           else emul = LMUL4;
+         end else begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMULHALF;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL1;
+           else emul = LMUL2;
+         end
+       end
+       LMUL4: begin
+         if (sew == SEW8) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL4;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL8; 
+           else emul = LMUL8;
+         end else if (sew == SEW16) begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL2;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL4;
+           else emul = LMUL8;
+         end else begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL1;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL2;
+           else emul = LMUL4;
+         end
+       end
+       LMUL8: begin
+         if (sew == SEW8) begin
+           emul = LMUL8;
+         end else if (sew == SEW16) begin  
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL4;
+           else emul = LMUL8;
+         end else begin
+           if (vcu_if.eew_loadstore == WIDTH8) emul = LMUL2;
+           else if (vcu_if.eew_loadstore == WIDTH16) emul = LMUL4;
+           else emul = LMUL8;
+         end
+       end
+       default: emul = LMUL1;
+    endcase
+  end
+
+  always_comb begin
+    case(emul)
+       LMUL1, LMULHALF, LMULFOURTH: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg; // (0, 1j, 2j ....)
        LMUL2: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg; // (0, 2j, 4j ....)
        //LMUL3: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 3j, 6j ....)
        LMUL4: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 4j, 8j ....)
+       LMUL8: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 8j, 16j ....)
        default: new_vd = fetch_decode_if.instr;
     endcase
   end
+
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       nf_count_reg <= 0;
@@ -182,9 +250,6 @@ module rv32v_decode_stage (
   // assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
 
   // microop buffer assigns
-
-  //logic try_done;
-  //assign try_done = (vcu_if.is_load || vcu_if.is_store) ? (ele_if.done & nf_count_reg == vcu_if.nf) : ele_if.done;
 
   assign hu_if.busy_dec = vcu_if.de_en & ~(ele_if.done & nf_count_reg == 0); // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
   assign rfv_if.vs2_sew[ZERO] = vcu_if.vs2_sew;
@@ -415,6 +480,7 @@ module rv32v_decode_stage (
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
       decode_execute_if.vmv_type          <= NOT_VMV;
+      decode_execute_if.segment_type      <= '0;
 
 
       //TESTBENCH ONLY
@@ -507,6 +573,7 @@ module rv32v_decode_stage (
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
       decode_execute_if.vmv_type          <= NOT_VMV;
+      decode_execute_if.segment_type      <= '0;
 
 
       //TESTBENCH ONLY
@@ -637,6 +704,7 @@ module rv32v_decode_stage (
       decode_execute_if.lumop             <= vcu_if.lumop;
       decode_execute_if.rd_scalar_src     <= vcu_if.rd_scalar_src;
       decode_execute_if.nf_count          <= nf_count_reg;
+      decode_execute_if.segment_type      <= segment_type;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;

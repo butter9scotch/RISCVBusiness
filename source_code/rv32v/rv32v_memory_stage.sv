@@ -38,7 +38,7 @@ module rv32v_memory_stage (
   import rv32i_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
-  logic [31:0] data0, wdat0, wdat1;
+  logic [31:0] data0, wdat0, wdat1, final_wdat0, final_wdat1;
 
   address_scheduler_if asif ();
 
@@ -48,8 +48,12 @@ module rv32v_memory_stage (
   assign hu_if.busy_mem = asif.busy;
   // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
   assign hu_if.exception_mem = asif.exception;
-  assign wdat0 = execute_memory_if.load_ena ? data0 : execute_memory_if.aluresult0;
-  assign wdat1 = execute_memory_if.load_ena ? cif.dmemload : execute_memory_if.aluresult1;
+  assign final_wdat0 = execute_memory_if.segment_type ? data0 >> (asif.addr0[1:0] << 3) : // data0 / 8bit
+                       data0; 
+  assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> (asif.addr1[1:0] << 3) :
+                       cif.dmemload; 
+  assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
+  assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
 
   // To address scheduler
   assign asif.addr0      = execute_memory_if.aluresult0;
@@ -66,9 +70,10 @@ module rv32v_memory_stage (
   assign asif.woffset1   = execute_memory_if.woffset1;
   assign asif.vl         = execute_memory_if.vl;
   assign asif.ls_idx     = execute_memory_if.ls_idx;
+  assign asif.segment_type  = execute_memory_if.segment_type;
   // To dcache
   assign cif.dmemstore = asif.final_storedata;
-  assign cif.dmemaddr  = asif.final_addr;
+  assign cif.dmemaddr  = {asif.final_addr[31:2], 2'd0};
   assign cif.ren       = asif.ren;
   assign cif.wen       = asif.wen;
   assign cif.byte_ena  = asif.byte_ena;
