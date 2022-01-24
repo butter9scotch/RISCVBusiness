@@ -92,6 +92,7 @@ interface vector_control_unit_if();
   logic zext_w;
   logic mask_logical;
   ma_t mask_type;
+  logic move_src;
 
   vlmul_t lmul;
   width_t eew_loadstore;
@@ -136,6 +137,7 @@ interface vector_control_unit_if();
     single_bit_op,
     illegal_insn,
     vd_offset_src,
+    move_src,
     de_en,
     stall,
     imm_5,
@@ -172,7 +174,6 @@ interface vector_control_unit_if();
     eew,
     eew_loadstore,
     lumop
-
   );
 
 

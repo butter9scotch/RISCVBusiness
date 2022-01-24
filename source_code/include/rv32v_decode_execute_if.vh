@@ -56,6 +56,7 @@ interface rv32v_decode_execute_if;
   logic vd_narrow;
   logic decode_done;
   logic rd_scalar_src;
+  vmv_type_t vmv_type;
 
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
@@ -80,6 +81,8 @@ interface rv32v_decode_execute_if;
     is_masked, vd_narrow,
     decode_done, nf, eew_loadstore, lumop,
     rd_scalar_src,
+    vmv_type,
+
     tb_line_num //TESTBENCH ONLY
   );
 
@@ -99,6 +102,8 @@ interface rv32v_decode_execute_if;
     is_masked, vd_narrow,
     decode_done, nf, eew_loadstore, lumop,
     rd_scalar_src,
+    vmv_type,
+
     tb_line_num //TESTBENCH ONLY
   );
 

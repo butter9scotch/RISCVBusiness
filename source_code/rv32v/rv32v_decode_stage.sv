@@ -111,8 +111,8 @@ module rv32v_decode_stage (
   assign ele_if.vstart    = prv_if.vstart; 
   assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
                             (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
-                            (vcu_if.vmv_type == NOT_VMV)? prv_if.vl : 
-                            (vcu_if.vmv_type == SCALAR) ? 1 : 
+                            (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
+                            (vcu_if.vmv_type == X_S) || (vcu_if.vmv_type == S_X) ? 1 : 
                             (VLENB >> sew) << vcu_if.vmv_type;  
   // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
   assign ele_if.stall     = hu_if.busy_ex | hu_if.busy_mem;  
@@ -369,6 +369,7 @@ module rv32v_decode_stage (
       decode_execute_if.nf                <= '0;
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
+      decode_execute_if.vmv_type          <= NOT_VMV;
 
 
       //TESTBENCH ONLY
@@ -460,6 +461,8 @@ module rv32v_decode_stage (
       decode_execute_if.nf             <= '0;
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
+      decode_execute_if.vmv_type          <= NOT_VMV;
+
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -490,7 +493,7 @@ module rv32v_decode_stage (
       decode_execute_if.mask0             <= mask0; 
       decode_execute_if.mask1             <= mask1; 
 
-      decode_execute_if.vs1_lane0         <=  vcu_if.vmv_type == SCALAR ? xs1 : rfv_if.vs1_data[ZERO];
+      decode_execute_if.vs1_lane0         <=  vcu_if.vmv_type == S_X ? xs1 : rfv_if.vs1_data[ZERO];
       decode_execute_if.vs2_lane0         <=  vcu_if.vd_narrow & (sew == SEW32) ? {16'd0, rfv_if.vs2_data[ZERO][0][15:0]} : 
                                               vcu_if.vd_narrow & (sew == SEW16) ? {24'd0, rfv_if.vs2_data[ZERO][0][7:0]} : 
                                               vcu_if.vs2_offset_src == VS2_SRC_IDX_MINUS_1 & (vs2_offset1 == prv_if.vstart) ? xs1 : 
@@ -521,9 +524,10 @@ module rv32v_decode_stage (
 
 
 
+      //======================TYPE SIGNALS===========================
       decode_execute_if.rs1_type          <= vcu_if.rs1_type;
       decode_execute_if.rs2_type          <= vcu_if.rs2_type;
-
+      decode_execute_if.vmv_type          <= vcu_if.vmv_type;
       
       //======================DIV SIGNALS===========================
       decode_execute_if.div_type          <= vcu_if.div_type;
@@ -548,7 +552,7 @@ module rv32v_decode_stage (
       decode_execute_if.eew               <= vcu_if.eew; 
       decode_execute_if.vl                <= (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
                                              (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
-                                             (vcu_if.vmv_type == SCALAR) ? 1 : 
+                                             (vcu_if.vmv_type == X_S) || (vcu_if.vmv_type == S_X) ? 1 : 
                                               (VLENB >> sew) << vcu_if.vmv_type; 
       decode_execute_if.vlenb             <= prv_if.vlenb;   
       decode_execute_if.vtype             <= prv_if.vtype;   

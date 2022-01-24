@@ -305,7 +305,8 @@ module vector_control_unit
 
   always_comb begin
     case (op_decoded)
-      OP_VMV_X_S, OP_VMV_S_X: vcu_if.vmv_type = SCALAR;
+      OP_VMV_X_S: vcu_if.vmv_type = X_S;
+      OP_VMV_S_X: vcu_if.vmv_type = S_X;
       OP_VMV1R: vcu_if.vmv_type = ONE;
       OP_VMV2R: vcu_if.vmv_type = TWO;
       OP_VMV4R: vcu_if.vmv_type = FOUR;
@@ -386,8 +387,6 @@ module vector_control_unit
         OP_VDIVU, OP_VDIV, OP_VREMU, OP_VREM: begin vcu_if.fu_type = DIV; vcu_if.div_ena = 1; end 
         OP_VPOPC, OP_VFIRST, OP_VMSBF, OP_VMSOF, OP_VMSIF, OP_VIOTA, OP_VID, OP_VMANDN, OP_VMAND, OP_VMOR, OP_VMXOR, OP_VMORN, OP_VMNAND, OP_VMNOR, OP_VMXNOR: begin vcu_if.fu_type = MASK; vcu_if.mask_ena = 1; end
         OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VCOMPRESS: begin vcu_if.fu_type = PEM; vcu_if.perm_ena = 1; end
-        OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV: begin vcu_if.fu_type = MOVE; end
-        OP_VMV_X_S, OP_VMV_S_X: begin vcu_if.fu_type = MOVE_SCALAR; end
         default:   begin 
                 vcu_if.fu_type = ARITH;
                 vcu_if.arith_ena = 0;
@@ -401,36 +400,14 @@ module vector_control_unit
     end
   end
 
+  always_comb begin
+    case(op_decoded) 
+    OP_VMV1R, OP_VMV2R, OP_VMV4R, OP_VMV8R, OP_VMV: vcu_if.move_src = 1;
+    default: vcu_if.move_src = 0;
+    endcase
+  end
 
   assign vcu_if.loadstore_ena = vcu_if.is_load | vcu_if.is_store; 
-
-  // //select mask unit
-  // assign vcu_if.fu_type =  :
-  //                          : 
-  //                          : 
-  //                         vcu_if.div_ena   ? DIV :  
-  //                         vcu_if.mask_ena  ? MASK :
-  //                         vcu_if.perm_ena  ? PEM :
-  //                         move_ena         ? MOVE :
-  //                         madd_ena         ? MADD :
-  //                         vcu_if.is_load   ? LOAD_UNIT : 
-  //                         vcu_if.is_store  ? STORE_UNIT : 
-  //                         ARITH; 
-
-  //   assign vcu_if.fu_type = vcu_if.arith_ena ? ARITH :
-  //                         vcu_if.reduction_ena ? RED : 
-  //                         vcu_if.mul_ena   ? MUL : 
-  //                         vcu_if.div_ena   ? DIV :  
-  //                         vcu_if.mask_ena  ? MASK :
-  //                         vcu_if.perm_ena  ? PEM :
-  //                         move_ena         ? MOVE :
-  //                         madd_ena         ? MADD :
-  //                         vcu_if.is_load   ? LOAD_UNIT : 
-  //                         vcu_if.is_store  ? STORE_UNIT : 
-  //                         ARITH; 
-
-
-
 
   assign vcu_if.rs1_type = vcu_if.is_load || vcu_if.is_store || (vcu_if.opcode == VECTOR) &&  ((vfunct3 == OPIVX) || (vfunct3 == OPMVX)) ||
                             (vcu_if.opcode == VECTOR) && ((vcu_if.cfgsel == VSETVLI) || (vcu_if.cfgsel == VSETVL)) ? X : 
@@ -455,7 +432,8 @@ module vector_control_unit
     case(vcu_if.opcode)
       LOAD_FP: vcu_if.wen   = 2'b11;
       VECTOR:  begin 
-               vcu_if.wen = {(is_vopi | is_vopm) & (vcu_if.vmv_type != SCALAR), (is_vopi | is_vopm) & (op_decoded != OP_VMV_X_S)};
+               vcu_if.wen = {(is_vopi | is_vopm) & ((vcu_if.vmv_type != X_S) || (vcu_if.vmv_type != S_X)), // wen lane 1
+                             (is_vopi | is_vopm) &  (vcu_if.vmv_type != X_S)}; //wen lane 0
       end
       STORE_FP: vcu_if.wen   = 1'b0;
       default:  vcu_if.wen   = 1'b0;

@@ -484,6 +484,8 @@ package rv32v_types_pkg;
     TWO = 1,
     FOUR = 2, 
     EIGHT = 3,
+    X_S,
+    S_X,
     NOT_VMV = 7
   } vmv_type_t;
 

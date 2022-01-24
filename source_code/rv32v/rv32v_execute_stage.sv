@@ -427,6 +427,8 @@ module rv32v_execute_stage (
   //assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
   assign aluresult0 = vif0.lane_result;
   assign aluresult1 = vif1.lane_result;
+  logic move_sel;
+  assign move_sel = decode_execute_if.vmv_type != NOT_VMV;
   // assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
   assign latch_ena = ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
@@ -491,18 +493,18 @@ module rv32v_execute_stage (
 
 
     end else if (latch_ena) begin
-      execute_memory_if.load_ena        <= decode_execute_if.load_ena;
-      execute_memory_if.store_ena       <= decode_execute_if.store_ena;
+      execute_memory_if.load_ena    <= decode_execute_if.load_ena;
+      execute_memory_if.store_ena   <= decode_execute_if.store_ena;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         decode_execute_if.reduction_ena ? reduction_alu_result : 
-                                        decode_execute_if.fu_type == MOVE_SCALAR ? decode_execute_if.vs1_lane0 :
-                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane0 : aluresult0;
+                                        decode_execute_if.vmv_type == S_X ? decode_execute_if.vs1_lane0 :
+                                        move_sel ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
                                         zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : 
-                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane1 : aluresult1;
+                                        move_sel ? decode_execute_if.vs2_lane1 : aluresult1;
       // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
       execute_memory_if.wen[0]      <= next_wen[0];

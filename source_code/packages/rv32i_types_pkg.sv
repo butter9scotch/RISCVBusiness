@@ -541,17 +541,16 @@ package rv32i_types_pkg;
   typedef logic [7:0] byte_t;
   typedef byte_t [VLENB-1:0]  vreg_t;
 
-  typedef enum logic [3:0] {
-    ARITH,
-    RED,
-    MUL,
-    DIV,
-    MASK,
-    PEM,
-    LOAD_UNIT,
-    STORE_UNIT,
-    MOVE, 
-    MOVE_SCALAR
+  typedef enum logic [7:0] {
+    ARITH       = 8'b0000_0001,
+    RED         = 8'b0000_0010,
+    MUL         = 8'b0000_0100,
+    DIV         = 8'b0000_1000,
+    MASK        = 8'b0001_0000,
+    PEM         = 8'b0010_0000,
+    LOAD_UNIT   = 8'b0100_0000,
+    STORE_UNIT  = 8'b1000_0000
+    // MOVE
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -672,7 +671,8 @@ package rv32i_types_pkg;
     TWO = 1,
     FOUR = 2, 
     EIGHT = 3,
-    SCALAR,
+    X_S,
+    S_X,
     NOT_VMV = 7
   } vmv_type_t;
 
