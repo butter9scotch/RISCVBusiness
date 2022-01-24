@@ -12,7 +12,7 @@ interface rv32v_decode_execute_if;
   logic [31:0] stride_val, xs1, xs2,  vs1_lane0, vs1_lane1, vs3_lane0, vs3_lane1, vs2_lane0, vs2_lane1, imm, storedata0, storedata1;
   logic [31:0] rd_data; // scalar data using rd
   logic [4:0] rd_sel, vd;
-  logic [3:0] nf;
+  logic [3:0] nf, nf_count;
   offset_t woffset0, woffset1;
   fu_t fu_type;
   athresult_t result_type;
@@ -78,7 +78,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore, lumop,
+    decode_done, nf, eew_loadstore, lumop, nf_count,
     rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );
@@ -97,7 +97,7 @@ interface rv32v_decode_execute_if;
     vd_widen,
     vs2_offset0, vs2_offset1,
     is_masked, vd_narrow,
-    decode_done, nf, eew_loadstore, lumop,
+    decode_done, nf, eew_loadstore, lumop, nf_count,
     rd_scalar_src,
     tb_line_num //TESTBENCH ONLY
   );

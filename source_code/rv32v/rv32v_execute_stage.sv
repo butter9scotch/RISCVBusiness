@@ -80,7 +80,7 @@ module rv32v_execute_stage (
     if (decode_execute_if.lumop == LUMOP_UNIT_FULLREG) begin
       base_addr_new = base_addr;
     end else begin
-      case(decode_execute_if.nf)
+      case(decode_execute_if.nf_count)
         3'd0: base_addr_new = base_addr;
         3'd1: base_addr_new = base_addr1;
         3'd2: base_addr_new = base_addr2;
@@ -174,6 +174,7 @@ module rv32v_execute_stage (
   logic ls_ena_ff;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) ls_ena_ff <= 0;
+    else if (decode_execute_if.woffset0 != 0) ls_ena_ff <= 0;
     else ls_ena_ff <= (decode_execute_if.load_ena | decode_execute_if.store_ena);
   end
 
@@ -192,7 +193,8 @@ module rv32v_execute_stage (
   assign vif0.portb1          = decode_execute_if.sew == SEW32 ? decode_execute_if.vs2_lane0 << 2:
                                 decode_execute_if.sew == SEW16 ? decode_execute_if.vs2_lane0 << 1:
                                 decode_execute_if.vs2_lane0;
-  assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0 & ~ls_ena_ff);
+  //assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0 & ~ls_ena_ff);
+  assign vif0.porta_sel       = decode_execute_if.ls_idx | decode_execute_if.woffset0 == 0;
   assign vif0.portb_sel       = decode_execute_if.ls_idx;
   assign vif0.is_signed_mul   = decode_execute_if.is_signed_mul;
   assign vif0.multiply_type   = decode_execute_if.multiply_type;

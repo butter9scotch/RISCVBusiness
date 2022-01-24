@@ -61,9 +61,15 @@ module rv32v_decode_stage (
   sew_t sew;
   width_t eew_loadstore;
   vlmul_t lmul;
-  logic [31:0] vstart, ls_vl, num_ele_each_reg, num_ele_each_reg1, num_ele_each_reg2, num_ele_each_reg3, num_ele_each_reg4, num_ele_each_reg5, num_ele_each_reg6, num_ele_each_reg7, total_vl_for_lsreg;
+  logic [31:0] vstart, ls_vl, num_ele_each_reg, num_ele_each_reg1, num_ele_each_reg2, num_ele_each_reg3, num_ele_each_reg4, num_ele_each_reg5, num_ele_each_reg6, num_ele_each_reg7, total_vl_for_lsreg, nf_count_reg, next_nf_count_reg, buffered_instr, next_buffered_instr;
   vop_cfg vop_c;
-  logic wen0, wen1;
+  logic wen0, wen1, nf_count_ena, nf_count_ena_ff1, nf_count_ena_ff2;
+  offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
+  logic [4:0] new_vd;
+
+  logic mask0, mask1;
+
+  sew_t next_decode_execute_if_eew;
 
   assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
@@ -90,6 +96,49 @@ module rv32v_decode_stage (
   assign num_ele_each_reg5 = num_ele_each_reg4 + num_ele_each_reg;
   assign num_ele_each_reg6 = num_ele_each_reg5 + num_ele_each_reg;
   assign num_ele_each_reg7 = num_ele_each_reg6 + num_ele_each_reg;
+  assign nf_count_ena = ((woffset0 == ele_if.vl - 1) | (woffset1 == ele_if.vl - 1)) & (vcu_if.nf != 0) & (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
+  assign next_buffered_instr = {fetch_decode_if.instr[31:12], new_vd, fetch_decode_if.instr[6:0]};
+  //assign next_nf_count_reg = nf_count_ena ? nf_count_reg + 1 : nf_count_reg;
+  always_comb begin
+    case(lmul)
+       LMUL1: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg; // (0, 1j, 2j ....)
+       LMUL2: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg; // (0, 2j, 4j ....)
+       //LMUL3: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 3j, 6j ....)
+       LMUL4: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 4j, 8j ....)
+       default: new_vd = fetch_decode_if.instr;
+    endcase
+  end
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      nf_count_reg <= 0;
+    end else if (~hu_if.stall_dec & nf_count_reg == vcu_if.nf && nf_count_ena) begin
+      nf_count_reg <= 0;
+    end else if (~hu_if.stall_dec & nf_count_ena) begin
+      nf_count_reg <= nf_count_reg + 1;
+    end
+  end
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      buffered_instr <= 0;
+      nf_count_ena_ff2 <= '0;
+    end else if (~hu_if.stall_dec & nf_count_reg == vcu_if.nf && nf_count_ena) begin
+      nf_count_ena_ff2 <= 0;
+    end else if (nf_count_ena_ff1) begin
+      buffered_instr <= next_buffered_instr;
+      nf_count_ena_ff2 <= 1; 
+    end
+  end
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin 
+      nf_count_ena_ff1 <= 0;
+      //nf_count_ena_ff2 <= 0;
+    end else if (~hu_if.stall_dec & nf_count_reg == vcu_if.nf && nf_count_ena) begin
+      nf_count_ena_ff1 <= 0;
+    end else begin
+      nf_count_ena_ff1 <= nf_count_ena;
+      //nf_count_ena_ff2 <= nf_count_ena_ff1;
+    end
+  end
   always_comb begin
     case(vcu_if.nf)
       3'd0: total_vl_for_lsreg = num_ele_each_reg;
@@ -105,7 +154,7 @@ module rv32v_decode_stage (
   end
 
   // vector control unit assigns
-  assign vcu_if.instr = fetch_decode_if.instr;
+  assign vcu_if.instr = nf_count_ena_ff2 ? buffered_instr : fetch_decode_if.instr;
   assign vcu_if.vtype = prv_if.vtype;
   // element counter assigns
   assign ele_if.vstart    = prv_if.vstart; 
@@ -134,14 +183,10 @@ module rv32v_decode_stage (
 
   // microop buffer assigns
 
+  //logic try_done;
+  //assign try_done = (vcu_if.is_load || vcu_if.is_store) ? (ele_if.done & nf_count_reg == vcu_if.nf) : ele_if.done;
 
-  offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
-
-  logic mask0, mask1;
-
-  sew_t next_decode_execute_if_eew;
-
-  assign hu_if.busy_dec = vcu_if.de_en & ~ele_if.done; // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
+  assign hu_if.busy_dec = vcu_if.de_en & ~(ele_if.done & nf_count_reg == 0); // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
   assign rfv_if.vs2_sew[ZERO] = vcu_if.vs2_sew;
 
   always_comb begin : MASK_BITS 
@@ -369,6 +414,7 @@ module rv32v_decode_stage (
       decode_execute_if.nf                <= '0;
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
+      decode_execute_if.nf_count          <= '0;
 
 
       //TESTBENCH ONLY
@@ -460,6 +506,7 @@ module rv32v_decode_stage (
       decode_execute_if.nf             <= '0;
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
+      decode_execute_if.nf_count          <= '0;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num        <= 0;
@@ -587,6 +634,7 @@ module rv32v_decode_stage (
       decode_execute_if.eew_loadstore     <= vcu_if.eew_loadstore;
       decode_execute_if.lumop             <= vcu_if.lumop;
       decode_execute_if.rd_scalar_src     <= vcu_if.rd_scalar_src;
+      decode_execute_if.nf_count          <= nf_count_reg;
 
       //TESTBENCH ONLY
       decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;
