@@ -5,7 +5,7 @@ import uvm_pkg::*;
 import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
 
-class transaction #(parameter NUM_BITS = 4) extends uvm_sequence_item;
+class transaction extends uvm_sequence_item;
 
   logic rw; // 0 -> read; 1 -> write
   logic instr_data; // 0 -> instr cache, 1 -> data cache
@@ -23,6 +23,7 @@ class transaction #(parameter NUM_BITS = 4) extends uvm_sequence_item;
       `uvm_field_int(atomic, UVM_ALL_ON)
   `uvm_object_utils_end
 
+  //TODO: FIGURE OUT HOW TO USE CONSTRAINTS
   // constraint rollover {rollover_value != 0; rollover_value != 1;}
   // constraint clk_number{num_clk > 0; num_clk < 20;}
 

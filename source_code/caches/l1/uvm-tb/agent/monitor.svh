@@ -1,11 +1,15 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-// `include "counter_if.svh"
-//TODO: NEEDS IMPLEMENTATION
+
+`include "generic_bus_if.vh"
+`include "l1_cache_wrapper_if.svh"
+
 class monitor extends uvm_monitor;
   `uvm_component_utils(monitor)
 
-  // virtual counter_if vif;
+  virtual l1_cache_wrapper_if cif;
+  virtual generic_bus_if proc_gen_bus_if;
+  virtual generic_bus_if mem_gen_bus_if;
 
   uvm_analysis_port #(transaction) counter_ap;
   uvm_analysis_port #(transaction) result_ap;
@@ -19,13 +23,23 @@ class monitor extends uvm_monitor;
 
   // Build Phase - Get handle to virtual if from config_db
   virtual function void build_phase(uvm_phase phase);
-    // if (!uvm_config_db#(virtual counter_if)::get(this, "", "counter_vif", vif)) begin
-    //   `uvm_fatal("monitor", "No virtual interface specified for this monitor instance")
-    // end
+    super.build_phase(phase);
+    // get interface from database
+    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
+      `uvm_fatal("Monitor/cif", "No virtual interface specified for this test instance");
+		end
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_gen_bus_if", mem_gen_bus_if) ) begin
+      `uvm_fatal("Monitor/mem_gen_bus_if", "No virtual interface specified for this test instance");
+		end
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if) ) begin
+      `uvm_fatal("Monitor/proc_gen_bus_if", "No virtual interface specified for this test instance");
+		end
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
+
+    //TODO: NEEDS IMPLEMENTATION
     // prev_tx = transaction#(4)::type_id::create("prev_tx");
     // forever begin
     //   transaction tx;

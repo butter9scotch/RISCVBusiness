@@ -13,7 +13,7 @@ class cache_sequence extends uvm_sequence #(transaction);
 
   task body();
     transaction req_item;
-    req_item = transaction#(4)::type_id::create("req_item");
+    req_item = transaction::type_id::create("req_item");
     
     // repeat twenty randomized test cases
     repeat(20) begin
