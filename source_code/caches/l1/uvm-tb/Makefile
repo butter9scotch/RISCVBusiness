@@ -25,7 +25,7 @@ build:
 	-L $$QUESTA_HOME/uvm-1.2 tb_$(TOP).sv 
 
 run:
-	vsim -i tb_$(TOP) -L \
+	vsim -i $(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
@@ -34,7 +34,7 @@ run:
 	-do "do $(WAVES)/$(TOP).do" -do "run -all"
 
 terminal:
-	vsim -c tb_$(TOP) -L \
+	vsim -c $(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
