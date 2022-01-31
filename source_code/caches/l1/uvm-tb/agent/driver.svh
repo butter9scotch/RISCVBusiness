@@ -1,13 +1,15 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-// `include "counter_if.svh"
-//TODO: NEED IMPLEMENTATION
+`include "generic_bus_if.vh"
+`include "l1_cache_wrapper_if.svh"
 
 class driver extends uvm_driver#(transaction);
   `uvm_component_utils(driver)
 
-  // virtual counter_if vif;
+  virtual l1_cache_wrapper_if cif;
+  virtual generic_bus_if proc_gen_bus_if;
+  virtual generic_bus_if mem_gen_bus_if;
 
   function new(string name, uvm_component parent);
 		super.new(name, parent);
@@ -15,11 +17,19 @@ class driver extends uvm_driver#(transaction);
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    // // get interface from database
-    // if( !uvm_config_db#(virtual counter_if)::get(this, "", "counter_vif", vif) ) begin
-    //   // if the interface was not correctly set, raise a fatal message
-    //   `uvm_fatal("Driver", "No virtual interface specified for this test instance");
-		// end
+    // get interface from database
+    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
+      // if the interface was not correctly set, raise a fatal message
+      `uvm_fatal("Driver/cif", "No virtual interface specified for this test instance");
+		end
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_gen_bus_if", mem_gen_bus_if) ) begin
+      // if the interface was not correctly set, raise a fatal message
+      `uvm_fatal("Driver/mem_gen_bus_if", "No virtual interface specified for this test instance");
+		end
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if) ) begin
+      // if the interface was not correctly set, raise a fatal message
+      `uvm_fatal("Driver/proc_gen_bus_if", "No virtual interface specified for this test instance");
+		end
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);
