@@ -27,6 +27,7 @@
 */
 
 `include "generic_bus_if.vh"
+`include "l1_cache_wrapper_if.svh"
 
 module l1_cache #(
     parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 4k - 4 * 2^10
@@ -35,9 +36,10 @@ module l1_cache #(
     parameter NONCACHE_START_ADDR = 32'h8000_0000
 )
 (
-    input logic CLK, nRST,
-    input logic clear, flush,
-    output logic clear_done, flush_done,
+    // input logic CLK, nRST,
+    // input logic clear, flush,
+    // output logic clear_done, flush_done,
+    l1_cache_wrapper_if.cache cif,
     generic_bus_if.cpu mem_gen_bus_if,
     generic_bus_if.generic_bus proc_gen_bus_if
 
@@ -109,8 +111,8 @@ module l1_cache #(
     cache_sets next_cache [N_SETS - 1:0];
 
     // FF for counters
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if(~nRST) begin
+    always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
+        if(~cif.RST) begin
             set_num   <= '0;
             frame_num <= '0;
             word_num  <= '0;
@@ -156,8 +158,8 @@ module l1_cache #(
     assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
 
     // FF for cache
-    always_ff @ (posedge CLK, negedge nRST) begin
-        if(~nRST) begin
+    always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
+        if(~cif.nRST) begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
                     cache[i].frames[j].data  <= '0;
@@ -220,8 +222,8 @@ module l1_cache #(
 	end
     end
 
-    always_ff @(posedge CLK, negedge nRST) begin // FF for last used if ASSOC = 1
-	if(~nRST) begin
+    always_ff @(posedge cif.CLK, negedge cif.nRST) begin // FF for last used if ASSOC = 1
+	if(~cif.RST) begin
 	    for(integer i = 0; i < N_SETS; i++) begin
 		last_used[i] <= 1'b0;
 	    end
@@ -234,8 +236,8 @@ module l1_cache #(
     end
     
     word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
-    always_ff @ (posedge CLK, negedge nRST) begin
-	if(~nRST) begin
+    always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
+	if(~cif.nRST) begin
 	    read_addr <= '0;
 	end
 	else begin
@@ -257,8 +259,8 @@ module l1_cache #(
 	clr_set_ctr 	      = 1'b0;
 	clr_word_ctr 	      = 1'b0;
 	clr_frame_ctr 	      = 1'b0;
-	flush_done 	      = 1'b0;
-	flush_done 	      = 1'b0;
+	cif.flush_done 	      = 1'b0;
+	cif.flush_done 	      = 1'b0;
 	
         for(int i = 0; i < N_SETS; i++) begin
             for(int j = 0; j < ASSOC; j++) begin
@@ -326,7 +328,7 @@ module l1_cache #(
 	    FLUSH_CACHE: begin
 		if(finish_set) begin
 		    clr_set_ctr  = 1'b1;
-		    flush_done 	 = 1'b1;
+		    cif.flush_done 	 = 1'b1;
 		end
 	    end
 	    
@@ -374,7 +376,7 @@ module l1_cache #(
 		~pass_through) begin
 		    next_state 	= FETCH;
 	        end
-		else if(flush) begin
+		else if(cif.flush) begin
 		    next_state 	= FLUSH_CACHE;
 		end
 	    end // case: IDLE
@@ -417,8 +419,8 @@ module l1_cache #(
     end // always_comb
 
     // FF for state
-    always_ff @ (posedge CLK, negedge nRST)  begin
-	if(~nRST) begin
+    always_ff @ (posedge cif.CLK, negedge cif.RST)  begin
+	if(~cif.RST) begin
 	    state <= IDLE;
 	end
 	else begin

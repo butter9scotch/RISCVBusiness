@@ -1,0 +1,20 @@
+work
+mapped
+fpga
+transcript
+# Makefile
+# modelsim.ini
+*.wlf
+README
+*.swp
+._*
+*.log
+.deps
+*.hex
+*.ver
+mti*
+*.diff
+
+# added this because it continually gets updated from syn
+system.summary
+system_fpga.summary
