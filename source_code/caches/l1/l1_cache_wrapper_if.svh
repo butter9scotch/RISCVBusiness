@@ -2,7 +2,7 @@
 `define L1_CACHE_WRAPPER_IF_SVH
 
 interface l1_cache_wrapper_if(
-    input logic clk
+    input logic CLK
 );
     logic nRST;
     logic clear, flush;
@@ -12,12 +12,12 @@ interface l1_cache_wrapper_if(
     (
         output nRST,
         output clear, flush,
-        input clk, clear_done, flush_done
+        input CLK, clear_done, flush_done
     ); 
    
     modport cache
     (
-        input clear, flush, clk, nRST,
+        input clear, flush, CLK, nRST,
         output clear_done, flush_done
     ); 
 endinterface

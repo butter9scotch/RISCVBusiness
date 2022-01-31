@@ -10,6 +10,8 @@ INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
+TESTCASE = test
+
 all: build run
 
 build: 
@@ -25,20 +27,22 @@ build:
 	-L $$QUESTA_HOME/uvm-1.2 tb_$(TOP).sv 
 
 run:
-	vsim -i $(TOP) -L \
+	vsim -i tb_$(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
-	+UVM_TESTNAME="l1_cache_test" \
+	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=UVM_LOW \
 	-do "do $(WAVES)/$(TOP).do" -do "run -all"
 
+terminal_run: build terminal
+
 terminal:
-	vsim -c $(TOP) -L \
+	vsim -c tb_$(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
-	+UVM_TESTNAME="l1_cache_test" \
+	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=UVM_LOW \
 	-do "run -all"
 

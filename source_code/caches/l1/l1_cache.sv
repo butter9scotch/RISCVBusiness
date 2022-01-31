@@ -112,7 +112,7 @@ module l1_cache #(
 
     // FF for counters
     always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
-        if(~cif.RST) begin
+        if(~cif.nRST) begin
             set_num   <= '0;
             frame_num <= '0;
             word_num  <= '0;
@@ -223,7 +223,7 @@ module l1_cache #(
     end
 
     always_ff @(posedge cif.CLK, negedge cif.nRST) begin // FF for last used if ASSOC = 1
-	if(~cif.RST) begin
+	if(~cif.nRST) begin
 	    for(integer i = 0; i < N_SETS; i++) begin
 		last_used[i] <= 1'b0;
 	    end
@@ -419,8 +419,8 @@ module l1_cache #(
     end // always_comb
 
     // FF for state
-    always_ff @ (posedge cif.CLK, negedge cif.RST)  begin
-	if(~cif.RST) begin
+    always_ff @ (posedge cif.CLK, negedge cif.nRST)  begin
+	if(~cif.nRST) begin
 	    state <= IDLE;
 	end
 	else begin

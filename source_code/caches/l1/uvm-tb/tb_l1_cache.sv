@@ -15,7 +15,7 @@
 // import uvm packages
 import uvm_pkg::*;
 
-module tb_counter ();
+module tb_l1_cache ();
   logic clk;
   
   // generate clock
@@ -36,9 +36,9 @@ module tb_counter ();
 	.ASSOC(2),
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	DATA_CACHE (
-  .cif(cif),
-	.mem_gen_bus_if(mem_gen_if),
-	.proc_gen_bus_if(proc_gen_if));
+  .cif(cif.cache),
+	.mem_gen_bus_if(mem_gen_bus_if.cpu),
+	.proc_gen_bus_if(proc_gen_bus_if.generic_bus));
 
 	// Instruction Cache Portmap
 	l1_cache #(.CACHE_SIZE(1024),
@@ -46,9 +46,9 @@ module tb_counter ();
 	.ASSOC(1),
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	INST_CACHE (
-	.cif(cif),
-	.mem_gen_bus_if(mem_gen_if),
-	.proc_gen_bus_if(proc_gen_if));
+	.cif(cif.cache),
+	.mem_gen_bus_if(mem_gen_bus_if.cpu),
+	.proc_gen_bus_if(proc_gen_bus_if.generic_bus));
 
   initial begin
     uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cif", cif);
