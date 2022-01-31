@@ -3,8 +3,10 @@ import uvm_pkg::*;
 
 `include "transaction.svh"
 
-class counter_sequence extends uvm_sequence #(transaction);
-  `uvm_object_utils(counter_sequence)
+typedef uvm_sequencer#(transaction) sequencer;
+
+class cache_sequence extends uvm_sequence #(transaction);
+  `uvm_object_utils(cache_sequence)
   function new(string name = "");
     super.new(name);
   endfunction: new
@@ -23,13 +25,4 @@ class counter_sequence extends uvm_sequence #(transaction);
       finish_item(req_item);
     end
   endtask: body
-endclass //sequence
-
-class sequencer extends uvm_sequencer#(transaction);
-
-   `uvm_component_utils(sequencer)
- 
-   function new(input string name= "sequencer", uvm_component parent=null);
-      super.new(name, parent);
-   endfunction : new
-endclass : sequencer
+endclass: cache_sequence

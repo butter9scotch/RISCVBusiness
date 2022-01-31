@@ -2,9 +2,11 @@
 `define TRANSACTION_SVH
 
 import uvm_pkg::*;
+import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
 
 class transaction #(parameter NUM_BITS = 4) extends uvm_sequence_item;
+
   logic rw; // 0 -> read; 1 -> write
   logic instr_data; // 0 -> instr cache, 1 -> data cache
   rand word_t addr;
@@ -12,7 +14,7 @@ class transaction #(parameter NUM_BITS = 4) extends uvm_sequence_item;
   logic p; //processor number p0 or p1
   logic atomic;
 
-  `uvm_object_utils_begin(cache_transaction)
+  `uvm_object_utils_begin(transaction)
       `uvm_field_int(rw, UVM_ALL_ON)
       `uvm_field_int(instr_data, UVM_ALL_ON)
       `uvm_field_int(addr, UVM_ALL_ON)
@@ -40,6 +42,6 @@ class transaction #(parameter NUM_BITS = 4) extends uvm_sequence_item;
   //   return result;
   // endfunction
 
-endclass //transaction
+endclass: transaction
 
 `endif

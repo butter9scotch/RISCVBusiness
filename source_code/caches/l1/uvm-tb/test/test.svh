@@ -7,7 +7,7 @@ class test extends uvm_test;
 
   environment env;
   virtual counter_if vif;
-  counter_sequence seq;
+  cache_sequence seq;
 
   function new(string name = "test", uvm_component parent);
 		super.new(name, parent);
@@ -16,7 +16,7 @@ class test extends uvm_test;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 		env = environment::type_id::create("env",this);
-    seq = counter_sequence::type_id::create("seq");
+    seq = cache_sequence::type_id::create("seq");
 
     // send the interface down
     if (!uvm_config_db#(virtual counter_if)::get(this, "", "counter_vif", vif)) begin 
