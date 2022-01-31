@@ -33,6 +33,7 @@ class driver extends uvm_driver#(transaction);
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);
+    //TODO: NEEDS IMPLEMENTATION
     // transaction req_item;
     // vif.check = 0;
 
@@ -54,16 +55,15 @@ class driver extends uvm_driver#(transaction);
   endtask: run_phase
 
   task DUT_reset();
-    // vif.check = 0;
-    // @(posedge vif.clk);
-    // vif.n_rst = 1;
-    // vif.clear = 0;
-    // vif.count_enable = 0;
-    // @(posedge vif.clk);
-    // vif.n_rst = 0;
-    // @(posedge vif.clk);
-    // vif.n_rst = 1;
-    // @(posedge vif.clk);
+    @(posedge cif.CLK);
+    cif.nRST = 1;
+    cif.clear = 0;
+    cif.flush = 0;
+    @(posedge cif.CLK);
+    cif.nRST = 0;
+    @(posedge cif.CLK);
+    cif.nRST = 1;
+    @(posedge cif.CLK);
   endtask
 
 endclass: driver
