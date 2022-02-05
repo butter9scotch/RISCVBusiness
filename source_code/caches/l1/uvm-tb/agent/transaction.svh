@@ -12,7 +12,6 @@ class transaction extends uvm_sequence_item;
   rand word_t addr;
   rand word_t data;
   logic p; //processor number p0 or p1
-  logic atomic;
 
   `uvm_object_utils_begin(transaction)
       `uvm_field_int(rw, UVM_ALL_ON)
@@ -20,7 +19,6 @@ class transaction extends uvm_sequence_item;
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
       `uvm_field_int(p, UVM_ALL_ON)
-      `uvm_field_int(atomic, UVM_ALL_ON)
   `uvm_object_utils_end
 
   //TODO: FIGURE OUT HOW TO USE CONSTRAINTS

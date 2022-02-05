@@ -168,7 +168,7 @@ module l1_cache #(
                     cache[i].frames[j].dirty <= 1'b0;
                 end
             end
-	end
+	    end
         else begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
@@ -214,35 +214,35 @@ module l1_cache #(
     logic next_last_used [N_SETS - 1:0];
     
     always_comb begin
-	if(ASSOC == 1) begin
-	    ridx  = 1'b0;
-	end
-	else if (ASSOC == 2) begin
-	    ridx  = ~last_used[decoded_addr.set_bits];
-	end
+        if(ASSOC == 1) begin
+            ridx  = 1'b0;
+        end
+        else if (ASSOC == 2) begin
+            ridx  = ~last_used[decoded_addr.set_bits];
+        end
     end
 
     always_ff @(posedge cif.CLK, negedge cif.nRST) begin // FF for last used if ASSOC = 1
-	if(~cif.nRST) begin
-	    for(integer i = 0; i < N_SETS; i++) begin
-		last_used[i] <= 1'b0;
-	    end
-	end
-	else begin
-	    for(integer i = 0; i < N_SETS; i++) begin
-		last_used[i] <= next_last_used[i];
-	    end
-	end
+        if(~cif.nRST) begin
+            for(integer i = 0; i < N_SETS; i++) begin
+                last_used[i] <= 1'b0;
+            end
+        end
+        else begin
+            for(integer i = 0; i < N_SETS; i++) begin
+                last_used[i] <= next_last_used[i];
+            end
+        end
     end
     
     word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
     always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
-	if(~cif.nRST) begin
-	    read_addr <= '0;
-	end
-	else begin
-	    read_addr <= next_read_addr;
-	end
+        if(~cif.nRST) begin
+            read_addr <= '0;
+        end
+        else begin
+            read_addr <= next_read_addr;
+        end
     end // always_ff @
 
     // Comb. logic for outputs, maybe merging this comb. block with the one above
@@ -251,16 +251,16 @@ module l1_cache #(
     // Outputs: counter control signals, cache, signals to memory, signals to processor
     always_comb begin
         proc_gen_bus_if.busy  = 1'b1;
-	mem_gen_bus_if.ren    = 1'b0;
-	mem_gen_bus_if.wen    = 1'b0;
-	en_set_ctr 	      = 1'b0;
-	en_word_ctr 	      = 1'b0;
-	en_frame_ctr 	      = 1'b0;
-	clr_set_ctr 	      = 1'b0;
-	clr_word_ctr 	      = 1'b0;
-	clr_frame_ctr 	      = 1'b0;
-	cif.flush_done 	      = 1'b0;
-	cif.flush_done 	      = 1'b0;
+        mem_gen_bus_if.ren    = 1'b0;
+        mem_gen_bus_if.wen    = 1'b0;
+        en_set_ctr 	      = 1'b0;
+        en_word_ctr 	      = 1'b0;
+        en_frame_ctr 	      = 1'b0;
+        clr_set_ctr 	      = 1'b0;
+        clr_word_ctr 	      = 1'b0;
+        clr_frame_ctr 	      = 1'b0;
+        cif.flush_done 	      = 1'b0;
+        cif.flush_done 	      = 1'b0;
 	
         for(int i = 0; i < N_SETS; i++) begin
             for(int j = 0; j < ASSOC; j++) begin
