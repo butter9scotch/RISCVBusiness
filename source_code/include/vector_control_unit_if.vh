@@ -52,7 +52,8 @@ interface vector_control_unit_if();
   vs2_offset_src_t vs2_offset_src; //choose from diff offsets 
   vd_offset_src_t  vd_offset_src;
   logic xs1_scalar_src, xs2_scalar_src, rd_scalar_src; //select signal to scalar regs
-  logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena; //unit enables
+  logic reduction_ena;
+  // logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena; //unit enables
   logic sign_extend; //sign extend the immediate value
   logic single_bit_op; //move this out to the decode stage top level?
   logic illegal_insn; 
@@ -123,13 +124,13 @@ interface vector_control_unit_if();
     xs1_scalar_src, 
     xs2_scalar_src, 
     rd_scalar_src,
-    arith_ena, 
-    mask_ena, 
-    perm_ena, 
+    // arith_ena, 
+    // mask_ena, 
+    // perm_ena, 
     reduction_ena, 
-    loadstore_ena, 
-    mul_ena, 
-    div_ena, 
+    // loadstore_ena, 
+    // mul_ena, 
+    // div_ena, 
     merge_ena,
     fu_type,
     sign_extend,

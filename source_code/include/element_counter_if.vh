@@ -25,25 +25,23 @@
 
 `ifndef ELEMENT_COUNTER_IF_VH
 `define ELEMENT_COUNTER_IF_VH
-interface element_counter_if();
-  import rv32i_types_pkg::*;
-  // import rv32i_types_pkg::*;
-  
-  offset_t offset;
-  logic  done, next_done;
+interface element_counter_if # (
+  parameter NUM_COUNTERS = 1
+) ();
 
-  word_t vstart, vl;
-  logic stall, ex_return, de_en, clear, busy_ex, slide1up;
+  import rv32i_types_pkg::*;
+  
+  offset_t [NUM_COUNTERS-1:0]        offset;
+  logic    [NUM_COUNTERS-1:0]        done, next_done;
+  logic    [NUM_COUNTERS-1:0][31:0]  vstart, vl;
+  logic    [NUM_COUNTERS-1:0]        stall, ex_return, de_en, clear, busy_ex;
 
   modport decode (
     input   vstart, vl,
             stall, ex_return, de_en,
-            clear, busy_ex, slide1up,
+            clear, busy_ex, 
     output  offset,  done, next_done
   );
 
-
-  // modport decode (
-  // );
 endinterface
 `endif

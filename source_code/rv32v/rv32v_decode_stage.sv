@@ -80,7 +80,7 @@ module rv32v_decode_stage (
 
   // compress offset unit assigns
   assign cou_if.ena       = vcu_if.vd_offset_src == VD_SRC_COMPRESS;
-  assign cou_if.done      = ele_if.done;
+  assign cou_if.done      = ele_if.done[ZERO];
   assign cou_if.vs1_mask  = rfv_if.vs1_mask[ZERO];
   assign cou_if.reset     = hu_if.csr_update;
 
@@ -99,7 +99,7 @@ module rv32v_decode_stage (
   assign num_ele_each_reg5 = num_ele_each_reg4 + num_ele_each_reg;
   assign num_ele_each_reg6 = num_ele_each_reg5 + num_ele_each_reg;
   assign num_ele_each_reg7 = num_ele_each_reg6 + num_ele_each_reg;
-  assign nf_count_ena = ((woffset0 == ele_if.vl - 1) | (woffset1 == ele_if.vl - 1)) & (vcu_if.nf != 0) & (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
+  assign nf_count_ena = ((woffset0 == ele_if.vl[ZERO] - 1) | (woffset1 == ele_if.vl[ZERO] - 1)) & (vcu_if.nf != 0) & (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
   assign next_buffered_instr = {fetch_decode_if.instr[31:12], new_vd, fetch_decode_if.instr[6:0]};
   //assign next_nf_count_reg = nf_count_ena ? nf_count_reg + 1 : nf_count_reg;
   always_comb begin // EMUL = EEW/SEW * LMUL
@@ -225,33 +225,25 @@ module rv32v_decode_stage (
   assign vcu_if.instr = nf_count_ena_ff2 ? buffered_instr : fetch_decode_if.instr;
   assign vcu_if.vtype = prv_if.vtype;
   // element counter assigns
-  assign ele_if.vstart    = prv_if.vstart; 
-  assign ele_if.vl        = vcu_if.mask_logical ? 4 : 
-                            (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
-                            (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
-                            (vcu_if.vmv_type == X_S) || (vcu_if.vmv_type == S_X) ? 1 : 
-                            (VLENB >> sew) << vcu_if.vmv_type;  
-  // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
-  assign ele_if.stall     = hu_if.busy_ex | hu_if.busy_mem;  
-  // assign ele_if.stall     = hu_if.stall_dec | vcu_if.stall;  
-  assign ele_if.ex_return = scalar_hazard_if_ret;  //TODO: check this
-  assign ele_if.de_en     = vcu_if.de_en;   
-  assign ele_if.clear     = hu_if.flush_dec;
-  assign ele_if.busy_ex   = hu_if.busy_ex | hu_if.busy_mem;
-  assign ele_if.slide1up  = vcu_if.vd_offset_src == VD_SRC_IDX_PLUS_1;
-  // assign ele_if.clear     = ~vcu_if.de_en | hu_if.flush_dec; //TODO: check this 
+  assign ele_if.vstart[ZERO]    = prv_if.vstart; 
+  assign ele_if.vl[ZERO]        = vcu_if.mask_logical ? 4 : 
+                            			(vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) ? ls_vl :
+                            			(vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
+                            			(vcu_if.vmv_type == X_S) || (vcu_if.vmv_type == S_X) ? 1 : 
+                            			(VLENB >> sew) << vcu_if.vmv_type;  
+  assign ele_if.stall[ZERO]     = hu_if.busy_ex | hu_if.busy_mem;  
+  assign ele_if.ex_return[ZERO] = scalar_hazard_if_ret;  //TODO: check this
+  assign ele_if.de_en[ZERO]     = vcu_if.de_en;   
+  assign ele_if.clear[ZERO]     = hu_if.flush_dec;
+  assign ele_if.busy_ex[ZERO]   = hu_if.busy_ex | hu_if.busy_mem;
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
 
-  // assign vstart = 0; //TODO
-  // assign hu_if.busy_dec = vcu_if.de_en | (ele_if.offset != 0 && ~ele_if.done);
-  // assign hu_if.busy_dec = ~vcu_if.illegal_insn & (~ele_if.done);
-
   // microop buffer assigns
 
-  assign hu_if.busy_dec = vcu_if.de_en & ~(ele_if.done & nf_count_reg == 0); // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
+  assign hu_if.busy_dec = vcu_if.de_en & ~(ele_if.done[ZERO] & nf_count_reg == 0); // TODO: Editted by Jing. Check with Owen (This will save one cycle after decoding of one instr is done)
   assign rfv_if.vs2_sew[ZERO] = vcu_if.vs2_sew;
 
   always_comb begin : MASK_BITS 
@@ -272,7 +264,7 @@ module rv32v_decode_stage (
       wen0 = 0;
       wen1 = 0;
     end else if (vcu_if.reduction_ena) begin
-      wen0 = ele_if.next_done;
+      wen0 = ele_if.next_done[ZERO];
       wen1 = 0;
     end else if (cou_if.ena) begin
       wen0 = cou_if.wen[0];
@@ -292,8 +284,8 @@ module rv32v_decode_stage (
   always_comb begin : VS1_OFFSET
     case(vcu_if.vs1_offset_src)
     VS1_SRC_NORMAL: begin 
-            vs1_offset0 = ele_if.offset;
-            vs1_offset1 = ele_if.offset + 1;
+            vs1_offset0 = ele_if.offset[ZERO];
+            vs1_offset1 = ele_if.offset[ZERO] + 1;
     end
     VS1_SRC_ZERO: begin 
             vs1_offset0 = 0;
@@ -305,24 +297,24 @@ module rv32v_decode_stage (
   always_comb begin : VS2_OFFSET
     case(vcu_if.vs2_offset_src)
       VS2_SRC_NORMAL: begin 
-              vs2_offset0 = ele_if.offset;
-              vs2_offset1 = ele_if.offset + 1;
+              vs2_offset0 = ele_if.offset[ZERO];
+              vs2_offset1 = ele_if.offset[ZERO] + 1;
       end
       VS2_SRC_IDX_PLUS_RS1: begin 
-              vs2_offset0 = ele_if.offset + xs1;
-              vs2_offset1 = ele_if.offset + xs1 + 1;
+              vs2_offset0 = ele_if.offset[ZERO] + xs1;
+              vs2_offset1 = ele_if.offset[ZERO] + xs1 + 1;
       end
       VS2_SRC_IDX_PLUS_UIMM: begin 
-            vs2_offset0 = ele_if.offset + zero_ext_imm5;
-            vs2_offset1 = ele_if.offset + zero_ext_imm5 + 1;
+            vs2_offset0 = ele_if.offset[ZERO] + zero_ext_imm5;
+            vs2_offset1 = ele_if.offset[ZERO] + zero_ext_imm5 + 1;
       end
       VS2_SRC_IDX_PLUS_1: begin 
-            vs2_offset0 = ele_if.offset + 1;
-            vs2_offset1 = ele_if.offset + 2; 
+            vs2_offset0 = ele_if.offset[ZERO] + 1;
+            vs2_offset1 = ele_if.offset[ZERO] + 2; 
       end
       VS2_SRC_IDX_MINUS_1: begin 
-            vs2_offset0 = ele_if.offset - 1;
-            vs2_offset1 = ele_if.offset; 
+            vs2_offset0 = ele_if.offset[ZERO] - 1;
+            vs2_offset1 = ele_if.offset[ZERO]; 
       end
       VS2_SRC_VS1: begin 
             vs2_offset0 = rfv_if.vs1_data[ZERO][0];
@@ -346,24 +338,24 @@ module rv32v_decode_stage (
   always_comb begin : WOFFSET
     case (vcu_if.vd_offset_src)
       VD_SRC_NORMAL: begin   
-        woffset0 = ele_if.offset;
-        woffset1 = ele_if.offset + 1;
+        woffset0 = ele_if.offset[ZERO];
+        woffset1 = ele_if.offset[ZERO] + 1;
       end       
       VD_SRC_ZERO: begin   
         woffset0 = 0;
         woffset1 = 0;
       end         
       VD_SRC_IDX_PLUS_RS1:  begin  
-        woffset0 = ele_if.offset + xs1;
-        woffset1 = ele_if.offset + xs1 + 1;
+        woffset0 = ele_if.offset[ZERO] + xs1;
+        woffset1 = ele_if.offset[ZERO] + xs1 + 1;
       end
       VD_SRC_IDX_PLUS_UIMM: begin  
-        woffset0 = ele_if.offset + zero_ext_imm5;
-        woffset1 = ele_if.offset + zero_ext_imm5 + 1;
+        woffset0 = ele_if.offset[ZERO] + zero_ext_imm5;
+        woffset1 = ele_if.offset[ZERO] + zero_ext_imm5 + 1;
       end
       VD_SRC_IDX_PLUS_1:  begin  
-        woffset0 = ele_if.offset + 1;
-        woffset1 = ele_if.offset + 2;
+        woffset0 = ele_if.offset[ZERO] + 1;
+        woffset1 = ele_if.offset[ZERO] + 2;
       end         
       VD_SRC_COMPRESS: begin   
         //woffset0 = ele_if.offset;      //this will need to change 
@@ -403,8 +395,8 @@ module rv32v_decode_stage (
       decode_execute_if.reduction_ena     <= '0;
       decode_execute_if.is_signed         <= '0;
       decode_execute_if.ls_idx            <= '0;
-      decode_execute_if.load_ena              <= '0;
-      decode_execute_if.store_ena             <= '0;
+      decode_execute_if.load_ena          <= '0;
+      decode_execute_if.store_ena         <= '0;
       decode_execute_if.wen[0]            <= '0;
       decode_execute_if.wen[1]            <= '0;
       decode_execute_if.stride_val        <= '0;
@@ -696,7 +688,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.mask_32bit_lane0  <= rfv_if.mask_32bit_lane0;
       decode_execute_if.mask_32bit_lane1  <= rfv_if.mask_32bit_lane1;
-      decode_execute_if.decode_done       <= ele_if.done;
+      decode_execute_if.decode_done       <= ele_if.done[ZERO];
       decode_execute_if.is_signed         <= vcu_if.is_signed;
 
       decode_execute_if.nf                <= vcu_if.nf;

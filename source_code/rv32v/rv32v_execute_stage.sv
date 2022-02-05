@@ -48,6 +48,10 @@ module rv32v_execute_stage (
   sew_t eew_ff0, eew_ff1, eew_ff2;
   logic [4:0] vd_ff0, vd_ff1, vd_ff2;
   logic iota_or_id;
+  logic load_ena, store_ena;
+
+  assign load_ena  = decode_execute_if.fu_type == LOAD_UNIT;
+  assign store_ena = decode_execute_if.fu_type == STORE_UNIT;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -175,7 +179,7 @@ module rv32v_execute_stage (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) ls_ena_ff <= 0;
     else if (decode_execute_if.woffset0 != 0) ls_ena_ff <= 0;
-    else ls_ena_ff <= (decode_execute_if.load_ena | decode_execute_if.store_ena);
+    else ls_ena_ff <= (load_ena | store_ena);
   end
 
   // Vector Lane 0
@@ -424,7 +428,7 @@ module rv32v_execute_stage (
   assign vif1.mul_wait = mlu_ff0 | mlu_ff1 | mlu_ff2;
 
   // Pipeline Latch
-  assign ls = decode_execute_if.load_ena | decode_execute_if.store_ena;
+  assign ls = load_ena | store_ena;
   //assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
   //assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
   assign aluresult0 = vif0.lane_result;
@@ -497,8 +501,8 @@ module rv32v_execute_stage (
 
 
     end else if (latch_ena) begin
-      execute_memory_if.load_ena    <= decode_execute_if.load_ena;
-      execute_memory_if.store_ena   <= decode_execute_if.store_ena;
+      execute_memory_if.load_ena    <= load_ena;
+      execute_memory_if.store_ena   <= store_ena;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
@@ -511,33 +515,33 @@ module rv32v_execute_stage (
                                         move_sel ? decode_execute_if.vs2_lane1 : aluresult1;
       // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
-      execute_memory_if.wen[0]      <= next_wen[0];
-      execute_memory_if.wen[1]      <= next_wen[1];
-      execute_memory_if.woffset0    <= next_woffset0;
-      execute_memory_if.woffset1    <= next_woffset1;
-      execute_memory_if.config_type <= decode_execute_if.config_type;
-      execute_memory_if.vtype       <= decode_execute_if.vtype;
+      execute_memory_if.wen[0]            <= next_wen[0];
+      execute_memory_if.wen[1]            <= next_wen[1];
+      execute_memory_if.woffset0          <= next_woffset0;
+      execute_memory_if.woffset1          <= next_woffset1;
+      execute_memory_if.config_type       <= decode_execute_if.config_type;
+      execute_memory_if.vtype             <= decode_execute_if.vtype;
 
-      execute_memory_if.vl          <= decode_execute_if.vl;
+      execute_memory_if.vl                <= decode_execute_if.vl;
       // execute_memory_if.vd          <= decode_execute_if.vd;
-      execute_memory_if.vd          <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
+      execute_memory_if.vd                <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
       // execute_memory_if.eew         <= decode_execute_if.eew;
-      execute_memory_if.eew         <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
+      execute_memory_if.eew               <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
-      execute_memory_if.next_vtype_csr  <= decode_execute_if.next_vtype_csr;
-      execute_memory_if.next_avl_csr  <= decode_execute_if.next_avl_csr;
+      execute_memory_if.next_vtype_csr    <= decode_execute_if.next_vtype_csr;
+      execute_memory_if.next_avl_csr      <= decode_execute_if.next_avl_csr;
 
       execute_memory_if.eew_loadstore     <= decode_execute_if.eew_loadstore;
-      execute_memory_if.ls_idx     <= decode_execute_if.ls_idx ;
+      execute_memory_if.ls_idx            <= decode_execute_if.ls_idx ;
       execute_memory_if.segment_type      <= decode_execute_if.segment_type;
 
-      execute_memory_if.rd_wen  <= decode_execute_if.rd_wen;
-      execute_memory_if.rd_sel  <= decode_execute_if.rd_sel;
+      execute_memory_if.rd_wen            <= decode_execute_if.rd_wen;
+      execute_memory_if.rd_sel            <= decode_execute_if.rd_sel;
       // refactor this later it's too much work right now
-      execute_memory_if.rd_data <= decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_POPC) ?  aluresult0 :
-                                    decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_FIRST) ? mout : 
-                                    decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
-                                    32'hDEAD;
+      execute_memory_if.rd_data           <= decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_POPC) ?  aluresult0 :
+                                             decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_FIRST) ? mout : 
+                                             decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
+                                             32'hDEAD;
 
             //TESTBENCH ONLY
       execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
