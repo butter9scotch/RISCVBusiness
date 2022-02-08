@@ -25,8 +25,8 @@ module tb_l1_cache ();
 	end
 
   // instantiate the interface
-  generic_bus_if proc_gen_bus_if();
-  generic_bus_if mem_gen_bus_if();
+  generic_bus_if cpu_bus_if();
+  generic_bus_if l1_bus_if();
   l1_cache_wrapper_if cif(clk);
   
   // instantiate the DUT
@@ -37,8 +37,8 @@ module tb_l1_cache ();
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	DATA_CACHE (
   .cif(cif.cache),
-	.mem_gen_bus_if(mem_gen_bus_if.cpu),
-	.proc_gen_bus_if(proc_gen_bus_if.generic_bus));
+	.mem_gen_bus_if(l1_bus_if.cpu),
+	.proc_gen_bus_if(cpu_bus_if.generic_bus));
 
 	// Instruction Cache Portmap
 	l1_cache #(.CACHE_SIZE(1024),
@@ -47,13 +47,13 @@ module tb_l1_cache ();
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	INST_CACHE (
 	.cif(cif.cache),
-	.mem_gen_bus_if(mem_gen_bus_if.cpu),
-	.proc_gen_bus_if(proc_gen_bus_if.generic_bus));
+	.mem_gen_bus_if(l1_bus_if.cpu),
+	.proc_gen_bus_if(cpu_bus_if.generic_bus));
 
   initial begin
     uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cif", cif);
-    uvm_config_db#(virtual generic_bus_if)::set( null, "", "mem_gen_bus_if", mem_gen_bus_if);
-    uvm_config_db#(virtual generic_bus_if)::set( null, "", "proc_gen_bus_if", proc_gen_bus_if);
+    uvm_config_db#(virtual generic_bus_if)::set( null, "", "l1_bus_if", l1_bus_if);
+    uvm_config_db#(virtual generic_bus_if)::set( null, "", "cpu_bus_if", cpu_bus_if);
     run_test();
   end
 endmodule

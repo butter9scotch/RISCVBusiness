@@ -10,8 +10,8 @@ class test extends uvm_test;
 
   environment env;
   virtual l1_cache_wrapper_if cif;
-  virtual generic_bus_if proc_gen_bus_if;
-  virtual generic_bus_if mem_gen_bus_if;  
+  virtual generic_bus_if cpu_bus_if;
+  virtual generic_bus_if l1_bus_if;  
   basic_sequence seq;
 
   function new(string name = "test", uvm_component parent);
@@ -28,25 +28,25 @@ class test extends uvm_test;
       // check if interface is correctly set in testbench top level
 		   `uvm_fatal("Test/cif", "No virtual interface specified for this test instance")
 		end 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_gen_bus_if", mem_gen_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		   `uvm_fatal("Test/mem_gen_bus_if", "No virtual interface specified for this test instance")
+		   `uvm_fatal("Test/cpu_bus_if", "No virtual interface specified for this test instance")
 		end 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", l1_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		   `uvm_fatal("Test/proc_gen_bus_if", "No virtual interface specified for this test instance")
+		   `uvm_fatal("Test/l1_bus_if", "No virtual interface specified for this test instance")
 		end 
 
 		uvm_config_db#(virtual l1_cache_wrapper_if)::set(this, "env.agt*", "cif", cif);
-		uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "mem_gen_bus_if", mem_gen_bus_if);
-		uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "proc_gen_bus_if", proc_gen_bus_if);
+		uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "cpu_bus_if", cpu_bus_if);
+		uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "l1_bus_if", l1_bus_if);
 
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);
     phase.raise_objection( this, "Starting sequence in main phase" );
 		$display("%t Starting sequence run_phase",$time);
- 		seq.start(env.agt.sqr);
+ 		seq.start(env.cpu_agt.sqr);
 		#100ns;
 		phase.drop_objection( this , "Finished in main phase" );
   endtask

@@ -8,7 +8,7 @@ class cpu_monitor extends uvm_monitor;
   `uvm_component_utils(cpu_monitor)
 
   virtual l1_cache_wrapper_if cif;
-  virtual generic_bus_if proc_gen_bus_if;
+  virtual generic_bus_if cpu_bus_if;
 
   uvm_analysis_port #(cpu_transaction) cpu_ap;
   cpu_transaction prev_tx; // to see if a new transaction has been sent
@@ -25,8 +25,8 @@ class cpu_monitor extends uvm_monitor;
     if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
       `uvm_fatal("CPU Monitor/cif", "No virtual interface specified for this test instance");
 		end
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if) ) begin
-      `uvm_fatal("CPU Monitor/proc_gen_bus_if", "No virtual interface specified for this test instance");
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if) ) begin
+      `uvm_fatal("CPU Monitor/cpu_bus_if", "No virtual interface specified for this test instance");
 		end
   endfunction: build_phase
 

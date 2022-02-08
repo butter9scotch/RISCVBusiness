@@ -11,7 +11,7 @@ import uvm_pkg::*;
 class environment extends uvm_env;
   `uvm_component_utils(environment)
   
-  cpu_agent agt; // contains monitor and driver
+  cpu_agent cpu_agt; // contains monitor and driver
   cpu_predictor pred; // a reference model to check the result
   cpu_scoreboard comp; // scoreboard
 
@@ -21,13 +21,13 @@ class environment extends uvm_env;
 
   function void build_phase(uvm_phase phase);
     // instantiate all the components through factory method
-    agt = cpu_agent::type_id::create("agt", this);
+    cpu_agt = cpu_agent::type_id::create("cpu_agt", this);
     pred = cpu_predictor::type_id::create("pred", this);
     comp = cpu_scoreboard::type_id::create("comp", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
-    agt.mon.cpu_ap.connect(pred.analysis_export); // connect monitor to predictor
+    cpu_agt.mon.cpu_ap.connect(pred.analysis_export); // connect monitor to predictor
     pred.pred_ap.connect(comp.expected_export); // connect predictor to scoreboard
     // agt.mon.result_ap.connect(comp.actual_export); // connect monitor to scoreboard
   endfunction
