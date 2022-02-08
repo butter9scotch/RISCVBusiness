@@ -11,7 +11,8 @@ class test extends uvm_test;
   environment env;
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if proc_gen_bus_if;
-  virtual generic_bus_if mem_gen_bus_if;  cache_sequence seq;
+  virtual generic_bus_if mem_gen_bus_if;  
+  basic_sequence seq;
 
   function new(string name = "test", uvm_component parent);
 		super.new(name, parent);
@@ -20,7 +21,7 @@ class test extends uvm_test;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 		env = environment::type_id::create("env",this);
-    seq = cache_sequence::type_id::create("seq");
+    seq = basic_sequence::type_id::create("seq");
 
     // send the interface down
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif)) begin 

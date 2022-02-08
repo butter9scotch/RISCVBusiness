@@ -1,19 +1,17 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-`include "transaction.svh"
+`include "cpu_transaction.svh"
 
-typedef uvm_sequencer#(transaction) sequencer;
-
-class cache_sequence extends uvm_sequence #(transaction);
-  `uvm_object_utils(cache_sequence)
+class basic_sequence extends uvm_sequence #(cpu_transaction);
+  `uvm_object_utils(basic_sequence)
   function new(string name = "");
     super.new(name);
   endfunction: new
 
   task body();
-    transaction req_item;
-    req_item = transaction::type_id::create("req_item");
+    cpu_transaction req_item;
+    req_item = cpu_transaction::type_id::create("req_item");
     
     // repeat twenty randomized test cases
     repeat(20) begin
@@ -25,4 +23,4 @@ class cache_sequence extends uvm_sequence #(transaction);
       finish_item(req_item);
     end
   endtask: body
-endclass: cache_sequence
+endclass: basic_sequence

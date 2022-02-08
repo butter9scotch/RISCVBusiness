@@ -1,12 +1,12 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "transaction.svh"
+`include "cpu_transaction.svh"
 
-class predictor extends uvm_subscriber #(transaction);
-  `uvm_component_utils(predictor) 
+class cpu_predictor extends uvm_subscriber #(cpu_transaction);
+  `uvm_component_utils(cpu_predictor) 
 
-  uvm_analysis_port #(transaction) pred_ap;
-  transaction output_tx;
+  uvm_analysis_port #(cpu_transaction) pred_ap;
+  cpu_transaction output_tx;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -17,7 +17,7 @@ class predictor extends uvm_subscriber #(transaction);
   endfunction
 
 
-  function void write(transaction t);
+  function void write(cpu_transaction t);
     //TODO: NEEDS IMPLEMENTATION
     // // t is the transaction sent from monitor
     // output_tx = transaction#(4)::type_id::create("output_tx", this);
@@ -42,5 +42,5 @@ class predictor extends uvm_subscriber #(transaction);
     // pred_ap.write(output_tx);
   endfunction: write
 
-endclass: predictor
+endclass: cpu_predictor
 

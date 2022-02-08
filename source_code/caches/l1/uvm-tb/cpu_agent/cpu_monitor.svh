@@ -4,21 +4,18 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-class monitor extends uvm_monitor;
-  `uvm_component_utils(monitor)
+class cpu_monitor extends uvm_monitor;
+  `uvm_component_utils(cpu_monitor)
 
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if proc_gen_bus_if;
-  virtual generic_bus_if mem_gen_bus_if;
 
-  uvm_analysis_port #(transaction) counter_ap;
-  uvm_analysis_port #(transaction) result_ap;
-  transaction prev_tx; // to see if a new transaction has been sent
+  uvm_analysis_port #(cpu_transaction) cpu_ap;
+  cpu_transaction prev_tx; // to see if a new transaction has been sent
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
-    counter_ap = new("counter_ap", this);
-    result_ap = new("result_ap", this);
+    cpu_ap = new("cpu_ap", this);
   endfunction: new
 
   // Build Phase - Get handle to virtual if from config_db
@@ -26,13 +23,10 @@ class monitor extends uvm_monitor;
     super.build_phase(phase);
     // get interface from database
     if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
-      `uvm_fatal("Monitor/cif", "No virtual interface specified for this test instance");
-		end
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_gen_bus_if", mem_gen_bus_if) ) begin
-      `uvm_fatal("Monitor/mem_gen_bus_if", "No virtual interface specified for this test instance");
+      `uvm_fatal("CPU Monitor/cif", "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if) ) begin
-      `uvm_fatal("Monitor/proc_gen_bus_if", "No virtual interface specified for this test instance");
+      `uvm_fatal("CPU Monitor/proc_gen_bus_if", "No virtual interface specified for this test instance");
 		end
   endfunction: build_phase
 
@@ -66,4 +60,4 @@ class monitor extends uvm_monitor;
     // end
   endtask: run_phase
 
-endclass: monitor
+endclass: cpu_monitor

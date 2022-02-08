@@ -1,12 +1,12 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-class comparator extends uvm_scoreboard;
-  `uvm_component_utils(comparator)
-  uvm_analysis_export #(transaction) expected_export; // receive result from predictor
-  uvm_analysis_export #(transaction) actual_export; // receive result from DUT
-  uvm_tlm_analysis_fifo #(transaction) expected_fifo;
-  uvm_tlm_analysis_fifo #(transaction) actual_fifo;
+class cpu_scoreboard extends uvm_scoreboard;
+  `uvm_component_utils(cpu_scoreboard)
+  uvm_analysis_export #(cpu_transaction) expected_export; // receive result from predictor
+  uvm_analysis_export #(cpu_transaction) actual_export; // receive result from DUT
+  uvm_tlm_analysis_fifo #(cpu_transaction) expected_fifo;
+  uvm_tlm_analysis_fifo #(cpu_transaction) actual_fifo;
 
   int m_matches, m_mismatches; // records number of matches and mismatches
 
@@ -29,8 +29,8 @@ class comparator extends uvm_scoreboard;
   endfunction
 
   task run_phase(uvm_phase phase);
-    transaction expected_tx; //transaction from predictor
-    transaction actual_tx;  //transaction from DUT
+    cpu_transaction expected_tx; //transaction from predictor
+    cpu_transaction actual_tx;  //transaction from DUT
     forever begin
       expected_fifo.get(expected_tx);
       actual_fifo.get(actual_tx);
@@ -38,18 +38,18 @@ class comparator extends uvm_scoreboard;
       
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;
-        uvm_report_info("Comparator", "Data Match");
+        uvm_report_info("CPU Scoreboard", "Data Match");
       end else begin
         m_mismatches++;
         //TODO: ADD AN INFO PRINT STATEMENT HERE FOR DEBUGGING
-        uvm_report_error("Comparator", "Error: Data Mismatch");
+        uvm_report_error("CPU Scoreboard", "Error: Data Mismatch");
       end
     end
   endtask
 
   function void report_phase(uvm_phase phase);
-    uvm_report_info("Comparator", $sformatf("Matches:    %0d", m_matches));
-    uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
+    uvm_report_info("CPU Scoreboard", $sformatf("Matches:    %0d", m_matches));
+    uvm_report_info("CPU Scoreboard", $sformatf("Mismatches: %0d", m_mismatches));
   endfunction
 
-endclass
+endclass : cpu_scoreboard

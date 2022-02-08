@@ -4,12 +4,11 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-class driver extends uvm_driver#(transaction);
-  `uvm_component_utils(driver)
+class cpu_driver extends uvm_driver#(cpu_transaction);
+  `uvm_component_utils(cpu_driver)
 
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if proc_gen_bus_if;
-  virtual generic_bus_if mem_gen_bus_if;
 
   function new(string name, uvm_component parent);
 		super.new(name, parent);
@@ -19,13 +18,10 @@ class driver extends uvm_driver#(transaction);
     super.build_phase(phase);
     // get interface from database
     if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
-      `uvm_fatal("Driver/cif", "No virtual interface specified for this test instance");
-		end
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_gen_bus_if", mem_gen_bus_if) ) begin
-      `uvm_fatal("Driver/mem_gen_bus_if", "No virtual interface specified for this test instance");
+      `uvm_fatal("CPU_Driver/cif", "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "proc_gen_bus_if", proc_gen_bus_if) ) begin
-      `uvm_fatal("Driver/proc_gen_bus_if", "No virtual interface specified for this test instance");
+      `uvm_fatal("CPU_Driver/proc_gen_bus_if", "No virtual interface specified for this test instance");
 		end
   endfunction: build_phase
 
@@ -63,4 +59,4 @@ class driver extends uvm_driver#(transaction);
     @(posedge cif.CLK);
   endtask
 
-endclass: driver
+endclass: cpu_driver

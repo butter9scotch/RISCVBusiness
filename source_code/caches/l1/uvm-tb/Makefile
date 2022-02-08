@@ -2,7 +2,7 @@
 ROOT = ../../../..
 TOP = l1_cache
 WAVES = scripts
-AGENT = agent
+CPU_AGENT = cpu_agent
 ENV = env
 SEQUENCES = sequences
 TEST = test
@@ -18,7 +18,7 @@ build:
 	vlog +incdir+$(SRC) \
 	+incdir+$(INCLUDE) \
 	+incdir+$(PACKAGES) \
-	+incdir+$(AGENT) \
+	+incdir+$(CPU_AGENT) \
 	+incdir+$(ENV) \
 	+incdir+$(SEQUENCES) \
 	+incdir+$(TEST) \
