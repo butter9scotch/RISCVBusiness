@@ -27,24 +27,34 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
 
   task run_phase(uvm_phase phase);
     //TODO: NEEDS IMPLEMENTATION
-    // transaction req_item;
-    // vif.check = 0;
+    cpu_transaction req_item;
+    vif.check = 0;
 
-    // forever begin 
-    //   seq_item_port.get_next_item(req_item);
-    //   DUT_reset();
-    //   vif.rollover_val = req_item.rollover_value;
-    //   vif.enable_time = req_item.num_clk;
-    //   vif.count_enable = 1;
-    //   repeat(req_item.num_clk) begin
-    //     @(posedge vif.clk);
-    //   end
-    //   vif.count_enable = 0;
-    //   #(0.2);
-    //   vif.check = 1;
-    //   @(posedge vif.clk);
-    //   seq_item_port.item_done();
-    // end
+    forever begin 
+      seq_item_port.get_next_item(req_item);
+      DUT_reset();
+      cpu_bus_if.addr = req_item.addr;
+      cpu_buf_if.wdata = req_item.data;
+      cpu_bus_if.ren = ~req_item.rw;  // read = 0
+      cpu_bus_if.wen = req_item.rw;   // write = 1
+
+      //FIXME: NEED TO ADD BYTE ENABLE FUNCTIONALITY
+      cpu_bus_if.byte_en = '1; //FIXME: DOES THIS MEAN ENABLE FULL WORD?
+
+      //FIXME: NEED TO ADD CLEAR/FLUSH FUNCTIONALITY
+      cif.clear = '0; 
+      cif.flush = '0;
+      
+      @(negedge cpu_bus_if.busy);
+
+      if (~req_item.rw) begin
+        //read
+        req_item.data = cpu_bus_if.rdata;
+      end
+      
+      @(posedge cif.CLK);
+      seq_item_port.item_done();
+    end
   endtask: run_phase
 
   task DUT_reset();

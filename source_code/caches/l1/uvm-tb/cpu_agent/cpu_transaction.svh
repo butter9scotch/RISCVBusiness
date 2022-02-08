@@ -11,7 +11,11 @@ class cpu_transaction extends uvm_sequence_item;
   logic instr_data; // 0 -> instr cache, 1 -> data cache
   rand word_t addr;
   rand word_t data;
-  logic p; //processor number p0 or p1
+  logic p; //processor number p0 or p1 //FIXME: DO WE WANT TO TEST WITH MULTIPLE PROCESSORS?
+  
+  //TODO: ADD BYTE ENABLE
+  //TODO: ADD CLEAR
+  //TODO: ADD FLUSH
 
   `uvm_object_utils_begin(cpu_transaction)
       `uvm_field_int(rw, UVM_ALL_ON)
