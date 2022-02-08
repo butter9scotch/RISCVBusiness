@@ -31,3 +31,5 @@ mitll*
 # Ignore temporary files created by gedit
 *~
 open_files.sh
+# Ignore VSCode Configurations
+.vscode
