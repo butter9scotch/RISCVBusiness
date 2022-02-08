@@ -8,7 +8,8 @@ import rv32i_types_pkg::*;
 class cpu_transaction extends uvm_sequence_item;
 
   logic rw; // 0 -> read; 1 -> write
-  logic instr_data; // 0 -> instr cache, 1 -> data cache
+  //FIXME: DO WE NEED TO WORRY ABOUT I AND D CACHES?
+  // logic instr_data; // 0 -> instr cache, 1 -> data cache
   rand word_t addr;
   rand word_t data;
   logic p; //processor number p0 or p1 //FIXME: DO WE WANT TO TEST WITH MULTIPLE PROCESSORS?
@@ -19,7 +20,7 @@ class cpu_transaction extends uvm_sequence_item;
 
   `uvm_object_utils_begin(cpu_transaction)
       `uvm_field_int(rw, UVM_ALL_ON)
-      `uvm_field_int(instr_data, UVM_ALL_ON)
+      // `uvm_field_int(instr_data, UVM_ALL_ON)
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
       `uvm_field_int(p, UVM_ALL_ON)
