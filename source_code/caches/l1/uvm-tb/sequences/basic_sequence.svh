@@ -24,15 +24,16 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
     // repeat twenty randomized test cases
     repeat(20) begin
       start_item(req_item);
-      if(!req_item.randomize()) begin
+      if(!req_item.randomize() with { if(~isWrite) addr == prevAddr; rw == isWrite; }) begin
         // if the transaction is unable to be randomized, send a fatal message
         `uvm_fatal("basic sequence", "not able to randomize")
       end
 
-      req_item.rw = isWrite;
-      if (~isWrite) begin
-        req_item.addr = prevAddr;
-      end
+      // req_item.rw = isWrite;
+      
+      // if (~isWrite) begin
+      //   req_item.addr = prevAddr;
+      // end
 
       isWrite = ~isWrite; //toggle read/write
       prevAddr = req_item.addr;
