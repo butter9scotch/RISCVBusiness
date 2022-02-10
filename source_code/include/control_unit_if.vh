@@ -29,6 +29,7 @@
 interface control_unit_if;
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
+  import rv32m_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   logic dwen, dren, j_sel, branch, jump, ex_pc_sel, imm_shamt_sel, halt, wen, ifence ,lui_instr, wfi;
@@ -44,6 +45,10 @@ interface control_unit_if;
   load_t load_type;
   branch_t branch_type;
   opcode_t opcode; 
+  sign_type_t sign_type;
+  logic high_low_sel;
+  logic div_type;
+  scalar_fu_t sfu_type;
 
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
@@ -58,7 +63,8 @@ interface control_unit_if;
     imm_I, imm_S, imm_SB, imm_UJ, imm_U, imm_shamt_sel, alu_op, 
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
-    csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd
+    csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, sign_type, sfu_type, 
+    high_low_sel, div_type
   );
 
 endinterface

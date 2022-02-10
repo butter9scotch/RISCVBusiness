@@ -203,5 +203,18 @@ package rv32i_types_pkg;
     word_t        prediction;
   } fetch_ex_pipeline_reg_t;
 
+  typedef enum logic[1:0] { 
+    ARITH_S,
+    MUL_S,
+    DIV_S
+  } scalar_fu_t;
+
+  typedef enum logic [1:0] { 
+    SIGNED          = 2'b11, 
+    SIGNED_UNSIGNED = 2'b01,
+    UNSIGNED_SIGNED = 2'b10,
+    UNSIGNED        = 2'b00 
+  } sign_type_t;
+
 endpackage
 `endif

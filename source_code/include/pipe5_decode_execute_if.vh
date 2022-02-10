@@ -27,6 +27,7 @@
 
 interface pipe5_decode_execute_if;
   import rv32i_types_pkg::*;
+  import rv32m_pkg::*;
   import alu_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
@@ -77,7 +78,10 @@ interface pipe5_decode_execute_if;
   logic        wfi;
   word_t       imm_UJ_ext;
   word_t       imm_U;
-
+  scalar_fu_t  sfu_type;
+  sign_type_t  sign_type;
+  logic high_low_sel;
+  logic div_type;
 
 
   modport decode(
@@ -94,7 +98,8 @@ interface pipe5_decode_execute_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn, token,
              mal_insn, fault_insn,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, wfi
+             imm_SB, imm_U, instr_30, wfi, sfu_type, sign_type, 
+             high_low_sel, div_type
   );
 
   modport execute(
@@ -112,9 +117,8 @@ interface pipe5_decode_execute_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn, token,
              mal_insn, fault_insn, 
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, wfi
-
-
+             imm_SB, imm_U, instr_30, wfi, sfu_type, sign_type, 
+             high_low_sel, div_type
   );
 
 endinterface

@@ -40,6 +40,7 @@ module pipe5_decode_stage (
 
   import rv32i_types_pkg::*;
   import alu_types_pkg::*;
+  //import rv32m_pkg::*;
   import machine_mode_types_1_11_pkg::*;
   logic [2:0] funct3;
   logic [11:0] funct12;
@@ -344,7 +345,29 @@ module pipe5_decode_stage (
         end
     end
   end
-  
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+          decode_execute_if.sign_type <= SIGNED;
+          decode_execute_if.sfu_type <= ARITH_S;
+          decode_execute_if.high_low_sel <= 0;
+          decode_execute_if.div_type <= 0;
+    end else begin 
+        if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+          decode_execute_if.sign_type <= SIGNED;
+          decode_execute_if.sfu_type <= ARITH_S;
+          decode_execute_if.high_low_sel <= 0;
+          decode_execute_if.div_type <= 0;
+        end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+          decode_execute_if.sign_type <= cu_if.sign_type;
+          decode_execute_if.sfu_type <= cu_if.sfu_type;
+          decode_execute_if.high_low_sel <= cu_if.high_low_sel;
+          decode_execute_if.div_type <= cu_if.div_type;
+        end   
+    end       
+  end
+
+
+
 
 endmodule
-

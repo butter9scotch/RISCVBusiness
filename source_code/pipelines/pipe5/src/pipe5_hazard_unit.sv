@@ -16,7 +16,7 @@ module pipe5_hazard_unit (
   assign wait_for_dmem = hazard_if.dmem_access & hazard_if.d_mem_busy;  
   assign hazard_if.dmem_access = (hazard_if.dren || hazard_if.dwen);
   // Instruction latch enable
-  assign hazard_if.pc_en = ~wait_for_imem & ~wait_for_dmem;
+  assign hazard_if.pc_en = ~wait_for_imem & ~wait_for_dmem & ~hazard_if.stall_ex;
   
   //Branch jump 
   assign branch_jump = hazard_if.jump || (hazard_if.branch && hazard_if.mispredict);

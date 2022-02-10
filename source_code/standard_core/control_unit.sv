@@ -40,6 +40,9 @@ module control_unit
   import rv32i_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
+  import rv32m_pkg::*;
+
+  // decode funct
   stype_t         instr_s;
   itype_t         instr_i;
   rtype_t         instr_r;
@@ -47,12 +50,16 @@ module control_unit
   utype_t         instr_u;
   ujtype_t        instr_uj;
 
+  rv32m_insn_t    instr_m;
+
+
   assign instr_s = stype_t'(cu_if.instr);
   assign instr_i = itype_t'(cu_if.instr);
   assign instr_r = rtype_t'(cu_if.instr);
   assign instr_sb = sbtype_t'(cu_if.instr);
   assign instr_u = utype_t'(cu_if.instr);
   assign instr_uj = ujtype_t'(cu_if.instr);
+  assign instr_m = rv32m_insn_t'(cu_if.instr);
 
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   //assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
@@ -204,7 +211,7 @@ module control_unit
  
   always_comb begin
     case(cu_if.opcode)
-      REGREG: cu_if.illegal_insn = instr_r.funct7[0];
+      REGREG: cu_if.illegal_insn = instr_r.funct7[0] && (instr_r.funct7 != 7'b000_0001);
       LUI, AUIPC, JAL, JALR,
       BRANCH, LOAD, STORE,
       IMMED, SYSTEM,
@@ -213,6 +220,33 @@ module control_unit
     endcase
   end
  
+  always_comb begin
+    if (cu_if.opcode == REGREG && (instr_r.funct7 == 7'b000_0001)) begin
+      if (instr_r.funct3[2] == 1) begin
+        cu_if.sfu_type = DIV_S;
+      end else begin
+        cu_if.sfu_type = MUL_S;
+      end
+    end else begin
+      cu_if.sfu_type = ARITH_S;
+    end
+  end
+
+  // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
+  assign cu_if.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
+  //upper is 1, lower is 0
+  assign cu_if.high_low_sel = ~(|instr_r.funct3[1:0]); 
+
+  always_comb begin
+    case(instr_r.funct3)
+      3'b011, 3'b101, 3'b111: cu_if.sign_type = UNSIGNED;
+      3'b001, 3'b100, 3'b110, 3'b000: cu_if.sign_type = SIGNED;
+      3'b010: cu_if.sign_type = SIGNED_UNSIGNED;
+      default: cu_if.sign_type = SIGNED;
+    endcase
+  end
+
+
   //Decoding of System Priv Instructions
   always_comb begin
     cu_if.ret_insn = 1'b0;
@@ -265,6 +299,9 @@ module control_unit
 
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   assign cu_if.zimm     = cu_if.instr[19:15];
+
+
+
 
 endmodule
 

@@ -31,7 +31,7 @@ package rv32m_pkg;
   localparam RV32M_OPCODE_MINOR = 7'b0000001;
 
   typedef struct packed {
-    logic [6:0] opcode_minor;
+    logic [6:0] funct7;
     logic [4:0] rs2;
     logic [4:0] rs1;
     logic [2:0] funct;
@@ -57,8 +57,6 @@ package rv32m_pkg;
   typedef struct packed {
     logic signal;
   } execute_memory_t;
-
-  
 
 endpackage
 

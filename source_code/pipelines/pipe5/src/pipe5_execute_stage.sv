@@ -30,6 +30,8 @@
 `include "component_selection_defines.vh"
 `include "alu_if.vh"
 `include "pipe5_hazard_unit_if.vh"
+`include "multiply_unit_if.vh"
+`include "divide_unit_if.vh"
 
 
 module pipe5_execute_stage(
@@ -49,8 +51,12 @@ module pipe5_execute_stage(
 
   // Interface declarations
   alu_if            alu_if();
+  multiply_unit_if  mif();
+  divide_unit_if    dif();
  
   alu alu (.*);
+  multiply_unit MULU (.*);
+  divide_unit DIVU (.*);
 
   logic [1:0] byte_offset;
   logic [3:0] byte_en_standard;
@@ -60,6 +66,10 @@ module pipe5_execute_stage(
   logic intr_taken_ex;
   word_t branch_addr, resolved_addr;
 
+
+  logic mul_ena, div_ena;
+  assign mul_ena = decode_execute_if.sfu_type == MUL_S;
+  assign div_ena = decode_execute_if.sfu_type == DIV_S;
 
   // Assign byte_en based on load type 
   // funct3 for loads and stores are the same bit positions
@@ -128,8 +138,38 @@ module pipe5_execute_stage(
   assign bypass_if.rs2_ex = decode_execute_if.reg_rs2;
   assign hazard_if.reg_rd = decode_execute_if.reg_rd;
   assign hazard_if.load   = decode_execute_if.dren;
+  assign hazard_if.stall_ex = mif.busy_mu | dif.busy_du;
+  assign hazard_if.div_e = dif.exception_du;
+  assign hazard_if.mul_e = mif.exception_mu;
   
-  
+//============================MULTIPLY==============================
+
+  assign mif.rs1_data = alu_port_a;
+  assign mif.rs2_data = alu_port_b;
+  assign mif.start_mu = mul_ena;
+  assign mif.high_low_sel = decode_execute_if.high_low_sel;
+  assign mif.is_signed = decode_execute_if.sign_type;
+
+//=============================DIVIDE===============================
+
+  assign dif.rs1_data = alu_port_a;
+  assign dif.rs2_data = alu_port_b;    
+  assign dif.start_div = div_ena;
+  assign dif.div_type = decode_execute_if.div_type;
+  assign dif.is_signed_div = decode_execute_if.sign_type[0];
+
+
+
+//=============================DIVIDE===============================
+  logic [31:0] fu_result;
+  always_comb begin
+    case (decode_execute_if.sfu_type)
+    ARITH_S:      fu_result = alu_if.port_out;
+    DIV_S:        fu_result = dif.wdata_du;
+    MUL_S:        fu_result = mif.wdata_mu;
+    endcase
+  end
+
   always_comb begin
    if (bypass_if.bypass_rs1 == FWD_M)
        updated_rs1_data = bypass_if.rd_data_mem;
@@ -313,7 +353,7 @@ module pipe5_execute_stage(
           execute_mem_if.halt_instr         <= decode_execute_if.halt_instr;
           //Forwarding
           execute_mem_if.reg_rd             <= decode_execute_if.reg_rd;
-          execute_mem_if.alu_port_out       <= alu_if.port_out;
+          execute_mem_if.alu_port_out       <= fu_result;
           execute_mem_if.opcode             <= decode_execute_if.opcode;
           execute_mem_if.lui_instr          <= decode_execute_if.lui_instr;
           //CSR

@@ -24,6 +24,8 @@ interface pipe5_hazard_unit_if();
     word_t priv_pc;
     logic  insert_priv_pc;
     logic  intr_taken, intr;
+    logic stall_ex;
+    logic div_e, mul_e;
 
     
     modport hazard_unit(
@@ -35,6 +37,7 @@ interface pipe5_hazard_unit_if();
               dflushed, iflushed, ifence,
               illegal_insn, fault_s, fault_l, mal_s, mal_l, breakpoint, env_m,
               badaddr_d, badaddr_i, epc, token, mal_insn, fault_insn, ret,intr_taken,
+              stall_ex, div_e, mul_e,
 
        output pc_en, if_if_flush, if_id_flush, id_ex_flush,csr, iren,
               ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush,
@@ -54,7 +57,7 @@ interface pipe5_hazard_unit_if();
     );
     modport execute(
         input pc_en, ex_mem_flush, d_mem_busy, dmem_access,intr,intr_taken, 
-        output reg_rd, load
+        output reg_rd, load, stall_ex, div_e, mul_e
     );
     modport memory(
         input pc_en,intr,
