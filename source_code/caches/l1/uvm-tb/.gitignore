@@ -19,5 +19,9 @@ mti*
 system.summary
 system_fpga.summary
 
+# vsim outputs
+*.vstf
+*vsim*
+
 # libreoffice temp file
 .~*

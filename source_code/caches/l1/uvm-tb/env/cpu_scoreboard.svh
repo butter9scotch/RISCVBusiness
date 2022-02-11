@@ -35,6 +35,8 @@ class cpu_scoreboard extends uvm_scoreboard;
       expected_fifo.get(expected_tx);
       actual_fifo.get(actual_tx);
       // uvm_report_info("Comparator", $psprintf("\nexpected:\nrollover_val: %d\nnum_clk: %d\ncount_out: %d\nflag: %d\n~~~~~~~~~~~~~~~~~~\nactual:\ncount_out: %d\nflag:%d\n", expected_tx.rollover_value, expected_tx.num_clk, expected_tx.result_count_out, expected_tx.result_flag, actual_tx.result_count_out, actual_tx.result_flag));
+
+      `uvm_info("CPU Scoreboard", $sformatf("\n%s\n", actual_tx.sprint()), UVM_LOW)
       
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;

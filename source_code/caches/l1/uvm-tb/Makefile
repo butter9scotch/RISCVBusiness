@@ -11,6 +11,7 @@ PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
 TESTCASE = basic
+VERBOSITY = UVM_LOW
 
 all: build run
 
@@ -32,7 +33,7 @@ run_gui:
 	-voptargs=+acc \
 	-coverage \
 	+UVM_TESTNAME=$(TESTCASE) \
-	+UVM_VERBOSITY=UVM_LOW \
+	+UVM_VERBOSITY=$(VERBOSITY) \
 	-do "do $(WAVES)/$(TOP).do" -do "run -all"
 
 run:
@@ -41,7 +42,7 @@ run:
 	-voptargs=+acc \
 	-coverage \
 	+UVM_TESTNAME=$(TESTCASE) \
-	+UVM_VERBOSITY=UVM_LOW \
+	+UVM_VERBOSITY=$(VERBOSITY) \
 	-do "run -all"
 
 help:

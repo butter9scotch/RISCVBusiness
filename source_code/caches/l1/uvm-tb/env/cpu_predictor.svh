@@ -18,28 +18,15 @@ class cpu_predictor extends uvm_subscriber #(cpu_transaction);
 
 
   function void write(cpu_transaction t);
-    //TODO: NEEDS IMPLEMENTATION
-    // // t is the transaction sent from monitor
-    // output_tx = transaction#(4)::type_id::create("output_tx", this);
-    // output_tx.copy(t);
-    // // calculate the expected count_out
-    // output_tx.result_count_out = 0;
-    // for (int lcv = 0; lcv < t.num_clk; lcv++) begin
-    //   output_tx.result_count_out++;
-    //   if (output_tx.result_count_out == t.rollover_value + 1) begin
-    //     output_tx.result_count_out = 1;
-    //   end
-    // end
+    // t is the transaction sent from monitor
+    output_tx = cpu_transaction::type_id::create("output_tx", this);
+    
+    // TODO: IMPLEMENT PREDICTOR LOGIC
 
-    // // calculate the expected rollover_flag
-    // if (output_tx.result_count_out == t.rollover_value) begin
-    //   output_tx.result_flag = 1;
-    // end else begin
-    //   output_tx.result_flag = 0;
-    // end
+    `uvm_info("CPU PREDICTOR", "Received new transaction", UVM_LOW)
 
-    // // after prediction, the expected output send to the scoreboard 
-    // pred_ap.write(output_tx);
+    // after prediction, the expected output send to the scoreboard 
+    pred_ap.write(output_tx);
   endfunction: write
 
 endclass: cpu_predictor

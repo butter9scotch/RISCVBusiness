@@ -10,12 +10,13 @@ class cpu_monitor extends uvm_monitor;
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if cpu_bus_if;
 
-  uvm_analysis_port #(cpu_transaction) cpu_ap;
-  cpu_transaction prev_tx; // to see if a new transaction has been sent
+  uvm_analysis_port #(cpu_transaction) req_ap;
+  uvm_analysis_port #(cpu_transaction) resp_ap;
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
-    cpu_ap = new("cpu_ap", this);
+    req_ap = new("req_ap", this);
+    resp_ap = new("resp_ap", this);
   endfunction: new
 
   // Build Phase - Get handle to virtual if from config_db
@@ -33,30 +34,28 @@ class cpu_monitor extends uvm_monitor;
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
 
-    prev_tx = cpu_transaction::type_id::create("prev_tx");
     forever begin
       cpu_transaction tx;
-      @(posedge cif.CLK);
+      @(posedge cpu_bus_if.ren, posedge cpu_bus_if.wen);
       // captures activity between the driver and DUT
       tx = cpu_transaction::type_id::create("tx");
 
-      // tx.rollover_value = vif.rollover_val;
-      // tx.num_clk = vif.enable_time;
+      tx.addr = cpu_bus_if.addr;
 
-      // // check if there is a new transaction
-      // if (!tx.input_equal(prev_tx) && tx.rollover_value !== 'z) begin
-      //   // send the new transaction to predictor though counter_ap
-      //   counter_ap.write(tx);
-      //   // wait until check is asserted
-      //   while(!vif.check) begin
-      //     @(posedge vif.clk);
-      //   end
-      //   // capture the responses from DUT and send it to scoreboard through result_ap
-      //   tx.result_count_out = vif.count_out;
-      //   tx.result_flag = vif.rollover_flag;
-      //   result_ap.write(tx);
-      //   prev_tx.copy(tx);
-      // end
+      `uvm_info("CPU MONITOR", "New Transaction Detected", UVM_LOW)
+
+      if (cpu_bus_if.ren) begin
+        // @(negedge cpu_bus_if.busy); //wait for cache to return data
+
+        tx.rw = '0; // 0 -> read; 1 -> write
+        tx.data = cpu_bus_if.rdata;
+      end else if (cpu_bus_if.wen) begin
+        tx.rw = '1; // 0 -> read; 1 -> write
+        tx.data = cpu_bus_if.wdata;
+      end
+
+      resp_ap.write(tx);
+      req_ap.write(tx);
     end
   endtask: run_phase
 

@@ -32,9 +32,9 @@ class cache_env extends uvm_env;
   endfunction
 
   function void connect_phase(uvm_phase phase);
-    cpu_agt.mon.cpu_ap.connect(pred.analysis_export); // connect monitor to predictor
+    cpu_agt.mon.req_ap.connect(pred.analysis_export); // connect monitor to predictor
     pred.pred_ap.connect(comp.expected_export); // connect predictor to scoreboard
-    // agt.mon.result_ap.connect(comp.actual_export); // connect monitor to scoreboard
+    cpu_agt.mon.resp_ap.connect(comp.actual_export); // connect monitor to scoreboard
   endfunction
 
 endclass: cache_env
