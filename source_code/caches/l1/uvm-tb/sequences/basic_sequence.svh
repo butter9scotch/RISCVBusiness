@@ -25,19 +25,13 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
     prevAddr = '0;
     
     // repeat twenty randomized test cases
-    repeat(20) begin
+    repeat(10) begin
       start_item(req_item);
-      if(!req_item.randomize() with {if (isWrite) addr == prevAddr;}) begin
+      if(!req_item.randomize() with {rw == isWrite; if (~isWrite) addr == prevAddr;}) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
-      
-      `uvm_info("Addr", $sformatf("\n%s", req_item.sprint()), UVM_LOW)
-      // req_item.rw = isWrite;
-      
-      // if (~isWrite) begin
-      //   req_item.addr = prevAddr;
-      // end
+      `uvm_info("Addr", $sformatf("rw: %d, addr: %x",req_item.rw, req_item.addr), UVM_LOW)
 
       isWrite = ~isWrite; //toggle read/write
       prevAddr = req_item.addr;
