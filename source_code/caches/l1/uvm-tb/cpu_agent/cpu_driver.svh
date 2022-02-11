@@ -35,7 +35,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       seq_item_port.get_next_item(req_item);
       DUT_reset();
       cpu_bus_if.addr = req_item.addr;
-      // cpu_buf_if.wdata = req_item.data; //FIXME: UNCOMMENTING THIS BREAKS BUILD
+      cpu_bus_if.wdata = req_item.addr;
       cpu_bus_if.ren = ~req_item.rw;  // read = 0
       cpu_bus_if.wen = req_item.rw;   // write = 1
 

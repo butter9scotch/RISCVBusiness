@@ -4,6 +4,8 @@
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
+`include "cache_env.svh"
+
 
 class cpu_transaction extends uvm_sequence_item;
 
@@ -26,9 +28,9 @@ class cpu_transaction extends uvm_sequence_item;
       // `uvm_field_int(p, UVM_ALL_ON)
   `uvm_object_utils_end
 
-  //TODO: FIGURE OUT HOW TO USE CONSTRAINTS
-  // constraint rollover {rollover_value != 0; rollover_value != 1;}
   // constraint clk_number{num_clk > 0; num_clk < 20;}
+    constraint usable_addr {addr >= '0; addr < 32'h8000_0000;} //TODO: PULL NON_START ADDR INTO CONFIG FILE
+    // constraint usable_addr {addr >= '0; addr < CONFIG_NONCACHE_START_ADDR;}
 
   function new(string name = "cpu_transaction");
     super.new(name);

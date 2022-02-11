@@ -1,6 +1,6 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "environment.svh"
+`include "cache_env.svh"
 
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
@@ -8,7 +8,7 @@ import uvm_pkg::*;
 class basic extends uvm_test;
   `uvm_component_utils(basic)
 
-  environment env;
+  cache_env env;
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if cpu_bus_if;
   virtual generic_bus_if l1_bus_if;  
@@ -20,7 +20,7 @@ class basic extends uvm_test;
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-		env = environment::type_id::create("env",this);
+		env = cache_env::type_id::create("env",this);
     seq = basic_sequence::type_id::create("seq");
 
     // send the interface down
