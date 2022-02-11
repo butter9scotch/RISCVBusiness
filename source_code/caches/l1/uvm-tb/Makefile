@@ -1,16 +1,16 @@
 #RISCVBUSINESS PROJECT ROOT DIRECTORY
 ROOT = ../../../..
-TOP = l1_cache
+TOP = caches_top
 WAVES = scripts
 CPU_AGENT = cpu_agent
 ENV = env
 SEQUENCES = sequences
-TEST = test
+TEST = tests
 INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
-TESTCASE = test
+TESTCASE = basic
 
 all: build run
 
@@ -26,7 +26,7 @@ build:
 	+cover \
 	-L $$QUESTA_HOME/uvm-1.2 tb_$(TOP).sv 
 
-run:
+run_gui:
 	vsim -i tb_$(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
@@ -35,9 +35,7 @@ run:
 	+UVM_VERBOSITY=UVM_LOW \
 	-do "do $(WAVES)/$(TOP).do" -do "run -all"
 
-terminal_run: build terminal
-
-terminal:
+run:
 	vsim -c tb_$(TOP) -L \
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
@@ -51,8 +49,8 @@ help:
 	Available Commands:\n\
 		all: build and run\n\
 		build: compile code\n\
-		run: simuate the code with QuestaSim GUI\n\
-		terminal: simulate the code with command line output only\n"
+		run: simuate the code with QuestaSim in command line\n\
+		run_gui: simulate the code QuestaSim GUI\n"
 
 clean:
 	rm -rf work

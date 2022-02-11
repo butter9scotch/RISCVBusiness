@@ -46,7 +46,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       cif.clear = '0; 
       cif.flush = '0;
       
-      @(negedge cpu_bus_if.busy);
+      // @(negedge cpu_bus_if.busy);
 
       if (~req_item.rw) begin
         //read

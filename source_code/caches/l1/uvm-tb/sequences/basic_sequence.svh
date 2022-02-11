@@ -1,3 +1,6 @@
+`ifndef BASIC_SEQUENCE
+`define BASIC_SEQUENCE
+
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
@@ -24,11 +27,12 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
     // repeat twenty randomized test cases
     repeat(20) begin
       start_item(req_item);
-      if(!req_item.randomize() with { if(~isWrite) addr == prevAddr; rw == isWrite; }) begin
-        // if the transaction is unable to be randomized, send a fatal message
-        `uvm_fatal("basic sequence", "not able to randomize")
+      if(!req_item.randomize() with {if (isWrite) addr == prevAddr;}) begin
+        `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
+      
+      `uvm_info("Addr", $sformatf("\n%s", req_item.sprint()), UVM_LOW)
       // req_item.rw = isWrite;
       
       // if (~isWrite) begin
@@ -42,3 +46,5 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
     end
   endtask: body
 endclass: basic_sequence
+
+`endif

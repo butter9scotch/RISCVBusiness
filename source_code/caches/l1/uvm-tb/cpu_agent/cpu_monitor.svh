@@ -33,31 +33,31 @@ class cpu_monitor extends uvm_monitor;
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
 
-    //TODO: NEEDS IMPLEMENTATION
-    // prev_tx = transaction#(4)::type_id::create("prev_tx");
-    // forever begin
-    //   transaction tx;
-    //   @(posedge vif.clk);
-    //   // captures activity between the driver and DUT
-    //   tx = transaction#(4)::type_id::create("tx");
-    //   tx.rollover_value = vif.rollover_val;
-    //   tx.num_clk = vif.enable_time;
+    prev_tx = cpu_transaction::type_id::create("prev_tx");
+    forever begin
+      cpu_transaction tx;
+      @(posedge cif.CLK);
+      // captures activity between the driver and DUT
+      tx = cpu_transaction::type_id::create("tx");
 
-    //   // check if there is a new transaction
-    //   if (!tx.input_equal(prev_tx) && tx.rollover_value !== 'z) begin
-    //     // send the new transaction to predictor though counter_ap
-    //     counter_ap.write(tx);
-    //     // wait until check is asserted
-    //     while(!vif.check) begin
-    //       @(posedge vif.clk);
-    //     end
-    //     // capture the responses from DUT and send it to scoreboard through result_ap
-    //     tx.result_count_out = vif.count_out;
-    //     tx.result_flag = vif.rollover_flag;
-    //     result_ap.write(tx);
-    //     prev_tx.copy(tx);
-    //   end
-    // end
+      // tx.rollover_value = vif.rollover_val;
+      // tx.num_clk = vif.enable_time;
+
+      // // check if there is a new transaction
+      // if (!tx.input_equal(prev_tx) && tx.rollover_value !== 'z) begin
+      //   // send the new transaction to predictor though counter_ap
+      //   counter_ap.write(tx);
+      //   // wait until check is asserted
+      //   while(!vif.check) begin
+      //     @(posedge vif.clk);
+      //   end
+      //   // capture the responses from DUT and send it to scoreboard through result_ap
+      //   tx.result_count_out = vif.count_out;
+      //   tx.result_flag = vif.rollover_flag;
+      //   result_ap.write(tx);
+      //   prev_tx.copy(tx);
+      // end
+    end
   endtask: run_phase
 
 endclass: cpu_monitor

@@ -38,18 +38,18 @@ class cpu_scoreboard extends uvm_scoreboard;
       
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;
-        uvm_report_info("CPU Scoreboard", "Data Match");
+        `uvm_info("CPU Scoreboard", "Data Match", UVM_LOW);
       end else begin
         m_mismatches++;
         //TODO: ADD AN INFO PRINT STATEMENT HERE FOR DEBUGGING
-        uvm_report_error("CPU Scoreboard", "Error: Data Mismatch");
+        `uvm_error("CPU Scoreboard", "Error: Data Mismatch");
       end
     end
   endtask
 
   function void report_phase(uvm_phase phase);
-    uvm_report_info("CPU Scoreboard", $sformatf("Matches:    %0d", m_matches));
-    uvm_report_info("CPU Scoreboard", $sformatf("Mismatches: %0d", m_mismatches));
+    `uvm_info("CPU Scoreboard", $sformatf("Matches:    %0d", m_matches), UVM_LOW);
+    `uvm_info("CPU Scoreboard", $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
   endfunction
 
 endclass : cpu_scoreboard
