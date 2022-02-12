@@ -28,14 +28,14 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);
-    //TODO: NEEDS IMPLEMENTATION
     cpu_transaction req_item;
+
+    DUT_reset();
 
     forever begin 
       seq_item_port.get_next_item(req_item);
-      DUT_reset();
       cpu_bus_if.addr = req_item.addr;
-      cpu_bus_if.wdata = req_item.addr;
+      cpu_bus_if.wdata = req_item.data;
       cpu_bus_if.ren = ~req_item.rw;  // read = 0
       cpu_bus_if.wen = req_item.rw;   // write = 1
 
@@ -45,13 +45,17 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       //FIXME: NEED TO ADD CLEAR/FLUSH FUNCTIONALITY
       cif.clear = '0; 
       cif.flush = '0;
+
+      while (cpu_bus_if.busy == 1'b1) begin
+        @(posedge cif.CLK);  //wait for memory to return
+      end
       
       // @(negedge cpu_bus_if.busy);
 
-      if (~req_item.rw) begin
-        //read
-        req_item.data = cpu_bus_if.rdata;
-      end
+      // if (~req_item.rw) begin
+      //   //read
+      //   req_item.data = cpu_bus_if.rdata;
+      // end
       
       @(posedge cif.CLK);
       seq_item_port.item_done();

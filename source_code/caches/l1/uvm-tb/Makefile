@@ -15,6 +15,8 @@ VERBOSITY = UVM_LOW
 
 all: build run
 
+gui: build run_gui
+
 build: 
 	vlog +incdir+$(SRC) \
 	+incdir+$(INCLUDE) \
@@ -34,7 +36,7 @@ run_gui:
 	-coverage \
 	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=$(VERBOSITY) \
-	-do "do $(WAVES)/$(TOP).do" -do "run -all"
+	-do "do $(WAVES)/wave.do" -do "run -all"
 
 run:
 	vsim -c tb_$(TOP) -L \
@@ -54,9 +56,4 @@ help:
 		run_gui: simulate the code QuestaSim GUI\n"
 
 clean:
-	rm -rf work
-	rm -rf mitll90_Dec2019_all
-	rm -rf covhtmlreport
-	rm *.log
-	rm transcript
-	rm *.wlf
+	rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf

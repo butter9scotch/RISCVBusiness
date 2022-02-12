@@ -42,20 +42,26 @@ class cpu_monitor extends uvm_monitor;
 
       tx.addr = cpu_bus_if.addr;
 
-      `uvm_info("CPU MONITOR", "New Transaction Detected", UVM_LOW)
 
       if (cpu_bus_if.ren) begin
-        // @(negedge cpu_bus_if.busy); //wait for cache to return data
-
         tx.rw = '0; // 0 -> read; 1 -> write
-        tx.data = cpu_bus_if.rdata;
+        tx.data = 32'hBAD0BAD0; //fill with garbage data
       end else if (cpu_bus_if.wen) begin
         tx.rw = '1; // 0 -> read; 1 -> write
         tx.data = cpu_bus_if.wdata;
       end
+      `uvm_info("CPU MONITOR", $sformatf("\nNew Transaction Detected:\n%s", tx.sprint()), UVM_LOW)
+      req_ap.write(tx);
+
+      while (cpu_bus_if.busy) begin
+        @(posedge cif.CLK);  //wait for memory to return
+      end
+
+      if (cpu_bus_if.ren) begin
+        tx.data = cpu_bus_if.rdata;
+      end
 
       resp_ap.write(tx);
-      req_ap.write(tx);
     end
   endtask: run_phase
 

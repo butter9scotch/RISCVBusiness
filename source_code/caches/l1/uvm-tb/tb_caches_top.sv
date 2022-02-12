@@ -4,6 +4,9 @@
 // design file
 `include "l1_cache.sv"
 
+// BFM file
+`include "memory_bfm.sv"
+
 // interface file
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
@@ -28,6 +31,12 @@ module tb_caches_top ();
   generic_bus_if cpu_bus_if();
   generic_bus_if l1_bus_if();
   l1_cache_wrapper_if cif(clk);
+
+  // instantiate the memory bus functional model
+  memory_bfm bfm(
+    .cif(cif.cache),
+    .bus_if(l1_bus_if.generic_bus)
+  );
   
   // instantiate the DUT
   // Data Cache Portmap
