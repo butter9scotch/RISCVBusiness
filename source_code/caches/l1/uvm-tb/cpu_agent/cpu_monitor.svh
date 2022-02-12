@@ -20,10 +20,10 @@ class cpu_monitor extends bus_monitor;
     super.build_phase(phase);
     // get interface from database
     if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
-      `uvm_fatal("CPU Monitor/cif", "No virtual interface specified for this test instance");
+      `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", bus_if) ) begin
-      `uvm_fatal("CPU Monitor/cpu_bus_if", "No virtual interface specified for this test instance");
+      `uvm_fatal($sformatf("%s/cpu_bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
   endfunction: build_phase
 

@@ -18,7 +18,7 @@ class cache_env extends uvm_env;
   
   cpu_agent cpu_agt; // contains monitor and driver
   cpu_predictor cpu_pred; // a reference model to check the result
-  cpu_scoreboard cpu_comp; // scoreboard
+  cpu_scoreboard cpu_score; // scoreboard
 
   function new(string name = "env", uvm_component parent = null);
 		super.new(name, parent);
@@ -26,15 +26,15 @@ class cache_env extends uvm_env;
 
   function void build_phase(uvm_phase phase);
     // instantiate all the components through factory method
-    cpu_agt = cpu_agent::type_id::create("cpu_agt", this);
-    cpu_pred = cpu_predictor::type_id::create("cpu_pred", this);
-    cpu_comp = cpu_scoreboard::type_id::create("cpu_comp", this);
+    cpu_agt = cpu_agent::type_id::create("CPU_AGT", this);
+    cpu_pred = cpu_predictor::type_id::create("CPU_PRED", this);
+    cpu_score = cpu_scoreboard::type_id::create("CPU_SCORE", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
     cpu_agt.mon.req_ap.connect(cpu_pred.analysis_export); // connect monitor to predictor
-    cpu_pred.pred_ap.connect(cpu_comp.expected_export); // connect predictor to scoreboard
-    cpu_agt.mon.resp_ap.connect(cpu_comp.actual_export); // connect monitor to scoreboard
+    cpu_pred.pred_ap.connect(cpu_score.expected_export); // connect predictor to scoreboard
+    cpu_agt.mon.resp_ap.connect(cpu_score.actual_export); // connect monitor to scoreboard
 
     //TODO: ADD CONNECT CPU AGENT TO END2END
     //TODO: ADD CONNECT MEM AGENT TO SCOREBOARD, PREDICTOR AND END2END

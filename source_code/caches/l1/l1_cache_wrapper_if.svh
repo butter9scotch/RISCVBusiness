@@ -8,7 +8,7 @@ interface l1_cache_wrapper_if(
     logic clear, flush;
     logic clear_done, flush_done;
 
-    modport tester
+    modport driver
     (
         output nRST,
         output clear, flush,
