@@ -30,11 +30,11 @@ module tb_caches_top ();
   // instantiate the interface
   generic_bus_if cpu_bus_if();
   generic_bus_if l1_bus_if();
-  l1_cache_wrapper_if cif(clk);
+  l1_cache_wrapper_if cpu_cif(clk);
 
   // instantiate the memory bus functional model
   memory_bfm bfm(
-    .cif(cif.cache),
+    .cif(cpu_cif.cache),
     .bus_if(l1_bus_if.generic_bus)
   );
   
@@ -45,12 +45,12 @@ module tb_caches_top ();
 	.ASSOC(2),
 	.NONCACHE_START_ADDR(32'h8000_0000))
 	l1 (
-  .cif(cif.cache),
+  .cif(cpu_cif.cache),
 	.mem_gen_bus_if(l1_bus_if.cpu),
 	.proc_gen_bus_if(cpu_bus_if.generic_bus));
 
   initial begin
-    uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cif", cif);
+    uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cpu_cif", cpu_cif);
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "l1_bus_if", l1_bus_if);
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "cpu_bus_if", cpu_bus_if);
     run_test();

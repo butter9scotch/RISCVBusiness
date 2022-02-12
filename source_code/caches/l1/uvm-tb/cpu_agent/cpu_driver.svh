@@ -1,3 +1,6 @@
+`ifndef CPU_DRIVER_SVH
+`define CPU_DRIVER_SVH
+
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
  
@@ -19,7 +22,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get interface from database
-    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif) ) begin
+    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
       `uvm_fatal("CPU_Driver/cif", "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if) ) begin
@@ -68,3 +71,5 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
   endtask
 
 endclass: cpu_driver
+
+`endif

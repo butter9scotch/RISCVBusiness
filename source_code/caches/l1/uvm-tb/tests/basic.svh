@@ -24,7 +24,7 @@ class basic extends uvm_test;
     seq = basic_sequence::type_id::create("seq");
 
     // send the interface down
-    if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cif", cif)) begin 
+    if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif)) begin 
       // check if interface is correctly set in testbench top level
 		   `uvm_fatal("Basic/cif", "No virtual interface specified for this test instance")
 		end 

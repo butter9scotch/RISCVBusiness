@@ -1,11 +1,11 @@
-`ifndef CPU_SCOREBOARD_SVH
-`define CPU_SCOREBOARD_SVH
+`ifndef MEM_SCOREBOARD_SVH
+`define MEM_SCOREBOARD_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-class cpu_scoreboard extends uvm_scoreboard;
-  `uvm_component_utils(cpu_scoreboard)
+class mem_scoreboard extends uvm_scoreboard;
+  `uvm_component_utils(mem_scoreboard)
   uvm_analysis_export #(cpu_transaction) expected_export; // receive result from predictor
   uvm_analysis_export #(cpu_transaction) actual_export; // receive result from DUT
   uvm_tlm_analysis_fifo #(cpu_transaction) expected_fifo;
@@ -40,11 +40,11 @@ class cpu_scoreboard extends uvm_scoreboard;
 
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;
-        `uvm_info("CPU Scoreboard", "Data Match", UVM_LOW);
+        `uvm_info("Mem Scoreboard", "Data Match", UVM_LOW);
       end else begin
         m_mismatches++;
-        `uvm_error("CPU Scoreboard", "Error: Data Mismatch");
-        `uvm_info("CPU Scoreboard", $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_LOW)
+        `uvm_error("Mem Scoreboard", "Error: Data Mismatch");
+        `uvm_info("Mem Scoreboard", $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_LOW)
       end
     end
   endtask
@@ -52,8 +52,8 @@ class cpu_scoreboard extends uvm_scoreboard;
  
 
   function void report_phase(uvm_phase phase);
-    `uvm_info("CPU Scoreboard", $sformatf("Matches:    %0d", m_matches), UVM_LOW);
-    `uvm_info("CPU Scoreboard", $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
+    `uvm_info("Mem Scoreboard", $sformatf("Matches:    %0d", m_matches), UVM_LOW);
+    `uvm_info("Mem Scoreboard", $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
   endfunction
 
 endclass : cpu_scoreboard

@@ -1,5 +1,5 @@
-`ifndef CPU_PREDICTOR_SHV
-`define CPU_PREDICTOR_SHV
+`ifndef MEM_PREDICTOR_SHV
+`define MEM_PREDICTOR_SHV
 
 import uvm_pkg::*;
 import rv32i_types_pkg::*;

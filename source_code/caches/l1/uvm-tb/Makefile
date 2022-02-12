@@ -3,6 +3,8 @@ ROOT = ../../../..
 TOP = caches_top
 WAVES = scripts
 CPU_AGENT = cpu_agent
+MEM_AGENT = mem_agent
+BUS_COMPS = generic_bus_components
 ENV = env
 SEQUENCES = sequences
 TEST = tests
@@ -22,6 +24,8 @@ build:
 	+incdir+$(INCLUDE) \
 	+incdir+$(PACKAGES) \
 	+incdir+$(CPU_AGENT) \
+	+incdir+$(MEM_AGENT) \
+	+incdir+$(BUS_COMPS) \
 	+incdir+$(ENV) \
 	+incdir+$(SEQUENCES) \
 	+incdir+$(TEST) \

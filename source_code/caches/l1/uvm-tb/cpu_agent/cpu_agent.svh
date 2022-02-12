@@ -1,3 +1,6 @@
+`ifndef CPU_AGENT_SVH
+`define CPU_AGENT_SVH
+
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "basic_sequence.svh"
@@ -27,3 +30,5 @@ class cpu_agent extends uvm_agent;
   endfunction
 
 endclass: cpu_agent
+
+`endif
