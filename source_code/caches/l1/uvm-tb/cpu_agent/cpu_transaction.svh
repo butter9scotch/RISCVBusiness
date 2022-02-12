@@ -17,6 +17,10 @@ class cpu_transaction extends uvm_sequence_item;
   // logic p; //processor number p0 or p1 //FIXME: DO WE WANT TO TEST WITH MULTIPLE PROCESSORS?
   
   //TODO: ADD BYTE ENABLE
+  // Byte enable logic
+  // 4bits, one bit always high
+  // 0th bit is one byte
+  // 1th bit is 16 bits...
   //TODO: ADD CLEAR
   //TODO: ADD FLUSH
 

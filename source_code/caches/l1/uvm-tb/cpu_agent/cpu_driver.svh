@@ -43,8 +43,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       cpu_bus_if.wen = req_item.rw;   // write = 1
 
       //FIXME: NEED TO ADD BYTE ENABLE FUNCTIONALITY
-      cpu_bus_if.byte_en = '1; //FIXME: DOES THIS MEAN ENABLE FULL WORD?
-
+      cpu_bus_if.byte_en = 4'b1000; 
       //FIXME: NEED TO ADD CLEAR/FLUSH FUNCTIONALITY
       cif.clear = '0; 
       cif.flush = '0;

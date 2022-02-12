@@ -57,7 +57,7 @@ help:
 		all: build and run\n\
 		build: compile code\n\
 		run: simuate the code with QuestaSim in command line\n\
-		run_gui: simulate the code QuestaSim GUI\n"
+		gui: simulate the code QuestaSim GUI\n"
 
 clean:
 	rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf
