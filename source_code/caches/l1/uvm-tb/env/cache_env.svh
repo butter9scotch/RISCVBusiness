@@ -11,6 +11,10 @@ import uvm_pkg::*;
 `include "cpu_predictor.svh" // uvm_subscriber
 `include "cpu_transaction.svh" // uvm_sequence_item
 
+`include "mem_agent.svh"
+`include "mem_scoreboard.svh" // uvm_scoreboard
+`include "mem_predictor.svh" // uvm_subscriber
+
 class cache_env extends uvm_env;
   `uvm_component_utils(cache_env)
 
@@ -19,6 +23,10 @@ class cache_env extends uvm_env;
   cpu_agent cpu_agt; // contains monitor and driver
   cpu_predictor cpu_pred; // a reference model to check the result
   cpu_scoreboard cpu_score; // scoreboard
+
+  mem_agent mem_agt; // contains monitor
+  mem_predictor mem_pred; // a reference model to check the result
+  mem_scoreboard mem_score; // scoreboard
 
   function new(string name = "env", uvm_component parent = null);
 		super.new(name, parent);
@@ -29,6 +37,10 @@ class cache_env extends uvm_env;
     cpu_agt = cpu_agent::type_id::create("CPU_AGT", this);
     cpu_pred = cpu_predictor::type_id::create("CPU_PRED", this);
     cpu_score = cpu_scoreboard::type_id::create("CPU_SCORE", this);
+
+    mem_agt = mem_agent::type_id::create("MEM_AGT", this);
+    mem_pred = mem_predictor::type_id::create("MEM_PRED", this);
+    mem_score = mem_scoreboard::type_id::create("MEM_SCORE", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
@@ -36,8 +48,12 @@ class cache_env extends uvm_env;
     cpu_pred.pred_ap.connect(cpu_score.expected_export); // connect predictor to scoreboard
     cpu_agt.mon.resp_ap.connect(cpu_score.actual_export); // connect monitor to scoreboard
 
+    mem_agt.mon.req_ap.connect(mem_pred.analysis_export); // connect monitor to predictor
+    mem_pred.pred_ap.connect(mem_score.expected_export); // connect predictor to scoreboard
+    mem_agt.mon.resp_ap.connect(mem_score.actual_export); // connect monitor to scoreboard
+
     //TODO: ADD CONNECT CPU AGENT TO END2END
-    //TODO: ADD CONNECT MEM AGENT TO SCOREBOARD, PREDICTOR AND END2END
+    //TODO: ADD CONNECT MEM AGENT TO END2END
   endfunction
 
 endclass: cache_env

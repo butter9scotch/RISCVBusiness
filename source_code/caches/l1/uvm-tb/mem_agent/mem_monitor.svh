@@ -28,6 +28,6 @@ class mem_monitor extends bus_monitor;
 		end
   endfunction: build_phase
 
-endclass: cpu_monitor
+endclass: mem_monitor
 
 `endif
