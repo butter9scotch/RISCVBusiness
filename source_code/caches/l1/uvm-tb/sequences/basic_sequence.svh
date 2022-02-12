@@ -31,8 +31,6 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
-      `uvm_info("Addr", $sformatf("rw: %d, addr: %x",req_item.rw, req_item.addr), UVM_LOW)
-
       isWrite = ~isWrite; //toggle read/write
       prevAddr = req_item.addr;
 

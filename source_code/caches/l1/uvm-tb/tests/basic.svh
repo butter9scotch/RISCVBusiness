@@ -45,7 +45,6 @@ class basic extends uvm_test;
 
   task run_phase(uvm_phase phase);
     phase.raise_objection( this, "Starting sequence in main phase" );
-    `uvm_info("Basic", $sformatf("%t Starting sequence run_phase",$time), UVM_LOW);
  		seq.start(env.cpu_agt.sqr);
 		#100ns;
 		phase.drop_objection( this , "Finished in main phase" );

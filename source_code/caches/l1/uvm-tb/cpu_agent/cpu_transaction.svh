@@ -36,18 +36,6 @@ class cpu_transaction extends uvm_sequence_item;
     super.new(name);
   endfunction: new
 
-  // // comparison between two transaction object
-  // // if two transactions are the same, return 1 else return 0
-  // function int input_equal(transaction tx);
-  //   int result;
-  //   if((rollover_value == tx.rollover_value) && (num_clk == tx.num_clk)) begin
-  //     result = 1;
-  //     return result;
-  //   end
-  //   result = 0;
-  //   return result;
-  // endfunction
-
 endclass: cpu_transaction
 
 `endif

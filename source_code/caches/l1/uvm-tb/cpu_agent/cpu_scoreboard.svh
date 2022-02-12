@@ -34,14 +34,12 @@ class cpu_scoreboard extends uvm_scoreboard;
     forever begin
       expected_fifo.get(expected_tx);
       actual_fifo.get(actual_tx);
-      // uvm_report_info("Comparator", $psprintf("\nexpected:\nrollover_val: %d\nnum_clk: %d\ncount_out: %d\nflag: %d\n~~~~~~~~~~~~~~~~~~\nactual:\ncount_out: %d\nflag:%d\n", expected_tx.rollover_value, expected_tx.num_clk, expected_tx.result_count_out, expected_tx.result_flag, actual_tx.result_count_out, actual_tx.result_flag));
-      
+
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;
         `uvm_info("CPU Scoreboard", "Data Match", UVM_LOW);
       end else begin
         m_mismatches++;
-        //TODO: ADD AN INFO PRINT STATEMENT HERE FOR DEBUGGING
         `uvm_error("CPU Scoreboard", "Error: Data Mismatch");
         `uvm_info("CPU Scoreboard", $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_LOW)
       end

@@ -50,13 +50,6 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
         @(posedge cif.CLK);  //wait for memory to return
       end
       
-      // @(negedge cpu_bus_if.busy);
-
-      // if (~req_item.rw) begin
-      //   //read
-      //   req_item.data = cpu_bus_if.rdata;
-      // end
-      
       @(posedge cif.CLK);
       seq_item_port.item_done();
     end
