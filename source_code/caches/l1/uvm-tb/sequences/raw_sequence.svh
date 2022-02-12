@@ -1,5 +1,5 @@
-`ifndef BASIC_SEQUENCE
-`define BASIC_SEQUENCE
+`ifndef RAW_SEQUENCE_SVH
+`define RAW_SEQUENCE_SVH
 
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
@@ -9,8 +9,8 @@ import rv32i_types_pkg::*;
 `include "cpu_transaction.svh"
 
 /** Sequence to test read after writes to the same location */
-class basic_sequence extends uvm_sequence #(cpu_transaction);
-  `uvm_object_utils(basic_sequence)
+class raw_sequence extends uvm_sequence #(cpu_transaction);
+  `uvm_object_utils(raw_sequence)
   function new(string name = "");
     super.new(name);
   endfunction: new
@@ -37,6 +37,6 @@ class basic_sequence extends uvm_sequence #(cpu_transaction);
       finish_item(req_item);
     end
   endtask: body
-endclass: basic_sequence
+endclass: raw_sequence
 
 `endif

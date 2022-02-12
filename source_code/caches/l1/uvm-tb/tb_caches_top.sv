@@ -12,7 +12,7 @@
 `include "l1_cache_wrapper_if.svh"
 
 // UVM test file
-`include "basic.svh"
+`include "raw_test.svh"
 
 `timescale 1ns/1ps
 // import uvm packages

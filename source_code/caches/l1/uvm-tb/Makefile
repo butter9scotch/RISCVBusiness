@@ -12,7 +12,7 @@ INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
-TESTCASE = basic
+TESTCASE = raw_test
 VERBOSITY = UVM_LOW
 
 all: build run

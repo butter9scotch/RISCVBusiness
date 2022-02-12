@@ -3,7 +3,7 @@
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "basic_sequence.svh"
+`include "raw_sequence.svh"
 `include "cpu_driver.svh"
 `include "cpu_monitor.svh"
 

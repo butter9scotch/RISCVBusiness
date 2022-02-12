@@ -1,3 +1,6 @@
+`ifndef RAW_TEST_SVH
+`define RAW_TEST_SVH
+
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "cache_env.svh"
@@ -5,14 +8,14 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-class basic extends uvm_test;
-  `uvm_component_utils(basic)
+class raw_test extends uvm_test;
+  `uvm_component_utils(raw_test)
 
   cache_env env;
   virtual l1_cache_wrapper_if cif;
   virtual generic_bus_if cpu_bus_if;
   virtual generic_bus_if l1_bus_if;  
-  basic_sequence seq;
+  raw_sequence seq;
 
   function new(string name = "basic", uvm_component parent);
 		super.new(name, parent);
@@ -21,7 +24,7 @@ class basic extends uvm_test;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 		env = cache_env::type_id::create("env",this);
-    seq = basic_sequence::type_id::create("seq");
+    seq = raw_sequence::type_id::create("seq");
 
     // send the interface down
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif)) begin 
@@ -50,4 +53,6 @@ class basic extends uvm_test;
 		phase.drop_objection( this , "Finished in main phase" );
   endtask
 
-endclass: basic
+endclass: raw_test
+
+`endif
