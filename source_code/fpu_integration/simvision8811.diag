@@ -1,0 +1,102 @@
+*** Message Type: info ***
+When: Sat Jul 04 05:08:49 PM EDT 2020
+SimVision started.
+Version: TOOL:  simvision(64)   15.20-s030
+User: socet19
+Host: asicfab.ecn.purdue.edu
+Platform: Linux/x86_64/3.10.0-1062.18.1.el7.x86_64
+Started: Sat Jul 04 05:08:49 PM EDT 2020
+Command: /package/eda/cadence/INCISIVE152/tools.lnx86/simvision/bin/64bit/simvision.exe -connect dc:asicfab.ecn.purdue.edu:49065 -64BIT -nocopyright
+Work Directory: /home/asicfab/a/socet19/RISCVBusiness/source_code/Floating_Point_Unit
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:08:50 PM EDT 2020
+Create browser window: "Design Browser 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:08:56 PM EDT 2020
+Create console window: "Console"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:09:00 PM EDT 2020
+Connect to Simulator
+      Design: worklib.ao21_4x:v
+   Languages: verilog assertion
+   Simulator: NC-Sim
+     Version: TOOL:        ncsim(64)       15.20-s030
+        User: socet19
+        Host: asicfab.ecn.purdue.edu
+Time Started: Sat Jul 04 05:08:47 PM EDT 2020
+  Process ID: 8806
+   Directory: /home/asicfab/a/socet19/RISCVBusiness/source_code/Floating_Point_Unit
+     Command: irun -gui -access +rwc +nctimescale+1ns/1ns -coverage all -covoverwrite -define MAPPED /package/asicfab/MITLL_90_Dec2019/MITLL90_STDLIB_8T/2019.12.20//MITLL90_STDLIB_8T.v fpu.v source/tb_FPU_top_level.sv
+
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:09:03 PM EDT 2020
+Create utility window: "Properties"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:09:13 PM EDT 2020
+Create waveform window: "Waveform 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:12:14 PM EDT 2020
+Create source window: "Source Browser 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:12:24 PM EDT 2020
+Delete source window: "Source Browser 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:12:31 PM EDT 2020
+Create source window: "Source Browser 2"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:12:39 PM EDT 2020
+Delete source window: "Source Browser 2"
+ 
+*** Message Type: error ***
+When: Sat Jul 04 05:12:39 PM EDT 2020
+invalid command name ".srcBrowser1"
+    while executing
+"$srcb activateScope $scopeH -file $file -line $line -hilite $hilite -reloadifneeded $reload"
+    (object "::windows" method "::Windows::showsource" body line 70)
+    invoked from within
+"::windows showsource -file $filename -line $line -scope $objHdl -raise 1"
+    ("location" arm line 31)
+    invoked from within
+"switch -- $op {
+        location_time {
+            if {![info exists argsIn(location)] || ! [info exists argsIn(time)]} {
+             dputs "Need location and time arguments..."
+    (object "::.console0.work.user.tabnotebook.1.shellframe.scrollframe.sh" method "::cwidgets::Shell::_sendToWindow" body line 38)
+    invoked from within
+"_sendToWindow source location location $attrs(file):$attrs(line) object $objName"
+    ("clickFile" arm line 14)
+    invoked from within
+"switch -- $fromWhere {
+       clickFile {
+        # Perform the default actions if somebody clicks the file/line/time
+            set sim [::taskmaster slave find]
+   ..."
+    (object "::.console0.work.user.tabnotebook.1.shellframe.scrollframe.sh" method "::cwidgets::Shell::assertLineAction" body line 8)
+    invoked from within
+"::.console0.work.user.tabnotebook.1.shellframe.scrollframe.sh assertLineAction .console0.work.user.tabnotebook.1.shellframe.scrollframe.sh.text 275 17..."
+    (in namespace inscope "::cwidgets::Shell" script line 1)
+    invoked from within
+"namespace inscope ::cwidgets::Shell {::.console0.work.user.tabnotebook.1.shellframe.scrollframe.sh assertLineAction .console0.work.user.tabnotebook.1...."
+    (command bound to event)
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:14:40 PM EDT 2020
+Delete waveform window: "Waveform 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:14:41 PM EDT 2020
+Delete browser window: "Design Browser 1"
+ 
+*** Message Type: info ***
+When: Sat Jul 04 05:14:48 PM EDT 2020
+SimVision Exit.
+ 
