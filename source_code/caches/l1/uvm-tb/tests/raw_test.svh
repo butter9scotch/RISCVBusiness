@@ -23,8 +23,8 @@ class raw_test extends uvm_test;
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-		env = cache_env::type_id::create("env",this);
-    seq = raw_sequence::type_id::create("seq");
+		env = cache_env::type_id::create("CACHE_ENV",this);
+    seq = raw_sequence::type_id::create("RAW_SEQ");
 
     // send the interface down
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif)) begin 

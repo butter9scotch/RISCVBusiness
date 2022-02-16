@@ -47,3 +47,7 @@ tb_caches_top.sv
       |
       |_ end2end/end2end.svh
 ```
+
+
+## TODO
+- [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?

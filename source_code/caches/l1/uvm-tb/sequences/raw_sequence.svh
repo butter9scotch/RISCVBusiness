@@ -34,6 +34,8 @@ class raw_sequence extends uvm_sequence #(cpu_transaction);
       isWrite = ~isWrite; //toggle read/write
       prevAddr = req_item.addr;
 
+      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+
       finish_item(req_item);
     end
   endtask: body

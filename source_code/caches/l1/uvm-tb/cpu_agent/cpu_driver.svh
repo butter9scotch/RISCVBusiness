@@ -28,6 +28,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if) ) begin
       `uvm_fatal($sformatf("%s/bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
+    `uvm_info(this.get_name(), "pulled <cpu_if> and <cpu_bus_if> from db", UVM_HIGH)
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);
@@ -37,6 +38,8 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
 
     forever begin 
       seq_item_port.get_next_item(req_item);
+      `uvm_info(this.get_name(), $sformatf("Received new sequence item:\n%s", req_item.sprint()), UVM_MEDIUM)
+
       cpu_bus_if.addr = req_item.addr;
       cpu_bus_if.wdata = req_item.data;
       cpu_bus_if.ren = ~req_item.rw;  // read = 0

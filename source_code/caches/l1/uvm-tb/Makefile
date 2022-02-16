@@ -13,7 +13,7 @@ PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
 TESTCASE = raw_test
-VERBOSITY = UVM_LOW
+VERBOSITY = UVM_HIGH
 
 all: build run
 

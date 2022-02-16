@@ -47,6 +47,7 @@ class bus_monitor extends uvm_monitor;
         tx.data = bus_if.wdata;
       end
    
+      `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_MEDIUM)
       req_ap.write(tx);
 
       while (bus_if.busy) begin
@@ -57,6 +58,7 @@ class bus_monitor extends uvm_monitor;
         tx.data = bus_if.rdata;
       end
 
+      `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_MEDIUM)
       resp_ap.write(tx);
     end
   endtask: run_phase

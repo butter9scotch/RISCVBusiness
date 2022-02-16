@@ -25,6 +25,7 @@ class cpu_monitor extends bus_monitor;
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", bus_if) ) begin
       `uvm_fatal($sformatf("%s/cpu_bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
+    `uvm_info(this.get_name(), "pulled <cpu_if> and <cpu_bus_if> from db", UVM_HIGH)
   endfunction: build_phase
 
 endclass: cpu_monitor

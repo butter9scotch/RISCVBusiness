@@ -26,6 +26,7 @@ class mem_monitor extends bus_monitor;
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", bus_if) ) begin
       `uvm_fatal("Mem Monitor/cpu_bus_if", "No virtual interface specified for this test instance");
 		end
+    `uvm_info(this.get_name(), "pulled <l1_bus_if> from db", UVM_HIGH)
   endfunction: build_phase
 
 endclass: mem_monitor

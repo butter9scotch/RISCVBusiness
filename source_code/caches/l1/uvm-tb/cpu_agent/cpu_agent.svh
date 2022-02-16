@@ -20,13 +20,15 @@ class cpu_agent extends uvm_agent;
   endfunction
 
   virtual function void build_phase(uvm_phase phase);   
-    sqr = cpu_sequencer::type_id::create("sqr", this);
-    drv = cpu_driver::type_id::create("drv", this);
-    mon = cpu_monitor::type_id::create("mon", this);
+    sqr = cpu_sequencer::type_id::create("CPU_SQR", this);
+    drv = cpu_driver::type_id::create("CPU_DRV", this);
+    mon = cpu_monitor::type_id::create("CPU_MON", this);
+    `uvm_info(this.get_name(), $sformatf("Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_HIGH)
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
     drv.seq_item_port.connect(sqr.seq_item_export);
+    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", drv.get_name(), sqr.get_name()), UVM_HIGH)
   endfunction
 
 endclass: cpu_agent

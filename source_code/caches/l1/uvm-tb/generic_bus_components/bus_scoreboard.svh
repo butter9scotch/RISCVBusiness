@@ -44,7 +44,7 @@ class bus_scoreboard extends uvm_scoreboard;
       end else begin
         m_mismatches++;
         `uvm_error($sformatf("%s", this.get_name()), "Error: Data Mismatch");
-        `uvm_info($sformatf("%s", this.get_name()), $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_LOW)
+        `uvm_info($sformatf("%s", this.get_name()), $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_MEDIUM)
       end
     end
   endtask

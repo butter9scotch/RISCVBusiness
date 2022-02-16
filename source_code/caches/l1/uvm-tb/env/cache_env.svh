@@ -45,12 +45,23 @@ class cache_env extends uvm_env;
 
   function void connect_phase(uvm_phase phase);
     cpu_agt.mon.req_ap.connect(cpu_pred.analysis_export); // connect monitor to predictor
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-req_ap to <%s>", cpu_agt.mon.get_name(), cpu_pred.get_name()), UVM_HIGH)
+
     cpu_pred.pred_ap.connect(cpu_score.expected_export); // connect predictor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", cpu_pred.get_name(), cpu_score.get_name()), UVM_HIGH)
+
     cpu_agt.mon.resp_ap.connect(cpu_score.actual_export); // connect monitor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", cpu_agt.mon.get_name(), cpu_score.get_name()), UVM_HIGH)
+
 
     mem_agt.mon.req_ap.connect(mem_pred.analysis_export); // connect monitor to predictor
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-req_ap to <%s>", mem_agt.mon.get_name(), mem_pred.get_name()), UVM_HIGH)
+
     mem_pred.pred_ap.connect(mem_score.expected_export); // connect predictor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", mem_pred.get_name(), mem_score.get_name()), UVM_HIGH)
+
     mem_agt.mon.resp_ap.connect(mem_score.actual_export); // connect monitor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", mem_agt.mon.get_name(), mem_score.get_name()), UVM_HIGH)
 
     //TODO: ADD CONNECT CPU AGENT TO END2END
     //TODO: ADD CONNECT MEM AGENT TO END2END

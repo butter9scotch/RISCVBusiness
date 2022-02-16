@@ -14,7 +14,8 @@ class mem_agent extends uvm_agent;
   endfunction
 
   virtual function void build_phase(uvm_phase phase);   
-    mon = mem_monitor::type_id::create("mon", this);
+    mon = mem_monitor::type_id::create("MEM_MON", this);
+    `uvm_info(this.get_name(), $sformatf("Created <%s>", mon.get_name()), UVM_HIGH)
   endfunction
 
 //   virtual function void connect_phase(uvm_phase phase);
