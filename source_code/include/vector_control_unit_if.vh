@@ -41,10 +41,7 @@ interface vector_control_unit_if();
   cfgsel_t cfgsel;
   // mm_t minmax_type;
 
-  logic[4:0] SEW_f8;
-  logic [1:0] eew;
-
-  logic dwen, dren, wen; 
+  logic  wen; 
   opcode_t opcode; 
   logic [3:0] nf;
   mop_t [1:0] mop;
@@ -54,17 +51,16 @@ interface vector_control_unit_if();
   vs1_offset_src_t vs1_offset_src; 
   vs2_offset_src_t vs2_offset_src; //choose from diff offsets 
   vd_offset_src_t  vd_offset_src;
-  logic imm_op; //imm op uses imm instead of vs1
   logic xs1_scalar_src, xs2_scalar_src, rd_scalar_src; //select signal to scalar regs
-  logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena; //unit enables
-  width_t mem_op_width; //3 bit width field of load/store
+  logic reduction_ena;
+  // logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena; //unit enables
   logic sign_extend; //sign extend the immediate value
   logic single_bit_op; //move this out to the decode stage top level?
   logic illegal_insn; 
-  logic is_vload, is_vstore;
   logic de_en;
   logic stall;
   logic is_load, is_store;
+  lumop_t lumop;
 
   rs_t rs1_type;
   rs_t rs2_type;
@@ -80,9 +76,9 @@ interface vector_control_unit_if();
   logic [4:0]  imm_5; 
 
   logic div_type;
-  logic is_signed_div;
+  // logic is_signed_div;
   logic high_low;
-  logic [1:0] is_signed_mul;
+  // logic [1:0] is_signed_mul;
   logic mul_widen_ena;
   logic multiply_pos_neg;
   multiply_type_t multiply_type;
@@ -96,38 +92,53 @@ interface vector_control_unit_if();
   logic woutu;
   logic zext_w;
   logic mask_logical;
-  logic out_inv, in_inv;
   ma_t mask_type;
+  logic move_src;
+
+  vlmul_t lmul;
+  width_t eew_loadstore;
+  sew_t   sew, vs2_sew, eew;
+  // logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+  logic [7:0] vtype;
 
   vmv_type_t vmv_type;
 
   logic merge_ena;
   modport vcu (
-    input instr,
-    output dwen, dren, wen,
+    input instr, vtype,
+    output  wen,
     aluop,
     opcode, 
     nf,
     mop,
     vm,
-    eew,
     cfgsel,
     result_type,
     is_load,
     is_store,
-    vs1, vs2, vd,  
-    // vs1_src, 
-    vs1_offset_src, vs2_offset_src,
-    imm_op,
-    xs1_scalar_src, xs2_scalar_src, rd_scalar_src,
-    arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena, fixed_point_ena, merge_ena,
+    vs1, 
+    vs2, 
+    vd,  
+    vs1_offset_src, 
+    vs2_offset_src,
+    xs1_scalar_src, 
+    xs2_scalar_src, 
+    rd_scalar_src,
+    // arith_ena, 
+    // mask_ena, 
+    // perm_ena, 
+    reduction_ena, 
+    // loadstore_ena, 
+    // mul_ena, 
+    // div_ena, 
+    merge_ena,
     fu_type,
-    mem_op_width,
     sign_extend,
     is_signed, //
     single_bit_op,
     illegal_insn,
     vd_offset_src,
+    move_src,
     de_en,
     stall,
     imm_5,
@@ -142,9 +153,9 @@ interface vector_control_unit_if();
     vd_widen, vd_narrow,
     vs2_widen,
     div_type,
-    is_signed_div,
+    // is_signed_div,
     high_low,
-    is_signed_mul,
+    // is_signed_mul,
     mul_widen_ena,
     multiply_pos_neg,
     multiply_type,
@@ -157,10 +168,13 @@ interface vector_control_unit_if();
     zext_w,
     mask_logical,
     mask_type,
-    out_inv,
-    in_inv,
     ls_idx,
-    vmv_type
+    vmv_type,
+    sew, vs2_sew,
+    lmul,
+    eew,
+    eew_loadstore,
+    lumop
   );
 
 

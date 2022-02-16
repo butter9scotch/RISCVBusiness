@@ -48,6 +48,10 @@ module rv32v_execute_stage (
   sew_t eew_ff0, eew_ff1, eew_ff2;
   logic [4:0] vd_ff0, vd_ff1, vd_ff2;
   logic iota_or_id;
+  logic load_ena, store_ena;
+
+  assign load_ena  = decode_execute_if.fu_type == LOAD_UNIT;
+  assign store_ena = decode_execute_if.fu_type == STORE_UNIT;
 
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
@@ -77,17 +81,21 @@ module rv32v_execute_stage (
   assign base_addr6 = base_addr5 + base_addr_offset;
   assign base_addr7 = base_addr6 + base_addr_offset;
   always_comb begin
-    case(decode_execute_if.nf)
-      3'd0: base_addr_new = base_addr;
-      3'd1: base_addr_new = base_addr1;
-      3'd2: base_addr_new = base_addr2;
-      3'd3: base_addr_new = base_addr3;
-      3'd4: base_addr_new = base_addr4;
-      3'd5: base_addr_new = base_addr5;
-      3'd6: base_addr_new = base_addr6;
-      3'd7: base_addr_new = base_addr7;
-      default: base_addr_new = base_addr;
-    endcase
+    if (decode_execute_if.lumop == LUMOP_UNIT_FULLREG) begin
+      base_addr_new = base_addr;
+    end else begin
+      case(decode_execute_if.nf_count)
+        3'd0: base_addr_new = base_addr;
+        3'd1: base_addr_new = base_addr1;
+        3'd2: base_addr_new = base_addr2;
+        3'd3: base_addr_new = base_addr3;
+        3'd4: base_addr_new = base_addr4;
+        3'd5: base_addr_new = base_addr5;
+        3'd6: base_addr_new = base_addr6;
+        3'd7: base_addr_new = base_addr7;
+        default: base_addr_new = base_addr;
+      endcase
+    end
   end
   always_comb begin
     case(decode_execute_if.eew_loadstore)
@@ -167,6 +175,13 @@ module rv32v_execute_stage (
     endcase
   end
 
+  logic ls_ena_ff;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) ls_ena_ff <= 0;
+    else if (decode_execute_if.woffset0 != 0) ls_ena_ff <= 0;
+    else ls_ena_ff <= (load_ena | store_ena);
+  end
+
   // Vector Lane 0
   //assign vif0.stride          = decode_execute_if.stride;
   assign vif0.fu_type         = decode_execute_if.fu_type;
@@ -179,18 +194,19 @@ module rv32v_execute_stage (
   assign vif0.porta0          = addr_buffer;
   assign vif0.porta1          = base_addr_new;
   assign vif0.portb0          = portb0;
-  assign vif0.portb1          = decode_execute_if.vs2_lane0;
-  assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0);
+  assign vif0.portb1          = decode_execute_if.sew == SEW32 ? decode_execute_if.vs2_lane0 << 2:
+                                decode_execute_if.sew == SEW16 ? decode_execute_if.vs2_lane0 << 1:
+                                decode_execute_if.vs2_lane0;
+  //assign vif0.porta_sel       = decode_execute_if.ls_idx | (decode_execute_if.woffset0 == 0 & ~ls_ena_ff);
+  assign vif0.porta_sel       = decode_execute_if.ls_idx | decode_execute_if.woffset0 == 0;
   assign vif0.portb_sel       = decode_execute_if.ls_idx;
-  assign vif0.is_signed_mul   = decode_execute_if.is_signed;
+  assign vif0.is_signed_mul   = decode_execute_if.is_signed_mul;
   assign vif0.multiply_type   = decode_execute_if.multiply_type;
   assign vif0.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
   assign vif0.mul_widen_ena   = decode_execute_if.mul_widen_ena;
   assign vif0.high_low        = decode_execute_if.high_low;
   assign vif0.div_type        = decode_execute_if.div_type;
-  assign vif0.is_signed_div   = decode_execute_if.is_signed == SIGNED;
-  assign vif0.out_inv         = decode_execute_if.out_inv;
-  assign vif0.in_inv          = decode_execute_if.in_inv;
+  assign vif0.is_signed_div   = decode_execute_if.is_signed_div;
   assign vif0.mask_type       = decode_execute_if.mask_type;
   assign vif0.mask_32bit      = decode_execute_if.mask_32bit_lane0;
   assign vif0.iota_res        = iif.res0;
@@ -207,18 +223,18 @@ module rv32v_execute_stage (
   assign vif1.porta0          = vif0.out_addr;
   assign vif1.porta1          = base_addr_new;
   assign vif1.portb0          = portb0;
-  assign vif1.portb1          = decode_execute_if.vs2_lane1;
+  assign vif1.portb1          = decode_execute_if.sew == SEW32 ? decode_execute_if.vs2_lane1 << 2:
+                                decode_execute_if.sew == SEW16 ? decode_execute_if.vs2_lane1 << 1:
+                                decode_execute_if.vs2_lane1;
   assign vif1.porta_sel       = decode_execute_if.ls_idx;
   assign vif1.portb_sel       = decode_execute_if.ls_idx;
-  assign vif1.is_signed_mul   = decode_execute_if.is_signed;
+  assign vif1.is_signed_mul   = decode_execute_if.is_signed_mul;
   assign vif1.multiply_type   = decode_execute_if.multiply_type;
   assign vif1.multiply_pos_neg= decode_execute_if.multiply_pos_neg;
   assign vif1.mul_widen_ena   = decode_execute_if.mul_widen_ena;
   assign vif1.high_low        = decode_execute_if.high_low;
   assign vif1.div_type        = decode_execute_if.div_type;
-  assign vif1.is_signed_div   = decode_execute_if.is_signed == SIGNED;
-  assign vif1.out_inv         = decode_execute_if.out_inv;
-  assign vif1.in_inv          = decode_execute_if.in_inv;
+  assign vif1.is_signed_div   = decode_execute_if.is_signed_div;
   assign vif1.mask_type       = decode_execute_if.mask_type;
   assign vif1.mask_32bit      = decode_execute_if.mask_32bit_lane1;
   assign vif1.iota_res        = iif.res1;
@@ -259,37 +275,32 @@ module rv32v_execute_stage (
 
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
-  //  | mul_done_ff0 | mul_done_ff1 | mul_done_ff2 | mul_done_ff3;
   assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
   
-  // assign vif1.start
-  // assign vif1.win
-  // assign vif1.woutu
-  // assign vif1.zext_w
-  assign vif0.vd_widen  = decode_execute_if.vd_widen;
-  assign vif0.is_signed = decode_execute_if.is_signed;
-  assign vif0.index     = decode_execute_if.vs2_offset0;
-  assign vif0.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif0.vd_widen    = decode_execute_if.vd_widen;
+  assign vif0.is_signed   = decode_execute_if.is_signed;
+  assign vif0.index       = decode_execute_if.vs2_offset0;
+  assign vif0.vd_narrow   = decode_execute_if.vd_narrow;
   assign vif0.decode_done = decode_execute_if.decode_done;
-  // assign vif0.mul_ena = decode_execute_if.fu_type == MUL;
 
-  // assign vif0.mask_32bit = decode_execute_if.vs2_lane0;
-
-  // assign vif0.mask      = decode_execute_if.mask0;
-
-  assign vif1.vd_widen  = decode_execute_if.vd_widen;
-  assign vif1.is_signed = decode_execute_if.is_signed;
-  assign vif1.index     = decode_execute_if.vs2_offset1;
-  assign vif1.vd_narrow = decode_execute_if.vd_narrow;
+  assign vif1.vd_widen    = decode_execute_if.vd_widen;
+  assign vif1.is_signed   = decode_execute_if.is_signed;
+  assign vif1.index       = decode_execute_if.vs2_offset1;
+  assign vif1.vd_narrow   = decode_execute_if.vd_narrow;
   assign vif1.decode_done = decode_execute_if.decode_done;
-  // assign vif1.mul_ena = decode_execute_if.fu_type == MUL;
 
-  // assign vif1.mask_32bit = decode_execute_if.vs2_lane1;
-   
-
-  // assign vif1.mask      = decode_execute_if.mask1;
-
-
+  logic [31:0] mout;
+  mask_coherence MCOH(
+    .m0(vif0.mask_bit_set_ff1), 
+    .m1(vif1.mask_bit_set_ff1), 
+    .m2(vif0.mask_bit_set), 
+    .m3(vif1.mask_bit_set),
+    .m0_data(vif0.wdata_m_ff1), 
+    .m1_data(vif1.wdata_m_ff1), 
+    .m2_data(vif0.lane_result), 
+    .m3_data(vif1.lane_result),
+    .mout(mout)
+  );
 
 
   // Address Buffer
@@ -417,17 +428,19 @@ module rv32v_execute_stage (
   assign vif1.mul_wait = mlu_ff0 | mlu_ff1 | mlu_ff2;
 
   // Pipeline Latch
-  assign ls = decode_execute_if.load | decode_execute_if.store;
+  assign ls = load_ena | store_ena;
   //assign aluresult0 = ls ? vif0.in_addr : vif0.lane_result;
   //assign aluresult1 = ls ? vif0.out_addr : vif1.lane_result;
   assign aluresult0 = vif0.lane_result;
   assign aluresult1 = vif1.lane_result;
+  logic move_sel;
+  assign move_sel = decode_execute_if.vmv_type != NOT_VMV;
   // assign latch_ena = vif0.mul_on ? vif0.done_mu : ~hu_if.stall_ex;
   assign latch_ena = ~hu_if.stall_ex;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
-      execute_memory_if.load        <= '0;
-      execute_memory_if.store       <= '0;
+      execute_memory_if.load_ena        <= '0;
+      execute_memory_if.store_ena       <= '0;
       execute_memory_if.storedata0  <= '0;
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
@@ -444,6 +457,9 @@ module rv32v_execute_stage (
       execute_memory_if.single_bit_write  <= '0;
       execute_memory_if.next_vtype_csr  <= '0;
       execute_memory_if.next_avl_csr  <= '0;
+      execute_memory_if.eew_loadstore     <= '0;
+      execute_memory_if.ls_idx     <= '0;
+      execute_memory_if.segment_type      <= '0;
 
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
@@ -453,8 +469,8 @@ module rv32v_execute_stage (
       execute_memory_if.tb_line_num        <= 0;
 
     end else if (hu_if.flush_ex) begin
-      execute_memory_if.load        <= '0;
-      execute_memory_if.store       <= '0;
+      execute_memory_if.load_ena        <= '0;
+      execute_memory_if.store_ena       <= '0;
       execute_memory_if.storedata0  <= '0;
       execute_memory_if.storedata1  <= '0;
       execute_memory_if.aluresult0  <= '0;
@@ -471,6 +487,9 @@ module rv32v_execute_stage (
       execute_memory_if.single_bit_write  <= '0;
       execute_memory_if.next_vtype_csr    <= '0;
       execute_memory_if.next_avl_csr      <= '0;
+      execute_memory_if.eew_loadstore     <= '0;
+      execute_memory_if.ls_idx     <= '0;
+      execute_memory_if.segment_type      <= '0;
 
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
@@ -482,39 +501,47 @@ module rv32v_execute_stage (
 
 
     end else if (latch_ena) begin
-      execute_memory_if.load        <= decode_execute_if.load;
-      execute_memory_if.store       <= decode_execute_if.store;
+      execute_memory_if.load_ena    <= load_ena;
+      execute_memory_if.store_ena   <= store_ena;
       execute_memory_if.storedata0  <= decode_execute_if.storedata0;
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         decode_execute_if.reduction_ena ? reduction_alu_result : 
-                                        decode_execute_if.fu_type == MOVE_SCALAR ? decode_execute_if.vs1_lane0 :
-                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane0 : aluresult0;
+                                        decode_execute_if.vmv_type == S_X ? decode_execute_if.vs1_lane0 :
+                                        move_sel ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
                                         zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : 
-                                        decode_execute_if.fu_type == MOVE ? decode_execute_if.vs2_lane1 : aluresult1;
+                                        move_sel ? decode_execute_if.vs2_lane1 : aluresult1;
       // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
-      execute_memory_if.wen[0]      <= next_wen[0];
-      execute_memory_if.wen[1]      <= next_wen[1];
-      execute_memory_if.woffset0    <= next_woffset0;
-      execute_memory_if.woffset1    <= next_woffset1;
-      execute_memory_if.config_type <= decode_execute_if.config_type;
-      execute_memory_if.vtype       <= decode_execute_if.vtype;
+      execute_memory_if.wen[0]            <= next_wen[0];
+      execute_memory_if.wen[1]            <= next_wen[1];
+      execute_memory_if.woffset0          <= next_woffset0;
+      execute_memory_if.woffset1          <= next_woffset1;
+      execute_memory_if.config_type       <= decode_execute_if.config_type;
+      execute_memory_if.vtype             <= decode_execute_if.vtype;
 
-      execute_memory_if.vl          <= decode_execute_if.vl;
+      execute_memory_if.vl                <= decode_execute_if.vl;
       // execute_memory_if.vd          <= decode_execute_if.vd;
-      execute_memory_if.vd          <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
+      execute_memory_if.vd                <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
       // execute_memory_if.eew         <= decode_execute_if.eew;
-      execute_memory_if.eew         <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
+      execute_memory_if.eew               <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
-      execute_memory_if.next_vtype_csr  <= decode_execute_if.next_vtype_csr;
-      execute_memory_if.next_avl_csr  <= decode_execute_if.next_avl_csr;
+      execute_memory_if.next_vtype_csr    <= decode_execute_if.next_vtype_csr;
+      execute_memory_if.next_avl_csr      <= decode_execute_if.next_avl_csr;
 
-      execute_memory_if.rd_wen  <= decode_execute_if.rd_wen;
-      execute_memory_if.rd_sel  <= decode_execute_if.rd_sel;
-      execute_memory_if.rd_data <= decode_execute_if.rd_data;
+      execute_memory_if.eew_loadstore     <= decode_execute_if.eew_loadstore;
+      execute_memory_if.ls_idx            <= decode_execute_if.ls_idx ;
+      execute_memory_if.segment_type      <= decode_execute_if.segment_type;
+
+      execute_memory_if.rd_wen            <= decode_execute_if.rd_wen;
+      execute_memory_if.rd_sel            <= decode_execute_if.rd_sel;
+      // refactor this later it's too much work right now
+      execute_memory_if.rd_data           <= decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_POPC) ?  aluresult0 :
+                                             decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_FIRST) ? mout : 
+                                             decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
+                                             32'hDEAD;
 
             //TESTBENCH ONLY
       execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
@@ -540,4 +567,24 @@ module rv32v_execute_stage (
     end
   end
 
+endmodule
+
+
+module mask_coherence(
+  input logic  m0, m1, m2,  m3, //mask_bit_found signals
+  input logic [31:0] m0_data, m1_data, m2_data,  m3_data, // mask bits from each iteration
+  output logic [31:0] mout
+);
+
+  always_comb begin
+    case ({m3, m2, m1, m0})
+    4'b0000: mout = 32'hFFFF_FFFF;
+    4'b1000: mout = m3_data + 95;
+    4'b0100: mout = m2_data + 63;
+    4'b0010: mout = m1_data + 31;
+    4'b0001: mout = m0_data;
+    default: mout = 32'hDEAD;
+    endcase
+  end
+  
 endmodule

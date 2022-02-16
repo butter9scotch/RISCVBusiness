@@ -38,7 +38,8 @@ module rv32v_memory_stage (
   import rv32i_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
-  logic [31:0] data0, wdat0, wdat1;
+  logic [31:0] data0, wdat0, wdat1, final_wdat0, final_wdat1;
+  logic [5:0] addr0_shifted, addr1_shifted;
 
   address_scheduler_if asif ();
 
@@ -47,23 +48,35 @@ module rv32v_memory_stage (
 
   assign hu_if.busy_mem = asif.busy;
   // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
+  assign addr0_shifted = asif.addr0[1:0] << 3;
+  assign addr1_shifted = asif.addr1[1:0] << 3;
   assign hu_if.exception_mem = asif.exception;
-  assign wdat0 = execute_memory_if.load ? data0 : execute_memory_if.aluresult0;
-  assign wdat1 = execute_memory_if.load ? cif.dmemload : execute_memory_if.aluresult1;
+  assign final_wdat0 = execute_memory_if.segment_type ? data0 >> addr0_shifted : // data0 / 8bit
+                       data0; 
+  assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> addr1_shifted :
+                       cif.dmemload; 
+  assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
+  assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
 
   // To address scheduler
   assign asif.addr0      = execute_memory_if.aluresult0;
   assign asif.addr1      = execute_memory_if.aluresult1;
   assign asif.storedata0 = execute_memory_if.storedata0;
   assign asif.storedata1 = execute_memory_if.storedata1;
-  assign asif.sew        = memory_writeback_if.sew; // TODO: From CSR
-  assign asif.load       = execute_memory_if.load;
-  assign asif.store      = execute_memory_if.store;
+  //assign asif.sew        = memory_writeback_if.eew_loadstore; // TODO: From CSR
+  assign asif.sew        = execute_memory_if.eew; // TODO: From CSR
+  assign asif.eew_loadstore  = execute_memory_if.eew_loadstore; 
+  assign asif.load_ena       = execute_memory_if.load_ena;
+  assign asif.store_ena      = execute_memory_if.store_ena;
   assign asif.dhit       = cif.dhit;
   assign asif.returnex   = returnex;
+  assign asif.woffset1   = execute_memory_if.woffset1;
+  assign asif.vl         = execute_memory_if.vl;
+  assign asif.ls_idx     = execute_memory_if.ls_idx;
+  assign asif.segment_type  = execute_memory_if.segment_type;
   // To dcache
   assign cif.dmemstore = asif.final_storedata;
-  assign cif.dmemaddr  = asif.final_addr;
+  assign cif.dmemaddr  = {asif.final_addr[31:2], 2'd0};
   assign cif.ren       = asif.ren;
   assign cif.wen       = asif.wen;
   assign cif.byte_ena  = asif.byte_ena;

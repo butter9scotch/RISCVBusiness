@@ -541,18 +541,16 @@ package rv32i_types_pkg;
   typedef logic [7:0] byte_t;
   typedef byte_t [VLENB-1:0]  vreg_t;
 
-  typedef enum logic [3:0] {
-    ARITH,
-    RED,
-    MUL,
-    DIV,
-    MASK,
-    PEM,
-    FIXED_POINT,
-    LOAD_UNIT,
-    STORE_UNIT,
-    MOVE, 
-    MOVE_SCALAR
+  typedef enum logic [7:0] {
+    ARITH       = 8'b0000_0001,
+    RED         = 8'b0000_0010,
+    MUL         = 8'b0000_0100,
+    DIV         = 8'b0000_1000,
+    MASK        = 8'b0001_0000,
+    PEM         = 8'b0010_0000,
+    LOAD_UNIT   = 8'b0100_0000,
+    STORE_UNIT  = 8'b1000_0000
+    // MOVE
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -568,8 +566,7 @@ package rv32i_types_pkg;
     VALU_MERGE = 4'b1001,
     // VALU_MOVE  = 4'b1010,
     VALU_MM    = 4'b1011,
-    VALU_EXT   = 4'b1100,
-    VALU_MASK   = 4'b1101
+    VALU_EXT   = 4'b1100
   } valuop_t;
 
   typedef enum logic [2:0] {
@@ -599,16 +596,21 @@ package rv32i_types_pkg;
   } athresult_t;
 
   typedef enum logic [3:0] {
-    VMASK_AND   = 4'b0000,
-    VMASK_OR    = 4'b0001,
-    VMASK_XOR   = 4'b0010,
-    VMASK_POPC  = 4'b0011,
-    VMASK_FIRST = 4'b0100,
-    VMASK_SBF   = 4'b0101,
-    VMASK_SIF   = 4'b0110,
-    VMASK_SOF   = 4'b0111,
-    VMASK_IOTA  = 4'b1000,
-    VMASK_ID    = 4'b1001
+    VMASK_AND,
+    VMASK_NAND,
+    VMASK_ANDN,
+    VMASK_OR,
+    VMASK_NOR,
+    VMASK_ORN,
+    VMASK_XOR,
+    VMASK_XNOR,
+    VMASK_POPC,
+    VMASK_FIRST,
+    VMASK_SBF,
+    VMASK_SIF,
+    VMASK_SOF,
+    VMASK_IOTA,
+    VMASK_ID  
   } ma_t;
 
   typedef enum logic [2:0] {
@@ -669,7 +671,8 @@ package rv32i_types_pkg;
     TWO = 1,
     FOUR = 2, 
     EIGHT = 3,
-    SCALAR,
+    X_S,
+    S_X,
     NOT_VMV = 7
   } vmv_type_t;
 

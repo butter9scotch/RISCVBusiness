@@ -355,16 +355,15 @@ package rv32v_types_pkg;
 
   typedef enum logic [3:0] {
     ARITH,
-    RED,
+    RED,  //WRONG
     MUL,
     DIV,
     MASK,
     PEM,
-    FIXED_POINT,
     LOAD_UNIT,
     STORE_UNIT,
     MOVE,
-    MADD,
+    MADD, //WRONG
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -381,7 +380,6 @@ package rv32v_types_pkg;
     // VALU_MOVE  = 4'b1010,
     VALU_MM    = 4'b1011,
     VALU_EXT   = 4'b1100,
-    VALU_MASK   = 4'b1101
   } valuop_t;
 
   typedef enum logic [2:0] {
@@ -411,16 +409,21 @@ package rv32v_types_pkg;
   } athresult_t;
 
   typedef enum logic [3:0] {
-    VMASK_AND   = 4'b0000,
-    VMASK_OR    = 4'b0001,
-    VMASK_XOR   = 4'b0010,
-    VMASK_POPC  = 4'b0011,
-    VMASK_FIRST = 4'b0100,
-    VMASK_SBF   = 4'b0101,
-    VMASK_SIF   = 4'b0110,
-    VMASK_SOF   = 4'b0111,
-    VMASK_IOTA  = 4'b1000,
-    VMASK_ID    = 4'b1001
+    VMASK_AND,
+    VMASK_NAND,
+    VMASK_ANDN,
+    VMASK_OR,
+    VMASK_NOR,
+    VMASK_ORN,
+    VMASK_XOR,
+    VMASK_XNOR,
+    VMASK_POPC,
+    VMASK_FIRST,
+    VMASK_SBF,
+    VMASK_SIF,
+    VMASK_SOF,
+    VMASK_IOTA,
+    VMASK_ID    
   } ma_t;
 
   typedef enum logic [2:0] {
@@ -481,6 +484,8 @@ package rv32v_types_pkg;
     TWO = 1,
     FOUR = 2, 
     EIGHT = 3,
+    X_S,
+    S_X,
     NOT_VMV = 7
   } vmv_type_t;
 
