@@ -31,25 +31,29 @@ module rounder(
    always_comb begin
       round_amount = 0;
       if(fraction[24:2] != '1) begin
-	 if(frm == RNE) begin
-	    if(fraction[1:0] == 2'b11)
-	      round_amount = 1;
-	 end
-	 else if(frm == RZE) begin
-	    round_amount = 0;
-	 end
-	 else if(frm == RDN) begin
-	 if(sign == 1 && ((fraction[0] == 1) || (fraction[1] == 1)))
-	    round_amount = 1;
-	 end
-	 else if(frm == RUP) begin
-	    if(sign == 0 && ((fraction[0] == 1) || (fraction[1] == 1)))
-	      round_amount = 1;
-	 end
-	 else if(frm == RMM) begin
-	    if(fraction[1] == 1)
-	      round_amount = 1;
-	 end
+	      if(frm == RNE) begin
+	          if(fraction[1:0] == 2'b11) begin
+	              round_amount = 1;
+            end
+	      end
+	      else if(frm == RZE) begin
+	          round_amount = 0;
+	      end
+	      else if(frm == RDN) begin
+	          if(sign == 1 && ((fraction[0] == 1) || (fraction[1] == 1))) begin
+	              round_amount = 1;
+            end
+	      end
+	      else if(frm == RUP) begin
+	          if(sign == 0 && ((fraction[0] == 1) || (fraction[1] == 1))) begin
+	              round_amount = 1;
+            end
+	      end
+	      else if(frm == RMM) begin
+	          if(fraction[1] == 1) begin
+	              round_amount = 1;
+            end
+	      end
       end // if (fraction[24:2] != '1)
    end // always_comb
 

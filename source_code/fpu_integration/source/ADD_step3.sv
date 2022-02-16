@@ -41,13 +41,14 @@ module ADD_step3
    //reg        ovf;
    //reg        unf;
    
-
+   //normalize fraction
    left_shift shift_left (
 			  .fraction(frac_in),
 			  .result(shifted_frac),
 			  .shifted_amount(shifted_amount)
 			  );
-   
+
+   //subtract exponent if fraction is normalized 
    subtract SUB (
 		 .exp1(exponent_max_in),
 		 .shifted_amount(shifted_amount),
@@ -61,17 +62,18 @@ module ADD_step3
       ovf = 0;
       unf = 0;
       if(carry_out == 1) begin
-	 round_this = frac_in[25:1] + 1'b1;
-	 exp_out    = exponent_max_in + 1;
-	 if((exponent_max_in == 8'b11111110) && (~unf_in)) ovf = 1;
+	      round_this = frac_in[25:1] + 1'b1;
+	      exp_out    = exponent_max_in + 1;
+	      if((exponent_max_in == 8'b11111110) && (~unf_in)) ovf = 1;
       end
       else begin
-	 round_this = shifted_frac[24:0];
-	 exp_out    = exp_minus_shift_amount;
-	 if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
+	      round_this = shifted_frac[24:0];
+	      exp_out    = exp_minus_shift_amount;
+	      if(({1'b0, exponent_max_in} < shifted_amount) && (~ovf_in)) unf = 1;
       end
    end
-reg [31:0] fp_option;
+
+   reg [31:0] fp_option;
    reg [31:0] round_out;
    
    rounder ROUND (
