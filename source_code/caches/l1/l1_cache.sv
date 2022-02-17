@@ -51,7 +51,7 @@ module l1_cache #(
     // 6. Test for ASSOC = 1
     
     import rv32i_types_pkg::*;
-
+    
     // local parameters
     localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
     localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;
