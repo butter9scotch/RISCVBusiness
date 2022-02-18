@@ -235,7 +235,7 @@ module control_unit
   // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
   assign cu_if.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
   //upper is 1, lower is 0
-  assign cu_if.high_low_sel = ~(|instr_r.funct3[1:0]); 
+  assign cu_if.high_low_sel = (|instr_r.funct3[1:0]); 
 
   always_comb begin
     case(instr_r.funct3)

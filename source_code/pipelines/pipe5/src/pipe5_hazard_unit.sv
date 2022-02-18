@@ -27,12 +27,12 @@ module pipe5_hazard_unit (
   assign hazard_if.ifence_flush = hazard_if.ifence && (~hazard_if.dflushed || ~hazard_if.iflushed);
   assign hazard_if.if_id_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
   assign hazard_if.id_ex_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
-  assign hazard_if.ex_mem_flush = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
+  assign hazard_if.ex_mem_flush = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush | hazard_if.stall_ex;
 
 
  // RAW hazard because of load -> Stall the pipe
   assign load_stall = (((hazard_if.reg_rd == hazard_if.reg_rs1) || (hazard_if.reg_rd == hazard_if.reg_rs2)) & hazard_if.load) ? 1'b1 : 1'b0;
-  assign hazard_if.stall = load_stall & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush;
+  assign hazard_if.stall = load_stall & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush | hazard_if.stall_ex;
 
  //Exceptions
   assign e_fetch_stage       = hazard_if.fault_insn | hazard_if.mal_insn | hazard_if.fault_l | hazard_if.fault_s;

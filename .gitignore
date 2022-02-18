@@ -39,3 +39,4 @@ _vmake
 *.qpg
 
 open_files.sh
+source_code/rv32v/tb/stuff.txt

@@ -22,23 +22,31 @@
 *   Description:  Test of basic branching behavior
 */
 
-#include "riscv_test.h"
 
-RVTEST_DATA_DUMP_BEGIN
+.section .text
+.global _start
 
-RVTEST_CODE_BEGIN
-
-main:
+_start:
     li x1, 5
     li x2, 5
     mul x3, x1, x2
     la x6, tdat0
     sw x3, 0(x6)
 
-RVTEST_CODE_END
+    la      t1, tohost
+    li      t2, 1
+    sw      t2, 0(t1)
 
+
+
+
+.section .tohost, "aw", @progbits
+.globl tohost
+.align 4
+tohost: .dword 0
+.globl fromhost
+.align 4
+fromhost: .dword 0
 .data
 #test data goes here
 tdat0:  .word 0x00000080
-
-RVTEST_DATA_DUMP_END

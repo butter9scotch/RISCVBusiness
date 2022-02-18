@@ -37,19 +37,23 @@ module divide_unit (
   rv32v_divider DVD (
     .CLK(CLK),
     .nRST(nRST),
-    .dividend(dif.rs2_data),
-    .divisor(dif.rs1_data),
+    .dividend(dif.rs1_data),
+    .divisor(dif.rs2_data),
     .is_signed(dif.is_signed_div),
     .start(dif.start_div),
     .finished(done),
     .quotient(quotient),
     .remainder(remainder)
   );
+  logic [31:0] q;
 
   assign dif.busy_du      = (start_reg | dif.start_div) & !done; 
-  assign dif.wdata_du     = dif.div_type ? quotient : remainder;
-  assign dif.exception_du = dif.rs1_data == 0;  // Divide by 0
+  assign dif.wdata_du     = dif.div_type ? q : remainder;
+  assign dif.exception_du = 0;  // Divide by 0
   assign dif.done_du      = done;  
+
+  assign q = (dif.rs2_data == 0) && dif.is_signed_div  ? 32'hFFFF_FFFF : 
+             (dif.rs2_data == 0) && ~dif.is_signed_div ? 32'h7FFF_FFFF : quotient;
 
   // Fix corner case: Operate only 1 or 2 element consecutively
   always_ff @ (posedge CLK, negedge nRST) begin

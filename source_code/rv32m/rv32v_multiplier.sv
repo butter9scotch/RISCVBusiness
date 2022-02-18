@@ -224,6 +224,7 @@ module rv32v_multiplier
 	assign temp_product = cout13 + sum13;
 	assign temp_product2 = is_signed_reg2[0] == 0 && multiplier_reg2[31] ? temp_product + ({{33{multiplicand_mod2[31]}},multiplicand_mod2} << 32) : temp_product; // plus extra 1M
 	assign product = adjust_product2 ? (~temp_product2)+1: temp_product2;
+	// assign product = adjust_product2 ?  temp_product2 : (~temp_product2)+1;
 
         // Finished logic (delay start by 3 cycles)
 	always_ff @ (posedge CLK, negedge nRST) begin

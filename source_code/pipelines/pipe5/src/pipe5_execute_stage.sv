@@ -139,6 +139,7 @@ module pipe5_execute_stage(
   assign hazard_if.reg_rd = decode_execute_if.reg_rd;
   assign hazard_if.load   = decode_execute_if.dren;
   assign hazard_if.stall_ex = mif.busy_mu | dif.busy_du;
+
   assign hazard_if.div_e = dif.exception_du;
   assign hazard_if.mul_e = mif.exception_mu;
   
@@ -152,13 +153,25 @@ module pipe5_execute_stage(
 
 //=============================DIVIDE===============================
 
+  typedef enum logic [1:0] { OFF, BUSY } div_state_t;
+  div_state_t start_div_state;
+  
   assign dif.rs1_data = alu_port_a;
   assign dif.rs2_data = alu_port_b;    
-  assign dif.start_div = div_ena;
+  assign dif.start_div = div_ena && (start_div_state == OFF);
   assign dif.div_type = decode_execute_if.div_type;
   assign dif.is_signed_div = decode_execute_if.sign_type[0];
 
-
+  always_ff @(posedge CLK or negedge nRST) begin
+    if (~nRST) begin
+      start_div_state = OFF;
+    end else begin
+      case (start_div_state)
+      OFF:  if (div_ena) start_div_state <= BUSY;
+      BUSY: if (dif.done_du) start_div_state <= OFF;
+      endcase
+    end
+  end
 
 //=============================DIVIDE===============================
   logic [31:0] fu_result;
