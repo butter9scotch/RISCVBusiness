@@ -41,24 +41,25 @@ class bus_monitor extends uvm_monitor;
 
       if (bus_if.ren) begin
         tx.rw = '0; // 0 -> read; 1 -> write
-        tx.data = 32'hBAD0BAD0; //fill with garbage data
+        tx.data = 32'hbad2_dada; //fill with garbage data
       end else if (bus_if.wen) begin
         tx.rw = '1; // 0 -> read; 1 -> write
         tx.data = bus_if.wdata;
       end
    
-      `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_MEDIUM)
+      `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
       req_ap.write(tx);
 
       while (bus_if.busy) begin
         @(posedge cif.CLK);  //wait for memory to return
       end
+      #(2); //wait for propagation delays
 
       if (bus_if.ren) begin
         tx.data = bus_if.rdata;
       end
 
-      `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_MEDIUM)
+      `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
       resp_ap.write(tx);
     end
   endtask: run_phase

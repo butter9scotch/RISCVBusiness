@@ -38,7 +38,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
 
     forever begin 
       seq_item_port.get_next_item(req_item);
-      `uvm_info(this.get_name(), $sformatf("Received new sequence item:\n%s", req_item.sprint()), UVM_MEDIUM)
+      `uvm_info(this.get_name(), $sformatf("Received new sequence item:\n%s", req_item.sprint()), UVM_HIGH)
 
       cpu_bus_if.addr = req_item.addr;
       cpu_bus_if.wdata = req_item.data;
@@ -51,11 +51,10 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       cif.clear = '0; 
       cif.flush = '0;
 
-      while (cpu_bus_if.busy == 1'b1) begin
+      do begin
         @(posedge cif.CLK);  //wait for memory to return
-      end
+      end while (cpu_bus_if.busy == 1'b1);
       
-      @(posedge cif.CLK);
       seq_item_port.item_done();
     end
   endtask: run_phase

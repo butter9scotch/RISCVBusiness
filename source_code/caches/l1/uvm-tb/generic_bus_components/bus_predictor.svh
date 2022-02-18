@@ -24,30 +24,33 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
   endfunction
 
   function void write(cpu_transaction t);
+    string str;
     // t is the transaction sent from monitor
     pred_tx = cpu_transaction::type_id::create("pred_tx", this);
     pred_tx.copy(t);
 
-    `uvm_info(this.get_name(), $sformatf("Recevied Transaction:\n%s", pred_tx.sprint()), UVM_MEDIUM)
+    `uvm_info(this.get_name(), $sformatf("Recevied Transaction:\n%s", pred_tx.sprint()), UVM_HIGH)
 
-    `uvm_info(this.get_name(), $sformatf("memory before:\n%p", memory), UVM_MEDIUM)
+    $swriteh(str,"memory before:\n%p",memory);
+    `uvm_info(this.get_name(), str, UVM_HIGH)
 
     if (pred_tx.rw) begin
       // 1 -> write
       memory[pred_tx.addr] = pred_tx.data;
     end else begin
       // 0 -> read
-      pred_tx.data = read_mem(pred_tx.data);
+      pred_tx.data = read_mem(pred_tx.addr);
     end
 
-    `uvm_info(this.get_name(), $sformatf("memory after:\n%p", memory), UVM_MEDIUM)
+    $swriteh(str,"memory after:\n%p",memory);
+    `uvm_info(this.get_name(), str, UVM_HIGH)
 
     // after prediction, the expected output send to the scoreboard 
     pred_ap.write(pred_tx);
   endfunction: write
 
   virtual function word_t read_mem(word_t addr);
-    `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_HIGH)
+    // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)
     return memory[addr];
   endfunction: read_mem
 

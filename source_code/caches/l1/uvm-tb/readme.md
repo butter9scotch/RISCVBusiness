@@ -13,9 +13,18 @@
 - VERBOSITY: selects UVM verbosity for prints 
     - UVM_NONE
     - UVM_LOW
+      - actual and expected values for scoreboard errors
+      - success msg for data matches
     - UVM_MEDIUM
+      - actual and expected values for all scoreboard checks
+      - predictor default values for non-initialized memory
     - UVM_HIGH
+      - all uvm transactions detected in monitors, predictors, scoreboards 
+      - predictor memory before:after
     - UVM_FULL
+      - all connections between analysis ports
+      - all agent sub-object instantiations
+      - all virtual interface accesses to uvm db
     - UVM_DEBUG
 
 ## TB Hierarchy:
@@ -51,3 +60,4 @@ tb_caches_top.sv
 
 ## TODO
 - [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
+- [ ] add a random seed option for random generator

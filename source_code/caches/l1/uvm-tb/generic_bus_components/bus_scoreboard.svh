@@ -36,15 +36,19 @@ class bus_scoreboard extends uvm_scoreboard;
     cpu_transaction actual_tx;  //transaction from DUT
     forever begin
       expected_fifo.get(expected_tx);
+      `uvm_info(this.get_name(), $sformatf("Recieved new expected value:\n%s", expected_tx.sprint()), UVM_HIGH);
+
       actual_fifo.get(actual_tx);
+      `uvm_info(this.get_name(), $sformatf("Recieved new actual value:\n%s", actual_tx.sprint()), UVM_HIGH);
 
       if(expected_tx.compare(actual_tx)) begin
         m_matches++;
-        // `uvm_info("CPU Scoreboard", "Data Match", UVM_LOW);
+        `uvm_info(this.get_name(), "Success: Data Match", UVM_LOW);
+        `uvm_info(this.get_name(), $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_MEDIUM)
       end else begin
         m_mismatches++;
-        `uvm_error($sformatf("%s", this.get_name()), "Error: Data Mismatch");
-        `uvm_info($sformatf("%s", this.get_name()), $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_MEDIUM)
+        `uvm_error(this.get_name(), "Error: Data Mismatch");
+        `uvm_info(this.get_name(), $sformatf("\nExpected:\n%s\nReceived:\n%s",expected_tx.sprint(), actual_tx.sprint()), UVM_LOW)
       end
     end
   endtask

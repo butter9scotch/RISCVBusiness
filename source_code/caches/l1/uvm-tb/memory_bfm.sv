@@ -7,7 +7,7 @@ module memory_bfm(
 
     always_comb begin
         bus_if.busy = '0;
-        bus_if.rdata = 32'hbad9_bad9;
+        bus_if.rdata = 32'habcd_1234;
     end
 
 
