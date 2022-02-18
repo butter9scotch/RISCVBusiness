@@ -32,6 +32,9 @@ module tb_caches_top ();
   generic_bus_if l1_bus_if();
   l1_cache_wrapper_if cpu_cif(clk);
 
+  //TODO: HOW DO WE GET THE CIF (FLUSH, CLEAR) SIGNALS FROM THE L1 TO THE L2/MEMORY
+  l1_cache_wrapper_if mem_cif(clk);
+
   // instantiate the memory bus functional model
   memory_bfm bfm(
     .cif(cpu_cif.cache),
@@ -51,6 +54,7 @@ module tb_caches_top ();
 
   initial begin
     uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cpu_cif", cpu_cif);
+    uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "mem_cif", mem_cif);
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "l1_bus_if", l1_bus_if);
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "cpu_bus_if", cpu_bus_if);
     run_test();

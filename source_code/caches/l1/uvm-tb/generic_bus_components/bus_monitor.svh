@@ -50,10 +50,9 @@ class bus_monitor extends uvm_monitor;
       `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
       req_ap.write(tx);
 
-      while (bus_if.busy) begin
-        @(posedge cif.CLK);  //wait for memory to return
-      end
-      #(2); //wait for propagation delays
+      do begin
+        @(posedge cif.CLK); //wait for memory to return
+      end while (bus_if.busy);
 
       if (bus_if.ren) begin
         tx.data = bus_if.rdata;

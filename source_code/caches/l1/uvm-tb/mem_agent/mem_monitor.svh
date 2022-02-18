@@ -19,10 +19,9 @@ class mem_monitor extends bus_monitor;
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get interface from database
-    //TODO: HOW DO WE GET THE CIF (FLUSH, CLEAR) SIGNALS FROM THE L1 TO THE L2/MEMORY
-    // if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
-    //   `uvm_fatal("CPU Monitor/cif", "No virtual interface specified for this test instance");
-	// 	end
+    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "mem_cif", cif) ) begin
+      `uvm_fatal("Mem Monitor/cif", "No virtual interface specified for this test instance");
+		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", bus_if) ) begin
       `uvm_fatal("Mem Monitor/cpu_bus_if", "No virtual interface specified for this test instance");
 		end
