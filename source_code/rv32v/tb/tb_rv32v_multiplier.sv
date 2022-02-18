@@ -59,7 +59,7 @@ module tb_rv32v_multiplier ();
         endtask
 
 	initial begin
-		tb_test_case = new[9];
+		tb_test_case = new[11];
 		// Random multiplier and multiplicand
 		tb_test_case[0].test_name = "Random multiplier and multiplicand";
 		tb_test_case[0].test_multiplicand = 32'd183978223;
@@ -105,7 +105,17 @@ module tb_rv32v_multiplier ();
 		tb_test_case[8].test_multiplicand = 32'd38013;
 		tb_test_case[8].test_multiplier = '1;
 		tb_test_case[8].test_is_signed = 2'b00;	
-	end
+		//expected result: 0x80004000	
+		tb_test_case[9].test_name = "ERROR - Signed Unsigned";
+		tb_test_case[9].test_multiplicand = 32'hffff_8000;
+		tb_test_case[9].test_multiplier = 32'h8000_0000;
+		tb_test_case[9].test_is_signed = 2'b01;	
+		//expected result: 0x80004000	
+		tb_test_case[10].test_name = "ERROR - Unsigned Signed";
+		tb_test_case[10].test_multiplicand = 32'h8000_0000;
+		tb_test_case[10].test_multiplier = 32'hffff_8000;
+		tb_test_case[10].test_is_signed = 2'b10;	end
+
 	initial begin
 		tb_multiplier = '0;
 		tb_multiplicand = '0;
