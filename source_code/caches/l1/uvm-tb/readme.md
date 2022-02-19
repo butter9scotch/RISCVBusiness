@@ -60,4 +60,5 @@ tb_caches_top.sv
 
 ## TODO
 - [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
+  - [ ] how to randomize what values we have in default memory and still predict
 - [ ] add a random seed option for random generator

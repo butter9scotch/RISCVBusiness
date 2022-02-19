@@ -34,7 +34,6 @@ class bus_monitor extends uvm_monitor;
     forever begin
       cpu_transaction tx;
       @(posedge cif.CLK);
-      #(2); // propagation delay
       if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
         tx = cpu_transaction::type_id::create("tx");
@@ -52,9 +51,9 @@ class bus_monitor extends uvm_monitor;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
-        do begin
+        while (bus_if.busy) begin
           @(posedge cif.CLK); //wait for memory to return
-        end while (bus_if.busy);
+        end
 
         if (bus_if.ren) begin
           tx.data = bus_if.rdata;

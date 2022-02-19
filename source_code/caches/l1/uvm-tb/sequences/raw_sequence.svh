@@ -25,7 +25,7 @@ class raw_sequence extends uvm_sequence #(cpu_transaction);
     prevAddr = '0;
     
     // repeat twenty randomized test cases
-    repeat(10) begin
+    repeat(20) begin
       start_item(req_item);
       if(!req_item.randomize() with {
         rw == isWrite; 
