@@ -33,33 +33,36 @@ class bus_monitor extends uvm_monitor;
 
     forever begin
       cpu_transaction tx;
-      @(posedge bus_if.ren, posedge bus_if.wen);
-      // captures activity between the driver and DUT
-      tx = cpu_transaction::type_id::create("tx");
+      @(posedge cif.CLK);
+      #(2); // propagation delay
+      if (bus_if.ren || bus_if.wen) begin
+        // captures activity between the driver and DUT
+        tx = cpu_transaction::type_id::create("tx");
 
-      tx.addr = bus_if.addr;
+        tx.addr = bus_if.addr;
 
-      if (bus_if.ren) begin
-        tx.rw = '0; // 0 -> read; 1 -> write
-        tx.data = 32'hbad2_dada; //fill with garbage data
-      end else if (bus_if.wen) begin
-        tx.rw = '1; // 0 -> read; 1 -> write
-        tx.data = bus_if.wdata;
+        if (bus_if.ren) begin
+          tx.rw = '0; // 0 -> read; 1 -> write
+          tx.data = 32'hbad2_dada; //fill with garbage data
+        end else if (bus_if.wen) begin
+          tx.rw = '1; // 0 -> read; 1 -> write
+          tx.data = bus_if.wdata;
+        end
+    
+        `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        req_ap.write(tx);
+
+        do begin
+          @(posedge cif.CLK); //wait for memory to return
+        end while (bus_if.busy);
+
+        if (bus_if.ren) begin
+          tx.data = bus_if.rdata;
+        end
+
+        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        resp_ap.write(tx);
       end
-   
-      `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
-      req_ap.write(tx);
-
-      do begin
-        @(posedge cif.CLK); //wait for memory to return
-      end while (bus_if.busy);
-
-      if (bus_if.ren) begin
-        tx.data = bus_if.rdata;
-      end
-
-      `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
-      resp_ap.write(tx);
     end
   endtask: run_phase
 
