@@ -111,7 +111,7 @@ module tb_rv32v_multiplier ();
 		tb_test_case[9].test_multiplier = 32'h8000_0000;
 		tb_test_case[9].test_is_signed = 2'b01;	
 		//expected result: 0x80004000	
-		tb_test_case[10].test_name = "ERROR - Unsigned Signed";
+		tb_test_case[10].test_name = "WORKING - Unsigned Signed";
 		tb_test_case[10].test_multiplicand = 32'h8000_0000;
 		tb_test_case[10].test_multiplier = 32'hffff_8000;
 		tb_test_case[10].test_is_signed = 2'b10;	end
