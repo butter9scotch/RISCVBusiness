@@ -216,5 +216,45 @@ package rv32i_types_pkg;
     UNSIGNED        = 2'b00 
   } sign_type_t;
 
+  typedef struct packed {
+    logic [31:0] rs1_data;
+    logic [31:0] rs2_data;
+    logic start_mu;
+    logic high_low_sel;
+    logic decode_done;
+    logic wen;
+    sign_type_t is_signed;
+    logic [4:0] reg_rd;
+  } multiply_unit_input_t;
+
+  typedef struct packed {
+    logic [31:0] rs1_data;
+    logic [31:0] rs2_data;
+    logic start_div;
+    logic div_type;
+    logic is_signed_div;
+    logic wen;
+    logic [4:0] reg_rd;
+  } divide_unit_input_t;
+  
+  typedef struct packed {
+    // aluop_t aluop;
+    logic [31:0] port_a;
+    logic [31:0] port_b;
+  } alu_input_t;
+
+  typedef struct packed {
+    logic [31:0] port_a;
+    logic [31:0] port_b;
+    logic [31:0] store_data;
+    load_t load_type;
+    logic byte_en;
+    logic dren;
+    logic dwen;
+    logic wen;
+    logic [4:0] reg_rd;
+  } loadstore_unit_input_t;
+
+
 endpackage
 `endif
