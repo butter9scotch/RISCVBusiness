@@ -34,7 +34,7 @@ module divide_unit (
   logic start_reg, done;
   logic [31:0] quotient, remainder;
 
-  rv32v_divider DVD (
+  divider DVD (
     .CLK(CLK),
     .nRST(nRST),
     .dividend(dif.rs1_data),

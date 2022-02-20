@@ -14,7 +14,7 @@
 *   limitations under the License.
 *
 *
-*   Filename:     rv32v_divider.sv
+*   Filename:     divider.sv
 *
 *   Created by:   Jing Yin See
 *   Email:        see4@purdue.edu
@@ -22,7 +22,7 @@
 *   Description:  Pipelined restoring divider that does not support overlapping 
 */
 
-module rv32v_divider
+module divider
 #(
 	parameter NUM_BITS = 32
 )

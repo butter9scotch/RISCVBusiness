@@ -14,7 +14,7 @@
 *   limitations under the License.
 *
 *
-*   Filename:     rv32v_multiplier.sv
+*   Filename:     multiplier.sv
 *
 *   Created by:   Jing Yin See
 *   Email:        see4@purdue.edu
@@ -22,7 +22,7 @@
 *   Description:  Pipelined wallace tree multiplier that supports overlapping of MUL instr
 */
 
-module rv32v_multiplier
+module multiplier
 (
 	input logic CLK,
 	input logic nRST,

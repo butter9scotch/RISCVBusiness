@@ -37,7 +37,7 @@ module multiply_unit (
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32;  
 
-  rv32v_multiplier MULU (
+  multiplier MULU (
     .CLK(CLK),
     .nRST(nRST),
     .multiplicand(mif.rs2_data),
