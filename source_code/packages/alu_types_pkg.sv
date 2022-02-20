@@ -39,5 +39,11 @@ package alu_types_pkg;
     ALU_SLTU  = 4'b1001
   } aluop_t;
 
+  typedef struct packed {
+    aluop_t aluop;
+    logic [31:0] port_a;
+    logic [31:0] port_b;
+  } alu_input_t;
+  
 endpackage
 `endif

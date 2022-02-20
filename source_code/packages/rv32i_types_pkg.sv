@@ -236,12 +236,6 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
   } divide_unit_input_t;
-  
-  typedef struct packed {
-    // aluop_t aluop;
-    logic [31:0] port_a;
-    logic [31:0] port_b;
-  } alu_input_t;
 
   typedef struct packed {
     logic [31:0] port_a;

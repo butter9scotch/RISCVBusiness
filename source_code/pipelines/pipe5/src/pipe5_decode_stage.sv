@@ -59,7 +59,11 @@ module pipe5_decode_stage (
    // .rmgmt_req_reg_w(rm_if.req_reg_w)
   );
 
-  
+  logic mul_ena, div_ena;
+  assign mul_ena = cu_if.sfu_type == MUL_S;
+  assign div_ena = cu_if.sfu_type == DIV_S;
+
+
   /*******************************************************
   * Reg File Logic
   *******************************************************/
@@ -102,24 +106,24 @@ module pipe5_decode_stage (
   /*******************************************************
   *** ALU and Associated Logic 
   *******************************************************/
-  word_t imm_or_shamt, port_a, port_b, w_data;
+  word_t imm_or_shamt, next_port_a, next_port_b, w_data;
   assign imm_or_shamt = (cu_if.imm_shamt_sel == 1'b1) ? cu_if.shamt : imm_I_ext;
  
   always_comb begin
     case (cu_if.alu_a_sel)
-      2'd0: port_a = rf_if.rs1_data;
-      2'd1: port_a = imm_S_ext;
-      2'd2: port_a = fetch_decode_if.pc;
-      2'd3: port_a = '0; //Not Used 
+      2'd0: next_port_a = rf_if.rs1_data;
+      2'd1: next_port_a = imm_S_ext;
+      2'd2: next_port_a = fetch_decode_if.pc;
+      2'd3: next_port_a = '0; //Not Used 
     endcase
   end
  
   always_comb begin
     case(cu_if.alu_b_sel)
-      2'd0: port_b = rf_if.rs1_data;
-      2'd1: port_b = rf_if.rs2_data;
-      2'd2: port_b = imm_or_shamt;
-      2'd3: port_b = cu_if.imm_U;
+      2'd0: next_port_b = rf_if.rs1_data;
+      2'd1: next_port_b = rf_if.rs2_data;
+      2'd2: next_port_b = imm_or_shamt;
+      2'd3: next_port_b = cu_if.imm_U;
     endcase
   end
 
@@ -174,7 +178,6 @@ module pipe5_decode_stage (
         decode_execute_if.rs1_data                  <='h0; 
         decode_execute_if.rs2_data                  <='h0; 
         decode_execute_if.lui_instr                 <='h0;
-        decode_execute_if.aluop                     <=aluop_t'('h0); 
         decode_execute_if.reg_file_wdata            <='h0; 
         decode_execute_if.w_sel                     <='h0; 
         decode_execute_if.wen                       <='h0; 
@@ -231,7 +234,6 @@ module pipe5_decode_stage (
             decode_execute_if.rs1_data                  <='h0; 
             decode_execute_if.rs2_data                  <='h0; 
             decode_execute_if.lui_instr                 <='h0;
-            decode_execute_if.aluop                     <=aluop_t'('h0); 
             decode_execute_if.reg_file_wdata            <='h0; 
             decode_execute_if.w_sel                     <='h0; 
             decode_execute_if.wen                       <='h0; 
@@ -286,9 +288,8 @@ module pipe5_decode_stage (
             decode_execute_if.rs2_data                  <= rf_if.rs2_data;
             decode_execute_if.lui_instr                 <= cu_if.lui_instr;
             //ALU
-            decode_execute_if.port_a                    <= port_a;
-            decode_execute_if.port_b                    <= port_b;
-            decode_execute_if.aluop                     <= cu_if.alu_op;
+            decode_execute_if.port_a                    <= next_port_a;
+            decode_execute_if.port_b                    <= next_port_b;
             //REG_FILE/ WRITEBACK
             decode_execute_if.reg_file_wdata            <= w_data;
             decode_execute_if.w_sel                     <= cu_if.w_sel;
@@ -350,24 +351,102 @@ module pipe5_decode_stage (
     if (~nRST) begin
           decode_execute_if.sign_type <= SIGNED;
           decode_execute_if.sfu_type <= ARITH_S;
-          decode_execute_if.high_low_sel <= 0;
+          // decode_execute_if.high_low_sel <= 0;
           decode_execute_if.div_type <= 0;
     end else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
           decode_execute_if.sign_type <= SIGNED;
           decode_execute_if.sfu_type <= ARITH_S;
-          decode_execute_if.high_low_sel <= 0;
+          // decode_execute_if.high_low_sel <= 0;
           decode_execute_if.div_type <= 0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
           decode_execute_if.sign_type <= cu_if.sign_type;
           decode_execute_if.sfu_type <= cu_if.sfu_type;
-          decode_execute_if.high_low_sel <= cu_if.high_low_sel;
+          // decode_execute_if.high_low_sel <= cu_if.high_low_sel;
           decode_execute_if.div_type <= cu_if.div_type;
         end   
     end       
   end
 
+  always @(posedge CLK, negedge nRST) begin : MULTIPLY_UNIT
+    if (~nRST) begin
+      decode_execute_if.multiply.rs1_data <= 0;
+      decode_execute_if.multiply.rs2_data <= 0;
+      decode_execute_if.multiply.start_mu <= 0;
+      decode_execute_if.multiply.high_low_sel <= 0;
+      decode_execute_if.multiply.decode_done <= 0;
+      decode_execute_if.multiply.wen <= 0;
+      decode_execute_if.multiply.is_signed <= SIGNED;
+      decode_execute_if.multiply.reg_rd <= 0;
+    end else begin
+      if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+        decode_execute_if.multiply.rs1_data <= 0;
+        decode_execute_if.multiply.rs2_data <= 0;
+        decode_execute_if.multiply.start_mu <= 0;
+        decode_execute_if.multiply.high_low_sel <= 0;
+        decode_execute_if.multiply.decode_done <= 0;
+        decode_execute_if.multiply.wen <= 0;
+        decode_execute_if.multiply.is_signed <= SIGNED;
+        decode_execute_if.multiply.reg_rd <= 0;
+      end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+        decode_execute_if.multiply.rs1_data       <= rf_if.rs1_data;
+        decode_execute_if.multiply.rs2_data       <= rf_if.rs2_data;
+        decode_execute_if.multiply.start_mu       <= mul_ena;
+        decode_execute_if.multiply.high_low_sel   <= cu_if.high_low_sel;
+        decode_execute_if.multiply.decode_done    <= 0;
+        decode_execute_if.multiply.wen            <= cu_if.wen;
+        decode_execute_if.multiply.is_signed      <= cu_if.sign_type;
+        decode_execute_if.multiply.reg_rd         <= cu_if.reg_rd;
+      end
+    end
+  end
 
+  always @(posedge CLK, negedge nRST) begin : DIVIDE_UNIT
+    if (~nRST) begin
+      decode_execute_if.divide.rs1_data <= 0;
+      decode_execute_if.divide.rs2_data <= 0;
+      decode_execute_if.divide.start_div <= 0;
+      decode_execute_if.divide.div_type <= 0;
+      decode_execute_if.divide.is_signed_div <= 0;
+      decode_execute_if.divide.wen <= 0;
+      decode_execute_if.divide.reg_rd <= 0;
+    end else begin 
+      if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+        decode_execute_if.divide.rs1_data <= 0;
+        decode_execute_if.divide.rs2_data <= 0;
+        decode_execute_if.divide.start_div <= 0;
+        decode_execute_if.divide.div_type <= 0;
+        decode_execute_if.divide.is_signed_div <= 0;
+        decode_execute_if.divide.wen <= 0;
+        decode_execute_if.divide.reg_rd <= 0;
+      end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+        decode_execute_if.divide.rs1_data <= rf_if.rs1_data;
+        decode_execute_if.divide.rs2_data <= rf_if.rs2_data;
+        decode_execute_if.divide.start_div <= div_ena;
+        decode_execute_if.divide.div_type <= cu_if.div_type;
+        decode_execute_if.divide.is_signed_div <= cu_if.sign_type;
+        decode_execute_if.divide.wen <= cu_if.wen;
+        decode_execute_if.divide.reg_rd <= cu_if.reg_rd;
+      end
+    end
+  end
 
+  always @(posedge CLK, negedge nRST) begin : ALU
+    if (~nRST) begin
+        decode_execute_if.alu.aluop <= 0;
+        decode_execute_if.alu.port_a <= 0;
+        decode_execute_if.alu.port_b <= 0;
+    end else begin
+      if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+        decode_execute_if.alu.aluop <= aluop_t'(0);
+        decode_execute_if.alu.port_a <= 0;
+        decode_execute_if.alu.port_b <= 0;
+      end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+        decode_execute_if.alu.aluop <= cu_if.alu_op;
+        decode_execute_if.alu.port_a <= next_port_a;
+        decode_execute_if.alu.port_b <= next_port_b;
+    end
+    end
+  end
 
 endmodule

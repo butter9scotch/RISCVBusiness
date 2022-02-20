@@ -7,7 +7,7 @@
 *   You may obtain a copy of the License at
 *   
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*   a
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -117,7 +117,7 @@ module pipe5_execute_stage(
 
   assign alu_if.port_a = alu_port_a;
   assign alu_if.port_b = alu_port_b;
-  assign alu_if.aluop  = decode_execute_if.aluop;
+  assign alu_if.aluop  = decode_execute_if.alu.aluop;
 
   assign jump_if.base   = (decode_execute_if.j_sel)? decode_execute_if.pc : updated_rs1_data;
   assign jump_if.offset = decode_execute_if.j_offset;
@@ -140,65 +140,103 @@ module pipe5_execute_stage(
   assign hazard_if.load   = decode_execute_if.dren;
   assign hazard_if.stall_ex = mif.busy_mu | dif.busy_du;
 
-  assign hazard_if.div_e = dif.exception_du;
-  assign hazard_if.mul_e = mif.exception_mu;
+  assign hazard_if.div_e = 0;
+  assign hazard_if.mul_e = 0;
   
 //============================MULTIPLY==============================
 
+  word_t mul_alu_port_a;
+  word_t mul_alu_port_b;
+  
+  assign mul_alu_port_a = (decode_execute_if.alu_a_sel == 'd0) ? updated_rs1_data : decode_execute_if.divide.rs1_data;
+  assign mul_alu_port_b = (decode_execute_if.alu_b_sel == 'd0) ? updated_rs1_data 
+                                          : (decode_execute_if.alu_b_sel == 'd1) ? updated_rs2_data : decode_execute_if.divide.rs2_data;
+
   assign mif.rs1_data = alu_port_a;
   assign mif.rs2_data = alu_port_b;
-  assign mif.start_mu = mul_ena;
-  assign mif.high_low_sel = decode_execute_if.high_low_sel;
-  assign mif.is_signed = decode_execute_if.sign_type;
+  assign mif.start_mu = decode_execute_if.multiply.start_mu;
+  assign mif.high_low_sel = decode_execute_if.multiply.high_low_sel;
+  assign mif.is_signed = decode_execute_if.multiply.is_signed;
+  assign mif.decode_done = decode_execute_if.multiply.decode_done;
 
 //=============================DIVIDE===============================
 
   typedef enum logic [1:0] { OFF, BUSY } div_state_t;
   div_state_t start_div_state;
+  word_t div_alu_port_a;
+  word_t div_alu_port_b;
   
-  assign dif.rs1_data = alu_port_a;
-  assign dif.rs2_data = alu_port_b;    
-  assign dif.start_div = div_ena && (start_div_state == OFF);
-  assign dif.div_type = decode_execute_if.div_type;
-  assign dif.is_signed_div = decode_execute_if.sign_type[0];
+  assign div_alu_port_a = (decode_execute_if.alu_a_sel == 'd0) ? updated_rs1_data : decode_execute_if.divide.rs1_data;
+  assign div_alu_port_b = (decode_execute_if.alu_b_sel == 'd0) ? updated_rs1_data 
+                                          : (decode_execute_if.alu_b_sel == 'd1) ? updated_rs2_data : decode_execute_if.divide.rs2_data;
+   
+
+  assign dif.rs1_data = div_alu_port_a;
+  assign dif.rs2_data = div_alu_port_b;    
+  assign dif.start_div = decode_execute_if.divide.start_div && (start_div_state == OFF);
+  assign dif.div_type = decode_execute_if.divide.div_type;
+  assign dif.is_signed_div = decode_execute_if.divide.is_signed_div;
 
   always_ff @(posedge CLK or negedge nRST) begin
     if (~nRST) begin
       start_div_state = OFF;
     end else begin
       case (start_div_state)
-      OFF:  if (div_ena) start_div_state <= BUSY;
+      OFF:  if (decode_execute_if.divide.start_div) start_div_state <= BUSY;
       BUSY: if (dif.done_du) start_div_state <= OFF;
       endcase
     end
   end
 
-//=============================DIVIDE===============================
+//=============================SELECT OUT===============================
   logic [31:0] fu_result;
+  logic next_wen;
+
   always_comb begin
     case (decode_execute_if.sfu_type)
-    ARITH_S:      fu_result = alu_if.port_out;
-    DIV_S:        fu_result = dif.wdata_du;
-    MUL_S:        fu_result = mif.wdata_mu;
+    ARITH_S:begin      
+      fu_result = alu_if.port_out; 
+      next_wen = decode_execute_if.wen;
+      end
+    DIV_S:  begin      
+      fu_result = dif.wdata_du; 
+      next_wen = decode_execute_if.divide.wen;
+      end
+    MUL_S:  begin      
+      fu_result = mif.wdata_mu; 
+      next_wen = decode_execute_if.multiply.wen;
+      end
     endcase
   end
 
+
   always_comb begin
-   if (bypass_if.bypass_rs1 == FWD_M)
-       updated_rs1_data = bypass_if.rd_data_mem;
-   else if (bypass_if.bypass_rs1 == FWD_W)
-       updated_rs1_data = bypass_if.rd_data_wb;
-   else 
-       updated_rs1_data = decode_execute_if.rs1_data;
+    if (bypass_if.bypass_rs1 == FWD_M)
+        updated_rs1_data = bypass_if.rd_data_mem;
+    else if (bypass_if.bypass_rs1 == FWD_W)
+        updated_rs1_data = bypass_if.rd_data_wb;
+    else begin
+      case(decode_execute_if.sfu_type)
+        ARITH_S:  updated_rs1_data = decode_execute_if.rs1_data;
+        MUL_S:    updated_rs1_data = decode_execute_if.multiply.rs1_data;
+        DIV_S:    updated_rs1_data = decode_execute_if.divide.rs1_data;
+      endcase
+    end
   end
+
 
   always_comb begin
    if (bypass_if.bypass_rs2 == FWD_M)
        updated_rs2_data = bypass_if.rd_data_mem;
    else if (bypass_if.bypass_rs2 == FWD_W)
        updated_rs2_data = bypass_if.rd_data_wb;
-   else 
-       updated_rs2_data = decode_execute_if.rs2_data;// If No forwarding required, then current rs2 in port_b
+   else begin
+       case(decode_execute_if.sfu_type)
+        ARITH_S:  updated_rs2_data  = decode_execute_if.rs2_data;
+        MUL_S:    updated_rs2_data  = decode_execute_if.multiply.rs2_data;
+        DIV_S:    updated_rs2_data  = decode_execute_if.divide.rs2_data;
+      endcase
+   end
   end
 
     assign alu_port_a = (decode_execute_if.alu_a_sel == 'd0) ? updated_rs1_data : decode_execute_if.port_a;
@@ -209,7 +247,7 @@ module pipe5_execute_stage(
 
 
    //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
-  always_ff @(posedge CLK, negedge nRST) begin
+  always_ff @(posedge CLK, negedge nRST) begin :INTERRUPT
       if (~nRST) begin
           intr_taken_ex <= 1'b0;
       end
@@ -225,6 +263,7 @@ module pipe5_execute_stage(
         end
     end
   end
+
 
 
   always_ff @(posedge CLK, negedge nRST) begin
@@ -341,7 +380,7 @@ module pipe5_execute_stage(
           //Writeback
           execute_mem_if.reg_file_wdata     <= decode_execute_if.reg_file_wdata;
           execute_mem_if.w_sel              <= decode_execute_if.w_sel;
-          execute_mem_if.wen                <= decode_execute_if.wen;
+          execute_mem_if.wen                <= next_wen;
           //Mem Signals
           execute_mem_if.dwen               <= decode_execute_if.dwen;
           execute_mem_if.dren               <= decode_execute_if.dren;
