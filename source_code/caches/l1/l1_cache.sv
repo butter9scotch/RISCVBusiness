@@ -108,7 +108,7 @@ module l1_cache #(
     cache_sets cache [N_SETS - 1:0];
     cache_sets next_cache [N_SETS - 1:0];
 
-     // cache replacement policy variables
+     // cache replacement policy variables // Do we need 2 bits for the replacement policy?
     logic ridx;
     logic last_used [N_SETS - 1:0];
     logic next_last_used [N_SETS - 1:0];
@@ -140,7 +140,7 @@ module l1_cache #(
 		        last_used[i] <= 1'b0;
 	        end
 
-            read_addr <= '0; // Read adress init
+            read_addr <= '0; // Read address init
 
             state <= IDLE; // FSM init
 
@@ -261,7 +261,7 @@ module l1_cache #(
         flush_done 	            = 1'b0;
         // flush_done 	            = 1'b0; //Duplicated?
 	
-        for(int i = 0; i < N_SETS; i++) begin // next = orginal
+        for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
             for(int j = 0; j < ASSOC; j++) begin
                 next_cache[i].frames[j].data   = cache[i].frames[j].data;
                 next_cache[i].frames[j].tag    = cache[i].frames[j].tag;

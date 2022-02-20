@@ -275,7 +275,7 @@ program test(
 	proc_gen_bus_if.ren = 1'b0;
 	
 	
-	// Test case 8, flush after random write
+/*	// Test case 8, flush after random write
 	@(negedge CLK);
 	nRST  = 1'b0;
 	#CLK_PERIOD;
@@ -310,7 +310,7 @@ program test(
 		assert(mem_gen_bus_if.wdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h, at 0x%h", test_case, test_num, mem_gen_bus_if.wdata, 32'hFEED_FEED, mem_gen_bus_if.addr);
 	    end // else: !if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020)
 	end // while (1)
-	$finish;	
+*/	$finish;	
     end // initial begin
  
 endprogram // test

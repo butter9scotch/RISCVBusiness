@@ -1,0 +1,107 @@
+irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	irun(64)	15.20-s030: Started on Feb 12, 2022 at 15:21:08 EST
+irun
+	-gui
+	-access +rwc
+	+nctimescale+1ns/1ns
+	-coverage all
+	-covoverwrite
+	-incdir /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/include/
+	/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
+	l1_cache.sv
+	/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
+	tb/tb_l1_cache.sv
+file: /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
+	package worklib.rv32i_types_pkg:sv
+		errors: 0, warnings: 0
+file: l1_cache.sv
+	interface worklib.generic_bus_if:vh
+		errors: 0, warnings: 0
+	module worklib.l1_cache:sv
+		errors: 0, warnings: 0
+file: /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
+	module worklib.memory_arbiter:sv
+		errors: 0, warnings: 0
+file: tb/tb_l1_cache.sv
+	module worklib.tb_l1_cache:sv
+		errors: 0, warnings: 0
+	program worklib.test:sv
+		errors: 0, warnings: 0
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+	Top level design units:
+		$unit_0x6b22b362
+		rv32i_types_pkg
+		memory_arbiter
+		tb_l1_cache
+ncelab: *W,DSEMEL: This SystemVerilog design will be simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+
+	Extracting FSMs for coverage:
+		worklib.memory_arbiter
+			FSM extracted for state register state
+		worklib.l1_cache
+			FSM extracted for state register state
+		worklib.test
+		worklib.tb_l1_cache
+	Total FSMs extracted = 2
+ncelab: *W,COVEOS: Currently, by default, coverage is not scored for expressions containing struct datatypes. In 13.1 release, such expressions can be scored using the "set_expr_scoring -struct" coverage configuration file command. In subsequent releases, the default scoring of expressions containing struct datatypes will be enabled. This change may prevent refinements from 13.1 release to be applied on coverage databases generated using subsequent releases in the default mode.
+	Building instance overlay tables: .............
+ncelab: *W,COVFHT: FSM hold transitions (transitions to the current state) are not extracted for any FSM in default mode.
+....... Done
+	Enabling instrumentation for coverage types: block expression FSM toggle functional
+ncelab: *W,COVDCL: By default expression coverage is scored only for Verilog logical operators (|| and &&) and VHDL logical operators (OR, AND, NOR, and NAND), and is scored only in condition expressions. To score coverage for other operators and for expressions in other statements, use the "set_expr_coverable_operators" and "set_expr_coverable_statements" coverage configuration file commands with suitable options at elaboration.
+	Generating native compiled code:
+		worklib.l1_cache:sv <0x188713c7>
+			streams:  21, words: 65236
+		worklib.memory_arbiter:sv <0x7016e9e8>
+			streams:   4, words: 12041
+		worklib.tb_l1_cache:sv <0x450eea47>
+			streams:  13, words:  4468
+		worklib.test:sv <0x736a8f29>
+			streams:   1, words: 98488
+ncelab: *W,COVNOEN: By default, toggle coverage is not supported for systemverilog enumerated nets and variables. To enable toggle coverage of these objects, specify the 'set_toggle_scoring -sv_enum' command in the coverage configuration file.
+    integer 	 test_num, test_value, test_value2;
+            	        |
+ncelab: *W,COVUTA (./tb/tb_l1_cache.sv,49|21): Toggle coverage is not supported for SystemVerilog integer, real, string, dynamic array, sparse memory, and array of enum. It is also not supported for VHDL multi-dimensional array and array of record. There may also be other such objects in the design.
+    cache_sets cache [N_SETS - 1:0];
+                   |
+ncelab: *W,COVMDD (./l1_cache.sv,108|19): Toggle coverage for bit, logic, reg, wire, and struct multi-dimensional static arrays and vectors is not supported by default. To enable toggle coverage on for these types specify 'set_toggle_scoring -sv_mda [<max_bit_base2_exponent>] [-sv_mda_of_struct]' ccf command in the coverage configuration file.
+	Building instance specific data structures.
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		                 Instances  Unique
+		Modules:                 3       3
+		Interfaces:              3       1
+		Programs:                1       1
+		Verilog packages:        1       1
+		Registers:              90      76
+		Scalar wires:           22       -
+		Vectored wires:          1       -
+		Always blocks:          14      14
+		Initial blocks:          2       2
+		Cont. assignments:       4       4
+		Pseudo assignments:     11      11
+		Assertions:             11      11
+		Compilation units:       1       1
+		Simulation timescale:  1ns
+	Writing initial simulation snapshot: worklib.memory_arbiter:sv
+ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+
+-------------------------------------
+Relinquished control to SimVision...
+ncsim> 
+ncsim> source /package/eda/cadence/INCISIVE152/tools/inca/files/ncsimrc
+ncsim> ^C
+ncsim> exit
+
+coverage setup:
+  workdir  :  ./cov_work
+  dutinst  :  memory_arbiter(memory_arbiter)
+  dutinst  :  tb_l1_cache(tb_l1_cache)
+  scope    :  scope
+  testname :  test
+
+coverage files:
+  model(design data) :  ./cov_work/scope/icc_6dc14cdb_7b42be67.ucm
+  data               :  ./cov_work/scope/test/icc_6dc14cdb_7b42be67.ucd
+TOOL:	irun(64)	15.20-s030: Exiting on Feb 12, 2022 at 15:24:12 EST  (total: 00:03:04)
