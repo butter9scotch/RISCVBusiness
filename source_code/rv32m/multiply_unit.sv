@@ -36,20 +36,24 @@ module multiply_unit (
   logic done, next_done;
   logic [63:0] product;
   logic [31:0] product_high_sew32, product_low_sew32;  
+  logic [31:0] multiplicand, multiplier;  
+  sign_type_t is_signed;
 
   multiplier MULU (
     .CLK(CLK),
     .nRST(nRST),
-    .multiplicand(mif.rs2_data),
-    .multiplier(mif.rs1_data),
-    .is_signed(mif.is_signed),
+    .multiplicand(multiplicand),
+    .multiplier(multiplier),
+    .is_signed(is_signed),
     .start(start_reg),
     .finished(done),
     .next_finished(next_done),
     .product(product)
   );
 
-  assign mif.exception_mu = 0; // TODO
+  assign multiplicand = mif.is_signed == SIGNED_UNSIGNED ? mif.rs1_data : mif.rs2_data;
+  assign multiplier   = mif.is_signed == SIGNED_UNSIGNED ? mif.rs2_data : mif.rs1_data;
+  assign is_signed    = mif.is_signed == SIGNED_UNSIGNED ? UNSIGNED_SIGNED : mif.is_signed;
   assign mif.done_mu      = done; 
   //assign mif.busy_mu = start_reg;
 
