@@ -29,6 +29,7 @@
 interface control_unit_if;
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   logic dwen, dren, j_sel, branch, jump, ex_pc_sel, imm_shamt_sel, halt, wen, ifence ,lui_instr, wfi;
@@ -45,6 +46,15 @@ interface control_unit_if;
   branch_t branch_type;
   opcode_t opcode; 
 
+  //floating point control signals
+  //register file signals
+  logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd;
+  logic [2:0] frm_in, f_wsel;
+  logic f_wen;
+
+  f_funct7_t f_funct7;
+  f_opcode_t f_opcode;
+
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
   logic csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid;
@@ -58,7 +68,9 @@ interface control_unit_if;
     imm_I, imm_S, imm_SB, imm_UJ, imm_U, imm_shamt_sel, alu_op, 
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
-    csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd
+    csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, 
+    //floating point signals
+    f_opcode, f_reg_rs1, f_reg_rs2, f_reg_rd, frm_in, f_wsel, f_wen, f_funct7
   );
 
 endinterface

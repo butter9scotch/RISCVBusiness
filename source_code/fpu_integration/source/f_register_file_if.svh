@@ -25,22 +25,20 @@
 `ifndef F_REGISTER_FILE_IF_VH
 `define F_REGISTER_FILE_IF_VH
 
-`include "rv32i_types_pkg.sv"
 interface f_register_file_if();
 
   import rv32i_types_pkg::*;
 
   word_t        f_w_data, f_rs1_data, f_rs2_data;
-  logic clk, n_rst;
   logic   [4:0] f_rs1, f_rs2, f_rd;
   logic         f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX;
   logic [2:0] f_frm_in;
-  logic [2:0] f_frm;
+  logic [2:0] f_frm_out;
   logic [4:0] f_flags;
 
   modport rf (
-    input clk, n_rst, f_w_data, f_rs1, f_rs2, f_rd, f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX, f_frm_in, 
-    output f_rs1_data, f_rs2_data, f_frm, f_flags
+    input f_w_data, f_rs1, f_rs2, f_rd, f_wen, f_NV, f_DZ, f_OF, f_UF, f_NX, f_frm_in, 
+    output f_rs1_data, f_rs2_data, f_frm_out, f_flags
   );
 
   modport cu (

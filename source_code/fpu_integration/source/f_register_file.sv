@@ -25,11 +25,11 @@
 
 //`include "f_register_file_if.vh"
 //`include "FPU_if.svh"
-`include "register_FPU_if.svh"
+`include "f_register_file_if.vh"
 module f_register_file (
   // FPU_if.fp fpa_if,
   // register_FPU_if.fp frf_fp
-  register_FPU_if.rf frf_rf
+  f_register_file_if.rf frf_rf
 );
 
 //  import rv32i_types_pkg::*;

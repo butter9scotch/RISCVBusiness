@@ -1,5 +1,5 @@
 module clock_counter (
-  register_FPU_if.cc frf_cc
+    f_register_file_if.cc frf_cc
 );
   typedef enum bit[2:0] {IDLE, START, READY} stateType; //state machine to identify f_ready
   stateType STATE;

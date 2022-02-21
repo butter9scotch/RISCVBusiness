@@ -38,6 +38,7 @@ module control_unit
 );
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   stype_t         instr_s;
@@ -54,15 +55,81 @@ module control_unit
   assign instr_u = utype_t'(cu_if.instr);
   assign instr_uj = ujtype_t'(cu_if.instr);
 
-  assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
+  //assign integer opcodes
+  always_comb begin
+    case (cu_if.instr[6:0])
+        7'b0110111: begin
+            cu_if.opcode = LUI;
+        end
+        7'b0010111: begin
+            cu_if.opcode = AUIPC;
+        end
+        7'b1101111: begin
+            cu_if.opcode = JAL;
+        end
+        7'b1100111: begin
+            cu_if.opcode = JALR;
+        end
+        7'b1100011: begin
+            cu_if.opcode = BRANCH;
+        end
+        7'b0000011: begin
+            cu_if.opcode = LOAD;
+        end
+        7'b0100011: begin
+            cu_if.opcode = STORE;
+        end
+        7'b0010011: begin
+            cu_if.opcode = IMMED;
+        end
+        7'b0110011: begin
+            cu_if.opcode = REGREG;
+        end
+        7'b1110011: begin
+            cu_if.opcode = SYSTEM;
+        end
+        7'b0001111: begin
+            cu_if.opcode = MISCMEM;
+        end
+        default:
+            cu_if.opcode = opcode_t'(0);
+    endcase
+  end
+  
+  //assign floating point opcodes
+  always_comb begin
+    case (cu_if.instr[6:0])
+        7'b0000111: begin
+            cu_if.f_opcode = FLW; 
+        end
+        7'b1000111: begin
+            cu_if.f_opcode = FSW;
+        end
+        7'b1010011: begin
+            cu_if.f_opcode = F_RTYPE;
+        end
+        default:
+            cu_if.f_opcode = f_opcode_t'(0);
+    endcase
+  end
+  //assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
   //assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
   //assign rf_if.rs2  = rmgmt_req_reg_r ? rmgmt_rsel_s_1 : cu_if.instr[24:20];
   //assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
-  assign cu_if.reg_rs1  = cu_if.instr[19:15];
-  assign cu_if.reg_rs2  = cu_if.instr[24:20];
-  assign cu_if.reg_rd   = cu_if.instr[11:7]; 
+  
+  //assign int registers
+  assign cu_if.reg_rs1  = cu_if.opcode ? cu_if.instr[19:15]: 0;
+  assign cu_if.reg_rs2  = cu_if.opcode ? cu_if.instr[24:20]: 0;
+  assign cu_if.reg_rd   = cu_if.opcode ? cu_if.instr[11:7] : 0;
+
   assign cu_if.shamt = cu_if.instr[24:20];
- 
+
+  //assign floating point registers
+  assign cu_if.f_reg_rs1  = cu_if.f_opcode ? cu_if.instr[19:15]: 0;
+  assign cu_if.f_reg_rs2  = cu_if.f_opcode ? cu_if.instr[24:20]: 0;
+  assign cu_if.f_reg_rd   = cu_if.f_opcode ? cu_if.instr[11:7] : 0;
+  
+
   // Assign the immediate values
   assign cu_if.imm_I  = instr_i.imm11_00;
   assign cu_if.imm_S  = {instr_s.imm11_05, instr_s.imm04_00};
@@ -74,6 +141,9 @@ module control_unit
 
   assign cu_if.imm_shamt_sel = (cu_if.opcode == IMMED &&
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
+
+  //assign floating point rounding mode
+  assign cu_if.frm_in = instr_r.funct3;
 
   // Assign branch and load type
   assign cu_if.load_type    = load_t'(instr_i.funct3);
@@ -110,6 +180,24 @@ module control_unit
     endcase
   end
 
+  //assign fpu funct code
+  always_comb begin
+    if (cu_if.f_opcode == F_RTYPE) begin
+        case (instr_r.funct7)
+            FADD: begin
+            cu_if.f_funct7 = FADD;
+            end
+            FSUB: begin
+            cu_if.f_funct7 = FSUB;
+            end
+            FMUL: begin
+            cu_if.f_funct7 = FMUL;
+            end
+            default: cu_if.f_funct7 = f_funct7_t'(0);
+        endcase
+    end
+  end
+
   // Assign write select
   always_comb begin
     case(cu_if.opcode)
@@ -122,6 +210,15 @@ module control_unit
     endcase
   end
 
+  //floating point write select
+  always_comb begin
+    case (cu_if.f_opcode)
+        FLW: cu_if.f_wsel = 3'd0;
+        F_RTYPE: cu_if.f_wsel = 3'd2;
+        default: cu_if.f_wsel = 3'd2;
+    endcase
+   end
+
   // Assign register write enable
   always_comb begin
     case(cu_if.opcode)
@@ -133,6 +230,15 @@ module control_unit
       default:  cu_if.wen   = 1'b0;
     endcase
   end
+
+  //floating point register write enable
+  always_comb begin
+    case (cu_if.f_opcode)
+       FLW, F_RTYPE: cu_if.f_wen = 1'b1; 
+       default: cu_if.f_wen = 1'b0; 
+    endcase
+  end
+
 
   // Assign alu opcode
   logic sr, aluop_srl, aluop_sra, aluop_add, aluop_sub, aluop_and, aluop_or;
