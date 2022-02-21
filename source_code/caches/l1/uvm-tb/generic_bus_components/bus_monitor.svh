@@ -39,6 +39,7 @@ class bus_monitor extends uvm_monitor;
         tx = cpu_transaction::type_id::create("tx");
 
         tx.addr = bus_if.addr;
+        tx.byte_sel = bus_if.byte_en;
 
         if (bus_if.ren) begin
           tx.rw = '0; // 0 -> read; 1 -> write

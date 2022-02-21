@@ -56,7 +56,8 @@ tb_caches_top.sv
       |
       |_ end2end/end2end.svh
 ```
-
+## Design Notes:
+- Need to drive byte_en, at least full word (4'b1000)
 
 ## TODO
 - [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
