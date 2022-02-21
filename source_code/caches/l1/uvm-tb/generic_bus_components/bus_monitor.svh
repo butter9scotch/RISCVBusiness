@@ -43,7 +43,7 @@ class bus_monitor extends uvm_monitor;
 
         if (bus_if.ren) begin
           tx.rw = '0; // 0 -> read; 1 -> write
-          tx.data = 32'hbad2_dada; //fill with garbage data
+          tx.data = 'x; //fill with garbage data
         end else if (bus_if.wen) begin
           tx.rw = '1; // 0 -> read; 1 -> write
           tx.data = bus_if.wdata;

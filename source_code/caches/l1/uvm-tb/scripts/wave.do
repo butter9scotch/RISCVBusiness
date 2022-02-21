@@ -1,19 +1,19 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/addr
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/wdata
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/rdata
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/ren
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/wen
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/busy
-add wave -noupdate -group cpu_bus_if /tb_caches_top/cpu_bus_if/byte_en
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/addr
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/wdata
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/rdata
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/ren
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/wen
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/busy
-add wave -noupdate -group l1_bus_if /tb_caches_top/l1_bus_if/byte_en
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/addr
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/wdata
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/rdata
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/ren
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/wen
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/busy
+add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/byte_en
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/addr
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/wdata
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/rdata
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/ren
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/wen
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/busy
+add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/byte_en
 add wave -noupdate -group cpu_cif /tb_caches_top/cpu_cif/CLK
 add wave -noupdate -group cpu_cif /tb_caches_top/cpu_cif/nRST
 add wave -noupdate -group cpu_cif /tb_caches_top/cpu_cif/clear
@@ -52,7 +52,7 @@ add wave -noupdate -group l1 /tb_caches_top/l1/ridx
 add wave -noupdate -group l1 /tb_caches_top/l1/read_addr
 add wave -noupdate -group l1 /tb_caches_top/l1/next_read_addr
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {110000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {224456 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -68,4 +68,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {1018500 ps}
+WaveRestoreZoom {0 ps} {2698500 ps}

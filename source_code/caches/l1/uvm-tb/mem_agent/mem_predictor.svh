@@ -22,7 +22,7 @@ class mem_predictor extends bus_predictor;
     if (this.memory.exists(addr)) begin
       return this.memory[addr];
     end else begin
-      word_t default_val = 32'habcd_1234;
+      word_t default_val = {16'hdada, addr[15:0]};
       `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Memory, Defaulting to value <%h>", default_val), UVM_MEDIUM)
       return default_val; //TODO: CHANGE THIS TO CONFIGURABLE/RANDOMIZED PARAM
     end

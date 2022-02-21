@@ -5,18 +5,16 @@ module memory_bfm(
 
 //TODO: NEEDS IMPLEMENTATION
 
-    logic [31:0] count;
+    logic [15:0] tag;
+    assign tag = 16'hdada;
 
     always_ff @(posedge cif.CLK, negedge cif.nRST) begin
-        if (!cif.nRST) begin
-            bus_if.rdata <= 32'hdada_0000;
+        if (!cif.nRST || !bus_if.ren || !bus_if.busy) begin
+            bus_if.rdata <= {tag, 16'h0bad};
             bus_if.busy <= '1;
-        end else if (bus_if.ren) begin
-            bus_if.rdata <= bus_if.rdata + 1;
-            bus_if.busy <= '0;
         end else begin
-            bus_if.rdata <= bus_if.rdata;
-            bus_if.busy <= bus_if.busy;
+            bus_if.rdata <= {tag, bus_if.addr[15:0]};
+            bus_if.busy <= '0;
         end
     end
 

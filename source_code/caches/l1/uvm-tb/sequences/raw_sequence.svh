@@ -25,14 +25,14 @@ class raw_sequence extends uvm_sequence #(cpu_transaction);
     prevAddr = '0;
     
     // repeat twenty randomized test cases
-    repeat(2) begin
+    repeat(20) begin
       start_item(req_item);
       if(!req_item.randomize() with {
         rw == isWrite;
         byte_sel == 4'b1000; //TODO: We want to actually randomize this
         if (~isWrite) {
           addr == prevAddr;
-          data == 32'hbad1_dada;
+          data == 'hdada_0bad;
         }
         }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
