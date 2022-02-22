@@ -90,7 +90,7 @@ module l1_cache #(
     logic [12:0] set_num, next_set_num;
     logic en_set_ctr, clr_set_ctr;
 
-    // Frame(way) Counter - either 1 or 2 frames in a set
+    // Frame(way) Counter - either 1 or 2 frames in a set - Dhruv: Possible renaming of signal? Frame != way
     logic [1:0] frame_num, next_frame_num;
     logic en_frame_ctr, clr_frame_ctr;
 
@@ -232,7 +232,7 @@ module l1_cache #(
         end // else: !if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)
     end // always_comb
 
-    
+/*    
     always_comb begin
 	if(ASSOC == 1) begin
 	    ridx  = 1'b0;
@@ -241,7 +241,7 @@ module l1_cache #(
 	    ridx  = ~last_used[decoded_addr.set_bits];
 	end
     end
-    
+  */  
 
 
     // Comb. logic for outputs, maybe merging this comb. block with the one above
@@ -260,7 +260,14 @@ module l1_cache #(
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
         // flush_done 	            = 1'b0; //Duplicated?
-	
+
+       	if(ASSOC == 1) begin
+	    ridx  = 1'b0;
+	end
+	else if (ASSOC == 2) begin
+	    ridx  = ~last_used[decoded_addr.set_bits];
+	end
+       
         for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
             for(int j = 0; j < ASSOC; j++) begin
                 next_cache[i].frames[j].data   = cache[i].frames[j].data;
@@ -278,7 +285,7 @@ module l1_cache #(
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
 		            next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
-                else if(proc_gen_bus_if.wen && hit) begin
+                else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy 							     = 1'b0;
                     next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
 		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
