@@ -13,6 +13,10 @@
 
 // UVM test file
 `include "raw_test.svh"
+`include "evict_test.svh"
+
+// Device Parameter Build Constants
+`include "dut_params.svh"
 
 `timescale 1ns/1ps
 // import uvm packages
@@ -43,10 +47,10 @@ module tb_caches_top ();
   
   // instantiate the DUT
   // Data Cache Portmap
-	l1_cache #(.CACHE_SIZE(2048),
-	.BLOCK_SIZE(4),
-	.ASSOC(2),
-	.NONCACHE_START_ADDR(32'h8000_0000))
+	l1_cache #(.CACHE_SIZE(`L1_CACHE_SIZE),
+	.BLOCK_SIZE(`L1_BLOCK_SIZE),
+	.ASSOC(`L1_ASSOC),
+	.NONCACHE_START_ADDR(`NONCACHE_START_ADDR))
 	l1 (
   .cif(cpu_cif.cache),
 	.mem_gen_bus_if(l1_bus_if.cpu),

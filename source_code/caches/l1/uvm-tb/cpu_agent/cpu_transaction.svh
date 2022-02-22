@@ -5,14 +5,13 @@ import uvm_pkg::*;
 import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
 `include "cache_env.svh"
-
+`include "dut_params.svh"
 
 class cpu_transaction extends uvm_sequence_item;
 
   rand bit rw; // 0 -> read; 1 -> write
   rand word_t addr;
   rand word_t data;
-  // bit hit; // boolean on if a cache hit is expected
   
   rand logic [3:0] byte_sel;
   // Byte enable logic
@@ -29,13 +28,12 @@ class cpu_transaction extends uvm_sequence_item;
       `uvm_field_int(rw, UVM_ALL_ON)
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
-      // `uvm_field_int(hit, UVM_ALL_ON)
       `uvm_field_int(byte_sel, UVM_ALL_ON)
   `uvm_object_utils_end
 
-  // constraint clk_number{num_clk > 0; num_clk < 20;}
-    constraint usable_addr {addr >= '0; addr < 32'h8000_0000;} //TODO: PULL NON_START ADDR INTO CONFIG FILE
-    // constraint usable_addr {addr >= '0; addr < CONFIG_NONCACHE_START_ADDR;}
+  constraint usable_addr { addr >= '0; addr < `NONCACHE_START_ADDR; }
+
+  constraint usable_byte_en { byte_sel == 4'b1000; } //TODO: We want to actually randomize this
 
   function new(string name = "cpu_transaction");
     super.new(name);

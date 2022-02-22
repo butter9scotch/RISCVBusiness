@@ -29,7 +29,6 @@ class raw_sequence extends uvm_sequence #(cpu_transaction);
       start_item(req_item);
       if(!req_item.randomize() with {
         rw == isWrite;
-        byte_sel == 4'b1000; //TODO: We want to actually randomize this
         if (~isWrite) {
           addr == prevAddr;
           data == 'hdada_0bad;
