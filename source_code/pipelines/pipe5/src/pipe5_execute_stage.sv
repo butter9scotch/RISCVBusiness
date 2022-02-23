@@ -161,8 +161,7 @@ module pipe5_execute_stage(
 
 //=============================DIVIDE===============================
 
-  typedef enum logic [1:0] { OFF, BUSY } div_state_t;
-  div_state_t start_div_state;
+
   word_t div_alu_port_a;
   word_t div_alu_port_b;
   
@@ -173,20 +172,12 @@ module pipe5_execute_stage(
 
   assign dif.rs1_data = div_alu_port_a;
   assign dif.rs2_data = div_alu_port_b;    
-  assign dif.start_div = decode_execute_if.divide.start_div && (start_div_state == OFF);
+  assign dif.start_div = decode_execute_if.divide.start_div;
   assign dif.div_type = decode_execute_if.divide.div_type;
   assign dif.is_signed_div = decode_execute_if.divide.is_signed_div;
 
-  always_ff @(posedge CLK or negedge nRST) begin
-    if (~nRST) begin
-      start_div_state = OFF;
-    end else begin
-      case (start_div_state)
-      OFF:  if (decode_execute_if.divide.start_div) start_div_state <= BUSY;
-      BUSY: if (dif.done_du) start_div_state <= OFF;
-      endcase
-    end
-  end
+
+
 
 //=============================SELECT OUT===============================
   logic [31:0] fu_result;
