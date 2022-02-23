@@ -2,7 +2,7 @@
 
 ## Makefile:
 - make: builds and runs tb in terminal only mode
-- make gui: build and runds tb in gui mode
+- make gui: build and runs tb in gui mode
 - make build: build tb
 - make run: runs QuestaSim in terminal only mode
 - make help: prints the available commands
