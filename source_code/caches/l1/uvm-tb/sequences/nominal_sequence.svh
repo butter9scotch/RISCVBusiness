@@ -17,31 +17,40 @@ class nominal_sequence extends uvm_sequence #(cpu_transaction);
 
   task body();
     cpu_transaction req_item;
-    bit isWrite;
-    word_t prevAddr;
-    int N;
-
-    N = 6; //NOTE: this should be even
+    int N; // total number of processor side transactions
+    int write_count; // current number of writes
+    word_t writes[word_t]; // queue of write addresses
 
     req_item = cpu_transaction::type_id::create("req_item");
-    isWrite = '1; //write, read, write, ...
-    prevAddr = '0;
+
+    N = 20; //NOTE: this should be even
+    write_count = 0;
     
-    // repeat twenty randomized test cases
     repeat(N) begin
       start_item(req_item);
+
+      // writes.shuffle();
       if(!req_item.randomize() with {
-        rw == isWrite;
-        if (~isWrite) {
-          addr == prevAddr;
-          data == 'hdada_0bad;
+        if (write_count >= N/2) {
+          //only reads allowed
+          rw == 0;
+        }
+        if (rw == 0) {
+          //read from previously written addr
+          addr inside {writes};
         }
         }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
-      isWrite = ~isWrite; //toggle read/write
-      prevAddr = req_item.addr;
+      if (req_item.rw) begin
+        // write
+        write_count++;
+        writes[req_item.addr] = req_item.addr;
+      end else begin
+        // read
+        writes.delete(req_item.addr);
+      end
 
       `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
 
