@@ -5,6 +5,7 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "evict_sequence.svh"
 `include "raw_sequence.svh"
+`include "nominal_sequence.svh"
 `include "cpu_driver.svh"
 `include "cpu_monitor.svh"
 

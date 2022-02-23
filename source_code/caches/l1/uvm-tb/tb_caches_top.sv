@@ -14,6 +14,7 @@
 // UVM test file
 `include "raw_test.svh"
 `include "evict_test.svh"
+`include "nominal_test.svh"
 
 // Device Parameter Build Constants
 `include "dut_params.svh"
