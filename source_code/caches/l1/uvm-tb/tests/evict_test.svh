@@ -1,17 +1,17 @@
-`ifndef RAW_TEST_SVH
-`define RAW_TEST_SVH
+`ifndef EVICT_TEST_SVH
+`define EVICT_TEST_SVH
 
 import uvm_pkg::*;
 `include "basic_test.svh"
 `include "uvm_macros.svh"
 
-class raw_test extends basic_test#(raw_sequence, "RAW_SEQ");
-  `uvm_component_utils(raw_test)
+class evict_test extends basic_test#(evict_sequence, "EVICT_SEQ");
+  `uvm_component_utils(evict_test)
 
   function new(string name = "", uvm_component parent);
 		super.new(name, parent);
 	endfunction: new
 
-endclass: raw_test
+endclass: evict_test
 
 `endif

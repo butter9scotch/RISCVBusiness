@@ -45,8 +45,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
       cpu_bus_if.ren = ~req_item.rw;  // read = 0
       cpu_bus_if.wen = req_item.rw;   // write = 1
 
-      //FIXME: NEED TO ADD BYTE ENABLE FUNCTIONALITY
-      cpu_bus_if.byte_en = 4'b1000; 
+      cpu_bus_if.byte_en = req_item.byte_sel; 
       //FIXME: NEED TO ADD CLEAR/FLUSH FUNCTIONALITY
       cif.clear = '0; 
       cif.flush = '0;

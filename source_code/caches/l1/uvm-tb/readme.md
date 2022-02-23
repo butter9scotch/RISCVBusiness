@@ -26,6 +26,8 @@
       - all agent sub-object instantiations
       - all virtual interface accesses to uvm db
     - UVM_DEBUG
+- RAND_SEED: this seeds the random number generator for the UVM .randomize() calls
+  - value of `random` will use vsim to randomize test cases automatically
 
 ## TB Hierarchy:
 ```
@@ -56,9 +58,50 @@ tb_caches_top.sv
       |
       |_ end2end/end2end.svh
 ```
-
+## Design Notes:
+- Need to drive byte_en to memory, at least full word (4'b1000)
 
 ## TODO
 - [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
   - [ ] how to randomize what values we have in default memory and still predict
 - [ ] add a random seed option for random generator
+- [ ] env - config
+  - [ ] shared variables between objects
+- [ ] figure out how to deal with writes/reads to words brought in from separate word in block r/w miss
+  - [ ] global memory?
+- [ ] test a byte address (lower bits non-zero) with the byte enable not matching
+
+
+## Responsibilities:
+- CPU Agent
+  - ensure reads after a write (at any time in the past) returns the same data
+  - //TODO: in the future need a way to update memory model on coherence interactions
+- Memory Agent
+  - ensure reads after a write (at any time in the past) returns the same data
+- End to End Checker
+  - keeps track of data in cache
+    - check cpu bus for modifying data in cache
+    - check mem bus for adding data to cache on read
+    - check mem bus for removing data from cache on write
+  - ensure hit doesn't propogate to mem bus
+  - ensure miss propogates with correct addr to mem bus
+    - need to read data from same address
+    - may need to write data back to memory on eviction
+      - //TODO: FIGURE OUT HOW TO HANDLE EVICTION
+        - do we care about what data is evicted?
+        - can we simply note down that data has been evicted in our memory model?
+  - ensure that no mem bus transactions occur without ren/wen
+    - //TODO: this will probably change if we do prefetching
+
+
+
+## Sequences:
+A = [A1, A2, A3, A4]
+B = [B1, B2, B3, B4]
+
+write A1, 0x1234
+read A2           --> what data do we expect? {0xBAD0, addr[15:0]}? 
+...
+block A is evicted from cache
+...
+read A1           --> expect 0x1234

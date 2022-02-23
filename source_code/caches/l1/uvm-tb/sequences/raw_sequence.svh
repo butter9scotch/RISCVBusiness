@@ -28,10 +28,10 @@ class raw_sequence extends uvm_sequence #(cpu_transaction);
     repeat(20) begin
       start_item(req_item);
       if(!req_item.randomize() with {
-        rw == isWrite; 
+        rw == isWrite;
         if (~isWrite) {
           addr == prevAddr;
-          data == 32'hbad1_dada;
+          data == 'hdada_0bad;
         }
         }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")

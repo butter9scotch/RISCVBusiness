@@ -6,6 +6,7 @@ import uvm_pkg::*;
 
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
+`include "dut_params.svh"
 
 class bus_monitor extends uvm_monitor;
   `uvm_component_utils(bus_monitor)
@@ -39,11 +40,15 @@ class bus_monitor extends uvm_monitor;
         tx = cpu_transaction::type_id::create("tx");
 
         tx.addr = bus_if.addr;
+        tx.byte_sel = bus_if.byte_en;
 
         if (bus_if.ren) begin
           tx.rw = '0; // 0 -> read; 1 -> write
-          tx.data = 32'hbad2_dada; //fill with garbage data
+          tx.data = 'x; //fill with garbage data
         end else if (bus_if.wen) begin
+          if (bus_if.addr >= `NONCACHE_START_ADDR) begin
+            `uvm_fatal(this.get_name(), "Invalid write to non-cache address")
+          end
           tx.rw = '1; // 0 -> read; 1 -> write
           tx.data = bus_if.wdata;
         end

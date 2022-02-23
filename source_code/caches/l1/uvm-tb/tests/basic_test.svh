@@ -8,8 +8,10 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-class basic_test extends uvm_test;
+class basic_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
   `uvm_component_utils(basic_test)
+
+  sequence_type seq;
 
   cache_env env;
   virtual l1_cache_wrapper_if cpu_cif;
@@ -17,14 +19,16 @@ class basic_test extends uvm_test;
   virtual generic_bus_if cpu_bus_if;
   virtual generic_bus_if l1_bus_if;  
 
-  function new(string name = "BASIC_TEST", uvm_component parent);
+  function new(string name = "", uvm_component parent);
 		super.new(name, parent);
 	endfunction: new
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     
-	env = cache_env::type_id::create("CACHE_ENV",this);
+	  env = cache_env::type_id::create("CACHE_ENV",this);
+
+    seq = sequence_type::type_id::create(sequence_name);
 
     // send the interface down
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cpu_cif)) begin 
@@ -50,6 +54,13 @@ class basic_test extends uvm_test;
 	uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "l1_bus_if", l1_bus_if);
 
   endfunction: build_phase
+
+  task run_phase(uvm_phase phase);
+    phase.raise_objection( this, $sformatf("Starting <%s> in main phase", sequence_name) );
+ 		seq.start(env.cpu_agt.sqr);
+		#100ns;
+		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );
+  endtask
 
 endclass: basic_test
 
