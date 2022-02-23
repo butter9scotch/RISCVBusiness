@@ -26,6 +26,8 @@
       - all agent sub-object instantiations
       - all virtual interface accesses to uvm db
     - UVM_DEBUG
+- RAND_SEED: this seeds the random number generator for the UVM .randomize() calls
+  - value of `random` will use vsim to randomize test cases automatically
 
 ## TB Hierarchy:
 ```

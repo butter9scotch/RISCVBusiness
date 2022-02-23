@@ -14,6 +14,7 @@ SRC = $(ROOT)/source_code/caches/l1
 
 TESTCASE = nominal_test
 VERBOSITY = UVM_LOW
+RAND_SEED = random
 
 all: build run
 
@@ -38,6 +39,7 @@ run_gui:
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
+	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=$(VERBOSITY) \
 	-do "do $(WAVES)/wave.do" -do "run -all"
@@ -47,6 +49,7 @@ run:
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
+	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=$(VERBOSITY) \
 	-do "run -all"
