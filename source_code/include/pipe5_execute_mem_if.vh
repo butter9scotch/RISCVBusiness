@@ -43,7 +43,7 @@ interface pipe5_execute_mem_if;
   opcode_t     opcode;
   csr_addr_t   csr_addr;
   logic [3:0]  byte_en_temp;
-  logic [2:0]  w_sel;
+  w_src_t w_src;
   logic        wen;
   logic        dwen;
   logic        dren;
@@ -74,7 +74,7 @@ interface pipe5_execute_mem_if;
 
 
   modport execute(
-     output  reg_file_wdata, w_sel, wen, alu_port_out, pc, pc4, reg_rd,
+     output  reg_file_wdata, w_src, wen, alu_port_out, pc, pc4, reg_rd,
              dwen, dren, store_wdata, load_type, memory_addr,byte_en_temp,
              jump_instr,lui_instr,jump_addr, 
              branch_instr, prediction, br_resolved_addr, branch_taken,
@@ -89,7 +89,7 @@ interface pipe5_execute_mem_if;
   );
 
   modport memory(
-     input   reg_file_wdata, w_sel, wen, alu_port_out, pc, pc4, reg_rd,
+     input   reg_file_wdata, w_src, wen, alu_port_out, pc, pc4, reg_rd,
              dwen, dren, store_wdata, load_type, memory_addr, byte_en_temp,
              jump_instr, lui_instr, jump_addr,
              branch_instr, prediction,br_resolved_addr, branch_taken,

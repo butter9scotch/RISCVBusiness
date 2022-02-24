@@ -35,7 +35,7 @@ interface control_unit_if;
   logic dwen, dren, j_sel, branch, jump, ex_pc_sel, imm_shamt_sel, halt, wen, ifence ,lui_instr, wfi;
   aluop_t alu_op;
   logic [1:0] alu_a_sel, alu_b_sel;
-  logic [2:0] w_sel;
+  w_src_t w_src;
   logic [4:0] shamt;
   logic  [4:0] reg_rs1, reg_rs2, reg_rd;
   logic [11:0] imm_I, imm_S;
@@ -59,7 +59,7 @@ interface control_unit_if;
   modport control_unit(
     input instr, 
     output dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,
-    alu_b_sel, w_sel, load_type, branch_type, shamt,
+    alu_b_sel, w_src, load_type, branch_type, shamt,
     imm_I, imm_S, imm_SB, imm_UJ, imm_U, imm_shamt_sel, alu_op, 
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,

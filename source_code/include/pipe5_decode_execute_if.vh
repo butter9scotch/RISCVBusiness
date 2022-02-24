@@ -62,7 +62,7 @@ interface pipe5_decode_execute_if();
   logic [11:0] funct12;
   logic [12:0] imm_SB;
   logic [3:0] byte_en_temp;
-  logic [2:0] w_sel;
+  w_src_t w_src;
   logic [2:0] funct3;
   logic [1:0] alu_a_sel;
   logic [1:0] alu_b_sel;
@@ -103,7 +103,7 @@ interface pipe5_decode_execute_if();
           instr, imm_UJ_ext, imm_U, reg_rs1, reg_rs2, reg_rd, 
           aluop, load_type, br_branch_type, opcode, csr_addr, sfu_type, 
           sign_type, imm_I, imm_S, funct12, imm_SB, byte_en_temp, 
-          w_sel, funct3, alu_a_sel, alu_b_sel, wen, dwen, 
+          w_src, funct3, alu_a_sel, alu_b_sel, wen, dwen, 
           dren, jump_instr, branch_instr, prediction, halt_instr, csr_instr, 
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
@@ -117,7 +117,7 @@ interface pipe5_decode_execute_if();
           instr, imm_UJ_ext, imm_U, reg_rs1, reg_rs2, reg_rd, 
           aluop, load_type, br_branch_type, opcode, csr_addr, sfu_type, 
           sign_type, imm_I, imm_S, funct12, imm_SB, byte_en_temp, 
-          w_sel, funct3, alu_a_sel, alu_b_sel, wen, dwen, 
+          w_src, funct3, alu_a_sel, alu_b_sel, wen, dwen, 
           dren, jump_instr, branch_instr, prediction, halt_instr, csr_instr, 
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 

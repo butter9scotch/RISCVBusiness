@@ -34,7 +34,7 @@ interface pipe5_mem_writeback_if;
   word_t       alu_port_out;
   word_t       csr_rdata;
   opcode_t     opcode;
-  logic [2:0]  w_sel;
+  w_src_t w_src;
   logic        wen;
   logic        halt_instr;
   logic        csr_instr;
@@ -50,7 +50,7 @@ interface pipe5_mem_writeback_if;
 
 
   modport memory(
-     output  reg_file_wdata, w_sel, wen, reg_rd, alu_port_out, dload_ext,
+     output  reg_file_wdata, w_src, wen, reg_rd, alu_port_out, dload_ext,
              pc, pc4,opcode,
              halt_instr, 
              csr_instr, csr_rdata,
@@ -59,7 +59,7 @@ interface pipe5_mem_writeback_if;
   );
 
   modport writeback(
-     input   reg_file_wdata, w_sel, wen, reg_rd, alu_port_out, dload_ext,
+     input   reg_file_wdata, w_src, wen, reg_rd, alu_port_out, dload_ext,
              pc, pc4,opcode,
              halt_instr, 
              csr_instr, csr_rdata,

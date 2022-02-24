@@ -28,58 +28,59 @@
 `ifndef PRV_PIPELINE_IF_VH
 `define PRV_PIPELINE_IF_VH
 
-`include "component_selection_defines.vh"
-
 interface prv_pipeline_if();
+
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
 
-  // exception signals
-  logic fault_insn, mal_insn, illegal_insn, fault_l, mal_l, fault_s, mal_s,
-        breakpoint, env_m, ret;
-
-  // interrupt signals
-  logic timer_int, soft_int, ext_int;
-
-  // exception / interrupt control
-  word_t epc, priv_pc, badaddr;
-  logic insert_pc, intr, pipe_clear;
-  word_t [3:0] xtvec, xepc_r;
-
-  // csr rw
-  logic       swap, clr, set;
-  logic       invalid_csr, valid_write;
-  csr_addr_t  addr;
-  word_t      rdata, wdata;
-
-  // performance signals
-  logic wb_enable, instr;
-
-  // RISC-MGMT 
+  logic insert_pc;
+  logic intr;
+  word_t priv_pc;
+  logic pipe_clear;
+  logic ret;
+  logic fault_insn;
+  logic mal_insn;
+  logic illegal_insn;
+  logic fault_l;
+  logic mal_l;
+  logic fault_s;
+  logic mal_s;
+  logic breakpoint;
+  logic env_m;
+  logic wb_enable;
   logic ex_rmgmt;
   logic [$clog2(`NUM_EXTENSIONS)-1:0] ex_rmgmt_cause;
+  word_t epc;
+  word_t badaddr;
+  logic invalid_csr;
+  word_t rdata;
+  csr_addr_t addr;
+  logic swap;
+  logic clr;
+  logic set;
+  logic valid_write;
+  logic instr;
+  word_t wdata;
 
   modport hazard (
-    input priv_pc, insert_pc, intr,
-    output pipe_clear, ret, epc, fault_insn, mal_insn, 
-            illegal_insn, fault_l, mal_l, fault_s, mal_s,
-            breakpoint, env_m, badaddr, wb_enable, 
-            ex_rmgmt, ex_rmgmt_cause
+    input insert_pc, intr, priv_pc, 
+    output pipe_clear, ret, fault_insn, mal_insn, illegal_insn, fault_l, 
+           mal_l, fault_s, mal_s, breakpoint, env_m, wb_enable, 
+           ex_rmgmt, ex_rmgmt_cause, epc, badaddr
   );
 
   modport pipe (
-    output swap, clr, set, wdata, addr, valid_write, instr,
-    input  rdata, invalid_csr
+    input invalid_csr, rdata, 
+    output addr, swap, clr, set, valid_write, instr, 
+           wdata
   );
 
-
   modport priv_block (
-    input pipe_clear, ret, epc, fault_insn, mal_insn,
-          illegal_insn, fault_l, mal_l, fault_s, mal_s,
-          breakpoint, env_m, badaddr, swap, clr, set,
-          wdata, addr, valid_write, wb_enable, instr,
-          ex_rmgmt, ex_rmgmt_cause,
-    output priv_pc, insert_pc, intr, rdata, invalid_csr
+    input addr, pipe_clear, ret, fault_insn, mal_insn, illegal_insn, 
+           fault_l, mal_l, fault_s, mal_s, breakpoint, env_m, 
+           swap, clr, set, valid_write, wb_enable, instr, 
+           ex_rmgmt, ex_rmgmt_cause, epc, badaddr, wdata, 
+    output insert_pc, intr, invalid_csr, priv_pc, rdata
   );
 
 endinterface
