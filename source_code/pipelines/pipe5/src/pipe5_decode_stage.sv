@@ -132,7 +132,7 @@ module pipe5_decode_stage (
     //  w_data = rm_if.reg_wdata;
     //end 
     //else begin
-      case(cu_if.w_sel)
+      case(cu_if.w_src)
         3'd1    : w_data = fetch_decode_if.pc4;
         3'd2    : w_data = cu_if.imm_U;
         default : w_data = '0; 
@@ -179,7 +179,7 @@ module pipe5_decode_stage (
         decode_execute_if.rs2_data                  <='h0; 
         decode_execute_if.lui_instr                 <='h0;
         decode_execute_if.reg_file_wdata            <='h0; 
-        decode_execute_if.w_sel                     <='h0; 
+        decode_execute_if.w_src                     <='h0; 
         decode_execute_if.wen                       <='h0; 
         decode_execute_if.dwen                      <='h0; 
         decode_execute_if.dren                      <='h0; 
@@ -235,7 +235,7 @@ module pipe5_decode_stage (
             decode_execute_if.rs2_data                  <='h0; 
             decode_execute_if.lui_instr                 <='h0;
             decode_execute_if.reg_file_wdata            <='h0; 
-            decode_execute_if.w_sel                     <='h0; 
+            decode_execute_if.w_src                     <='h0; 
             decode_execute_if.wen                       <='h0; 
             decode_execute_if.dwen                      <='h0; 
             decode_execute_if.dren                      <='h0; 
@@ -292,7 +292,7 @@ module pipe5_decode_stage (
             decode_execute_if.port_b                    <= next_port_b;
             //REG_FILE/ WRITEBACK
             decode_execute_if.reg_file_wdata            <= w_data;
-            decode_execute_if.w_sel                     <= cu_if.w_sel;
+            decode_execute_if.w_src                     <= cu_if.w_src;
             decode_execute_if.wen                       <= cu_if.wen; //Writeback to register file
             //MEMORY
             decode_execute_if.dwen                      <= cu_if.dwen; 

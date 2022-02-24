@@ -249,6 +249,14 @@ package rv32i_types_pkg;
     logic [4:0] reg_rd;
   } loadstore_unit_input_t;
 
+  typedef enum logic [2:0] { 
+    LOAD_SRC = 3'd0,
+    JUMP_SRC = 3'd1,
+    LUI_SRC  = 3'd2,
+    ALU_SRC  = 3'd3, 
+    CSR      = 3'd4
+  } w_src_t;
+
 
 endpackage
 `endif

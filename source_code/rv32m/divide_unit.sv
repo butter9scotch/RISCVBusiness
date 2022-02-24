@@ -33,6 +33,9 @@ module divide_unit (
 
   logic start_reg, done;
   logic [31:0] quotient, remainder;
+  logic [31:0] q;
+  typedef enum logic [1:0] { OFF, BUSY } div_state_t;
+  div_state_t start_div_state;
 
   divider DVD (
     .CLK(CLK),
@@ -40,12 +43,12 @@ module divide_unit (
     .dividend(dif.rs1_data),
     .divisor(dif.rs2_data),
     .is_signed(dif.is_signed_div),
-    .start(dif.start_div),
+    .start(dif.start_div && (start_div_state == OFF)),
     .finished(done),
     .quotient(quotient),
     .remainder(remainder)
   );
-  logic [31:0] q;
+
 
   assign dif.busy_du      = (start_reg | dif.start_div) & !done; 
   assign dif.wdata_du     = dif.div_type ? q : remainder;
@@ -55,7 +58,6 @@ module divide_unit (
   assign q = (dif.rs2_data == 0) && dif.is_signed_div  ? 32'hFFFF_FFFF : 
              (dif.rs2_data == 0) && ~dif.is_signed_div ? 32'h7FFF_FFFF : quotient;
 
-  // Fix corner case: Operate only 1 or 2 element consecutively
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       start_reg <= '0;
@@ -63,6 +65,17 @@ module divide_unit (
       start_reg <= 0;
     end else if (dif.start_div) begin
       start_reg <= 1;
+    end
+  end
+
+  always_ff @(posedge CLK or negedge nRST) begin
+    if (~nRST) begin
+      start_div_state = OFF;
+    end else begin
+      case (start_div_state)
+      OFF:  if (dif.start_div) start_div_state <= BUSY;
+      BUSY: if (done) start_div_state <= OFF;
+      endcase
     end
   end
 

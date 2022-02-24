@@ -120,12 +120,12 @@ module control_unit
   // Assign write select
   always_comb begin
     case(cu_if.opcode)
-      LOAD                  : cu_if.w_sel   = 3'd0;
-      JAL, JALR             : cu_if.w_sel   = 3'd1;
-      LUI                   : cu_if.w_sel   = 3'd2;
-      IMMED, AUIPC, REGREG  : cu_if.w_sel   = 3'd3;
-      SYSTEM                : cu_if.w_sel   = 3'd4;
-      default               : cu_if.w_sel   = 3'd0;
+      LOAD                  : cu_if.w_src   = 3'd0;
+      JAL, JALR             : cu_if.w_src   = 3'd1;
+      LUI                   : cu_if.w_src   = 3'd2;
+      IMMED, AUIPC, REGREG  : cu_if.w_src   = 3'd3;
+      SYSTEM                : cu_if.w_src   = 3'd4;
+      default               : cu_if.w_src   = 3'd0;
     endcase
   end
 

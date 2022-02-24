@@ -254,7 +254,7 @@ module pipe5_memory_stage(
     if (~nRST) begin
           mem_wb_if.reg_file_wdata     <= 'h0;
           mem_wb_if.wen                <= 'h0;
-          mem_wb_if.w_sel              <= 'h0; 
+          mem_wb_if.w_src              <= 'h0; 
           mem_wb_if.dload_ext          <= 'h0;
           mem_wb_if.alu_port_out       <= 'h0;
           mem_wb_if.reg_rd             <= 'h0;
@@ -281,7 +281,7 @@ module pipe5_memory_stage(
         if (halt) begin
             mem_wb_if.reg_file_wdata     <= 'h0;
             mem_wb_if.wen                <= 'h0;
-            mem_wb_if.w_sel              <= 'h0; 
+            mem_wb_if.w_src              <= 'h0; 
             mem_wb_if.dload_ext          <= 'h0;
             mem_wb_if.alu_port_out       <= 'h0;
             mem_wb_if.reg_rd             <= 'h0;
@@ -312,7 +312,7 @@ module pipe5_memory_stage(
             //Writeback
             mem_wb_if.reg_file_wdata     <= execute_mem_if.reg_file_wdata;
             mem_wb_if.wen                <= execute_mem_if.wen;
-            mem_wb_if.w_sel              <= execute_mem_if.w_sel;
+            mem_wb_if.w_src              <= execute_mem_if.w_src;
             mem_wb_if.dload_ext          <= dload_ext;
             mem_wb_if.alu_port_out       <= execute_mem_if.alu_port_out;
             //Forwarding

@@ -42,9 +42,9 @@ module pipe5_writeback_stage(
   assign bypass_if.rd_wb       = mem_wb_if.reg_rd;
  
 
-  assign w_data = (mem_wb_if.w_sel == 'd3) ? mem_wb_if.alu_port_out 
-                  : (mem_wb_if.w_sel == 'd0) ? mem_wb_if.dload_ext
-                  : (mem_wb_if.w_sel == 'd4) ? mem_wb_if.csr_rdata
+  assign w_data = (mem_wb_if.w_src == 'd3) ? mem_wb_if.alu_port_out 
+                  : (mem_wb_if.w_src == 'd0) ? mem_wb_if.dload_ext
+                  : (mem_wb_if.w_src == 'd4) ? mem_wb_if.csr_rdata
                   : mem_wb_if.reg_file_wdata;
 
   assign bypass_if.rd_data_wb = w_data;

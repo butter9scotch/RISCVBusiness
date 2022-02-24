@@ -37,7 +37,7 @@
 module pipe5_execute_stage(
   input logic CLK, nRST,halt,
   pipe5_decode_execute_if.execute decode_execute_if,
-  pipe5_execute_mem_if.execute execute_mem_if,
+  pipe5_execute_mem_if.execute eecute_mem_if,
   pipe5_forwarding_unit_if.execute bypass_if,
   jump_calc_if.execute jump_if,
   pipe5_hazard_unit_if.execute hazard_if,
@@ -260,7 +260,7 @@ module pipe5_execute_stage(
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
           execute_mem_if.reg_file_wdata     <='h0;
-          execute_mem_if.w_sel              <='h0; 
+          execute_mem_if.w_src              <='h0; 
           execute_mem_if.wen                <='h0; 
           execute_mem_if.dwen               <='h0; 
           execute_mem_if.dren               <='h0; 
@@ -313,7 +313,7 @@ module pipe5_execute_stage(
     else begin
         if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
           execute_mem_if.reg_file_wdata     <='h0;
-          execute_mem_if.w_sel              <='h0; 
+          execute_mem_if.w_src              <='h0; 
           execute_mem_if.wen                <='h0; 
           execute_mem_if.dwen               <='h0; 
           execute_mem_if.dren               <='h0; 
@@ -370,7 +370,7 @@ module pipe5_execute_stage(
         else if(hazard_if.pc_en ) begin
           //Writeback
           execute_mem_if.reg_file_wdata     <= decode_execute_if.reg_file_wdata;
-          execute_mem_if.w_sel              <= decode_execute_if.w_sel;
+          execute_mem_if.w_src              <= decode_execute_if.w_src;
           execute_mem_if.wen                <= next_wen;
           //Mem Signals
           execute_mem_if.dwen               <= decode_execute_if.dwen;
