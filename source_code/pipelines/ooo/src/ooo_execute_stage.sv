@@ -15,12 +15,12 @@
 *   limitations under the License.
 *
 *
-*   Filename:     tspp_execute_stage.sv
+*   Filename:     ooo_execute_stage.sv
 *
-*   Created by:   Jacob R. Stevens
-*   Email:        steven69@purdue.edu
+*   Created by:   Owen Prince
+*   Email:        oprince@purdue.edu
 *   Date Created: 06/16/2016
-*   Description:  Execute Stage for the Two Stage Pipeline 
+*   Description:  Execute Stage for the Out of order pipeline
 */
 
 `include "ooo_decode_execute_if.vh"

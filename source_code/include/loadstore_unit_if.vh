@@ -43,8 +43,8 @@ interface loadstore_unit_if();
 
   modport execute (
     input port_a, port_b, store_data, pc, load_type, dren, 
-           dwen, wen, reg_rd_ls, 
-    output wdata_ls, wen_ls, reg_rd
+           dwen, wen, reg_rd, 
+    output wdata_ls, wen_ls, reg_rd_ls
   );
 
 endinterface

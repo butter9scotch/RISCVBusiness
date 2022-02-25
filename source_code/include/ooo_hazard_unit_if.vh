@@ -36,7 +36,6 @@ interface ooo_hazard_unit_if();
   logic busy_mu;
   logic busy_du;
   logic busy_ls;
-  logic [4:0] reg_rd;
   word_t brj_addr;
   word_t csr_pc;
   word_t epc;
@@ -63,8 +62,6 @@ interface ooo_hazard_unit_if();
   logic busy_all;
   word_t badaddr_d;
   word_t badaddr_i;
-  logic [4:0] reg_rs1;
-  logic [4:0] reg_rs2;
   logic if_if_flush;
 
   modport decode (
@@ -77,7 +74,7 @@ interface ooo_hazard_unit_if();
     input pc_en, ex_mem_flush, d_mem_busy, dmem_access, intr, intr_taken, 
     output load, stall_ex, jump, branch, mispredict, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
-           busy_mu, busy_du, busy_ls, reg_rd, brj_addr, csr_pc, 
+           busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
            epc
   );
 
@@ -98,7 +95,7 @@ interface ooo_hazard_unit_if();
            fault_l, mal_s, mal_l, breakpoint, env_m, token, 
            mal_insn, fault_insn, ret, intr_taken, stall_ex, div_e, 
            mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 
-           badaddr_d, badaddr_i, epc, reg_rs1, reg_rs2, reg_rd, 
+           badaddr_d, badaddr_i, epc,  
     output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
            ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 

@@ -37,7 +37,7 @@
 module pipe5_execute_stage(
   input logic CLK, nRST,halt,
   pipe5_decode_execute_if.execute decode_execute_if,
-  pipe5_execute_mem_if.execute eecute_mem_if,
+  pipe5_execute_mem_if.execute execute_mem_if,
   pipe5_forwarding_unit_if.execute bypass_if,
   jump_calc_if.execute jump_if,
   pipe5_hazard_unit_if.execute hazard_if,
