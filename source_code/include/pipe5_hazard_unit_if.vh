@@ -16,7 +16,7 @@ interface pipe5_hazard_unit_if();
   logic halt;
   logic dflushed;
   logic iflushed;
-  logic [31:0] ifence_pc;
+  word_t ifence_pc;
   logic ex_mem_flush;
   logic d_mem_busy;
   logic dmem_access;
@@ -45,8 +45,6 @@ interface pipe5_hazard_unit_if();
   logic ifence_flush;
   logic csr_flush;
   logic insert_priv_pc;
-  logic [31:0] brj_addr;
-  logic [31:0] csr_pc;
   word_t priv_pc;
   logic if_id_flush;
   logic iren;
@@ -62,12 +60,12 @@ interface pipe5_hazard_unit_if();
   logic fault_insn;
   logic div_e;
   logic mul_e;
-  logic [4:0] reg_rs1;
-  logic [4:0] reg_rs2;
+  logic busy_all;
   word_t badaddr_d;
   word_t badaddr_i;
+  logic [4:0] reg_rs1;
+  logic [4:0] reg_rs2;
   logic if_if_flush;
-  logic epc;
 
   modport decode (
     input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
@@ -99,9 +97,8 @@ interface pipe5_hazard_unit_if();
            mispredict, load, halt, ifence, illegal_insn, fault_s, 
            fault_l, mal_s, mal_l, breakpoint, env_m, token, 
            mal_insn, fault_insn, ret, intr_taken, stall_ex, div_e, 
-           mul_e, stall_au, stall_mu, stall_du, stall_ls, stall_all, 
-           brj_addr, reg_rs1, reg_rs2, reg_rd, badaddr_d, badaddr_i, 
-           epc, 
+           mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 
+           badaddr_d, badaddr_i, epc, reg_rs1, reg_rs2, reg_rd, 
     output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
            ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
@@ -115,8 +112,8 @@ interface pipe5_hazard_unit_if();
 
   modport commit (
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
-           intr_taken, breakpoint, env_m, ret, illegal_insn, epc, 
-           token, badaddr_d, badaddr_i
+           intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
+           epc, badaddr_d, badaddr_i
   );
 
 endinterface

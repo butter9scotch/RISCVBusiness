@@ -2,25 +2,20 @@
 `include "component_selection_defines.vh"
 `include "pipe5_fetch1_fetch2_if.vh"
 `include "pipe5_decode_execute_if.vh"
-`include "pipe5_execute_mem_if.vh"
-`include "pipe5_mem_writeback_if.vh"
-`include "pipe5_forwarding_unit_if.vh"
+`include "pipe5_execute_commit_if.vh"
 `include "rv32i_reg_file_if.vh"
 `include "jump_calc_if.vh"
 `include "branch_res_if.vh"
-`include "rv32i_reg_file_if.vh"
 `include  "predictor_pipeline_if.vh"
 `include "generic_bus_if.vh"
 
-module pipe5();
-
-
+module ooo();
 
    //interface
    pipe5_fetch1_fetch2_if fetch1_fetch2_if();
    pipe5_fetch2_decode_if fetch_decode_if();
    pipe5_decode_execute_if decode_execute_if();
-   pipe5_execute_comm_if decode_execute_if();
+   pipe5_execute_comm_if execute_comm_if();
    pipe5_forwarding_unit_if bypass_if();
    rv32i_reg_file_if rf_if();
    predictor_pipeline_if predict_if();
@@ -56,19 +51,19 @@ module pipe5();
        ,.hazard_if(hazard_if)
       );
 
-   module pipe5_execute_stage(
+   pipe5_execute_stage execute_stage(
       .CLK(CLK)
       ,.nRST(nRST)
-      ,.halt(halt),
-      decode_execute_if,
-      execute_comm_if,
-      jump_calc_if jump_if,
-      predictor_pipeline_if predict_if,
-      pipe5_hazard_unit_if hazard_if,
-      branch_res_if branch_if,
-      cache_control_if cc_if,
-      prv_pipeline_if  prv_pipe_if,
-      generic_bus_if dgen_bus_if
+      ,.halt(halt)
+      ,.decode_execute_if(decode_execute_if)
+      ,.execute_comm_if(execute_comm_if)
+      ,.jump_if(jump_if)
+      ,.predict_if(predict_if)
+      ,.hazard_if(hazard_if)
+      ,.branch_if(branch_if)
+      ,.cc_if(cc_if)
+      ,.prv_pipe_if(prv_pipe_if)
+      ,.dgen_bus_if(dgen_bus_if)
    );
 
    pipe5_commit_stage writeback_stage (
@@ -83,14 +78,6 @@ module pipe5();
    rv32i_reg_file rg_file (.*);
    branch_res branch_res (.br_if(branch_if));
    jump_calc jump_calc (.jump_if(jump_if));
-   pipe5_forwarding_unit forwarding_unit (.bypass_if(bypass_if));
    
-   //Halt logic
-   //assign halt = 
-
-
-
-
-
 
 endmodule

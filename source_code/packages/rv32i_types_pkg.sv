@@ -206,7 +206,8 @@ package rv32i_types_pkg;
   typedef enum logic[1:0] { 
     ARITH_S,
     MUL_S,
-    DIV_S
+    DIV_S,
+    LOADSTORE_S
   } scalar_fu_t;
 
   typedef enum logic [1:0] { 

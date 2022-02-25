@@ -64,11 +64,11 @@ module pipe5_decode_stage (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
       ifence_reg <= 1'b0;
-    else if (lsif.hazard_pc_en)
-      ifence_reg <= ifence_ff1;
+    else if (hazard_if.pc_en)
+      ifence_reg <= cu_if.ifence;
   end
   
-  assign ifence_pulse = execute_mem_if.ifence && ~ifence_reg;
+  assign ifence_pulse = cu_if.ifence && ~ifence_reg;
   assign cc_if.icache_flush = ifence_pulse;
   assign cc_if.icache_clear = 1'b0;
   assign cc_if.dcache_flush = ifence_pulse;
@@ -82,7 +82,7 @@ module pipe5_decode_stage (
       iflushed <= 1'b1;
     else if (ifence_pulse)
       iflushed <= 1'b0;
-    else if (cc_if.iflush_done & lsif.hazard_pc_en)
+    else if (cc_if.iflush_done & hazard_if.pc_en)
       iflushed <= 1'b1;
   end
 
@@ -91,7 +91,7 @@ module pipe5_decode_stage (
       dflushed <= 1'b1;
     else if (ifence_pulse)
       dflushed <= 1'b0;
-    else if (cc_if.dflush_done & lsif.hazard_pc_en)
+    else if (cc_if.dflush_done & hazard_if.pc_en)
       dflushed <= 1'b1;
   end
   

@@ -1,27 +1,3 @@
-/*
-*   Copyright 2016 Purdue University
-*   
-*   Licensed under the Apache License, Version 2.0 (the "License");
-*   you may not use this file except in compliance with the License.
-*   You may obtain a copy of the License at
-*   
-*       http://www.apache.org/licenses/LICENSE-2.0
-*   
-*   Unless required by applicable law or agreed to in writing, software
-*   distributed under the License is distributed on an "AS IS" BASIS,
-*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*   See the License for the specific language governing permissions and
-*   limitations under the License.
-*
-*
-*   Filename:     pipe5_execute_commit_if.vh
-*
-*   Created by:   Owen Prince
-*   Email:        oprince@purdue.edu
-*   Date Created: 02/24/2022
-*   Description:  Interface for execute-commit latch
-*/
-
 `ifndef PIPE5_EXECUTE_COMMIT_IF_VH
 `define PIPE5_EXECUTE_COMMIT_IF_VH
 
@@ -53,9 +29,8 @@ interface pipe5_execute_commit_if();
   logic token;
   logic intr_seen;
   logic jump_instr;
-  logic branch_instr;
   logic jump_addr;
-  logic br_resolved_addr;
+  logic branch_instr;
   logic prediction;
   logic branch_taken;
   logic [11:0] funct12;
@@ -88,11 +63,11 @@ interface pipe5_execute_commit_if();
            wen_ls, busy_au, busy_mu, busy_du, busy_ls, dren, 
            mal_addr, dwen, breakpoint, ecall_insn, ret_insn, illegal_insn, 
            invalid_csr, mal_insn, fault_insn, token, intr_seen, jump_instr, 
-           branch_instr, jump_addr, br_resolved_addr, branch_instr, prediction, branch_taken, 
-           funct12, imm_I, imm_S, imm_SB, w_sel, funct3, 
-           rs1, rs2, reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, 
-           opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 
-           wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr
+           jump_addr, branch_instr, prediction, branch_taken, funct12, imm_I, 
+           imm_S, imm_SB, w_sel, funct3, rs1, rs2, 
+           reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, opcode, csr_rdata, 
+           imm_UJ_ext, imm_U, instr, wdata_au, wdata_mu, wdata_du, 
+           wdata_ls, memory_addr, pc, br_resolved_addr
   );
 
   modport commit (
@@ -100,7 +75,7 @@ interface pipe5_execute_commit_if();
            wen_ls, busy_au, busy_mu, busy_du, busy_ls, dren, 
            mal_addr, dwen, breakpoint, ecall_insn, ret_insn, illegal_insn, 
            invalid_csr, mal_insn, fault_insn, token, intr_seen, jump_instr, 
-           branch_instr, jump_addr, br_resolved_addr, branch_instr, prediction, branch_taken, 
+           jump_addr, branch_instr, prediction, branch_taken, 
            funct12, imm_I, imm_S, imm_SB, w_sel, funct3, 
            rs1, rs2, reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, 
            opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 

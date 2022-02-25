@@ -30,7 +30,7 @@
 
 
 module loadstore_unit (
-  logic CLK, nRST, 
+  input logic CLK, nRST, halt,
   generic_bus_if.cpu dgen_bus_if,
   pipe5_hazard_unit_if.memory hazard_if,
   loadstore_unit_if.execute lsif
@@ -78,7 +78,7 @@ assign pc_ff0 = lsif.pc;
     .byte_en_standard(byte_en_ff0),
     .address(address_ff0), 
     .mal_addr(mal_addr)
-  )
+  );
 
 always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
@@ -90,7 +90,6 @@ always_ff @(posedge CLK, negedge nRST) begin
       address_ff1 <= '0;
       byte_en_ff1 <= '0;
       load_type_ff1 <= '0;
-      ifence_ff1 <= '0;
       pc_ff1 <= '0;
     end else begin
         if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
@@ -102,7 +101,6 @@ always_ff @(posedge CLK, negedge nRST) begin
           address_ff1 <= '0;
           byte_en_ff1 <= '0;
           load_type_ff1 <= '0;
-          ifence_ff1 <= '0;
           pc_ff1 <= '0;
         end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
           dren_ff1 <= '0;
@@ -116,7 +114,6 @@ always_ff @(posedge CLK, negedge nRST) begin
             address_ff1 <= address_ff0;
             byte_en_ff1 <= byte_en_ff0;
             load_type_ff1 <= load_type_ff0;
-            ifence_ff1 <= ifence_ff0;
             pc_ff1 <= pc_ff0;
 
          end
@@ -155,7 +152,7 @@ assign lsif.reg_rd = reg_rd_ff1;
   );
 
 
-    /*******************************************************
+  /*******************************************************
   *** mal_addr  and Associated Logic 
   *******************************************************/
   assign hazard_if.d_mem_busy = dgen_bus_if.busy;

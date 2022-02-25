@@ -41,7 +41,7 @@ module pipe5_commit_stage(
   pipe5_decode_execute_if.execute decode_execute_if,
   pipe5_execute_commit_if.commit execute_comm_if,
   pipe5_hazard_unit_if.commit hazard_if,
-  predictor_pipeline_if.update predict_if,
+  predictor_pipeline_if.update predict_if
 );
 
   import rv32i_types_pkg::*;
@@ -50,7 +50,7 @@ module pipe5_commit_stage(
   import machine_mode_types_1_11_pkg::*;
 
   logic illegal_braddr, illegal_jaddr;
-  logic valid_pc;
+  logic valid_pc, latest_valid_pc;
 
   assign hazard_if.fault_l      =  1'b0; 
   assign hazard_if.mal_l        =  execute_comm_if.dren & execute_comm_if.mal_addr;
@@ -76,7 +76,7 @@ module pipe5_commit_stage(
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) 
-          latest_valid_pc <= 'h0;
+        latest_valid_pc <= 'h0;
     else begin
         if (halt) 
           latest_valid_pc <= 'h0;

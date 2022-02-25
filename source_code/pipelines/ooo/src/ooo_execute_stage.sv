@@ -24,7 +24,7 @@
 */
 
 `include "pipe5_decode_execute_if.vh"
-`include "pipe5_execute_comm_if.vh"
+`include "pipe5_execute_commit_if.vh"
 `include "jump_calc_if.vh"
 `include "predictor_pipeline_if.vh"
 `include "pipe5_hazard_unit_if.vh"
@@ -225,7 +225,6 @@ module pipe5_execute_stage(
     /*******************************************************
   *** Branch Target Resolution and Associated Logic 
   *******************************************************/
-  word_t branch_addr, resolved_addr;
   
   assign hazard_if.brj_addr   = ( jump_instr) ? execute_mem_if.jump_addr : execute_mem_if.br_resolved_addr;
   assign hazard_if.mispredict = decode_execute_if.prediction ^ decode_execute_if.branch_taken;
@@ -367,17 +366,17 @@ module pipe5_execute_stage(
           execute_comm_if.dren <= lsif.dren;
           execute_comm_if.mal_addr <= decode_execute_if.mal_addr;
           execute_comm_if.dwen <= lsif.dwen;
-          execute_comm_if.breakpoint <= DEX.breakpoint;
-          execute_comm_if.ecall_insn <= DEX.ecall_insn;
-          execute_comm_if.ret_insn <= DEX.ret_insn;
-          execute_comm_if.illegal_insn <= DEX.illegal_insn;
+          execute_comm_if.breakpoint <= decode_execute_if.breakpoint;
+          execute_comm_if.ecall_insn <= decode_execute_if.ecall_insn;
+          execute_comm_if.ret_insn <= decode_execute_if.ret_insn;
+          execute_comm_if.illegal_insn <= decode_execute_if.illegal_insn;
           execute_comm_if.invalid_csr <= prv_pipe_if.invalid_csr;
-          execute_comm_if.mal_insn <= DEX.mal_insn;
-          execute_comm_if.fault_insn <= DEX
+          execute_comm_if.mal_insn <= decode_execute_if.mal_insn;
+          execute_comm_if.fault_insn <= decode_execute_if.fault_insn;
           execute_comm_if.memory_addr <= lsif.memory_addr;
-          execute_comm_if.pc <= current_ins
-          execute_comm_if.token <= DEX
-          execute_comm_if.intr_seen <= 0; //TODO
+          execute_comm_if.pc <= decode_execute_if.pc;
+          execute_comm_if.token <= 0;
+          execute_comm_if.intr_seen <= intr_taken_ex; //TODO
           execute_comm_if.jump_instr <= decode_execute_if.jump_instr;
           execute_comm_if.jump_addr <= jump_if.jump_addr;
           execute_comm_if.branch_instr <=   branch_addr;
