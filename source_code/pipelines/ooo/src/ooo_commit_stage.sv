@@ -15,7 +15,7 @@
 *   limitations under the License.
 *
 *
-*   Filename:     pipe5_commit_stage.sv
+*   Filename:     ooo_commit_stage.sv
 *
 *   Created by:   Owen Prince
 *   Email:        oprince@purdue.edu
@@ -23,11 +23,11 @@
 *   Description:  Commit stage for the OoO pipeline 
 */
 
-`include "pipe5_decode_execute_if.vh"
-`include "pipe5_execute_mem_if.vh"
+`include "ooo_decode_execute_if.vh"
+`include "ooo_execute_mem_if.vh"
 `include "jump_calc_if.vh"
 `include "predictor_pipeline_if.vh"
-`include "pipe5_hazard_unit_if.vh"
+`include "ooo_hazard_unit_if.vh"
 `include "branch_res_if.vh"
 `include "cache_control_if.vh"
 `include "component_selection_defines.vh"
@@ -36,17 +36,17 @@
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
 
-module pipe5_commit_stage(
+module ooo_commit_stage(
   input logic CLK, nRST,halt,
-  pipe5_decode_execute_if.execute decode_execute_if,
-  pipe5_execute_commit_if.commit execute_comm_if,
-  pipe5_hazard_unit_if.commit hazard_if,
+  ooo_decode_execute_if.execute decode_execute_if,
+  ooo_execute_commit_if.commit execute_comm_if,
+  ooo_hazard_unit_if.commit hazard_if,
   predictor_pipeline_if.update predict_if
 );
 
   import rv32i_types_pkg::*;
   import alu_types_pkg::*;
-  import pipe5_types_pkg::*;
+  import ooo_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   logic illegal_braddr, illegal_jaddr;

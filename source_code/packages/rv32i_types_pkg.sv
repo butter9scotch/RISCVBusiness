@@ -260,4 +260,4 @@ package rv32i_types_pkg;
 
 
 endpackage
-`endif
+`endif //RV32I_TYPES_PKG_SV

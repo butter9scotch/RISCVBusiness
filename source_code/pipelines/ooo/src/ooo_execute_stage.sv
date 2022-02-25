@@ -23,11 +23,11 @@
 *   Description:  Execute Stage for the Two Stage Pipeline 
 */
 
-`include "pipe5_decode_execute_if.vh"
-`include "pipe5_execute_commit_if.vh"
+`include "ooo_decode_execute_if.vh"
+`include "ooo_execute_commit_if.vh"
 `include "jump_calc_if.vh"
 `include "predictor_pipeline_if.vh"
-`include "pipe5_hazard_unit_if.vh"
+`include "ooo_hazard_unit_if.vh"
 `include "branch_res_if.vh"
 `include "cache_control_if.vh"
 `include "component_selection_defines.vh"
@@ -36,12 +36,12 @@
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
 
-module pipe5_execute_stage(
+module ooo_execute_stage(
   input logic CLK, nRST,halt,
-  pipe5_decode_execute_if.execute decode_execute_if,
-  pipe5_execute_comm_if.execute execute_comm_if,
+  ooo_decode_execute_if.execute decode_execute_if,
+  ooo_execute_comm_if.execute execute_comm_if,
   jump_calc_if.execute jump_if,
-  pipe5_hazard_unit_if.execute hazard_if,
+  ooo_hazard_unit_if.execute hazard_if,
   branch_res_if.execute branch_if,
   cache_control_if.pipeline cc_if,
   prv_pipeline_if.pipe  prv_pipe_if,
@@ -50,7 +50,7 @@ module pipe5_execute_stage(
 
   import rv32i_types_pkg::*;
   import alu_types_pkg::*;
-  import pipe5_types_pkg::*;
+  import ooo_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
   logic csr_reg, csr_pulse;
@@ -81,11 +81,6 @@ module pipe5_execute_stage(
   assign auif.port_b = decode_execute_if.arith.port_b;
   assign auif.reg_file_wdata = decode_execute_if.arith.reg_file_wdata;      
   assign auif.csr_rdata      = csr_rdata;
-
-    // generic_bus_if.cpu dgen_bus_if,
-  // cache_control_if.pipeline cc_if
-  // pipe5_hazard_unit_if.memory hazard_if,
-  // loadstore_unit_if.execute lsif
 
   assign hazard_if.busy_au = auif.busy;
   assign hazard_if.busy_mu = mif.busy;
@@ -187,18 +182,18 @@ module pipe5_execute_stage(
   assign prv_pipe_if.set   = decode_execute_if.csr_set;
   assign prv_pipe_if.wdata = csr_wdata;
   assign prv_pipe_if.addr  = decode_execute_if.csr_addr;
-  assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr | prv_pipe_if.set); 
-  assign prv_pipe_if.instr = (execute_mem_if.instr != '0);
+  assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr | prv_pipe_if.set); //TODO add to latch
+  assign prv_pipe_if.instr = (decode_execute_if.instr != '0);
   assign hazard_if.csr_pc = decode_execute_if.pc;
    
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
       csr_reg <= 1'b0;
     else 
-      csr_reg <= execute_mem_if.csr_instr;
+      csr_reg <= decode_execute_if.csr_instr;
   end
   
-  assign csr_pulse = execute_mem_if.csr_instr && ~csr_reg;
+  assign csr_pulse = decode_execute_if.csr_instr && ~csr_reg;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
@@ -226,7 +221,7 @@ module pipe5_execute_stage(
   *** Branch Target Resolution and Associated Logic 
   *******************************************************/
   
-  assign hazard_if.brj_addr   = ( jump_instr) ? execute_mem_if.jump_addr : execute_mem_if.br_resolved_addr;
+  assign hazard_if.brj_addr   = ( jump_instr) ? decode_execute_if.jump_addr : decode_execute_if.br_resolved_addr;
   assign hazard_if.mispredict = decode_execute_if.prediction ^ decode_execute_if.branch_taken;
   assign hazard_if.branch     = decode_execute_if.branch_instr; 
   assign hazard_if.jump       = decode_execute_if.jump_instr; 

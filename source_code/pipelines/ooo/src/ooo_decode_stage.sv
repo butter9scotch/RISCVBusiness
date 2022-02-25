@@ -22,21 +22,22 @@
 *   Description:  Execute Stage for the Two Stage Pipeline 
 */
 
-`include "pipe5_fetch2_decode_if.vh"
-`include "pipe5_decode_execute_if.vh"
+`include "ooo_fetch2_decode_if.vh"
+`include "ooo_decode_execute_if.vh"
 `include "control_unit_if.vh"
 `include "component_selection_defines.vh"
 `include "rv32i_reg_file_if.vh"
-`include "pipe5_hazard_unit_if.vh"
+`include "ooo_hazard_unit_if.vh"
 `include "cache_control_if.vh"
 
 
-module pipe5_decode_stage (
+module ooo_decode_stage (
   input logic CLK, nRST, halt,
-  pipe5_fetch2_decode_if.decode fetch_decode_if,
-  pipe5_decode_execute_if.decode decode_execute_if,
+  ooo_fetch2_decode_if.decode fetch_decode_if,
+  ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
-  pipe5_hazard_unit_if.decode hazard_if
+  ooo_hazard_unit_if.decode hazard_if,
+  cc_if
 );
 
   import rv32i_types_pkg::*;
@@ -50,7 +51,9 @@ module pipe5_decode_stage (
   control_unit_if   cu_if();
  
   // Module instantiations
-  control_unit cu (.cu_if(cu_if));
+  control_unit cu (
+    .cu_if(cu_if)
+    );
 
 
       /*******************************************************
@@ -97,8 +100,8 @@ module pipe5_decode_stage (
   
   assign hazard_if.dflushed = dflushed;
   assign hazard_if.iflushed = iflushed;
-  assign hazard_if.ifence = execute_mem_if.ifence;
-  assign hazard_if.ifence_pc = execute_mem_if.pc;
+  assign hazard_if.ifence = decode_execute_if.ifence;
+  assign hazard_if.ifence_pc = decode_execute_if.pc;
 
 
   /*******************************************************
@@ -182,8 +185,6 @@ module pipe5_decode_stage (
   *******************************************************/
 
   assign hazard_if.halt = cu_if.halt;
-  assign hazard_if.reg_rs1 = rf_if.rs1;
-  assign hazard_if.reg_rs2 = rf_if.rs2;
 
   /*********************************************************
   *** Signals for Bind Tracking - Read-Only, These don't affect execution
@@ -206,9 +207,6 @@ module pipe5_decode_stage (
             //FUNC UNIT
             decode_execute_if.sfu_type <= ARITH_S;
            //REG_FILE/ WRITEBACK
-            decode_execute_if.reg_file_wdata            <= '0;
-            decode_execute_if.w_src                     <= '0;
-            decode_execute_if.wen                       <= '0;
             //HALT
             decode_execute_if.halt_instr                <= '0;
             //CPU tracker
@@ -226,9 +224,6 @@ module pipe5_decode_stage (
             //FUNC UNIT
           decode_execute_if.sfu_type <= ARITH_S;
            //REG_FILE/ WRITEBACK
-          decode_execute_if.reg_file_wdata            <= '0;
-          decode_execute_if.w_src                     <= '0;
-          decode_execute_if.wen                       <= '0;
             //HALT
           decode_execute_if.halt_instr                <= '0;
             //CPU tracker
@@ -244,9 +239,6 @@ module pipe5_decode_stage (
           //FUNC UNIT
           decode_execute_if.sfu_type <= cu_if.sfu_type;
           //REG_FILE/ WRITEBACK
-          decode_execute_if.reg_file_wdata            <= next_reg_file_wdata;
-          decode_execute_if.w_src                     <= cu_if.w_src;
-          decode_execute_if.wen                       <= cu_if.wen; //Writeback to register file
           //HALT
           decode_execute_if.halt_instr                <= cu_if.halt;
           //CPU tracker
@@ -344,7 +336,7 @@ module pipe5_decode_stage (
         decode_execute_if.arith.pc                        <= '0;
         decode_execute_if.arith.pc4                       <= '0;
         //csr
-        decode_execute_if.arith.csr_instr                 <= '0;
+        decode_execute_if.CSR_STRUCT.csr_instr                 <= '0;
         decode_execute_if.arith.csr_swap                  <= '0;
         decode_execute_if.arith.csr_clr                   <= '0;
         decode_execute_if.arith.csr_set                   <= '0;
@@ -434,6 +426,12 @@ module pipe5_decode_stage (
         decode_execute_if.arith.mal_insn                  <= fetch_decode_if.mal_insn;
         decode_execute_if.arith.fault_insn                <= fetch_decode_if.fault_insn;
         decode_execute_if.arith.wfi                       <= cu_if.wfi;
+        decode_execute_if.w_src                           <= cu_if.w_src;
+
+        decode_execute_if.arith.wdata_au            <= next_reg_file_wdata;
+        decode_execute_if.wen_au                       <= cu_if.wen; //Writeback to register file
+        decode_execute_if.reg_rd_au                      <= cu_if.reg_rd; //Writeback to register file
+
       end
     end
   end
