@@ -4,6 +4,7 @@ TOP = caches_top
 WAVES = scripts
 CPU_AGENT = cpu_agent
 MEM_AGENT = mem_agent
+END2END = end2end
 BUS_COMPS = generic_bus_components
 ENV = env
 SEQUENCES = sequences
@@ -26,6 +27,7 @@ build:
 	+incdir+$(PACKAGES) \
 	+incdir+$(CPU_AGENT) \
 	+incdir+$(MEM_AGENT) \
+	+incdir+$(END2END) \
 	+incdir+$(BUS_COMPS) \
 	+incdir+$(ENV) \
 	+incdir+$(SEQUENCES) \

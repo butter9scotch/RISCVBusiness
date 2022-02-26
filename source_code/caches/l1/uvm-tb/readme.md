@@ -18,6 +18,7 @@
     - UVM_MEDIUM
       - actual and expected values for all scoreboard checks
       - predictor default values for non-initialized memory
+      - end2end transaction/propagation details
     - UVM_HIGH
       - all uvm transactions detected in monitors, predictors, scoreboards 
       - predictor memory before:after
