@@ -90,7 +90,7 @@ module l1_cache #(
     logic [12:0] set_num, next_set_num;
     logic en_set_ctr, clr_set_ctr;
 
-    // Frame(way) Counter - either 1 or 2 frames in a set - Dhruv: Possible renaming of signal? Frame != way
+    // Frame(way) Counter - either 1 or 2 frames in a set 
     logic [1:0] frame_num, next_frame_num;
     logic en_frame_ctr, clr_frame_ctr;
 
@@ -341,7 +341,7 @@ module l1_cache #(
             // FLUSH_SET is not required, because we already know ASSOC is either 1 or 2
             // therefore, just checking ASSOC in FLUSH_FRAME, and deciding whether to go back to
             // FLUSH_CACHE or stay for cleaning of the another frame is sufficient
-          /*  FLUSH_SET: begin 
+            FLUSH_SET: begin 
                 if(finish_frame) begin
                     clr_frame_ctr  = 1'b1;
                     en_set_ctr 	   = 1'b1;
@@ -349,7 +349,7 @@ module l1_cache #(
                 if(~cache[set_num].frames[frame_num].dirty) begin
                     en_frame_ctr  = 1'b1;
                 end
-            end // case: FLUSH_SET*/
+            end // case: FLUSH_SET
 	    
             FLUSH_FRAME: begin
                 mem_gen_bus_if.wen    = 1'b1;
@@ -361,12 +361,12 @@ module l1_cache #(
                     en_frame_ctr 				 = 1'b1;
                     mem_gen_bus_if.wen 				 = 1'b0;
                     next_cache[set_num].frames[frame_num].dirty  = 1'b0;
-		    if (finish_frame) begin
+		    /*if (finish_frame) begin
 		       clr_frame_ctr                             = 1'b1;
 		       en_set_ctr                                = 1'b1;
 		    end
 		    else
-		      en_frame_ctr                               = 1'b1;
+		      en_frame_ctr                               = 1'b1;*/
                 end		
                 if(~mem_gen_bus_if.busy) begin
                     en_word_ctr  = 1'b1;
@@ -404,34 +404,34 @@ module l1_cache #(
 	    end
 	    
 	    FLUSH_CACHE: begin
-            //next_state  = FLUSH_SET;
-	    next_state = FLUSH_FRAME;
+            next_state  = FLUSH_SET;
+	    //next_state = FLUSH_FRAME;
    
             if(finish_set) begin
                 next_state 	= IDLE;
             end
 	    end // case: FLUSH_CACHE
 	    
-/*	    FLUSH_SET: begin
+	    FLUSH_SET: begin
             if(finish_frame) begin
                 next_state 	= FLUSH_CACHE;
             end
             else if(cache[set_num].frames[frame_num].dirty) begin
                 next_state = FLUSH_FRAME;
             end
-	    end // case: FLUSH_SET*/
+	    end // case: FLUSH_SET
 	    
 	    FLUSH_FRAME: begin
             if(finish_word) begin
-	       if(finish_frame)
+	       /*if(finish_frame)
                 next_state 	= FLUSH_CACHE;
 	       else
 		 next_state = FLUSH_FRAME;
 	    end
-	    else
-	      next_state = FLUSH_FRAME;
+	    else*/
+	      next_state = FLUSH_SET;
+	      end
 	    end
-	    
 	endcase // casez (state)
     end // always_comb
 
