@@ -15,6 +15,8 @@ import uvm_pkg::*;
 `include "mem_scoreboard.svh" // uvm_scoreboard
 `include "mem_predictor.svh" // uvm_subscriber
 
+`include "end2end.svh" // uvm_scoreboard
+
 class cache_env extends uvm_env;
   `uvm_component_utils(cache_env)
 
@@ -27,6 +29,7 @@ class cache_env extends uvm_env;
   mem_agent mem_agt; // contains monitor
   mem_predictor mem_pred; // a reference model to check the result
   mem_scoreboard mem_score; // scoreboard
+  end2end e2e; //end to end checker
 
   function new(string name = "env", uvm_component parent = null);
 		super.new(name, parent);
@@ -41,6 +44,8 @@ class cache_env extends uvm_env;
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
     mem_pred = mem_predictor::type_id::create("MEM_PRED", this);
     mem_score = mem_scoreboard::type_id::create("MEM_SCORE", this);
+
+    e2e = end2end::type_id::create("E2E", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
@@ -63,8 +68,10 @@ class cache_env extends uvm_env;
     mem_agt.mon.resp_ap.connect(mem_score.actual_export); // connect monitor to scoreboard
     `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", mem_agt.mon.get_name(), mem_score.get_name()), UVM_FULL)
 
-    //TODO: ADD CONNECT CPU AGENT TO END2END
-    //TODO: ADD CONNECT MEM AGENT TO END2END
+    cpu_agt.mon.req_ap.connect(e2e.cpu_req_export);
+    cpu_agt.mon.resp_ap.connect(e2e.cpu_resp_export);
+    mem_agt.mon.req_ap.connect(e2e.mem_req_export);
+    mem_agt.mon.resp_ap.connect(e2e.mem_resp_export);
   endfunction
 
 endclass: cache_env
