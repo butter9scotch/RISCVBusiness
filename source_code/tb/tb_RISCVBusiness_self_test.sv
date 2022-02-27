@@ -83,23 +83,23 @@ module tb_RISCVBusiness_self_test ();
     assign data = data_temp;
   else ;//TODO:ERROR
 
-  bind pipe5_writeback_stage cpu_tracker cpu_track1 (
+  bind ooo_commit_stage cpu_tracker cpu_track1 (
     .CLK(CLK),
-    .wb_stall(wb_stall),
-    .instr(mem_wb_if.instr),
-    .pc(mem_wb_if.pc),
-    .opcode(mem_wb_if.opcode),
-    .funct3(mem_wb_if.funct3),
-    .funct12(mem_wb_if.funct12),
-    .rs1(mem_wb_if.rs1),
-    .rs2(mem_wb_if.rs2),
-    .rd(mem_wb_if.reg_rd),
-    .imm_S(mem_wb_if.imm_S),
-    .imm_I(mem_wb_if.imm_I),
-    .imm_U(mem_wb_if.imm_U),
-    .imm_UJ(mem_wb_if.imm_UJ_ext),
-    .imm_SB(mem_wb_if.imm_SB),
-    .instr_30(mem_wb_if.instr_30)
+    .wb_stall (wb_stall),
+    .instr    (complete_if.CPU_TRACKER.instr),
+    .pc       (complete_if.CPU_TRACKER.pc),
+    .opcode   (complete_if.CPU_TRACKER.opcode),
+    .funct3   (complete_if.CPU_TRACKER.funct3),
+    .funct12  (complete_if.CPU_TRACKER.funct12),
+    .rs1      (complete_if.CPU_TRACKER.rs1),
+    .rs2      (complete_if.CPU_TRACKER.rs2),
+    .rd       (complete_if.CPU_TRACKER.reg_rd),
+    .imm_S    (complete_if.CPU_TRACKER.imm_S),
+    .imm_I    (complete_if.CPU_TRACKER.imm_I),
+    .imm_U    (complete_if.CPU_TRACKER.imm_U),
+    .imm_UJ   (complete_if.CPU_TRACKER.imm_UJ_ext),
+    .imm_SB   (complete_if.CPU_TRACKER.imm_SB),
+    .instr_30 (complete_if.CPU_TRACKER.instr_30)
     );
 
   bind branch_predictor_wrapper branch_tracker branch_perf(

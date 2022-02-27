@@ -23,8 +23,8 @@
 */
 
 module agu (
-  input logic [31:0] base,
-  input logic [31:0] offset,
+  input logic [31:0] port_a,
+  input logic [31:0] port_b,
   input load_t load_type,
   output logic [3:0] byte_en_standard,
   output logic [31:0] address,
@@ -36,7 +36,7 @@ module agu (
   logic [1:0] byte_offset;
 
   // Generate address
-  assign address = base + offset;
+  assign address = port_a + port_b;
 
   // misaligned address
   always_comb begin

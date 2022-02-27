@@ -22,13 +22,15 @@
 *   Description:  Pipelined wallace tree multiplier that supports overlapping of MUL instr
 */
 
+import rv32i_types_pkg::sign_type_t;
+
 module multiplier
 (
 	input logic CLK,
 	input logic nRST,
 	input logic [31:0] multiplicand,
 	input logic [31:0] multiplier,
-	input logic [1:0] is_signed,
+	input sign_type_t [1:0] is_signed,
 	input logic start,
 	output logic finished,
 	output logic next_finished,
@@ -55,7 +57,7 @@ module multiplier
 	logic ff1, ff2; 
 	//logic [63:0] sum13_pip, cout13_pip;
 	logic [63:0] sum5_pip, cout5_pip, sum6_pip, cout6_pip, sum7_pip, cout7_pip;
-	logic [1:0] is_signed_reg, is_signed_reg1, is_signed_reg2;
+	sign_type_t [1:0] is_signed_reg, is_signed_reg1, is_signed_reg2;
 	logic done;
 	logic count_ena;	
 	integer i, j;
