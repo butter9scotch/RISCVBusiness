@@ -29,6 +29,7 @@
 `include "rv32i_reg_file_if.vh"
 `include "ooo_hazard_unit_if.vh"
 `include "cache_control_if.vh"
+`include "completion_buffer_if.vh"
 
 
 module ooo_decode_stage (
@@ -37,7 +38,8 @@ module ooo_decode_stage (
   ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
   ooo_hazard_unit_if.decode hazard_if,
-  cache_control_if.pipeline cc_if
+  cache_control_if.pipeline cc_if,
+  completion_buffer_if.decode cb_if
 );
 
   import rv32i_types_pkg::*;

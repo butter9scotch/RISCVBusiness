@@ -34,13 +34,15 @@
 `include "multiply_unit_if.vh"
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
+`include "completion_buffer_if.vh"
 
 module ooo_commit_stage(
   input logic CLK, nRST,halt,
   ooo_decode_execute_if.execute decode_execute_if,
   ooo_execute_commit_if.commit execute_comm_if,
   ooo_hazard_unit_if.commit hazard_if,
-  predictor_pipeline_if.update predict_if
+  predictor_pipeline_if.update predict_if,
+  completion_buffer_if.writeback cb_if
 );
 
   import rv32i_types_pkg::*;
@@ -91,5 +93,36 @@ module ooo_commit_stage(
   assign predict_if.prediction       = execute_comm_if.prediction;
   assign predict_if.update_addr      = execute_comm_if.br_resolved_addr;
   assign predict_if.branch_result   = execute_comm_if.branch_taken;
+
+  /*******************************************************
+  *** Write to Completion Buffer logic 
+  *******************************************************/
+  assign cb_if.index_a     = 0; // TODO
+  assign cb_if.wdata_a     = execute_comm_if.wdata_au;
+  assign cb_if.vd_a        = execute_comm_if.reg_rd_au; 
+  assign cb_if.exception_a = 0; // TODO
+  assign cb_if.ready_a     = 0; // TODO
+  assign cb_if.wen_a       = 0; // TODO
+  assign cb_if.valid_a     = 0; // TODO
+  assign cb_if.branch_mispredict  = 0;  // TODO
+
+  assign cb_if.index_mu     = 0;  // TODO
+  assign cb_if.wdata_mu     = execute_comm_if.wdata_mu;  
+  assign cb_if.vd_mu        = execute_comm_if.reg_rd_mu; 
+  assign cb_if.exception_mu = 0; // TODO
+  assign cb_if.ready_mu     = 0; // TODO
+
+  assign cb_if.index_du     = 0; // TODO
+  assign cb_if.wdata_du     = execute_comm_if.wdata_du; 
+  assign cb_if.vd_du        = execute_comm_if.reg_rd_du; 
+  assign cb_if.exception_du = 0; // TODO
+  assign cb_if.ready_du     = 0; // TODO
+
+  assign cb_if.index_ls     = 0; // TODO
+  assign cb_if.wdata_ls     = execute_comm_if.wdata_ls; 
+  assign cb_if.vd_ls        = execute_comm_if.reg_rd_ls; 
+  assign cb_if.exception_ls = 0; // TODO
+  assign cb_if.ready_ls     = 0; // TODO
+  assign cb_if.mal_ls       = 0; // TODO
 
 endmodule
