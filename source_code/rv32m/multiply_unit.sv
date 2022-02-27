@@ -51,25 +51,6 @@ module multiply_unit (
     .product(product)
   );
 
-  assign multiplicand = mif.is_signed == SIGNED_UNSIGNED ? mif.rs1_data : mif.rs2_data;
-  assign multiplier   = mif.is_signed == SIGNED_UNSIGNED ? mif.rs2_data : mif.rs1_data;
-  assign is_signed    = mif.is_signed == SIGNED_UNSIGNED ? UNSIGNED_SIGNED : mif.is_signed;
-  assign mif.done_mu      = done; 
-  //assign mif.busy_mu = start_reg;
-
-  always_ff @ (posedge CLK, negedge nRST) begin
-    if (nRST == 0) begin
-      start_reg <= '0;
-    end else if (mif.decode_done) begin
-      start_reg <= 0;
-    end else if (mif.start_mu) begin
-      start_reg <= 1;
-    end
-  end
-
-  assign product_low_sew32  = product[31:0];
-  assign product_high_sew32 = product[63:32]; 
-
   logic high_low_sel_ff0, high_low_sel_ff1, high_low_sel_ff2; 
   always_ff @(posedge CLK or negedge nRST) begin
     if (~nRST) begin 
@@ -82,8 +63,26 @@ module multiply_unit (
       high_low_sel_ff2 <= high_low_sel_ff1;
     end
   end
-  
+
+  assign multiplicand  = mif.is_signed == SIGNED_UNSIGNED ? mif.rs1_data : mif.rs2_data;
+  assign multiplier    = mif.is_signed == SIGNED_UNSIGNED ? mif.rs2_data : mif.rs1_data;
+  assign is_signed     = mif.is_signed == SIGNED_UNSIGNED ? UNSIGNED_SIGNED : mif.is_signed;
+  assign mif.done_mu   = done;
+  assign mif.reg_rd_mu = mif.reg_rd;
   assign mif.wdata_mu = (high_low_sel_ff2) ? product_high_sew32 : product_low_sew32;
   assign mif.busy_mu = mif.start_mu & ~mif.done_mu;
+
+  assign product_low_sew32  = product[31:0];
+  assign product_high_sew32 = product[63:32]; 
+  
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      start_reg <= '0;
+    end else if (mif.decode_done) begin
+      start_reg <= 0;
+    end else if (mif.start_mu) begin
+      start_reg <= 1;
+    end
+  end
 
 endmodule

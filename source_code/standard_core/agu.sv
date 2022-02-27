@@ -77,7 +77,7 @@ module agu (
       default :     byte_en_standard = 4'b0000;
     endcase
   end
-
+    logic [3:0] byte_en;
   // misaligned address
   always_comb begin
     if(byte_en == 4'hf) 

@@ -22,16 +22,16 @@
 *   Description:  Fetch stage for the two stage pipeline
 */
 
-`include "pipe5_fetch1_fetch2_if.vh"
+`include "ooo_fetch1_fetch2_if.vh"
 `include "predictor_pipeline_if.vh"
 `include "component_selection_defines.vh"
-`include "pipe5_hazard_unit_if.vh"
+`include "ooo_hazard_unit_if.vh"
 
-module pipe5_fetch1_stage (
+module ooo_fetch1_stage (
   input logic CLK, nRST,halt,
-  pipe5_fetch1_fetch2_if.fetch1 fetch1_fetch2_if,
+  ooo_fetch1_fetch2_if.fetch1 fetch1_fetch2_if,
   predictor_pipeline_if.access predict_if,
-  pipe5_hazard_unit_if.fetch1 hazard_if
+  ooo_hazard_unit_if.fetch1 hazard_if
 );
   import rv32i_types_pkg::*;
 

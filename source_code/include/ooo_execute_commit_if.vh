@@ -1,7 +1,7 @@
-`ifndef PIPE5_EXECUTE_COMMIT_IF_VH
-`define PIPE5_EXECUTE_COMMIT_IF_VH
+`ifndef OOO_EXECUTE_COMMIT_IF_VH
+`define OOO_EXECUTE_COMMIT_IF_VH
 
-interface pipe5_execute_commit_if();
+interface ooo_execute_commit_if();
 
   import rv32i_types_pkg::*;
 
@@ -84,4 +84,4 @@ interface pipe5_execute_commit_if();
 
 endinterface
 
-`endif //PIPE5_EXECUTE_COMMIT_IF_VH
+`endif //OOO_EXECUTE_COMMIT_IF_VH

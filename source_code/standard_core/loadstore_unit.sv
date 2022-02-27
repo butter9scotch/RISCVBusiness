@@ -30,46 +30,44 @@
 
 
 module loadstore_unit (
-  logic CLK, nRST, 
+  input logic CLK, nRST, halt,
   generic_bus_if.cpu dgen_bus_if,
   pipe5_hazard_unit_if.memory hazard_if,
   loadstore_unit_if.execute lsif
 );
-  
+
   import rv32i_types_pkg::*;
 
-// input
+  // input
 
-logic [31:0] store_data_ff1, store_data_ff0;
-logic  dren_ff1, dren_ff0;
-logic  dwen_ff1, dwen_ff0;
-logic  wen_ff1, wen_ff0;
-logic [4:0] reg_rd_ff1, reg_rd_ff0;
-logic [31:0] address_ff1, address_ff0;
-logic [3:0] byte_en_ff1, byte_en_ff0;
-load_t load_type_ff1, load_type_ff0;
-// logic ifence_ff1, ifence_ff0;
-logic [31:0] pc_ff1, pc_ff0;
+  logic [31:0] store_data_ff1, store_data_ff0;
+  logic [31:0] pc_ff1, pc_ff0;
+  logic  dren_ff1, dren_ff0;
+  logic  dwen_ff1, dwen_ff0;
+  logic  wen_ff1, wen_ff0;
+  logic [4:0] reg_rd_ff1, reg_rd_ff0;
+  logic [31:0] address_ff1, address_ff0;
+  logic [3:0] byte_en_ff1, byte_en_ff0;
+  load_t load_type_ff1, load_type_ff0;
+  opcode_t opcode_ff0, opcode_ff1;
 
   // pipeline:
   // iclear_done, dclear_done?
 
-logic [3:0] byte_en_standard;
-// logic [31:0] address;
-logic mal_addr;
-logic stall;
+  logic [3:0] byte_en_standard;
+  logic mal_addr;
+  logic stall;
 
-assign stall = '0;
+  assign stall = '0;
 
-assign store_data_ff0 = lsif.store_data;
-assign dren_ff0 = lsif.dren;
-assign dwen_ff0 = lsif.dwen;
-assign wen_ff0 = lsif.wen;
-assign reg_rd_ff0 = lsif.reg_rd;
-// assign address_ff0 = address;
-assign load_type_ff0 = lsif.load_type;
-// assign ifence_ff0 = lsif.ifence;
-assign pc_ff0 = lsif.pc;
+  assign store_data_ff0 = lsif.store_data;
+  assign dren_ff0       = lsif.dren;
+  assign dwen_ff0       = lsif.dwen;
+  assign wen_ff0        = lsif.wen;
+  assign reg_rd_ff0     = lsif.reg_rd;
+  assign load_type_ff0  = lsif.load_type;
+  assign pc_ff0         = lsif.pc;
+  assign opcode_ff0     = lsif.opcode;
 
   agu AGU (
     .port_a(lsif.port_a), 
@@ -78,71 +76,73 @@ assign pc_ff0 = lsif.pc;
     .byte_en_standard(byte_en_ff0),
     .address(address_ff0), 
     .mal_addr(mal_addr)
-  )
+  );
 
-always_ff @(posedge CLK, negedge nRST) begin
+  always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
       store_data_ff1 <= '0;
-      dren_ff1 <= '0;
-      dwen_ff1 <= '0;
-      wen_ff1 <= '0;
-      reg_rd_ff1 <= '0;
-      address_ff1 <= '0;
-      byte_en_ff1 <= '0;
-      load_type_ff1 <= '0;
-      ifence_ff1 <= '0;
-      pc_ff1 <= '0;
+      dren_ff1       <= '0;
+      dwen_ff1       <= '0;
+      wen_ff1        <= '0;
+      reg_rd_ff1     <= '0;
+      address_ff1    <= '0;
+      byte_en_ff1    <= '0;
+      load_type_ff1  <= '0;
+      pc_ff1         <= '0;
+      opcode_ff1     <= '0;
     end else begin
-        if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
-          store_data_ff1 <= '0;
-          dren_ff1 <= '0;
-          dwen_ff1 <= '0;
-          wen_ff1 <= '0;
-          reg_rd_ff1 <= '0;
-          address_ff1 <= '0;
-          byte_en_ff1 <= '0;
-          load_type_ff1 <= '0;
-          ifence_ff1 <= '0;
-          pc_ff1 <= '0;
-        end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
-          dren_ff1 <= '0;
-          dwen_ff1 <= '0;
-        end else if(hazard_if.pc_en & ~stall) begin
-            store_data_ff1 <= store_data_ff0;
-            dren_ff1 <= dren_ff0;
-            dwen_ff1 <= dwen_ff0;
-            wen_ff1 <= wen_ff0;
-            reg_rd_ff1 <= reg_rd_ff0;
-            address_ff1 <= address_ff0;
-            byte_en_ff1 <= byte_en_ff0;
-            load_type_ff1 <= load_type_ff0;
-            ifence_ff1 <= ifence_ff0;
-            pc_ff1 <= pc_ff0;
-
-         end
+      if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
+        store_data_ff1 <= '0;
+        dren_ff1       <= '0;
+        dwen_ff1       <= '0;
+        wen_ff1        <= '0;
+        reg_rd_ff1     <= '0;
+        address_ff1    <= '0;
+        byte_en_ff1    <= '0;
+        load_type_ff1  <= '0;
+        pc_ff1         <= '0;
+        opcode_ff1     <= '0;
+      end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
+        dren_ff1 <= '0;
+        dwen_ff1 <= '0;
+      end else if(hazard_if.pc_en & ~stall) begin
+        store_data_ff1 <= store_data_ff0;
+        dren_ff1       <= dren_ff0;
+        dwen_ff1       <= dwen_ff0;
+        wen_ff1        <= wen_ff0;
+        reg_rd_ff1     <= reg_rd_ff0;
+        address_ff1    <= address_ff0;
+        byte_en_ff1    <= byte_en_ff0;
+        load_type_ff1  <= load_type_ff0;
+        pc_ff1         <= pc_ff0;
+        opcode_ff1     <= opcode_ff0;
       end
+    end
   end
 
-// output:
-assign lsif.wdata_ls = dgen_bus_if.rdata;
-assign lsif.wen = wen_ff1;
-assign lsif.reg_rd = reg_rd_ff1;
-
+  // OUTPUT:
+  assign lsif.wdata_ls = dgen_bus_if.rdata;
+  assign lsif.wen_ls   = wen_ff1;
+  assign lsif.reg_rd   = reg_rd_ff1;
+  assign lsif.dren_ls  = dren_ff1;
+  assign lsif.dwen_ls  = dwen_ff1;
+  assign lsif.opcode_ls  = opcode_ff1;
+ 
 
   /*******************************************************
   *** Choose the Endianness Coming into the processor
   *******************************************************/
   logic [3:0] byte_en, byte_en_temp;
-  assign byte_en_temp = byte_en_ff0;
+  assign byte_en_temp = byte_en_ff1;
   generate
     if (BUS_ENDIANNESS == "big")
     begin
-        assign byte_en = byte_en_temp;
+      assign byte_en = byte_en_temp;
     end else if (BUS_ENDIANNESS == "little")
     begin
       assign byte_en = dren_ff1 ? byte_en_temp :
-              {byte_en_temp[0], byte_en_temp[1],
-              byte_en_temp[2], byte_en_temp[3]};
+                                  {byte_en_temp[0], byte_en_temp[1],
+                                    byte_en_temp[2], byte_en_temp[3]};
     end
   endgenerate 
 
@@ -155,12 +155,12 @@ assign lsif.reg_rd = reg_rd_ff1;
   );
 
 
-    /*******************************************************
+  /*******************************************************
   *** mal_addr  and Associated Logic 
   *******************************************************/
   assign hazard_if.d_mem_busy = dgen_bus_if.busy;
-  assign hazard_if.dren    = dgen_bus_if.ren;
-  assign hazard_if.dwen    = dgen_bus_if.wen;
+  assign hazard_if.dren       = dgen_bus_if.ren;
+  assign hazard_if.dwen       = dgen_bus_if.wen;
 
   /*******************************************************
   *** data bus  and Associated Logic 
@@ -171,11 +171,11 @@ assign lsif.reg_rd = reg_rd_ff1;
   assign dgen_bus_if.addr    = address_ff1;
   always_comb begin
     dgen_bus_if.wdata = '0;
-      case(load_type_ff1) // load_type can be used for store_type as well
-        LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
-        LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
-        LW: dgen_bus_if.wdata = store_data_ff1; 
-      endcase
+    case(load_type_ff1) // load_type can be used for store_type as well
+      LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
+      LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
+      LW: dgen_bus_if.wdata = store_data_ff1; 
+    endcase
   end
 
 

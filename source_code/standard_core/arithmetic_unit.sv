@@ -27,7 +27,6 @@
 
 module arithmetic_unit (
   arithmetic_unit_if.execute auif
-  alu_if.alu alu_if,
 );
   
   import rv32i_types_pkg::*;
@@ -45,6 +44,7 @@ module arithmetic_unit (
     CSR:     auif.wdata_au = auif.csr_rdata;
     ALU_SRC: auif.wdata_au = alu_if.port_out;
     default: auif.wdata_au = auif.reg_file_wdata;
+    endcase
   end
   // auif.wen = auif.wen_au; 
 

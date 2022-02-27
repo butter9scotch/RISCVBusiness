@@ -34,16 +34,26 @@ module rv32i_reg_file (
   parameter NUM_REGS = 32;
 
   word_t [NUM_REGS-1:0] registers;
+  logic [31:0] in_use;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       registers <= '0;
-    end else if (rf_if.wen && rf_if.rd) begin
-      registers[rf_if.rd] <= rf_if.w_data;
+    end else begin
+      if (rf_if.wen && rf_if.rd) begin
+        registers[rf_if.rd] <= rf_if.w_data;
+        in_use[rf_if.rd] <= 1'b0;
+      end
+      if (rf_if.rden && rf_if.rd) begin
+        in_use[rf_if.rd_decode] <= 1'b1;
+      end
     end
   end 
 
-  assign rf_if.rs1_data = registers[rf_if.rs1];
-  assign rf_if.rs2_data = registers[rf_if.rs2];
+  assign rf_if.rs1_data   = registers[rf_if.rs1];
+  assign rf_if.rs2_data   = registers[rf_if.rs2];
+  assign rf_if.in_use_rs1 = in_use[rf_if.rs1];
+  assign rf_if.in_use_rs2 = in_use[rf_if.rs2];
+  assign rf_if.in_use_rsd = in_use[rf_if.rsd];
 
 endmodule

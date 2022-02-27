@@ -22,10 +22,10 @@
 *   Description:  Interface between the fetch and execute pipeline stages
 */
 
-`ifndef PIPE5_DECODE_EXECUTE_IF_VH
-`define PIPE5_DECODE_EXECUTE_IF_VH
+`ifndef OOO_DECODE_EXECUTE_IF_VH
+`define OOO_DECODE_EXECUTE_IF_VH
 
-interface pipe5_decode_execute_if();
+interface ooo_decode_execute_if();
 
   import rv32i_types_pkg::*;
   import rv32m_pkg::*;
@@ -131,4 +131,4 @@ interface pipe5_decode_execute_if();
 
 endinterface
 
-`endif //PIPE5_DECODE_EXECUTE_IF_VH
+`endif //OOO_DECODE_EXECUTE_IF_VH
