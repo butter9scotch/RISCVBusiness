@@ -52,7 +52,6 @@ module divide_unit (
 
   assign dif.busy_du      = (start_reg | dif.start_div) & !done; 
   assign dif.wdata_du     = dif.div_type ? q : remainder;
-  assign dif.exception_du = 0;  // Divide by 0
   assign dif.done_du      = done;  
 
   assign q = (dif.rs2_data == 0) && dif.is_signed_div  ? 32'hFFFF_FFFF : 

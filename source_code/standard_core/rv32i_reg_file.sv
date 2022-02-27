@@ -45,7 +45,7 @@ module rv32i_reg_file (
         in_use[rf_if.rd] <= 1'b0;
       end
       if (rf_if.rden && rf_if.rd) begin
-        in_use[rf_if.rd] <= 1'b1;
+        in_use[rf_if.rd_decode] <= 1'b1;
       end
     end
   end 

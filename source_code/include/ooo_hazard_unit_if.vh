@@ -4,6 +4,7 @@
 interface ooo_hazard_unit_if();
 
   import rv32i_types_pkg::word_t;
+  import rv32i_types_pkg::scalar_fu_t;
 
   logic pc_en;
   logic id_ex_flush;
@@ -32,10 +33,6 @@ interface ooo_hazard_unit_if();
   logic env_m;
   logic ret;
   logic token;
-  logic busy_au;
-  logic busy_mu;
-  logic busy_du;
-  logic busy_ls;
   word_t brj_addr;
   word_t csr_pc;
   word_t epc;
@@ -63,11 +60,18 @@ interface ooo_hazard_unit_if();
   word_t badaddr_d;
   word_t badaddr_i;
   logic if_if_flush;
+  //NEW SIGNALS
+  logic busy_au;
+  logic busy_mu;
+  logic busy_du;
+  logic busy_ls;
+  scalar_fu_t fu_type;
+  logic rob_full;
 
   modport decode (
     input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, intr, 
-    output halt, dflushed, iflushed, ifence_pc
+           stall_all, intr,
+    output halt, dflushed, iflushed, ifence_pc, fu_type
   );
 
   modport execute (
@@ -102,15 +106,10 @@ interface ooo_hazard_unit_if();
            stall_all, priv_pc
   );
 
-  modport memory (
-    input pc_en, intr, 
-    output dren, dwen, d_mem_busy
-  );
-
   modport commit (
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
-           epc, badaddr_d, badaddr_i
+           epc, badaddr_d, badaddr_i, rob_full
   );
 
 endinterface

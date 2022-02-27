@@ -35,8 +35,10 @@ interface multiply_unit_if();
   logic high_low_sel;
   logic decode_done;
   logic wen;
+  logic wen_mu;
   sign_type_t is_signed;
   logic [4:0] reg_rd;
+  logic [4:0] reg_rd_mu;
   logic [31:0] wdata_mu;
   logic busy_mu;
   logic done_mu;
@@ -44,7 +46,7 @@ interface multiply_unit_if();
   modport execute (
     input rs1_data, rs2_data, start_mu, high_low_sel, decode_done, wen, 
           is_signed, reg_rd, 
-    output wdata_mu, busy_mu, done_mu
+    output wdata_mu, busy_mu, done_mu, wen_mu, reg_rd_mu
   );
 
 endinterface

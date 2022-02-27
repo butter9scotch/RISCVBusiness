@@ -24,6 +24,9 @@
 
 `ifndef RV32I_TYPES_PKG_SV
 `define RV32I_TYPES_PKG_SV
+
+`include "machine_mode_types_1_11_pkg.sv"
+
 package rv32i_types_pkg;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
@@ -217,6 +220,14 @@ package rv32i_types_pkg;
     UNSIGNED        = 2'b00 
   } sign_type_t;
 
+  typedef enum logic [2:0] { 
+    LOAD_SRC = 3'd0,
+    JUMP_SRC = 3'd1,
+    LUI_SRC  = 3'd2,
+    ALU_SRC  = 3'd3, 
+    CSR      = 3'd4
+  } w_src_t;
+
   typedef struct packed {
     logic [31:0] rs1_data;
     logic [31:0] rs2_data;
@@ -226,7 +237,7 @@ package rv32i_types_pkg;
     logic wen;
     sign_type_t is_signed;
     logic [4:0] reg_rd;
-  } multiply_unit_input_t;
+  } multiply_struct_t;
 
   typedef struct packed {
     logic [31:0] rs1_data;
@@ -236,28 +247,67 @@ package rv32i_types_pkg;
     logic is_signed_div;
     logic wen;
     logic [4:0] reg_rd;
-  } divide_unit_input_t;
+  } divide_struct_t;
 
   typedef struct packed {
     logic [31:0] port_a;
     logic [31:0] port_b;
     logic [31:0] store_data;
+    logic [31:0] pc;
     load_t load_type;
     logic byte_en;
     logic dren;
     logic dwen;
     logic wen;
     logic [4:0] reg_rd;
-  } loadstore_unit_input_t;
+    opcode_t opcode;
+  } loadstore_struct_t;
 
-  typedef enum logic [2:0] { 
-    LOAD_SRC = 3'd0,
-    JUMP_SRC = 3'd1,
-    LUI_SRC  = 3'd2,
-    ALU_SRC  = 3'd3, 
-    CSR      = 3'd4
-  } w_src_t;
+  typedef struct packed {
+    alu_types_pkg::aluop_t aluop;
+    logic [31:0] port_a;
+    logic [31:0] port_b;
+    logic [31:0] reg_file_wdata;
+    logic [31:0] pc;
+    logic wen;
+    logic [4:0] reg_rd;
+  } arith_struct_t;
+  
+  typedef struct packed {
+    logic jump_instr;
+    word_t j_base;
+    word_t j_offset;
+    logic j_sel;
+  } jump_struct_t;
 
+  typedef struct packed {
+    logic branch_instr;
+    logic prediction;
+    word_t pc4;
+  } branch_struct_t;
+
+  typedef struct packed {
+    logic csr_instr;
+    logic csr_swap;
+    logic csr_clr;
+    logic csr_set;
+    machine_mode_types_1_11_pkg::csr_addr_t csr_addr;
+    logic csr_imm;
+    logic [31:0] csr_imm_value;
+    logic [31:0] instr;
+  } csr_struct_t;
+
+  typedef struct packed {
+    logic illegal_insn;
+    logic breakpoint;
+    logic ecall_insn;
+    logic ret_insn;
+    logic token;
+    logic mal_insn;
+    logic fault_insn;
+    logic wfi;
+    w_src_t w_src;
+  } exception_struct_t;
 
 endpackage
 `endif //RV32I_TYPES_PKG_SV

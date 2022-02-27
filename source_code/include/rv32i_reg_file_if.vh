@@ -30,7 +30,7 @@ interface rv32i_reg_file_if();
   import rv32i_types_pkg::*;
 
   word_t        w_data, rs1_data, rs2_data;
-  logic   [4:0] rs1, rs2, rd;
+  logic   [4:0] rs1, rs2, rd, rd_decode;
   logic         wen;
   logic         rden;
   logic         in_use_rs1;
@@ -44,7 +44,7 @@ interface rv32i_reg_file_if();
   
   modport decode (
     output  rs1, rs2, in_use_rs1, in_use_rs2, in_use_rd,
-    input   rs1_data, rs2_data, rden
+    input   rs1_data, rs2_data, rden, rd_decode
   );
 
   modport writeback (

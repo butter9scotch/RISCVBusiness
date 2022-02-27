@@ -91,10 +91,14 @@ interface pipe5_decode_execute_if();
   logic div_type;
   logic instr_30;
   logic wfi;
-  divide_unit_input_t divide;
-  multiply_unit_input_t multiply;
-  alu_input_t alu;
-  loadstore_unit_input_t loadstore;
+  divide_struct_t      divide;
+  multiply_struct_t    multiply;
+  loadstore_struct_t   loadstore;
+  arith_struct_t       arith;
+  jump_struct_t        JUMP_STRUCT;
+  branch_struct_t      BRANCH_STRUCT;
+  csr_struct_t         CSR_STRUCT;
+  exception_struct_t   EXCEPTION_STRUCT;
   logic high_low_sel;
 
   modport decode (
@@ -108,7 +112,7 @@ interface pipe5_decode_execute_if();
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, div_type, instr_30, wfi, divide, 
-          multiply, alu, loadstore
+          multiply, loadstore
   );
 
   modport execute (
@@ -122,7 +126,7 @@ interface pipe5_decode_execute_if();
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, high_low_sel, div_type, instr_30, wfi, 
-          divide, multiply, alu, loadstore
+          divide, multiply, loadstore
   );
 
 endinterface

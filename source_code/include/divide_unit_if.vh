@@ -3,14 +3,23 @@
 
 interface divide_unit_if();
   
-  logic [31:0] rs1_data, rs2_data, wdata_du; 
-  logic is_signed_div, div_type, start_div;
-  //sign_type_t is_signed;
-  logic busy_du, exception_du, done_du;
+  logic [31:0] rs1_data; 
+  logic [31:0] rs2_data; 
+  logic [31:0] wdata_du; 
+  logic [4:0] reg_rd; 
+  logic [4:0] reg_rd_du; 
+  logic wen;
+  logic wen_du;
+  logic is_signed_div;
+  logic div_type;
+  logic start_div;
+  logic busy_du;
+  logic done_du;
 
   modport execute (
     input   rs1_data, rs2_data, start_div, div_type, is_signed_div, 
-    output  wdata_du, busy_du, exception_du, done_du
+            wen, reg_rd,
+    output  wdata_du, busy_du, done_du, reg_rd_du, wen_du
   );
 
 endinterface

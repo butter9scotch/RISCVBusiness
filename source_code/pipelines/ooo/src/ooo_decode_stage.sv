@@ -14,12 +14,12 @@
 *   limitations under the License.
 *
 *
-*   Filename:     tspp_execute_stage.sv
+*   Filename:     ooo_decode_stage.sv
 *
-*   Created by:   Jacob R. Stevens
-*   Email:        steven69@purdue.edu
-*   Date Created: 06/16/2016
-*   Description:  Execute Stage for the Two Stage Pipeline 
+*   Created by:   Owen Prince
+*   Email:        oprince@purdue.edu
+*   Date Created: 02/24/2022
+*   Description:  Decode stage for out of order pipeline 
 */
 
 `include "ooo_fetch2_decode_if.vh"
@@ -53,10 +53,12 @@ module ooo_decode_stage (
   // Module instantiations
   control_unit cu (
     .cu_if(cu_if)
-    );
+  );
+  
+  //@ $arith = "arithmetic_unit";
+  //@ our $arith;
 
-
-      /*******************************************************
+  /*******************************************************
   *** fence instruction and Associated Logic 
   *******************************************************/
   // posedge detector for ifence
@@ -211,292 +213,287 @@ module ooo_decode_stage (
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
             //FUNC UNIT
-            decode_execute_if.sfu_type <= ARITH_S;
+            decode_execute_if.sfu_type   <= ARITH_S;
            //REG_FILE/ WRITEBACK
             //HALT
-            decode_execute_if.halt_instr                <= '0;
+            decode_execute_if.halt_instr <= '0;
             //CPU tracker
-            decode_execute_if.funct3                    <= '0;
-            decode_execute_if.funct12                   <= '0;
-            decode_execute_if.imm_S                     <= '0;
-            decode_execute_if.imm_I                     <= '0;
-            decode_execute_if.imm_U                     <= '0;
-            decode_execute_if.imm_UJ_ext                <= '0;
-            decode_execute_if.imm_SB                    <= '0;
-            decode_execute_if.instr_30                  <= '0;
+            decode_execute_if.funct3     <= '0;
+            decode_execute_if.funct12    <= '0;
+            decode_execute_if.imm_S      <= '0;
+            decode_execute_if.imm_I      <= '0;
+            decode_execute_if.imm_U      <= '0;
+            decode_execute_if.imm_UJ_ext <= '0;
+            decode_execute_if.imm_SB     <= '0;
+            decode_execute_if.instr_30   <= '0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
             //FUNC UNIT
-          decode_execute_if.sfu_type <= ARITH_S;
+          decode_execute_if.sfu_type   <= ARITH_S;
            //REG_FILE/ WRITEBACK
             //HALT
-          decode_execute_if.halt_instr                <= '0;
+          decode_execute_if.halt_instr <= '0;
             //CPU tracker
-          decode_execute_if.funct3                    <= '0;
-          decode_execute_if.funct12                   <= '0;
-          decode_execute_if.imm_S                     <= '0;
-          decode_execute_if.imm_I                     <= '0;
-          decode_execute_if.imm_U                     <= '0;
-          decode_execute_if.imm_UJ_ext                <= '0;
-          decode_execute_if.imm_SB                    <= '0;
-          decode_execute_if.instr_30                  <= '0;
+          decode_execute_if.funct3     <= '0;
+          decode_execute_if.funct12    <= '0;
+          decode_execute_if.imm_S      <= '0;
+          decode_execute_if.imm_I      <= '0;
+          decode_execute_if.imm_U      <= '0;
+          decode_execute_if.imm_UJ_ext <= '0;
+          decode_execute_if.imm_SB     <= '0;
+          decode_execute_if.instr_30   <= '0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
           //FUNC UNIT
-          decode_execute_if.sfu_type <= cu_if.sfu_type;
+          decode_execute_if.sfu_type   <= cu_if.sfu_type;
           //REG_FILE/ WRITEBACK
           //HALT
-          decode_execute_if.halt_instr                <= cu_if.halt;
+          decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
-          decode_execute_if.funct3                    <= funct3;
-          decode_execute_if.funct12                   <= funct12;
-          decode_execute_if.imm_S                     <= cu_if.imm_S;
-          decode_execute_if.imm_I                     <= cu_if.imm_I;
-          decode_execute_if.imm_U                     <= cu_if.imm_U;
-          decode_execute_if.imm_UJ_ext                <= imm_UJ_ext;
-          decode_execute_if.imm_SB                    <= cu_if.imm_SB;
-          decode_execute_if.instr_30                  <= instr_30;
+          decode_execute_if.funct3     <= funct3;
+          decode_execute_if.funct12    <= funct12;
+          decode_execute_if.imm_S      <= cu_if.imm_S;
+          decode_execute_if.imm_I      <= cu_if.imm_I;
+          decode_execute_if.imm_U      <= cu_if.imm_U;
+          decode_execute_if.imm_UJ_ext <= imm_UJ_ext;
+          decode_execute_if.imm_SB     <= cu_if.imm_SB;
+          decode_execute_if.instr_30   <= instr_30;
         end
     end
   end
 
   always @(posedge CLK, negedge nRST) begin : MULTIPLY_UNIT
     if (~nRST) begin
-      decode_execute_if.multiply.rs1_data <= 0;
-      decode_execute_if.multiply.rs2_data <= 0;
-      decode_execute_if.multiply.start_mu <= 0;
+      decode_execute_if.multiply.rs1_data     <= 0;
+      decode_execute_if.multiply.rs2_data     <= 0;
+      decode_execute_if.multiply.start_mu     <= 0;
       decode_execute_if.multiply.high_low_sel <= 0;
-      decode_execute_if.multiply.decode_done <= 0;
-      decode_execute_if.multiply.wen <= 0;
-      decode_execute_if.multiply.is_signed <= SIGNED;
-      decode_execute_if.multiply.reg_rd <= 0;
+      decode_execute_if.multiply.decode_done  <= 0;
+      decode_execute_if.multiply.wen          <= 0;
+      decode_execute_if.multiply.is_signed    <= SIGNED;
+      decode_execute_if.multiply.reg_rd       <= 0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_mu) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.multiply.rs1_data <= 0;
-        decode_execute_if.multiply.rs2_data <= 0;
-        decode_execute_if.multiply.start_mu <= 0;
+        decode_execute_if.multiply.rs1_data     <= 0;
+        decode_execute_if.multiply.rs2_data     <= 0;
+        decode_execute_if.multiply.start_mu     <= 0;
         decode_execute_if.multiply.high_low_sel <= 0;
-        decode_execute_if.multiply.decode_done <= 0;
-        decode_execute_if.multiply.wen <= 0;
-        decode_execute_if.multiply.is_signed <= SIGNED;
-        decode_execute_if.multiply.reg_rd <= 0;
+        decode_execute_if.multiply.decode_done  <= 0;
+        decode_execute_if.multiply.wen          <= 0;
+        decode_execute_if.multiply.is_signed    <= SIGNED;
+        decode_execute_if.multiply.reg_rd       <= 0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_mu) begin
-        decode_execute_if.multiply.rs1_data       <= alu_port_a;
-        decode_execute_if.multiply.rs2_data       <= alu_port_b;
-        decode_execute_if.multiply.start_mu       <= mul_ena;
-        decode_execute_if.multiply.high_low_sel   <= cu_if.high_low_sel;
-        decode_execute_if.multiply.decode_done    <= 0;
-        decode_execute_if.multiply.wen            <= cu_if.wen;
-        decode_execute_if.multiply.is_signed      <= cu_if.sign_type;
-        decode_execute_if.multiply.reg_rd         <= cu_if.reg_rd;
+        decode_execute_if.multiply.rs1_data     <= alu_port_a;
+        decode_execute_if.multiply.rs2_data     <= alu_port_b;
+        decode_execute_if.multiply.start_mu     <= mul_ena;
+        decode_execute_if.multiply.high_low_sel <= cu_if.high_low_sel;
+        decode_execute_if.multiply.decode_done  <= 0;
+        decode_execute_if.multiply.wen          <= cu_if.wen;
+        decode_execute_if.multiply.is_signed    <= cu_if.sign_type;
+        decode_execute_if.multiply.reg_rd       <= cu_if.reg_rd;
       end
     end
   end
 
   always @(posedge CLK, negedge nRST) begin : DIVIDE_UNIT
     if (~nRST) begin
-      decode_execute_if.divide.rs1_data <= 0;
-      decode_execute_if.divide.rs2_data <= 0;
-      decode_execute_if.divide.start_div <= 0;
-      decode_execute_if.divide.div_type <= 0;
+      decode_execute_if.divide.rs1_data      <= 0;
+      decode_execute_if.divide.rs2_data      <= 0;
+      decode_execute_if.divide.start_div     <= 0;
+      decode_execute_if.divide.div_type      <= 0;
       decode_execute_if.divide.is_signed_div <= 0;
-      decode_execute_if.divide.wen <= 0;
-      decode_execute_if.divide.reg_rd <= 0;
+      decode_execute_if.divide.wen           <= 0;
+      decode_execute_if.divide.reg_rd        <= 0;
     end else begin 
       if (((hazard_if.id_ex_flush | hazard_if.stall_du) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.divide.rs1_data <= 0;
-        decode_execute_if.divide.rs2_data <= 0;
-        decode_execute_if.divide.start_div <= 0;
-        decode_execute_if.divide.div_type <= 0;
+        decode_execute_if.divide.rs1_data      <= 0;
+        decode_execute_if.divide.rs2_data      <= 0;
+        decode_execute_if.divide.start_div     <= 0;
+        decode_execute_if.divide.div_type      <= 0;
         decode_execute_if.divide.is_signed_div <= 0;
-        decode_execute_if.divide.wen <= 0;
-        decode_execute_if.divide.reg_rd <= 0;
+        decode_execute_if.divide.wen           <= 0;
+        decode_execute_if.divide.reg_rd        <= 0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_du) begin
-        decode_execute_if.divide.rs1_data <= alu_port_a;
-        decode_execute_if.divide.rs2_data <= alu_port_b;
-        decode_execute_if.divide.start_div <= div_ena;
-        decode_execute_if.divide.div_type <= cu_if.div_type;
+        decode_execute_if.divide.rs1_data      <= alu_port_a;
+        decode_execute_if.divide.rs2_data      <= alu_port_b;
+        decode_execute_if.divide.start_div     <= div_ena;
+        decode_execute_if.divide.div_type      <= cu_if.div_type;
         decode_execute_if.divide.is_signed_div <= cu_if.sign_type;
-        decode_execute_if.divide.wen <= cu_if.wen;
-        decode_execute_if.divide.reg_rd <= cu_if.reg_rd;
+        decode_execute_if.divide.wen           <= cu_if.wen;
+        decode_execute_if.divide.reg_rd        <= cu_if.reg_rd;
       end
     end
   end
 
   always @(posedge CLK, negedge nRST) begin : ARITH_UNIT
     if (~nRST) begin
-        decode_execute_if.arith.aluop <= 0;
-        decode_execute_if.arith.port_a <= 0;
-        decode_execute_if.arith.port_b <= 0;
-        decode_execute_if.arith.reg_file_wdata       <= '0;
-        //JUMP
-        decode_execute_if.arith.jump_instr                <= '0;
-        decode_execute_if.arith.j_base                    <= '0;
-        decode_execute_if.arith.j_offset                  <= '0;
-        decode_execute_if.arith.j_sel                     <= '0;
-        //BRANCH
-        decode_execute_if.arith.br_imm_sb                 <= '0;
-        decode_execute_if.arith.br_branch_type            <= '0;
-        //BRANCH PREDICTOR UPDATE
-        decode_execute_if.arith.branch_instr              <= '0;
-        decode_execute_if.arith.prediction                <= '0;
-        decode_execute_if.arith.pc                        <= '0;
-        decode_execute_if.arith.pc4                       <= '0;
-        //csr
-        decode_execute_if.CSR_STRUCT.csr_instr            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_swap             <= '0;
-        decode_execute_if.CSR_STRUCT.csr_clr              <= '0;
-        decode_execute_if.CSR_STRUCT.csr_set              <= '0;
-        decode_execute_if.CSR_STRUCT.csr_addr             <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm              <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm_value        <= '0;
-        decode_execute_if.CSR_STRUCT.instr                <= '0;
-        //Exceptions
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn              <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint                <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn                <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn                  <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.token                     <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn                  <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn                <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.wfi                       <= '0;
+        decode_execute_if.arith.aluop                   <= 0;
+        decode_execute_if.arith.port_a                  <= 0;
+        decode_execute_if.arith.port_b                  <= 0;
+        decode_execute_if.arith.reg_file_wdata          <= '0;
+        decode_execute_if.arith.pc              <= '0;
         //WRITEBACK
-        decode_execute_if.arith.wen                   <= '0;
-        decode_execute_if.arith.reg_rd                 <= '0;
+        decode_execute_if.arith.wen                     <= '0;
+        decode_execute_if.arith.reg_rd                  <= '0;
+        //JUMP
+        decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
+        decode_execute_if.JUMP_STRUCT.j_base            <= '0;
+        decode_execute_if.JUMP_STRUCT.j_offset          <= '0;
+        decode_execute_if.JUMP_STRUCT.j_sel             <= '0;
+        //BRANCH
+        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= '0;
+        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= '0;
+        //BRANCH PREDICTOR UPDATE
+        decode_execute_if.BRANCH_STRUCT.branch_instr    <= '0;
+        decode_execute_if.BRANCH_STRUCT.prediction      <= '0;
+        decode_execute_if.BRANCH_STRUCT.pc4             <= '0;
+        //csr
+        decode_execute_if.CSR_STRUCT.csr_instr          <= '0;
+        decode_execute_if.CSR_STRUCT.csr_swap           <= '0;
+        decode_execute_if.CSR_STRUCT.csr_clr            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_set            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_addr           <= '0;
+        decode_execute_if.CSR_STRUCT.csr_imm            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_imm_value      <= '0;
+        decode_execute_if.CSR_STRUCT.instr              <= '0;
+        //Exceptions
+        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.token        <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_au) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.arith.aluop <= aluop_t'(0);
-        decode_execute_if.arith.port_a <= 0;
-        decode_execute_if.arith.port_b <= 0;
-        decode_execute_if.arith.reg_file_wdata <= '0;
+        decode_execute_if.arith.aluop                   <= aluop_t'(0);
+        decode_execute_if.arith.port_a                  <= 0;
+        decode_execute_if.arith.port_b                  <= 0;
+        decode_execute_if.arith.reg_file_wdata          <= '0;
+        //WRITEBACK
+        decode_execute_if.arith.wen                     <= '0;
+        decode_execute_if.arith.reg_rd                  <= '0;
         //JUMP
-        decode_execute_if.arith.jump_instr                <= '0;
-        decode_execute_if.arith.j_base                    <= '0;
-        decode_execute_if.arith.j_offset                  <= '0;
-        decode_execute_if.arith.j_sel                     <= '0;
+        decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
+        decode_execute_if.JUMP_STRUCT.j_base            <= '0;
+        decode_execute_if.JUMP_STRUCT.j_offset          <= '0;
+        decode_execute_if.JUMP_STRUCT.j_sel             <= '0;
         //BRANCH
-        decode_execute_if.arith.br_imm_sb                 <= '0;
-        decode_execute_if.arith.br_branch_type            <= '0;
+        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= '0;
+        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= '0;
         //BRANCH PREDICTOR UPDATE
-        decode_execute_if.arith.branch_instr                  <= '0;
-        decode_execute_if.arith.prediction                    <= '0;
-        decode_execute_if.arith.pc                            <= '0;
-        decode_execute_if.arith.pc4                           <= '0;
+        decode_execute_if.BRANCH_STRUCT.branch_instr    <= '0;
+        decode_execute_if.BRANCH_STRUCT.prediction      <= '0;
+        decode_execute_if.BRANCH_STRUCT.pc              <= '0;
+        decode_execute_if.BRANCH_STRUCT.pc4             <= '0;
         //csr
-        decode_execute_if.CSR_STRUCT.csr_instr                 <= '0;
-        decode_execute_if.CSR_STRUCT.csr_swap                  <= '0;
-        decode_execute_if.CSR_STRUCT.csr_clr                   <= '0;
-        decode_execute_if.CSR_STRUCT.csr_set                   <= '0;
-        decode_execute_if.CSR_STRUCT.csr_addr                  <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm                   <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm_value             <= '0;
-        decode_execute_if.CSR_STRUCT.instr                     <= '0;
+        decode_execute_if.CSR_STRUCT.csr_instr          <= '0;
+        decode_execute_if.CSR_STRUCT.csr_swap           <= '0;
+        decode_execute_if.CSR_STRUCT.csr_clr            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_set            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_addr           <= '0;
+        decode_execute_if.CSR_STRUCT.csr_imm            <= '0;
+        decode_execute_if.CSR_STRUCT.csr_imm_value      <= '0;
+        decode_execute_if.CSR_STRUCT.instr              <= '0;
         //Exceptions
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn        <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint          <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn          <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn            <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.token               <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn            <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn          <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.wfi                 <= '0;
-        //WRITEBACK
-        decode_execute_if.arith.wen                   <= '0;
-        decode_execute_if.arith.reg_rd                 <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.token        <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= '0;
+        decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
+
       end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
-        decode_execute_if.arith.aluop <= cu_if.alu_op;
-        decode_execute_if.arith.port_a <= alu_port_a;
-        decode_execute_if.arith.port_b <= alu_port_b;
-        decode_execute_if.arith.reg_file_wdata <= next_reg_file_wdata;
-        //JUMP
-        decode_execute_if.arith.jump_instr                <= cu_if.jump;
-        decode_execute_if.arith.j_base                    <= base;
-        decode_execute_if.arith.j_offset                  <= offset;
-        decode_execute_if.arith.j_sel                     <= cu_if.j_sel;
-        //BRANCH
-        decode_execute_if.arith.br_imm_sb                 <= cu_if.imm_SB;
-        decode_execute_if.arith.br_branch_type            <= cu_if.branch_type;
-        //BRANCH PREDICTOR UPDATE
-        decode_execute_if.arith.branch_instr              <= cu_if.branch;
-        decode_execute_if.arith.prediction                <= fetch_decode_if.prediction;
-        decode_execute_if.arith.pc                        <= fetch_decode_if.pc;
-        decode_execute_if.arith.pc4                       <= fetch_decode_if.pc4;
-                //csr
-        decode_execute_if.CSR_STRUCT.csr_instr                 <= (cu_if.opcode == SYSTEM);
-        decode_execute_if.CSR_STRUCT.csr_swap                  <= cu_if.csr_swap;
-        decode_execute_if.CSR_STRUCT.csr_clr                   <= cu_if.csr_clr;
-        decode_execute_if.CSR_STRUCT.csr_set                   <= cu_if.csr_set;
-        decode_execute_if.CSR_STRUCT.csr_addr                  <= cu_if.csr_addr;
-        decode_execute_if.CSR_STRUCT.csr_imm                   <= cu_if.csr_imm;
-        decode_execute_if.CSR_STRUCT.csr_imm_value             <= {27'h0, cu_if.zimm};
-        decode_execute_if.CSR_STRUCT.instr                     <= fetch_decode_if.instr;
-        //Exceptions
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn              <= cu_if.illegal_insn;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint                <= cu_if.breakpoint;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn                <= cu_if.ecall_insn;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn                  <= cu_if.ret_insn;
-        decode_execute_if.EXCEPTION_STRUCT.token                     <= fetch_decode_if.token;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn                  <= fetch_decode_if.mal_insn;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn                <= fetch_decode_if.fault_insn;
-        decode_execute_if.EXCEPTION_STRUCT.wfi                       <= cu_if.wfi;
-        decode_execute_if.EXCEPTION_STRUCT.w_src                     <= cu_if.arith.w_src;
+        decode_execute_if.arith.aluop                   <= cu_if.alu_op;
+        decode_execute_if.arith.port_a                  <= alu_port_a;
+        decode_execute_if.arith.port_b                  <= alu_port_b;
+        decode_execute_if.arith.reg_file_wdata          <= next_reg_file_wdata;
         //WRITEBACK
-        decode_execute_if.arith.wen                   <= cu_if.wen; //Writeback to register file
-        decode_execute_if.arith.reg_rd                 <= cu_if.reg_rd; //Writeback to register file
+        decode_execute_if.arith.wen                     <= cu_if.wen; //Writeback to register file
+        decode_execute_if.arith.reg_rd                  <= cu_if.reg_rd; //Writeback to register file
+        //JUMP
+        decode_execute_if.JUMP_STRUCT.jump_instr        <= cu_if.jump;
+        decode_execute_if.JUMP_STRUCT.j_base            <= base;
+        decode_execute_if.JUMP_STRUCT.j_offset          <= offset;
+        decode_execute_if.JUMP_STRUCT.j_sel             <= cu_if.j_sel;
+        //BRANCH
+        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= cu_if.imm_SB;
+        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= cu_if.branch_type;
+        //BRANCH PREDICTOR UPDATE
+        decode_execute_if.BRANCH_STRUCT.branch_instr    <= cu_if.branch;
+        decode_execute_if.BRANCH_STRUCT.prediction      <= fetch_decode_if.prediction;
+        decode_execute_if.BRANCH_STRUCT.pc              <= fetch_decode_if.pc;
+        decode_execute_if.BRANCH_STRUCT.pc4             <= fetch_decode_if.pc4;
+                //csr
+        decode_execute_if.CSR_STRUCT.csr_instr          <= (cu_if.opcode == SYSTEM);
+        decode_execute_if.CSR_STRUCT.csr_swap           <= cu_if.csr_swap;
+        decode_execute_if.CSR_STRUCT.csr_clr            <= cu_if.csr_clr;
+        decode_execute_if.CSR_STRUCT.csr_set            <= cu_if.csr_set;
+        decode_execute_if.CSR_STRUCT.csr_addr           <= cu_if.csr_addr;
+        decode_execute_if.CSR_STRUCT.csr_imm            <= cu_if.csr_imm;
+        decode_execute_if.CSR_STRUCT.csr_imm_value      <= {27'h0, cu_if.zimm};
+        decode_execute_if.CSR_STRUCT.instr              <= fetch_decode_if.instr;
+        //Exceptions
+        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= cu_if.illegal_insn;
+        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= cu_if.breakpoint;
+        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= cu_if.ecall_insn;
+        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= cu_if.ret_insn;
+        decode_execute_if.EXCEPTION_STRUCT.token        <= fetch_decode_if.token;
+        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= fetch_decode_if.mal_insn;
+        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= fetch_decode_if.fault_insn;
+        decode_execute_if.EXCEPTION_STRUCT.wfi          <= cu_if.wfi;
+        decode_execute_if.EXCEPTION_STRUCT.w_src        <= cu_if.arith.w_src;
 
       end
     end
   end
 
-
-    input port_a, port_b, store_data, pc, load_type, dren, 
-           dwen, wen, reg_rd, 
-
-
 always @(posedge CLK, negedge nRST) begin : LOADSTORE_UNIT
     if (~nRST) begin
       //MEMORY
-      decode_execute_if.loadstore.port_a                    <= '0; 
-      decode_execute_if.loadstore.port_b                    <= '0; 
-      decode_execute_if.loadstore.dwen                      <= '0;
-      decode_execute_if.loadstore.dren                      <= '0;
-      decode_execute_if.loadstore.load_type                 <= '0;
-      decode_execute_if.loadstore.store_data                <= '0;
-      decode_execute_if.loadstore.pc                        <= '0;
-      //FENCE 
-      decode_execute_if.loadstore.opcode                    <= '0;
+      decode_execute_if.loadstore.port_a     <= '0;
+      decode_execute_if.loadstore.port_b     <= '0;
+      decode_execute_if.loadstore.dwen       <= '0;
+      decode_execute_if.loadstore.dren       <= '0;
+      decode_execute_if.loadstore.load_type  <= '0;
+      decode_execute_if.loadstore.store_data <= '0;
+      decode_execute_if.loadstore.pc         <= '0;
+      //FENCE
+      decode_execute_if.loadstore.opcode     <= '0;
       //WRITEBACK
-      decode_execute_if.loadstore.wen                       <= '0;
-      decode_execute_if.loadstore.reg_rd                    <= '0;
+      decode_execute_if.loadstore.wen        <= '0;
+      decode_execute_if.loadstore.reg_rd     <= '0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_ls) & hazard_if.pc_en) | halt) begin
         //MEMORY
-        decode_execute_if.loadstore.port_a                  <= '0; 
-        decode_execute_if.loadstore.port_b                  <= '0; 
-        decode_execute_if.loadstore.dwen                    <= '0;
-        decode_execute_if.loadstore.dren                    <= '0;
-        decode_execute_if.loadstore.load_type               <= '0;
+        decode_execute_if.loadstore.port_a     <= '0;
+        decode_execute_if.loadstore.port_b     <= '0;
+        decode_execute_if.loadstore.dwen       <= '0;
+        decode_execute_if.loadstore.dren       <= '0;
+        decode_execute_if.loadstore.load_type  <= '0;
         decode_execute_if.loadstore.store_data <= '0;
-        decode_execute_if.loadstore.pc <= '0;
-        //FENCE 
-        decode_execute_if.loadstore.opcode                    <= '0;
+        decode_execute_if.loadstore.pc         <= '0;
+        //FENCE
+        decode_execute_if.loadstore.opcode     <= '0;
         //WRITEBACK
-        decode_execute_if.loadstore.reg_rd                 <= '0;
+        decode_execute_if.loadstore.reg_rd     <= '0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_ls) begin
         //MEMORY
-        decode_execute_if.loadstore.port_a                    <= alu_port_a; 
-        decode_execute_if.loadstore.port_b                    <= alu_port_b; 
-        decode_execute_if.loadstore.dwen                      <= cu_if.dwen; 
-        decode_execute_if.loadstore.dren                      <= cu_if.dren; 
-        decode_execute_if.loadstore.load_type                 <= cu_if.load_type;
-        decode_execute_if.loadstore.store_data                <= rf_if.rs2_data;;
-        decode_execute_if.loadstore.pc                        <=
-fetch_decode_if.pc;
-        //FENCE 
-        decode_execute_if.loadstore.opcode                    <= cu_if.opcode;
+        decode_execute_if.loadstore.port_a     <= alu_port_a;
+        decode_execute_if.loadstore.port_b     <= alu_port_b;
+        decode_execute_if.loadstore.dwen       <= cu_if.dwen;
+        decode_execute_if.loadstore.dren       <= cu_if.dren;
+        decode_execute_if.loadstore.load_type  <= cu_if.load_type;
+        decode_execute_if.loadstore.store_data <= rf_if.rs2_data;;
+        decode_execute_if.loadstore.pc         <= fetch_decode_if.pc;
+        //FENCE
+        decode_execute_if.loadstore.opcode     <= cu_if.opcode;
         //WRITEBACK
-        decode_execute_if.loadstore.wen                   <= cu_if.wen; //Writeback to register file
-        decode_execute_if.loadstore.reg_rd                 <= cu_if.reg_rd; //Writeback to register file
+        decode_execute_if.loadstore.wen        <= cu_if.wen; //Writeback to register file
+        decode_execute_if.loadstore.reg_rd     <= cu_if.reg_rd; //Writeback to register file
       end
     end
   end
