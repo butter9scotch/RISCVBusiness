@@ -86,20 +86,20 @@ module tb_RISCVBusiness_self_test ();
   bind ooo_commit_stage cpu_tracker cpu_track1 (
     .CLK(CLK),
     .wb_stall (wb_stall),
-    .instr    (complete_if.CPU_TRACKER.instr),
-    .pc       (complete_if.CPU_TRACKER.pc),
-    .opcode   (complete_if.CPU_TRACKER.opcode),
-    .funct3   (complete_if.CPU_TRACKER.funct3),
-    .funct12  (complete_if.CPU_TRACKER.funct12),
-    .rs1      (complete_if.CPU_TRACKER.rs1),
-    .rs2      (complete_if.CPU_TRACKER.rs2),
-    .rd       (complete_if.CPU_TRACKER.reg_rd),
-    .imm_S    (complete_if.CPU_TRACKER.imm_S),
-    .imm_I    (complete_if.CPU_TRACKER.imm_I),
-    .imm_U    (complete_if.CPU_TRACKER.imm_U),
-    .imm_UJ   (complete_if.CPU_TRACKER.imm_UJ_ext),
-    .imm_SB   (complete_if.CPU_TRACKER.imm_SB),
-    .instr_30 (complete_if.CPU_TRACKER.instr_30)
+    .instr    (cb_if.CPU_TRACKER.instr),
+    .pc       (cb_if.CPU_TRACKER.pc),
+    .opcode   (cb_if.CPU_TRACKER.opcode),
+    .funct3   (cb_if.CPU_TRACKER.funct3),
+    .funct12  (cb_if.CPU_TRACKER.funct12),
+    .rs1      (cb_if.CPU_TRACKER.rs1),
+    .rs2      (cb_if.CPU_TRACKER.rs2),
+    .rd       (cb_if.CPU_TRACKER.reg_rd),
+    .imm_S    (cb_if.CPU_TRACKER.imm_S),
+    .imm_I    (cb_if.CPU_TRACKER.imm_I),
+    .imm_U    (cb_if.CPU_TRACKER.imm_U),
+    .imm_UJ   (cb_if.CPU_TRACKER.imm_UJ_ext),
+    .imm_SB   (cb_if.CPU_TRACKER.imm_SB),
+    .instr_30 (cb_if.CPU_TRACKER.instr_30)
     );
 
   bind branch_predictor_wrapper branch_tracker branch_perf(
