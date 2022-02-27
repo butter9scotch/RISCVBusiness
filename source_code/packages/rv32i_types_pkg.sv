@@ -228,6 +228,62 @@ package rv32i_types_pkg;
     CSR      = 3'd4
   } w_src_t;
 
+  typedef struct packed{
+    word_t rs1_data;
+    word_t rs2_data;
+  } common_fu_io_t;
+
+  /***** Control Signal Types for Functional Units *****/
+
+  // TODO: needs the remaining signals for CSR and others
+  typedef struct packed {
+    aluop_t alu_op;
+    logic wen;
+    logic [4:0] reg_rd;
+  } arith_control_signals_t;
+
+  typedef struct packed {
+    logic ena;
+    logic high_low_sel;
+    logic is_signed;
+    logic decode_done;
+    logic wen;
+    logic [4:0] reg_rd;
+  } mult_control_signals_t;
+
+  typedef struct packed {
+    logic ena;
+    logic div_type;
+    logic is_signed;
+    logic wen;
+    logic [4:0] reg_rd;
+  } div_control_signals_t;
+
+  typedef struct packed {
+    load_t load_type;
+    logic byte_en;
+    logic dren;
+    logic dwen;
+    opcode_t opcode;
+    logic wen;
+    logic [4:0] reg_rd;
+  } lsu_constrol_signals_t;
+
+  typedef struct packed {
+    logic [2:0] funct3;
+    logic [11:0] funct12;
+    logic [11:0] imm_S    
+    logic [11:0] imm_I;
+    word_t imm_U;
+    logic [11:0] imm_UJ_ext;
+    logic [12:0] imm_SB;
+    logic instr_30;
+    logic [4:0]reg_rs1;
+    logic [4:0] reg_rs2; 
+  } cpu_tracker_t;
+  // TODO: add floating point control signals struct here
+////////
+
   typedef struct packed {
     logic [31:0] rs1_data;
     logic [31:0] rs2_data;

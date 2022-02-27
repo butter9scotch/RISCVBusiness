@@ -51,13 +51,15 @@ module ooo_decode_stage (
   control_unit_if   cu_if();
  
   // Module instantiations
+  /*******************************************************
+  * Input to the Control Unit
+  *******************************************************/
+  assign cu_if.instr = fetch_decode_if.instr;
+
   control_unit cu (
     .cu_if(cu_if)
   );
   
-  //@ $arith = "arithmetic_unit";
-  //@ our $arith;
-
   /*******************************************************
   *** fence instruction and Associated Logic 
   *******************************************************/
@@ -107,27 +109,12 @@ module ooo_decode_stage (
 
 
   /*******************************************************
-  * FU signals
-  *******************************************************/
-
-  logic mul_ena, div_ena, arith_ena, loadstore_ena;
-  assign mul_ena       = cu_if.sfu_type == MUL_S;
-  assign div_ena       = cu_if.sfu_type == DIV_S;
-  assign arith_ena = cu_if.sfu_type == ARITH_S;
-  assign loadstore_ena = cu_if.sfu_type == LOADSTORE_S;
-
-
-  /*******************************************************
   * Reg File Logic
   *******************************************************/
    assign rf_if.rs1 = cu_if.reg_rs1;
    assign rf_if.rs2 = cu_if.reg_rs2;
 
-  /*******************************************************
-  * MISC RISC-MGMT Logic
-  *******************************************************/
-  assign cu_if.instr = fetch_decode_if.instr;
-
+  
   /*******************************************************
   *** Sign Extensions 
   *******************************************************/
@@ -151,26 +138,26 @@ module ooo_decode_stage (
   end 
 
   /*******************************************************
-  *** ALU and Associated Logic 
+  *** Source Select Logic
   *******************************************************/
   word_t imm_or_shamt, next_port_a, next_port_b, next_reg_file_wdata;
   assign imm_or_shamt = (cu_if.imm_shamt_sel == 1'b1) ? cu_if.shamt : imm_I_ext;
- 
+  
   always_comb begin
-    case (cu_if.alu_a_sel)
-      2'd0: next_port_a = rf_if.rs1_data;
-      2'd1: next_port_a = imm_S_ext;
-      2'd2: next_port_a = fetch_decode_if.pc;
-      2'd3: next_port_a = '0; //Not Used 
+    case (cu_if.source_a_sel)
+      2'd0: fu_source_a = rf_if.rs1_data;
+      2'd1: fu_source_a = imm_S_ext;
+      2'd2: fu_source_a = fetch_decode_if.pc;
+      2'd3: fu_source_a = '0; //Not Used 
     endcase
   end
  
   always_comb begin
-    case(cu_if.alu_b_sel)
-      2'd0: next_port_b = rf_if.rs1_data;
-      2'd1: next_port_b = rf_if.rs2_data;
-      2'd2: next_port_b = imm_or_shamt;
-      2'd3: next_port_b = cu_if.imm_U;
+    case(cu_if.source_b_sel)
+      2'd0: fu_source_b = rf_if.rs1_data;
+      2'd1: fu_source_b = rf_if.rs2_data;
+      2'd2: fu_source_b = imm_or_shamt;
+      2'd3: fu_source_b = cu_if.imm_U;
     endcase
   end
 
@@ -182,11 +169,12 @@ module ooo_decode_stage (
     endcase
   end
   
+  word_t fu_source_a;
+  word_t fu_source_b;
+  alu_port_a
+  assign fu_source_a = next_port_a;
 
-    assign alu_port_a = (cu_if.alu_a_sel == 'd0) ? rf_if.rs1_data : next_port_a;
-
-    assign alu_port_b = (cu_if.alu_b_sel == 'd0) ? rf_if.rs1_data : 
-                        (cu_if.alu_b_sel == 'd1) ? rf_if.rs2_data : next_port_b;
+  assign fu_source_b = next_port_b;
   /*******************************************************
   *** Hazard unit connection  
   *******************************************************/
@@ -196,9 +184,18 @@ module ooo_decode_stage (
   /*********************************************************
   *** Signals for Bind Tracking - Read-Only, These don't affect execution
   *********************************************************/
-  assign funct3 = cu_if.instr[14:12];
-  assign funct12 = cu_if.instr[31:20];
-  assign instr_30 = cu_if.instr[30];
+  // CPU Tracker binding
+  cpu_tracker_t tracker_sigs;
+  assign tracker_sigs.funct3     = cu_if.instr[14:12];
+  assign tracker_sigs.funct12    = cu_if.instr[31:20];
+  assign tracker_sigs.instr_30   = cu_if.instr[30];
+  assign tracker_sigs.imm_S      = cu_if.imm_S;
+  assign tracker_sigs.imm_I      = cu_if.imm_I;
+  assign tracker_sigs.imm_U      = cu_if.imm_U;
+  assign tracker_sigs.imm_UJ_ext = imm_UJ_ext;
+  assign tracker_sigs.imm_SB     = cu_if.imm_SB;
+  assign tracker_sigs.reg_rs1    = cu_if.reg_rs1;
+  assign tracker_sigs.reg_rs2    = cu_if.reg_rs2;
 
   /*********************************************************
   *** Stall signals
@@ -218,14 +215,7 @@ module ooo_decode_stage (
             //HALT
             decode_execute_if.halt_instr <= '0;
             //CPU tracker
-            decode_execute_if.funct3     <= '0;
-            decode_execute_if.funct12    <= '0;
-            decode_execute_if.imm_S      <= '0;
-            decode_execute_if.imm_I      <= '0;
-            decode_execute_if.imm_U      <= '0;
-            decode_execute_if.imm_UJ_ext <= '0;
-            decode_execute_if.imm_SB     <= '0;
-            decode_execute_if.instr_30   <= '0;
+            decode_execute_if.tracker_sigs <= '0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
@@ -235,14 +225,7 @@ module ooo_decode_stage (
             //HALT
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
-          decode_execute_if.funct3     <= '0;
-          decode_execute_if.funct12    <= '0;
-          decode_execute_if.imm_S      <= '0;
-          decode_execute_if.imm_I      <= '0;
-          decode_execute_if.imm_U      <= '0;
-          decode_execute_if.imm_UJ_ext <= '0;
-          decode_execute_if.imm_SB     <= '0;
-          decode_execute_if.instr_30   <= '0;
+          decode_execute_if.tracker_sigs <= '0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
@@ -250,83 +233,38 @@ module ooo_decode_stage (
           //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
-          decode_execute_if.funct3     <= funct3;
-          decode_execute_if.funct12    <= funct12;
-          decode_execute_if.imm_S      <= cu_if.imm_S;
-          decode_execute_if.imm_I      <= cu_if.imm_I;
-          decode_execute_if.imm_U      <= cu_if.imm_U;
-          decode_execute_if.imm_UJ_ext <= imm_UJ_ext;
-          decode_execute_if.imm_SB     <= cu_if.imm_SB;
-          decode_execute_if.instr_30   <= instr_30;
+          decode_execute_if.cpu_track_sigs <= tracker_sigs;
         end
     end
   end
-
+  // BIG TODO: put in the logic for rs1 and rs2
   always @(posedge CLK, negedge nRST) begin : MULTIPLY_UNIT
     if (~nRST) begin
-      decode_execute_if.multiply.rs1_data     <= 0;
-      decode_execute_if.multiply.rs2_data     <= 0;
-      decode_execute_if.multiply.start_mu     <= 0;
-      decode_execute_if.multiply.high_low_sel <= 0;
-      decode_execute_if.multiply.decode_done  <= 0;
-      decode_execute_if.multiply.wen          <= 0;
-      decode_execute_if.multiply.is_signed    <= SIGNED;
-      decode_execute_if.multiply.reg_rd       <= 0;
+      decode_execute_if.mult_sigs <= '0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_mu) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.multiply.rs1_data     <= 0;
-        decode_execute_if.multiply.rs2_data     <= 0;
-        decode_execute_if.multiply.start_mu     <= 0;
-        decode_execute_if.multiply.high_low_sel <= 0;
-        decode_execute_if.multiply.decode_done  <= 0;
-        decode_execute_if.multiply.wen          <= 0;
-        decode_execute_if.multiply.is_signed    <= SIGNED;
-        decode_execute_if.multiply.reg_rd       <= 0;
+        decode_execute_if.mult_sigs <= '0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_mu) begin
-        decode_execute_if.multiply.rs1_data     <= alu_port_a;
-        decode_execute_if.multiply.rs2_data     <= alu_port_b;
-        decode_execute_if.multiply.start_mu     <= mul_ena;
-        decode_execute_if.multiply.high_low_sel <= cu_if.high_low_sel;
-        decode_execute_if.multiply.decode_done  <= 0;
-        decode_execute_if.multiply.wen          <= cu_if.wen;
-        decode_execute_if.multiply.is_signed    <= cu_if.sign_type;
-        decode_execute_if.multiply.reg_rd       <= cu_if.reg_rd;
+        decode_execute_if.mult_sigs <= cuif.mult_sigs;
       end
     end
   end
 
   always @(posedge CLK, negedge nRST) begin : DIVIDE_UNIT
     if (~nRST) begin
-      decode_execute_if.divide.rs1_data      <= 0;
-      decode_execute_if.divide.rs2_data      <= 0;
-      decode_execute_if.divide.start_div     <= 0;
-      decode_execute_if.divide.div_type      <= 0;
-      decode_execute_if.divide.is_signed_div <= 0;
-      decode_execute_if.divide.wen           <= 0;
-      decode_execute_if.divide.reg_rd        <= 0;
+      decode_execute_if.div_sigs <= '0;
     end else begin 
       if (((hazard_if.id_ex_flush | hazard_if.stall_du) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.divide.rs1_data      <= 0;
-        decode_execute_if.divide.rs2_data      <= 0;
-        decode_execute_if.divide.start_div     <= 0;
-        decode_execute_if.divide.div_type      <= 0;
-        decode_execute_if.divide.is_signed_div <= 0;
-        decode_execute_if.divide.wen           <= 0;
-        decode_execute_if.divide.reg_rd        <= 0;
+        decode_execute_if.div_sigs <= '0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_du) begin
-        decode_execute_if.divide.rs1_data      <= alu_port_a;
-        decode_execute_if.divide.rs2_data      <= alu_port_b;
-        decode_execute_if.divide.start_div     <= div_ena;
-        decode_execute_if.divide.div_type      <= cu_if.div_type;
-        decode_execute_if.divide.is_signed_div <= cu_if.sign_type;
-        decode_execute_if.divide.wen           <= cu_if.wen;
-        decode_execute_if.divide.reg_rd        <= cu_if.reg_rd;
+        decode_execute_if.div_sigs <= cu_if.div_sigs;
       end
     end
   end
 
   always @(posedge CLK, negedge nRST) begin : ARITH_UNIT
     if (~nRST) begin
+        decode_execute_if.arith_sigs <= '0;
         decode_execute_if.arith.aluop                   <= 0;
         decode_execute_if.arith.port_a                  <= 0;
         decode_execute_if.arith.port_b                  <= 0;
@@ -367,6 +305,7 @@ module ooo_decode_stage (
         decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_au) & hazard_if.pc_en) | halt) begin
+        decode_execute_if.arith_sigs <= '0;
         decode_execute_if.arith.aluop                   <= aluop_t'(0);
         decode_execute_if.arith.port_a                  <= 0;
         decode_execute_if.arith.port_b                  <= 0;
@@ -407,9 +346,10 @@ module ooo_decode_stage (
         decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
 
       end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
+        decode_execute_if.arith_sigs <= cu_if.arith_sigs;
         decode_execute_if.arith.aluop                   <= cu_if.alu_op;
-        decode_execute_if.arith.port_a                  <= alu_port_a;
-        decode_execute_if.arith.port_b                  <= alu_port_b;
+        decode_execute_if.arith.port_a                  <= fu_source_a;
+        decode_execute_if.arith.port_b                  <= fu_source_b;
         decode_execute_if.arith.reg_file_wdata          <= next_reg_file_wdata;
         //WRITEBACK
         decode_execute_if.arith.wen                     <= cu_if.wen; //Writeback to register file
@@ -453,47 +393,12 @@ module ooo_decode_stage (
 
 always @(posedge CLK, negedge nRST) begin : LOADSTORE_UNIT
     if (~nRST) begin
-      //MEMORY
-      decode_execute_if.loadstore.port_a     <= '0;
-      decode_execute_if.loadstore.port_b     <= '0;
-      decode_execute_if.loadstore.dwen       <= '0;
-      decode_execute_if.loadstore.dren       <= '0;
-      decode_execute_if.loadstore.load_type  <= '0;
-      decode_execute_if.loadstore.store_data <= '0;
-      decode_execute_if.loadstore.pc         <= '0;
-      //FENCE
-      decode_execute_if.loadstore.opcode     <= '0;
-      //WRITEBACK
-      decode_execute_if.loadstore.wen        <= '0;
-      decode_execute_if.loadstore.reg_rd     <= '0;
+      decode_execute_if.lsu_sigs <= '0;
     end else begin
       if (((hazard_if.id_ex_flush | hazard_if.stall_ls) & hazard_if.pc_en) | halt) begin
-        //MEMORY
-        decode_execute_if.loadstore.port_a     <= '0;
-        decode_execute_if.loadstore.port_b     <= '0;
-        decode_execute_if.loadstore.dwen       <= '0;
-        decode_execute_if.loadstore.dren       <= '0;
-        decode_execute_if.loadstore.load_type  <= '0;
-        decode_execute_if.loadstore.store_data <= '0;
-        decode_execute_if.loadstore.pc         <= '0;
-        //FENCE
-        decode_execute_if.loadstore.opcode     <= '0;
-        //WRITEBACK
-        decode_execute_if.loadstore.reg_rd     <= '0;
+        decode_execute_if.lsu_sigs <= '0;
       end else if(hazard_if.pc_en & ~hazard_if.stall_ls) begin
-        //MEMORY
-        decode_execute_if.loadstore.port_a     <= alu_port_a;
-        decode_execute_if.loadstore.port_b     <= alu_port_b;
-        decode_execute_if.loadstore.dwen       <= cu_if.dwen;
-        decode_execute_if.loadstore.dren       <= cu_if.dren;
-        decode_execute_if.loadstore.load_type  <= cu_if.load_type;
-        decode_execute_if.loadstore.store_data <= rf_if.rs2_data;;
-        decode_execute_if.loadstore.pc         <= fetch_decode_if.pc;
-        //FENCE
-        decode_execute_if.loadstore.opcode     <= cu_if.opcode;
-        //WRITEBACK
-        decode_execute_if.loadstore.wen        <= cu_if.wen; //Writeback to register file
-        decode_execute_if.loadstore.reg_rd     <= cu_if.reg_rd; //Writeback to register file
+        decode_execute_if.lsu_sigs <= cu_if.lsu_sigs;
       end
     end
   end

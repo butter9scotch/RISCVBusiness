@@ -32,9 +32,6 @@
 module control_unit 
 (
   control_unit_if.control_unit  cu_if
-  //rv32i_reg_file_if.cu          rf_if
-  //input logic [4:0] rmgmt_rsel_s_0, rmgmt_rsel_s_1, rmgmt_rsel_d,
-  //input logic rmgmt_req_reg_r, rmgmt_req_reg_w 
 );
   import alu_types_pkg::*;
   import rv32i_types_pkg::*;
@@ -51,8 +48,12 @@ module control_unit
   ujtype_t        instr_uj;
 
   rv32m_insn_t    instr_m;
+  
+  // intermediates for ALU decoding
+  logic sr, aluop_srl, aluop_sra, aluop_add, aluop_sub, aluop_and, aluop_or;
+  logic aluop_sll, aluop_xor, aluop_slt, aluop_sltu, add_sub;
 
-
+  // cast the instruction as each possible type
   assign instr_s = stype_t'(cu_if.instr);
   assign instr_i = itype_t'(cu_if.instr);
   assign instr_r = rtype_t'(cu_if.instr);
@@ -61,15 +62,9 @@ module control_unit
   assign instr_uj = ujtype_t'(cu_if.instr);
   assign instr_m = rv32m_insn_t'(cu_if.instr);
 
+  // assign the opcode of the instruction
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
-  //assign rf_if.rs1  = rmgmt_req_reg_r ? rmgmt_rsel_s_0 : cu_if.instr[19:15];
-  //assign rf_if.rs2  = rmgmt_req_reg_r ? rmgmt_rsel_s_1 : cu_if.instr[24:20];
-  //assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
-  assign cu_if.reg_rs1  = cu_if.instr[19:15];
-  assign cu_if.reg_rs2  = cu_if.instr[24:20];
-  assign cu_if.reg_rd   = cu_if.instr[11:7]; 
-  assign cu_if.shamt = cu_if.instr[24:20];
- 
+
   // Assign the immediate values
   assign cu_if.imm_I  = instr_i.imm11_00;
   assign cu_if.imm_S  = {instr_s.imm11_05, instr_s.imm04_00};
@@ -82,42 +77,16 @@ module control_unit
   assign cu_if.imm_shamt_sel = (cu_if.opcode == IMMED &&
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
 
-  // Assign branch and load type
-  assign cu_if.load_type    = load_t'(instr_i.funct3);
-  assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
 
-  // Assign memory read/write enables
-  assign cu_if.dwen = (cu_if.opcode == STORE);
-  assign cu_if.dren = (cu_if.opcode == LOAD);
-  assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
 
-  // Assign control flow signals
-  assign cu_if.branch     = (cu_if.opcode == BRANCH);
-  assign cu_if.lui_instr  = (cu_if.opcode == LUI);
-  assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
-  assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
-  assign cu_if.j_sel      = (cu_if.opcode == JAL);
-  // Assign alu operands
-  always_comb begin
-    case(cu_if.opcode)
-      REGREG, IMMED, LOAD : cu_if.alu_a_sel = 2'd0;
-      STORE               : cu_if.alu_a_sel = 2'd1;
-      AUIPC               : cu_if.alu_a_sel = 2'd2;
-      default             : cu_if.alu_a_sel = 2'd2;
-    endcase
-  end
+  /***** REGISTER FILE CONTROL SIGNALS/COMMON SIGNALS ALL FU's NEED *****/
+  assign cu_if.reg_rs1  = cu_if.instr[19:15];
+  assign cu_if.reg_rs2  = cu_if.instr[24:20];
+  // reg dest
+  assign cu_if.reg_rd   = cu_if.instr[11:7]; 
+  assign cu_if.shamt = cu_if.instr[24:20];
 
-  always_comb begin
-    case(cu_if.opcode)
-      STORE       : cu_if.alu_b_sel = 2'd0;
-      REGREG      : cu_if.alu_b_sel = 2'd1;
-      IMMED, LOAD : cu_if.alu_b_sel = 2'd2;
-      AUIPC       : cu_if.alu_b_sel = 2'd3;
-      default     : cu_if.alu_b_sel = 2'd1;
-    endcase
-  end
-
-  // Assign write select
+  // Select the source for writing
   always_comb begin
     case(cu_if.opcode)
       LOAD                  : cu_if.w_src   = 3'd0;
@@ -128,7 +97,6 @@ module control_unit
       default               : cu_if.w_src   = 3'd0;
     endcase
   end
-
   // Assign register write enable
   always_comb begin
     case(cu_if.opcode)
@@ -141,11 +109,66 @@ module control_unit
     endcase
   end
 
-  // Assign alu opcode
-  logic sr, aluop_srl, aluop_sra, aluop_add, aluop_sub, aluop_and, aluop_or;
-  logic aluop_sll, aluop_xor, aluop_slt, aluop_sltu, add_sub;
+  // Select which operand to use
+  always_comb begin
+    case(cu_if.opcode)
+      REGREG, IMMED, LOAD : cu_if.source_a_sel = 2'd0;
+      STORE               : cu_if.source_a_sel = 2'd1;
+      AUIPC               : cu_if.source_a_sel = 2'd2;
+      default             : cu_if.source_a_sel = 2'd2;
+    endcase
+  end
+
+  always_comb begin
+    case(cu_if.opcode)
+      STORE       : cu_if.source_b_sel = 2'd0;
+      REGREG      : cu_if.source_b_sel = 2'd1;
+      IMMED, LOAD : cu_if.source_b_sel = 2'd2;
+      AUIPC       : cu_if.source_b_sel = 2'd3;
+      default     : cu_if.source_b_sel = 2'd1;
+    endcase
+  end
 
 
+  /***** TOP LEVEL FUNCTIONAL UNIT DECODING *****/
+  // decoding which functional unit the instruction belongs to
+  always_comb begin
+    if (cu_if.opcode == REGREG && (instr_r.funct7 == 7'b000_0001)) begin
+      if (instr_r.funct3[2] == 1) begin
+        cu_if.sfu_type = DIV_S;
+      end else begin
+        cu_if.sfu_type = MUL_S;
+      end
+    end else begin
+      cu_if.sfu_type = ARITH_S;
+    end
+  end
+
+  /***** LOADSTORE CONTROL SIGNALS *****/
+  // Assign memory read/write enables
+  assign cu_if.lsu_sigs.load_type = load_t'(instr_i.funct3);
+  assign cu_if.lsu_sigs.byte_en = 
+  assign cu_if.lsu_sigs.dren = (cu_if.opcode == LOAD);
+  assign cu_if.lsu_sigs.dwen = (cu_if.opcode == STORE);
+  assign cu_is.lsu_sigs.opcode = cu_if.opcode;
+
+
+  // common signals 
+  assign cu_if.lsu_sigs.reg_rd = cu_if.reg_rd;
+
+  /***** ARITHIMETIC CONTROL SIGNALS *****/
+  // assign the branch type output
+  assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
+
+  // Assign control flow signals
+  assign cu_if.branch     = (cu_if.opcode == BRANCH);
+  assign cu_if.lui_instr  = (cu_if.opcode == LUI);
+  assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
+  assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
+  assign cu_if.j_sel      = (cu_if.opcode == JAL);
+  
+
+  // Alu op code decoding
   assign sr = ((cu_if.opcode == IMMED && instr_i.funct3 == SRI) ||
                 (cu_if.opcode == REGREG && instr_r.funct3 == SR));
   assign add_sub = (cu_if.opcode == REGREG && instr_r.funct3 == ADDSUB);
@@ -173,69 +196,36 @@ module control_unit
 
   always_comb begin
     if (aluop_sll)
-      cu_if.alu_op = ALU_SLL;
+      cu_if.arith_sigs.alu_op = ALU_SLL;
     else if (aluop_sra)
-      cu_if.alu_op = ALU_SRA;
+      cu_if.arith_sigs.alu_op = ALU_SRA;
     else if (aluop_srl)
-      cu_if.alu_op = ALU_SRL;
+      cu_if.arith_sigs.alu_op = ALU_SRL;
     else if (aluop_add)
-      cu_if.alu_op = ALU_ADD;
+      cu_if.arith_sigs.alu_op = ALU_ADD;
     else if (aluop_sub)
-      cu_if.alu_op = ALU_SUB;
+      cu_if.arith_sigs.alu_op = ALU_SUB;
     else if (aluop_and)
-      cu_if.alu_op = ALU_AND;
+      cu_if.arith_sigs.alu_op = ALU_AND;
     else if (aluop_or)
-      cu_if.alu_op = ALU_OR;
+      cu_if.arith_sigs.alu_op = ALU_OR;
     else if (aluop_xor)
-      cu_if.alu_op = ALU_XOR;
+      cu_if.arith_sigs.alu_op = ALU_XOR;
     else if (aluop_slt)
-      cu_if.alu_op = ALU_SLT;
+      cu_if.arith_sigs.alu_op = ALU_SLT;
     else if (aluop_sltu)
-      cu_if.alu_op = ALU_SLTU;
+      cu_if.arith_sigs.alu_op = ALU_SLTU;
     else
-      cu_if.alu_op = ALU_ADD;
+      cu_if.arith_sigs.alu_op = ALU_ADD;
   end
 
-  // HALT HACK. Just looking for j + 0x0 (infinite loop)
-  // Halt required for unit testing, but not useful in tapeout context
-  // Due to presence of interrupts, infinite loops are valid
-  generate
-    if(INFINITE_LOOP_HALTS == "true") begin
-      assign cu_if.halt = (cu_if.instr == 32'h0000006f);
-    end else begin
-      assign cu_if.halt = '0;
-    end
-  endgenerate
-  // Privilege Control Signals
-  assign cu_if.fault_insn = '0;
- 
-  always_comb begin
-    case(cu_if.opcode)
-      REGREG: cu_if.illegal_insn = instr_r.funct7[0] && (instr_r.funct7 != 7'b000_0001);
-      LUI, AUIPC, JAL, JALR,
-      BRANCH, LOAD, STORE,
-      IMMED, SYSTEM,
-      MISCMEM, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
-      default                 : cu_if.illegal_insn = 1'b1;
-    endcase
-  end
- 
-  always_comb begin
-    if (cu_if.opcode == REGREG && (instr_r.funct7 == 7'b000_0001)) begin
-      if (instr_r.funct3[2] == 1) begin
-        cu_if.sfu_type = DIV_S;
-      end else begin
-        cu_if.sfu_type = MUL_S;
-      end
-    end else begin
-      cu_if.sfu_type = ARITH_S;
-    end
-  end
-
-  // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
-  assign cu_if.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
+  
+  /***** MULTIPLY CONTROL SIGNALS *****/
+  // mult specific signals
+  assign cu_if.mult_sigs.ena = cuif.sfu_type == MUL_S;
   //upper is 1, lower is 0
-  assign cu_if.high_low_sel = (|instr_r.funct3[1:0]); 
+  assign cu_if.mult_sigs.high_low_sel = (|instr_r.funct3[1:0]); 
+  assign cu_if.mult_sigs.is_signed = cu_if.sign_type; // decoded below
 
   always_comb begin
     case(instr_r.funct3)
@@ -245,9 +235,32 @@ module control_unit
       default: cu_if.sign_type = SIGNED;
     endcase
   end
+  // TODO: try and get rid of this signal
+  assign cu_if.mult_sigs.decode_done = 0;
+  // comomon signals
+  assign cu_if.mult_sigs.wen = cuif.wen;
+  assign cu_if.mult_sigs.reg_rd = cuif.reg_rd;
 
 
-  //Decoding of System Priv Instructions
+  /***** DIVIDE CONTROL SIGNALS *****/
+  // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
+  assign cu_if.div_sigs.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
+  assign cu_if.div_sigs.ena = cuif.sfu_type == DIV_S;
+  assign cu_if.div_sigs.is_signed = cu_if.sign_type;
+
+  // comomon signals
+  assign cu_if.div_sigs.wen = cu_if.wen;
+  assign cu_if.div_sigs.reg_rd= cu_if.reg_rd;
+
+
+  /***** FLOATING POINT CONTROL SIGNALS *****/
+  // TODO: The top level signals for the floating point decoding here 
+  // if there are any
+
+  /***** PRIV CONTROL SIGNALS *****/
+  // Decoding of System Priv Instructions
+  // Privilege Control Signals
+  assign cu_if.fault_insn = '0;
   always_comb begin
     cu_if.ret_insn = 1'b0;
     cu_if.breakpoint = 1'b0;
@@ -268,6 +281,7 @@ module control_unit
     end
   end
 
+  /***** CSR CONTROL SIGNALS *****/
   //CSR Insns
   always_comb begin
     cu_if.csr_swap  = 1'b0;
@@ -300,8 +314,32 @@ module control_unit
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   assign cu_if.zimm     = cu_if.instr[19:15];
 
+  /***** IFENCE CONTROL SIGNALS *****/
+  assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
+
+  /***** ILLEGAL INSTRUCTION DETECTION *****/ 
+  always_comb begin
+    case(cu_if.opcode)
+      REGREG: cu_if.illegal_insn = instr_r.funct7[0] && (instr_r.funct7 != 7'b000_0001);
+      LUI, AUIPC, JAL, JALR,
+      BRANCH, LOAD, STORE,
+      IMMED, SYSTEM,
+      MISCMEM, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
+      default                 : cu_if.illegal_insn = 1'b1;
+    endcase
+  end
 
 
-
+  /***** HALT SIGNALS *****/
+  // HALT HACK. Just looking for j + 0x0 (infinite loop)
+  // Halt required for unit testing, but not useful in tapeout context
+  // Due to presence of interrupts, infinite loops are valid
+  generate
+    if(INFINITE_LOOP_HALTS == "true") begin
+      assign cu_if.halt = (cu_if.instr == 32'h0000006f);
+    end else begin
+      assign cu_if.halt = '0;
+    end
+  endgenerate
 endmodule
 
