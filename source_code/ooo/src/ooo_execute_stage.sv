@@ -143,7 +143,7 @@ module ooo_execute_stage(
   /*******************************************************
   *** CSR / Priv Interface Logic 
   *******************************************************/ 
-                                                   assign hazard_if.csr     = decode_execute_if.csr_instr;
+  assign hazard_if.csr     = decode_execute_if.csr_instr;
   assign prv_pipe_if.swap  = decode_execute_if.csr_swap;
   assign prv_pipe_if.clr   = decode_execute_if.csr_clr;
   assign prv_pipe_if.set   = decode_execute_if.csr_set;
@@ -253,16 +253,7 @@ module ooo_execute_stage(
       //Halt
       execute_commit_if.halt_instr       <= '0;
       //CPU tracker
-      execute_commit_if.funct3           <= '0;
-      execute_commit_if.funct12          <= '0;
-      execute_commit_if.imm_S            <= '0;
-      execute_commit_if.imm_I            <= '0;
-      execute_commit_if.imm_U            <= '0;
-      execute_commit_if.imm_UJ_ext       <= '0;
-      execute_commit_if.imm_SB           <= '0;
-      execute_commit_if.instr_30         <= '0;
-      execute_commit_if.rs1              <= '0;
-      execute_commit_if.rs2              <= '0;
+      execute_commit_if.CPU_TRACKER <= '0;
     end
     else begin
       if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
@@ -313,16 +304,7 @@ module ooo_execute_stage(
         //Halt
         execute_commit_if.halt_instr       <= '0;
         //CPU tracker
-        execute_commit_if.funct3           <= '0;
-        execute_commit_if.funct12          <= '0;
-        execute_commit_if.imm_S            <= '0;
-        execute_commit_if.imm_I            <= '0;
-        execute_commit_if.imm_U            <= '0;
-        execute_commit_if.imm_UJ_ext       <= '0;
-        execute_commit_if.imm_SB           <= '0;
-        execute_commit_if.instr_30         <= '0;
-        execute_commit_if.rs1              <= '0;
-        execute_commit_if.rs2              <= '0;
+        execute_commit_if.CPU_TRACKER <= '0;
       end else if(hazard_if.pc_en ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
@@ -370,36 +352,8 @@ module ooo_execute_stage(
         //Halt
         execute_commit_if.halt_instr             <= decode_execute_if.halt_instr;
         //CPU tracker
-        execute_commit_if.CPU_TRACKER.instr      <= decode_execute_if.instr;
-        execute_commit_if.CPU_TRACKER.pc         <= decode_execute_if.pc;
-        execute_commit_if.CPU_TRACKER.opcode     <= decode_execute_if.opcode;
-        execute_commit_if.CPU_TRACKER.funct3     <= decode_execute_if.funct3;
-        execute_commit_if.CPU_TRACKER.funct12    <= decode_execute_if.funct12;
-        execute_commit_if.CPU_TRACKER.rs1        <= decode_execute_if.reg_rs1;
-        execute_commit_if.CPU_TRACKER.rs2        <= decode_execute_if.reg_rs2;
-        execute_commit_if.CPU_TRACKER.reg_rd     <= decode_execute_if.reg_rd;
-        execute_commit_if.CPU_TRACKER.imm_S      <= decode_execute_if.imm_S;
-        execute_commit_if.CPU_TRACKER.imm_I      <= decode_execute_if.imm_I;
-        execute_commit_if.CPU_TRACKER.imm_U      <= decode_execute_if.imm_U;
-        execute_commit_if.CPU_TRACKER.imm_UJ_ext <= decode_execute_if.imm_UJ_ext;
-        execute_commit_if.CPU_TRACKER.imm_SB     <= decode_execute_if.imm_SB;
-        execute_commit_if.CPU_TRACKER.instr_30   <= decode_execute_if.instr_30;
-
-
-        //commit_complete_if.CPU_TRACKER.instr      <= execute_commit_if.CPU_TRACKER.instr;
-        //commit_complete_if.CPU_TRACKER.pc         <= execute_commit_if.CPU_TRACKER.pc;
-        //commit_complete_if.CPU_TRACKER.opcode     <= execute_commit_if.CPU_TRACKER.opcode;
-        //commit_complete_if.CPU_TRACKER.funct3     <= execute_commit_if.CPU_TRACKER.funct3;
-        //commit_complete_if.CPU_TRACKER.funct12    <= execute_commit_if.CPU_TRACKER.funct12;
-        //commit_complete_if.CPU_TRACKER.rs1        <= execute_commit_if.CPU_TRACKER.rs1;
-        //commit_complete_if.CPU_TRACKER.rs2        <= execute_commit_if.CPU_TRACKER.rs2;
-        //commit_complete_if.CPU_TRACKER.reg_rd     <= execute_commit_if.CPU_TRACKER.reg_rd;
-        //commit_complete_if.CPU_TRACKER.imm_S      <= execute_commit_if.CPU_TRACKER.imm_S;
-        //commit_complete_if.CPU_TRACKER.imm_I      <= execute_commit_if.CPU_TRACKER.imm_I;
-        //commit_complete_if.CPU_TRACKER.imm_U      <= execute_commit_if.CPU_TRACKER.imm_U;
-        //commit_complete_if.CPU_TRACKER.imm_UJ_ext <= execute_commit_if.CPU_TRACKER.imm_UJ_ext;
-        //commit_complete_if.CPU_TRACKER.imm_SB     <= execute_commit_if.CPU_TRACKER.imm_SB;
-        //commit_complete_if.CPU_TRACKER.instr_30   <= execute_commit_if.CPU_TRACKER.instr_30;
+        execute_commit_if.CPU_TRACKER <= decode_execute_if.CPU_TRACKER;
+       
       end
     end
   end

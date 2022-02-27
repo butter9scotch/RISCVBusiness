@@ -126,6 +126,7 @@ module ooo_decode_stage (
   /*******************************************************
   *** Jump Target Calculator and Associated Logic 
   *******************************************************/
+  // TODO: move into arith Unit
   word_t base, offset;
   always_comb begin
     if (cu_if.j_sel) begin
@@ -268,7 +269,7 @@ module ooo_decode_stage (
         decode_execute_if.arith.aluop                   <= 0;
         decode_execute_if.arith.port_a                  <= 0;
         decode_execute_if.arith.port_b                  <= 0;
-        decode_execute_if.arith.reg_file_wdata          <= '0;
+        decode_execute_if.arith.reg_file_wdata          <= '0; // default and used for jr and lui, TODO: change control sigs for 
         decode_execute_if.arith.pc              <= '0;
         //WRITEBACK
         //JUMP
@@ -361,6 +362,7 @@ module ooo_decode_stage (
         decode_execute_if.BRANCH_STRUCT.pc              <= fetch_decode_if.pc;
         decode_execute_if.BRANCH_STRUCT.pc4             <= fetch_decode_if.pc4;
                 //csr
+                // pack into a struct
         decode_execute_if.CSR_STRUCT.csr_instr          <= (cu_if.opcode == SYSTEM);
         decode_execute_if.CSR_STRUCT.csr_swap           <= cu_if.csr_swap;
         decode_execute_if.CSR_STRUCT.csr_clr            <= cu_if.csr_clr;
@@ -368,8 +370,9 @@ module ooo_decode_stage (
         decode_execute_if.CSR_STRUCT.csr_addr           <= cu_if.csr_addr;
         decode_execute_if.CSR_STRUCT.csr_imm            <= cu_if.csr_imm;
         decode_execute_if.CSR_STRUCT.csr_imm_value      <= {27'h0, cu_if.zimm};
-        decode_execute_if.CSR_STRUCT.instr              <= fetch_decode_if.instr;
+        decode_execute_if.CSR_STRUCT.instr              <= fetch_decode_if.instr; // TODO: have control unit generate 
         //Exceptions
+        // connect via an exception struc in control unit
         decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= cu_if.illegal_insn;
         decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= cu_if.breakpoint;
         decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= cu_if.ecall_insn;

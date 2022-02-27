@@ -267,7 +267,14 @@ package rv32i_types_pkg;
     opcode_t opcode;
     logic wen;
     logic [4:0] reg_rd;
-  } lsu_constrol_signals_t;
+  } lsu_control_signals_t;
+  
+  // do not use atm
+  typedef struct packed {
+    word_t w_data;
+    logic [4:0] reg_rd;
+    logic wen;
+  } fu_out_t;
 
   typedef struct packed {
     logic [2:0] funct3;
@@ -280,6 +287,7 @@ package rv32i_types_pkg;
     logic instr_30;
     logic [4:0]reg_rs1;
     logic [4:0] reg_rs2; 
+    word_t instr;
   } cpu_tracker_t;
   // TODO: add floating point control signals struct here
 ////////
