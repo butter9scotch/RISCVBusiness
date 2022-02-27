@@ -29,12 +29,13 @@
 `include "cache_control_if.vh"
 //`include "sparce_pipeline_if.vh"
 `include "core_interrupt_if.vh"
-`include "ooo_fetch1_fetch2_if.vh"
-`include "ooo_fetch2_decode_if.vh"
-`include "ooo_decode_execute_if.vh"
-`include "ooo_execute_commit_if.vh"
-`include "completion_buffer_if.vh"
-`include "ooo_hazard_unit_if.vh"
+`include "pipe5_fetch1_fetch2_if.vh"
+`include "pipe5_decode_execute_if.vh"
+`include "pipe5_execute_mem_if.vh"
+`include "pipe5_mem_writeback_if.vh"
+`include "pipe5_forwarding_unit_if.vh"
+`include "pipe5_hazard_unit_if.vh"
+`include "rv32i_reg_file_if.vh"
 `include "jump_calc_if.vh"
 `include "branch_res_if.vh"
 `include "rv32i_reg_file_if.vh"
@@ -67,18 +68,71 @@ module RISCVBusiness (
   cache_control_if cc_if();
   //sparce_pipeline_if sparce_if();
 
-  ooo_fetch1_fetch2_if fetch1_fetch2_if();
-  ooo_fetch2_decode_if fetch_decode_if();
-  ooo_decode_execute_if decode_execute_if();
-  ooo_execute_commit_if execute_commit_if();
-  ooo_hazard_unit_if hazard_if();
-  rv32i_reg_file_if rf_if();
-  jump_calc_if jump_if();
-  branch_res_if branch_if();
-  completion_buffer_if cb_if();
+   pipe5_fetch1_fetch2_if fetch1_fetch2_if();
+   pipe5_fetch2_decode_if fetch_decode_if();
+   pipe5_decode_execute_if decode_execute_if();
+   pipe5_execute_mem_if execute_mem_if();
+   pipe5_mem_writeback_if mem_wb_if();
+   pipe5_forwarding_unit_if bypass_if();
+   pipe5_hazard_unit_if hazard_if();
+   rv32i_reg_file_if rf_if();
+   jump_calc_if jump_if();
+   branch_res_if branch_if();
+
   logic halt;    //JOHN CHANGED THIS
 
-   ooo_fetch1_stage fetch1_stage (
+  // Module Instantiations
+/*
+  pipeline_wrapper pipeline (
+    .CLK(CLK),
+    .nRST(nRST),
+    .halt(halt),
+    .igen_bus_if(tspp_icache_gen_bus_if),
+    .dgen_bus_if(tspp_dcache_gen_bus_if),
+    .prv_pipe_if(prv_pipe_if), // TODO: Look at the communications between pipeline_wrapper and priv_wrapper
+    .predict_if(predict_if),
+    .rm_if(rm_if),
+    .cc_if(cc_if),
+    .sparce_if(sparce_if)
+  );
+*/
+/*
+  tspp_fetch_stage fetch_stage_i (
+    .CLK(CLK),
+    .nRST(nRST),
+    .fetch_ex_if(fetch_ex_if),
+    .hazard_if(hazard_if),
+    .predict_if(predict_if),
+    .igen_bus_if(tspp_icache_gen_bus_if),
+    .sparce_if(sparce_if),
+    .rv32cif(rv32cif)
+  );
+
+  tspp_execute_stage execute_stage_i (
+    .CLK(CLK),
+    .nRST(nRST),
+    .fetch_ex_if(fetch_ex_if),
+    .hazard_if(hazard_if),
+    .predict_if(predict_if),
+    .dgen_bus_if(tspp_dcache_gen_bus_if),
+    .prv_pipe_if(prv_pipe_if),
+    .halt(halt),
+    .rm_if(rm_if),
+    .cc_if(cc_if),
+    .sparce_if(sparce_if),
+    .rv32cif(rv32cif),
+    .wfi(wfi)
+  );
+
+  tspp_hazard_unit hazard_unit_i (
+    .hazard_if(hazard_if),
+    .prv_pipe_if(prv_pipe_if),
+    .rm_if(rm_if),
+    .sparce_if(sparce_if)
+  );
+  */
+
+   pipe5_fetch1_stage fetch1_stage (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt)
@@ -87,7 +141,7 @@ module RISCVBusiness (
        ,.hazard_if(hazard_if)
       );
 
-   ooo_fetch2_stage fetch2_stage (
+   pipe5_fetch2_stage fetch2_stage (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt)
@@ -97,7 +151,7 @@ module RISCVBusiness (
        ,.hazard_if(hazard_if)
       );
 
-   ooo_decode_stage decode_stage (
+   pipe5_decode_stage decode_stage (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt)
@@ -105,39 +159,49 @@ module RISCVBusiness (
        ,.decode_execute_if(decode_execute_if)
        ,.rf_if(rf_if)
        ,.hazard_if(hazard_if)
-       ,.cc_if(cc_if)
       );
 
-   ooo_execute_stage execute_stage (
+   pipe5_execute_stage execute_stage (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt)
        ,.decode_execute_if(decode_execute_if)
-       ,.execute_commit_if(execute_commit_if)
+       ,.execute_mem_if(execute_mem_if)
+       ,.bypass_if(bypass_if)
        ,.jump_if(jump_if)
-       ,.hazard_if(hazard_if)
        ,.branch_if(branch_if)
-       ,.cc_if(cc_if)
-       ,.prv_pipe_if(prv_pipe_if)
-       ,.dgen_bus_if(gen_bus_if)
+       ,.hazard_if(hazard_if)
       );
 
-   ooo_commit_stage commit_stage (
+   pipe5_memory_stage memory_stage (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt)
-       ,.decode_execute_if(decode_execute_if)
-       ,.execute_commit_if(execute_commit_if)
-       ,.hazard_if(hazard_if)
+       ,.execute_mem_if(execute_mem_if)
+       ,.mem_wb_if(mem_wb_if)
+       ,.bypass_if(bypass_if)
+       ,.dgen_bus_if(dcache_gen_bus_if)
        ,.predict_if(predict_if)
-       ,.cb_if(cb_if)
+       ,.cc_if(cc_if)
+       ,.hazard_if(hazard_if)
+       ,.prv_pipe_if(prv_pipe_if)
+      );
+
+
+   pipe5_writeback_stage writeback_stage (
+        .CLK(CLK)
+       ,.nRST(nRST)
+       ,.mem_wb_if(mem_wb_if)
+       ,.bypass_if(bypass_if)
+       ,.rf_if(rf_if)
       );
    
    rv32i_reg_file reg_file (.*);
    branch_res branch_res (.br_if(branch_if));
    jump_calc jump_calc (.jump_if(jump_if));
+   pipe5_forwarding_unit forwarding_unit (.bypass_if(bypass_if));
 
-   ooo_hazard_unit hazard_unit (
+   pipe5_hazard_unit hazard_unit (
        .hazard_if(hazard_if)
        ,.prv_pipe_if(prv_pipe_if)
      );
