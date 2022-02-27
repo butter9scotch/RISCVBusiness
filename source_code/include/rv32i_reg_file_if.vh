@@ -47,9 +47,10 @@ interface rv32i_reg_file_if();
     input   rs1_data, rs2_data, in_use_rs1, in_use_rs2, in_use_rd
   );
 
+/*
   modport writeback (
     input w_data, rd, wen
-  );
+  ); */
 
 endinterface
 

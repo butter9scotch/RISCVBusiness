@@ -11,8 +11,6 @@ interface completion_buffer_if();
   logic [$clog2(NUM)-1:0] cur_tail;
   logic [4:0] vd_final;
   word_t wdata_final;
-  word_t epc_final;
-  word_t pc;
   logic alloc_ena;
   logic full;
   logic empty;
@@ -88,6 +86,29 @@ interface completion_buffer_if();
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
            wdata_a, wdata_mu, wdata_du, wdata_ls, 
   );
+
+  modport decode (
+    input cur_tail, full, empty,
+    output alloc_ena, rv32v_instr, rv32v_wb_scalar_ena
+  );
+
+  modport writeback (
+    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, valid_a, mal_ls
+  );
+
+  modport hu (
+    input full, empty, flush, exception, branch_mispredict_ena, mal_priv
+  );
+
+  modport rv32v (
+    input rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ready, rv32v_wb_exception, rv32v_wb_scalar_index, rv32v_wb_vd, rv32v_commit_ena,
+    output rv32v_wb_scalar_data
+  );
+
+  modport register (
+    input vd_final, wdata_final, scalar_commit_ena
+  );
+
 endinterface
 
 `endif //COMPLETION_BUFFER_IF_VH
