@@ -22,15 +22,14 @@
 *   Description:  Fetch stage for the two stage pipeline
 */
 
-`include "pipe5_fetch1_fetch2_if.vh"
-`include "pipe5_fetch2_decode_if.vh"
+`include "ooo_fetch_decode_if.vh"
 `include "generic_bus_if.vh"
 `include "component_selection_defines.vh"
-`include "pipe5_hazard_unit_if.vh"
+`include "ooo_hazard_unit_if.vh"
 
 module pipe5_fetch2_stage (
   input logic CLK, nRST,halt,
-  pipe5_fetch2_decode_if.fetch fetch_decode_if,
+  ooo_fetch_decode_if.fetch fetch_decode_if,
   predictor_pipeline_if.access predict_if,
   pipe5_hazard_unit_if.fetch2 hazard_if,
   generic_bus_if.cpu igen_bus_if
@@ -43,7 +42,7 @@ module pipe5_fetch2_stage (
   
   //Gte the current PC from fetch1 stage
   //assign pc = fetch1_fetch2_if.pc;
-  assign pc4 = npc + 4;
+  assign pc4 = next_pc + 4;
   assign mal_addr  = (igen_bus_if.addr[1:0] != 2'b00);
 
   //Instruction Access logic
@@ -68,7 +67,7 @@ module pipe5_fetch2_stage (
         prediction <= '0;
       end else if((hazard_if.pc_en && ~hazard_if.stall) || hazard_if.insert_priv_pc) begin
         // normal operations/incrementation
-        program_counter_pc <= npc;
+        program_counter_pc <= next_pc;
         prediction <= predict_if.predict_taken;
       end else begin
         // stall
@@ -81,7 +80,24 @@ module pipe5_fetch2_stage (
   // prediction interface logic
   assign predict_if.current_pc = program_counter_pc;
   //Next PC logic
-  assign npc = hazard_if.insert_priv_pc ? hazard_if.priv_pc : (hazard_if.intr_taken) ? pregram_counter_pc: (hazard_if.csr_flush) ? (hazard_if.csr_pc +'h4): (hazard_if.ifence_flush) ? (hazard_if.ifence_pc +'h4): (hazard_if.npc_sel)? hazard_if. brj_addr : predict_if.predict_taken ? predict_if.target_addr : pc4;
+  always_comb begin
+    next_pc = pc4;
+    if(hazard_if.insert_priv_pc) begin
+      next_pc = hazard_if;
+    end else if(hazard_if/intr_taken) begin
+      next_pc = program_counter_pc;
+    end else if(hazard_if.csr_flush) begin
+      next_pc = hazard_if.csr_flush + 4;
+    end else if(hazard_if.ifence_flush) begin
+      next_pc = hazard_if.ifence_pc + 4;
+    end else if(hazard_if.npc_sel) begin
+      next_pc = hazard_if.brj_addr;
+    end else if(hazard_if.predict_taken) begin
+      next_pc = predict_if.target_addr;
+    end else begin
+      next_pc = pc4;
+    end
+  end
 
   //Fetch Execute Pipeline Signals
   always_ff @ (posedge CLK, negedge nRST) begin
