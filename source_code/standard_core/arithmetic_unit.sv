@@ -32,7 +32,7 @@ module arithmetic_unit (
   import rv32i_types_pkg::*;
 
   alu_if aluif();
-  alu ALU (.*);
+  alu ALU (.alu_if(aluif));
 
   assign alu_if.port_a = auif.port_a;
   assign alu_if.port_b = auif.port_b;

@@ -1,22 +1,22 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-*   
-*   
+*
+*
 *   Filename:     rv32i_types_pkg.sv
-*   
-*   Created by:   Jacob R. Stevens	
+*
+*   Created by:   Jacob R. Stevens
 *   Email:        steven69@purdue.edu
 *   Date Created: 06/01/2016
 *   Description:  Package containing types used for a RV32I implementation
@@ -66,7 +66,7 @@ package rv32i_types_pkg;
     BGE     = 3'b101,
     BLTU    = 3'b110,
     BGEU    = 3'b111
-  } branch_t;  
+  } branch_t;
 
   typedef enum logic [LD_W-1:0] {
     LB      = 3'b000,
@@ -97,7 +97,7 @@ package rv32i_types_pkg;
 
   typedef enum logic [REG_W-1:0] {
     // Add/Sub based on bit 30 of instruction
-    //  0 / 1 
+    //  0 / 1
     ADDSUB  = 3'b000,
     SLL     = 3'b001,
     SLT     = 3'b010,
@@ -113,7 +113,7 @@ package rv32i_types_pkg;
   typedef enum logic [2:0] {
     // Non CSR contains ECALL, EBREAK, and xRET instructions
     // ECALL/EBREAK based on bit 20 of instruction
-    //   0  /   1 
+    //   0  /   1
     //   xRET based on bits 28 and 29 of instruction
     PRIV        = 3'b000,
     CSRRW       = 3'b001,
@@ -153,7 +153,7 @@ package rv32i_types_pkg;
     logic [2:0]   funct3;
     logic [4:0]   rd;
     opcode_t      opcode;
-  } itype_t; 
+  } itype_t;
 
   typedef struct packed {
     logic [6:0] imm11_05;
@@ -206,25 +206,25 @@ package rv32i_types_pkg;
     word_t        prediction;
   } fetch_ex_pipeline_reg_t;
 
-  typedef enum logic[1:0] { 
+  typedef enum logic[1:0] {
     ARITH_S,
     MUL_S,
     DIV_S,
     LOADSTORE_S
   } scalar_fu_t;
 
-  typedef enum logic [1:0] { 
-    SIGNED          = 2'b11, 
+  typedef enum logic [1:0] {
+    SIGNED          = 2'b11,
     SIGNED_UNSIGNED = 2'b01,
     UNSIGNED_SIGNED = 2'b10,
-    UNSIGNED        = 2'b00 
+    UNSIGNED        = 2'b00
   } sign_type_t;
 
-  typedef enum logic [2:0] { 
+  typedef enum logic [2:0] {
     LOAD_SRC = 3'd0,
     JUMP_SRC = 3'd1,
     LUI_SRC  = 3'd2,
-    ALU_SRC  = 3'd3, 
+    ALU_SRC  = 3'd3,
     CSR      = 3'd4
   } w_src_t;
 
@@ -272,7 +272,7 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
   } arith_struct_t;
-  
+
   typedef struct packed {
     logic jump_instr;
     word_t j_base;
@@ -308,6 +308,24 @@ package rv32i_types_pkg;
     logic wfi;
     w_src_t w_src;
   } exception_struct_t;
+
+  typedef struct packed {
+    word_t instr;
+    word_t pc;
+    opcode_t opcode;
+    logic [2:0] funct3;
+    logic [11:0] funct12;
+    logic [4:0] rs1;
+    logic [4:0] rs2;
+    logic [4:0] reg_rd;
+    logic [11:0] imm_S;
+    logic [11:0] imm_I;
+    word_t imm_U;
+    word_t imm_UJ_ext;
+    logic [12:0] imm_SB;
+    logic instr_30;
+  } cpu_tracker_signals_t;
+
 
 endpackage
 `endif //RV32I_TYPES_PKG_SV

@@ -38,13 +38,13 @@ interface rv32i_reg_file_if();
   logic         in_use_rd;
 
   modport rf (
-    input w_data, rs1, rs2, rd, wen, rden,
+    input w_data, rs1, rs2, rd, wen, rden, rd_decode,
     output rs1_data, rs2_data, in_use_rs1, in_use_rs2, in_use_rd
   );
   
   modport decode (
-    output  rs1, rs2, in_use_rs1, in_use_rs2, in_use_rd,
-    input   rs1_data, rs2_data, rden, rd_decode
+    output  rs1, rs2, rden, rd_decode, 
+    input   rs1_data, rs2_data, in_use_rs1, in_use_rs2, in_use_rd
   );
 
   modport writeback (

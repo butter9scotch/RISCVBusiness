@@ -112,7 +112,8 @@ interface ooo_decode_execute_if();
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, div_type, instr_30, wfi, divide, 
-          multiply, loadstore
+          multiply, loadstore, arith, JUMP_STRUCT, BRANCH_STRUCT, CSR_STRUCT, 
+          EXCEPTION_STRUCT
   );
 
   modport execute (
@@ -126,7 +127,8 @@ interface ooo_decode_execute_if();
           lui_instr, j_sel, ifence, csr_swap, csr_set, csr_clr, 
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, high_low_sel, div_type, instr_30, wfi, 
-          divide, multiply, loadstore
+          divide, multiply, loadstore, arith, JUMP_STRUCT, BRANCH_STRUCT, CSR_STRUCT, 
+          EXCEPTION_STRUCT
   );
 
 endinterface

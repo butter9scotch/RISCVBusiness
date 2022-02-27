@@ -45,7 +45,7 @@ interface sparce_pipeline_if;
   );
 
   modport pipe_fetch1 (
-    input sparce_target, skipping,
+    input sparce_target, skipping
   );
 
   modport pipe_fetch2 (

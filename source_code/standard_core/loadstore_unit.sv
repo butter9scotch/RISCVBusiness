@@ -32,7 +32,7 @@
 module loadstore_unit (
   input logic CLK, nRST, halt,
   generic_bus_if.cpu dgen_bus_if,
-  pipe5_hazard_unit_if.memory hazard_if,
+  ooo_hazard_unit_if.memory hazard_if,
   loadstore_unit_if.execute lsif
 );
 
@@ -50,9 +50,6 @@ module loadstore_unit (
   logic [3:0] byte_en_ff1, byte_en_ff0;
   load_t load_type_ff1, load_type_ff0;
   opcode_t opcode_ff0, opcode_ff1;
-
-  // pipeline:
-  // iclear_done, dclear_done?
 
   logic [3:0] byte_en_standard;
   logic mal_addr;
@@ -87,9 +84,9 @@ module loadstore_unit (
       reg_rd_ff1     <= '0;
       address_ff1    <= '0;
       byte_en_ff1    <= '0;
-      load_type_ff1  <= '0;
+      load_type_ff1  <= load_t'('0);
       pc_ff1         <= '0;
-      opcode_ff1     <= '0;
+      opcode_ff1     <= opcode_t'('0);
     end else begin
       if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
         store_data_ff1 <= '0;
@@ -99,9 +96,9 @@ module loadstore_unit (
         reg_rd_ff1     <= '0;
         address_ff1    <= '0;
         byte_en_ff1    <= '0;
-        load_type_ff1  <= '0;
+        load_type_ff1  <= load_t'('0);
         pc_ff1         <= '0;
-        opcode_ff1     <= '0;
+        opcode_ff1     <= opcode_t'('0);
       end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
         dren_ff1 <= '0;
         dwen_ff1 <= '0;
@@ -177,7 +174,5 @@ module loadstore_unit (
       LW: dgen_bus_if.wdata = store_data_ff1; 
     endcase
   end
-
-
 
 endmodule
