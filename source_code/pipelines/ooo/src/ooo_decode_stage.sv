@@ -44,8 +44,6 @@ module ooo_decode_stage (
   import alu_types_pkg::*;
   //import rv32m_pkg::*;
   import machine_mode_types_1_11_pkg::*;
-  logic [2:0] funct3;
-  logic [11:0] funct12;
 
   // Interface declarations
   control_unit_if   cu_if();
@@ -111,12 +109,12 @@ module ooo_decode_stage (
   /*******************************************************
   * Reg File Logic
   *******************************************************/
-   assign rf_if.rs1 = cu_if.reg_rs1;
-   assign rf_if.rs2 = cu_if.reg_rs2;
+  assign rf_if.rs1 = cu_if.reg_rs1;
+  assign rf_if.rs2 = cu_if.reg_rs2;
 
   
   /*******************************************************
-  *** Sign Extensions 
+  *** Sign Extensions of the Immediate Value
   *******************************************************/
   word_t imm_I_ext, imm_S_ext, imm_UJ_ext;
   assign imm_I_ext  = {{20{cu_if.imm_I[11]}}, cu_if.imm_I};
@@ -140,9 +138,11 @@ module ooo_decode_stage (
   /*******************************************************
   *** Source Select Logic
   *******************************************************/
-  word_t imm_or_shamt, next_port_a, next_port_b, next_reg_file_wdata;
+  word_t imm_or_shamt, next_reg_file_wdata;
   assign imm_or_shamt = (cu_if.imm_shamt_sel == 1'b1) ? cu_if.shamt : imm_I_ext;
-  
+
+  word_t fu_source_a;
+  word_t fu_source_b;
   always_comb begin
     case (cu_if.source_a_sel)
       2'd0: fu_source_a = rf_if.rs1_data;
@@ -169,16 +169,11 @@ module ooo_decode_stage (
     endcase
   end
   
-  word_t fu_source_a;
-  word_t fu_source_b;
-  alu_port_a
-  assign fu_source_a = next_port_a;
-
-  assign fu_source_b = next_port_b;
+  
+  
   /*******************************************************
   *** Hazard unit connection  
   *******************************************************/
-
   assign hazard_if.halt = cu_if.halt; //TODO
 
   /*********************************************************
@@ -241,23 +236,26 @@ module ooo_decode_stage (
   always @(posedge CLK, negedge nRST) begin : MULTIPLY_UNIT
     if (~nRST) begin
       decode_execute_if.mult_sigs <= '0;
-    end else begin
-      if (((hazard_if.id_ex_flush | hazard_if.stall_mu) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.mult_sigs <= '0;
-      end else if(hazard_if.pc_en & ~hazard_if.stall_mu) begin
-        decode_execute_if.mult_sigs <= cuif.mult_sigs;
-      end
-    end
-  end
-
-  always @(posedge CLK, negedge nRST) begin : DIVIDE_UNIT
-    if (~nRST) begin
       decode_execute_if.div_sigs <= '0;
-    end else begin 
-      if (((hazard_if.id_ex_flush | hazard_if.stall_du) & hazard_if.pc_en) | halt) begin
+      decode_execute_if.lsu_sigs <= '0;
+    end else begin
+      if ((hazard_if.id_ex_flush & hazard_if.pc_en) | halt) begin
+        // case of a flush
+        decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
-      end else if(hazard_if.pc_en & ~hazard_if.stall_du) begin
+        decode_execute_if.lsu_sigs <= '0;
+      end
+      // stall cases
+      else if(hazard_if.stall & hazard_if.pc_en) begin
+        decode_execute_if.mult_sigs <= '0;
+        decode_execute_if.div_sigs <= '0;
+        decode_execute_if.lsu_sigs <= '0;
+      end
+      // normal operation
+      end else if(hazard_if.pc_en) begin
+        decode_execute_if.mult_sigs <= cu_if.mult_sigs;
         decode_execute_if.div_sigs <= cu_if.div_sigs;
+        decode_execute_if.lsu_sigs <= cu_if.lsu_sigs;
       end
     end
   end
@@ -271,8 +269,6 @@ module ooo_decode_stage (
         decode_execute_if.arith.reg_file_wdata          <= '0;
         decode_execute_if.arith.pc              <= '0;
         //WRITEBACK
-        decode_execute_if.arith.wen                     <= '0;
-        decode_execute_if.arith.reg_rd                  <= '0;
         //JUMP
         decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
         decode_execute_if.JUMP_STRUCT.j_base            <= '0;
@@ -311,8 +307,6 @@ module ooo_decode_stage (
         decode_execute_if.arith.port_b                  <= 0;
         decode_execute_if.arith.reg_file_wdata          <= '0;
         //WRITEBACK
-        decode_execute_if.arith.wen                     <= '0;
-        decode_execute_if.arith.reg_rd                  <= '0;
         //JUMP
         decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
         decode_execute_if.JUMP_STRUCT.j_base            <= '0;
@@ -347,13 +341,10 @@ module ooo_decode_stage (
 
       end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
         decode_execute_if.arith_sigs <= cu_if.arith_sigs;
-        decode_execute_if.arith.aluop                   <= cu_if.alu_op;
         decode_execute_if.arith.port_a                  <= fu_source_a;
         decode_execute_if.arith.port_b                  <= fu_source_b;
         decode_execute_if.arith.reg_file_wdata          <= next_reg_file_wdata;
         //WRITEBACK
-        decode_execute_if.arith.wen                     <= cu_if.wen; //Writeback to register file
-        decode_execute_if.arith.reg_rd                  <= cu_if.reg_rd; //Writeback to register file
         //JUMP
         decode_execute_if.JUMP_STRUCT.jump_instr        <= cu_if.jump;
         decode_execute_if.JUMP_STRUCT.j_base            <= base;
@@ -387,18 +378,6 @@ module ooo_decode_stage (
         decode_execute_if.EXCEPTION_STRUCT.wfi          <= cu_if.wfi;
         decode_execute_if.EXCEPTION_STRUCT.w_src        <= cu_if.arith.w_src;
 
-      end
-    end
-  end
-
-always @(posedge CLK, negedge nRST) begin : LOADSTORE_UNIT
-    if (~nRST) begin
-      decode_execute_if.lsu_sigs <= '0;
-    end else begin
-      if (((hazard_if.id_ex_flush | hazard_if.stall_ls) & hazard_if.pc_en) | halt) begin
-        decode_execute_if.lsu_sigs <= '0;
-      end else if(hazard_if.pc_en & ~hazard_if.stall_ls) begin
-        decode_execute_if.lsu_sigs <= cu_if.lsu_sigs;
       end
     end
   end
