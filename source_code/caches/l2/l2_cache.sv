@@ -138,26 +138,26 @@ module l2_cache #(
                     pass_through = 1'b1;
                 end 
                 else begin 
-                    for(int i = 0; i < ASSOC; i++)begin
+                    for(int i = 0; i < ASSOC; i++) begin
                         if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
                             hit = 1'b1;
                             
-                            if(i == lru[decoded_addr.set_bits].v)begin // hit set was in v
+                            if(i == lru[decoded_addr.set_bits].v) begin // hit set was in v
                                     nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
                                     nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v;
                             end
-                            else if(i == lru[decoded_addr.set_bits].nv)begin // hit set was in nv
+                            else if(i == lru[decoded_addr.set_bits].nv) begin // hit set was in nv
                                     nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
                                     nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
                             end
-                        end
+                        end // end hit
                         else begin // if miss 
                             ridx                                = lru[decoded_addr.set_bits].v; // set replacement index
                             nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv; // set new victim
                             nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v; // set new nextvictim
-                        end
-                    end
-                end
+                        end // end miss
+                    end //end for loop iterating through sets
+                end // end not cache start addr
             end // output always_comb end
         end // end if (ASSOC == 2)
         elif(ASSOC == 4)begin
@@ -211,7 +211,7 @@ module l2_cache #(
                 end
             end // output always_comb end
         end
-    endgenerate
+    endgenerate // hit logic and replacement policy logic for different associativities.
     
    
 
