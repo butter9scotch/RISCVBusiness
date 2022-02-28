@@ -161,7 +161,8 @@ module control_unit
   assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
 
   // Assign control flow signals
-  assign cu_if.branch     = (cu_if.opcode == BRANCH);
+  assign cu_if.branch = (cu_if.opcode == BRANCH);
+
   assign cu_if.lui_instr  = (cu_if.opcode == LUI);
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
@@ -258,6 +259,7 @@ module control_unit
   // if there are any
 
   /***** PRIV CONTROL SIGNALS *****/
+  // exception related control signals
   // Decoding of System Priv Instructions
   // Privilege Control Signals
   assign cu_if.fault_insn = '0;
@@ -313,6 +315,16 @@ module control_unit
 
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   assign cu_if.zimm     = cu_if.instr[19:15];
+  // new struct refactor
+  // TODO: remove intermediaries from part of the interface
+  assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM);
+  assign cu_ifcu_if.csr_sigs.csr_swap = cu_if.csr_swap;
+  assign cu_ifcu_if.csr_sigs.csr_clr = cu_if.csr_clr;
+  assign cu_ifcu_if.csr_sigs.csr_set = cu_if.csr_set;
+  assign cu_ifcu_if.csr_sigs.csr_addr = cu_if.csr_addr;
+  assign cu_ifcu_if.csr_sigs.csr_imm = cu_if.csr_imm;
+  assign cu_ifcu_if.csr_sigs.csr_imm_value = {27'd0, cu_if.zimm};
+  assign cu_ifcu_if.csr_sigs.instr_null = (cu_if.instr == '0)
 
   /***** IFENCE CONTROL SIGNALS *****/
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);

@@ -119,24 +119,15 @@ module ooo_decode_stage (
   *** Sign Extensions of the Immediate Value
   *******************************************************/
   word_t imm_I_ext, imm_S_ext, imm_UJ_ext;
+
+  // for jump calculation
   assign imm_I_ext  = {{20{cu_if.imm_I[11]}}, cu_if.imm_I};
   assign imm_UJ_ext = {{11{cu_if.imm_UJ[20]}}, cu_if.imm_UJ};
+
+  // for source selection
   assign imm_S_ext  = {{20{cu_if.imm_S[11]}}, cu_if.imm_S};
 
-  /*******************************************************
-  *** Jump Target Calculator and Associated Logic 
-  *******************************************************/
-  // TODO: move into arith Unit
-  word_t base, offset;
-  always_comb begin
-    if (cu_if.j_sel) begin
-      base = fetch_decode_if.pc;
-      offset = imm_UJ_ext;
-    end else begin
-      base = rf_if.rs1_data;
-      offset = imm_I_ext;
-    end
-  end 
+  
 
   /*******************************************************
   *** Source Select Logic
@@ -172,8 +163,24 @@ module ooo_decode_stage (
     endcase
   end
   
-  
-  
+  /*******************************************************
+  *** Jump Target Calculator and Associated Logic 
+  *******************************************************/
+  word_t base, offset;
+  jump_control_signals_t jump_signals;
+  always_comb begin
+    if (cu_if.j_sel) begin
+      base = fetch_decode_if.pc;
+      offset = imm_UJ_ext;
+    end else begin
+      base = rf_if.rs1_data;
+      offset = imm_I_ext;
+    end
+  end 
+  assign jump_signals.base = base;
+  assign jump_signals.offset = offset;
+  assign jump_signals.jump_instr = cu_if.jump;
+
   /*******************************************************
   *** Hazard unit connection  
   *******************************************************/
@@ -194,6 +201,10 @@ module ooo_decode_stage (
   assign tracker_sigs.imm_SB     = cu_if.imm_SB;
   assign tracker_sigs.reg_rs1    = cu_if.reg_rs1;
   assign tracker_sigs.reg_rs2    = cu_if.reg_rs2;
+  assign tracker_sigs.instr      = fetch_decode_if.instr;
+  assign tracker_sigs.reg_rd     = cu_if.reg_rd;
+  assign tracker_sigs.pc         = fetch_decode_if.pc;
+  assign tracker_sigs.opcode     = cu_if.opcode;
 
   /*********************************************************
   *** Stall signals
@@ -205,11 +216,10 @@ module ooo_decode_stage (
 
 
 
-  always_ff @(posedge CLK, negedge nRST) begin
+  always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
     if (~nRST) begin
             //FUNC UNIT
             decode_execute_if.sfu_type   <= ARITH_S;
-           //REG_FILE/ WRITEBACK
             //HALT
             decode_execute_if.halt_instr <= '0;
             //CPU tracker
@@ -219,7 +229,6 @@ module ooo_decode_stage (
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
             //FUNC UNIT
           decode_execute_if.sfu_type   <= ARITH_S;
-           //REG_FILE/ WRITEBACK
             //HALT
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
@@ -227,7 +236,6 @@ module ooo_decode_stage (
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
-          //REG_FILE/ WRITEBACK
           //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
@@ -236,7 +244,8 @@ module ooo_decode_stage (
     end
   end
   // BIG TODO: put in the logic for rs1 and rs2
-  always @(posedge CLK, negedge nRST) begin : MULTIPLY_UNIT
+  /***** OTHER FUNCTIONAL UNITS LATCH *****/
+  always_ff @(posedge CLK, negedge nRST) begin : FUNCTIONAL_UNITS
     if (~nRST) begin
       decode_execute_if.mult_sigs <= '0;
       decode_execute_if.div_sigs <= '0;
@@ -263,125 +272,75 @@ module ooo_decode_stage (
     end
   end
 
-  always @(posedge CLK, negedge nRST) begin : ARITH_UNIT
-    if (~nRST) begin
-        decode_execute_if.arith_sigs <= '0;
-        decode_execute_if.arith.aluop                   <= 0;
-        decode_execute_if.arith.port_a                  <= 0;
-        decode_execute_if.arith.port_b                  <= 0;
-        decode_execute_if.arith.reg_file_wdata          <= '0; // default and used for jr and lui, TODO: change control sigs for 
-        decode_execute_if.arith.pc              <= '0;
-        //WRITEBACK
-        //JUMP
-        decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
-        decode_execute_if.JUMP_STRUCT.j_base            <= '0;
-        decode_execute_if.JUMP_STRUCT.j_offset          <= '0;
-        decode_execute_if.JUMP_STRUCT.j_sel             <= '0;
-        //BRANCH
-        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= '0;
-        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= '0;
-        //BRANCH PREDICTOR UPDATE
-        decode_execute_if.BRANCH_STRUCT.branch_instr    <= '0;
-        decode_execute_if.BRANCH_STRUCT.prediction      <= '0;
-        decode_execute_if.BRANCH_STRUCT.pc4             <= '0;
-        //csr
-        decode_execute_if.CSR_STRUCT.csr_instr          <= '0;
-        decode_execute_if.CSR_STRUCT.csr_swap           <= '0;
-        decode_execute_if.CSR_STRUCT.csr_clr            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_set            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_addr           <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm_value      <= '0;
-        decode_execute_if.CSR_STRUCT.instr              <= '0;
-        //Exceptions
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.token        <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
+  /***** FUNCTIONAL UNIT SOURCE LATCHES *****/
+  always_ff @(posedge CLK, negedge nRST) begin : SOURCE_LATCHES
+    if(~nRST) begin
+      decode_execute_if.port_a <= '0; 
+      decode_execute_if.port_b <= '0; 
     end else begin
-      if (((hazard_if.id_ex_flush | hazard_if.stall_au) & hazard_if.pc_en) | halt) begin
+      if(hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) begin
+        decode_execute_if.port_a <= '0; 
+        decode_execute_if.port_b <= '0; 
+      end else if(hazard_if.pc_en) begin
+        decode_execute_if.port_a <= fu_source_a; 
+        decode_execute_if.port_b <= fu_source_b; 
+      end
+    end
+  end
+
+  /***** ARITHMETIC UNIT/CSR/EXCEPTION LATCH *****/
+  always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
+    if (~nRST) begin
+      decode_execute_if.arith_sigs <= '0;
+      decode_execute_if.reg_file_wdata <= '0;
+      //JUMP
+      decode_execute_if.jump_sigs        <= '0;
+      //BRANCH
+      decode_execute_if.branch_sigs <= '0;
+      //csr
+      decode_execute_if.csr_sigs <= '0;
+      //Exceptions
+      decode_execute_if.exception_sigs <= '0;
+        
+    end else begin
+      if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
         decode_execute_if.arith_sigs <= '0;
-        decode_execute_if.arith.aluop                   <= aluop_t'(0);
-        decode_execute_if.arith.port_a                  <= 0;
-        decode_execute_if.arith.port_b                  <= 0;
-        decode_execute_if.arith.reg_file_wdata          <= '0;
-        //WRITEBACK
+        decode_execute_if.arith.reg_file_wdata <= '0;
         //JUMP
-        decode_execute_if.JUMP_STRUCT.jump_instr        <= '0;
-        decode_execute_if.JUMP_STRUCT.j_base            <= '0;
-        decode_execute_if.JUMP_STRUCT.j_offset          <= '0;
-        decode_execute_if.JUMP_STRUCT.j_sel             <= '0;
+        decode_execute_if.jump_sigs <= '0;
         //BRANCH
-        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= '0;
-        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= '0;
-        //BRANCH PREDICTOR UPDATE
-        decode_execute_if.BRANCH_STRUCT.branch_instr    <= '0;
-        decode_execute_if.BRANCH_STRUCT.prediction      <= '0;
-        decode_execute_if.BRANCH_STRUCT.pc              <= '0;
-        decode_execute_if.BRANCH_STRUCT.pc4             <= '0;
+        decode_execute_if.branch_sigs <= '0;
         //csr
-        decode_execute_if.CSR_STRUCT.csr_instr          <= '0;
-        decode_execute_if.CSR_STRUCT.csr_swap           <= '0;
-        decode_execute_if.CSR_STRUCT.csr_clr            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_set            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_addr           <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm            <= '0;
-        decode_execute_if.CSR_STRUCT.csr_imm_value      <= '0;
-        decode_execute_if.CSR_STRUCT.instr              <= '0;
+        decode_execute_if.csr_sigs <= '0;
         //Exceptions
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.token        <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= '0;
-        decode_execute_if.EXCEPTION_STRUCT.wfi          <= '0;
+        decode_execute_if.exception_sigs <= '0;
 
       end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
         decode_execute_if.arith_sigs <= cu_if.arith_sigs;
-        decode_execute_if.arith.port_a                  <= fu_source_a;
-        decode_execute_if.arith.port_b                  <= fu_source_b;
-        decode_execute_if.arith.reg_file_wdata          <= next_reg_file_wdata;
-        //WRITEBACK
+        decode_execute_if.reg_file_wdata <= next_reg_file_wdata;
         //JUMP
-        decode_execute_if.JUMP_STRUCT.jump_instr        <= cu_if.jump;
-        decode_execute_if.JUMP_STRUCT.j_base            <= base;
-        decode_execute_if.JUMP_STRUCT.j_offset          <= offset;
-        decode_execute_if.JUMP_STRUCT.j_sel             <= cu_if.j_sel;
+        decode_execute_if.jump_sigs <= jump_signals;
         //BRANCH
-        decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= cu_if.imm_SB;
-        decode_execute_if.BRANCH_STRUCT.br_branch_type  <= cu_if.branch_type;
+        // pretty sure this line is unecessary
+        //decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= cu_if.imm_SB;
+        decode_execute_if.branch_sigs.br_branch_type  <= cu_if.branch_type;
+        decode_execute_if.branch_sigs.branch_instr      <= cu_if.branch;
         //BRANCH PREDICTOR UPDATE
-        decode_execute_if.BRANCH_STRUCT.branch_instr    <= cu_if.branch;
-        decode_execute_if.BRANCH_STRUCT.prediction      <= fetch_decode_if.prediction;
-        decode_execute_if.BRANCH_STRUCT.pc              <= fetch_decode_if.pc;
-        decode_execute_if.BRANCH_STRUCT.pc4             <= fetch_decode_if.pc4;
-                //csr
-                // pack into a struct
-        decode_execute_if.CSR_STRUCT.csr_instr          <= (cu_if.opcode == SYSTEM);
-        decode_execute_if.CSR_STRUCT.csr_swap           <= cu_if.csr_swap;
-        decode_execute_if.CSR_STRUCT.csr_clr            <= cu_if.csr_clr;
-        decode_execute_if.CSR_STRUCT.csr_set            <= cu_if.csr_set;
-        decode_execute_if.CSR_STRUCT.csr_addr           <= cu_if.csr_addr;
-        decode_execute_if.CSR_STRUCT.csr_imm            <= cu_if.csr_imm;
-        decode_execute_if.CSR_STRUCT.csr_imm_value      <= {27'h0, cu_if.zimm};
-        decode_execute_if.CSR_STRUCT.instr              <= fetch_decode_if.instr; // TODO: have control unit generate 
+        decode_execute_if.branch_sigs.prediction <= fetch_decode_if.prediction;
+        //CSR
+        decode_execute_if.csr_sigs <= cu_if.csr_sigs;
         //Exceptions
-        // connect via an exception struc in control unit
-        decode_execute_if.EXCEPTION_STRUCT.illegal_insn <= cu_if.illegal_insn;
-        decode_execute_if.EXCEPTION_STRUCT.breakpoint   <= cu_if.breakpoint;
-        decode_execute_if.EXCEPTION_STRUCT.ecall_insn   <= cu_if.ecall_insn;
-        decode_execute_if.EXCEPTION_STRUCT.ret_insn     <= cu_if.ret_insn;
-        decode_execute_if.EXCEPTION_STRUCT.token        <= fetch_decode_if.token;
-        decode_execute_if.EXCEPTION_STRUCT.mal_insn     <= fetch_decode_if.mal_insn;
-        decode_execute_if.EXCEPTION_STRUCT.fault_insn   <= fetch_decode_if.fault_insn;
-        decode_execute_if.EXCEPTION_STRUCT.wfi          <= cu_if.wfi;
-        decode_execute_if.EXCEPTION_STRUCT.w_src        <= cu_if.arith.w_src;
+        // elaborateed because half of the signals are form cu_if and 
+        // other half is from the fetch decode latch
+        decode_execute_if.exception_sigs.illegal_insn <= cu_if.illegal_insn;
+        decode_execute_if.exception_sigs.breakpoint   <= cu_if.breakpoint;
+        decode_execute_if.exception_sigs.ecall_insn   <= cu_if.ecall_insn;
+        decode_execute_if.exception_sigs.ret_insn     <= cu_if.ret_insn;
+        decode_execute_if.exception_sigs.token        <= fetch_decode_if.token;
+        decode_execute_if.exception_sigs.mal_insn     <= fetch_decode_if.mal_insn;
+        decode_execute_if.exception_sigs.fault_insn   <= fetch_decode_if.fault_insn;
+        decode_execute_if.exception_sigs.wfi          <= cu_if.wfi;
+        decode_execute_if.exception_sigs.w_src        <= cu_if.arith.w_src;
 
       end
     end
