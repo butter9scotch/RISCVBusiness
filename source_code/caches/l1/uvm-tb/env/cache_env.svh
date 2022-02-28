@@ -68,10 +68,8 @@ class cache_env extends uvm_env;
     mem_agt.mon.resp_ap.connect(mem_score.actual_export); // connect monitor to scoreboard
     `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", mem_agt.mon.get_name(), mem_score.get_name()), UVM_FULL)
 
-    cpu_agt.mon.req_ap.connect(e2e.cpu_req_export);
-    cpu_agt.mon.resp_ap.connect(e2e.cpu_resp_export);
-    mem_agt.mon.req_ap.connect(e2e.mem_req_export);
-    mem_agt.mon.resp_ap.connect(e2e.mem_resp_export);
+    cpu_agt.mon.resp_ap.connect(e2e.cpu_export);
+    mem_agt.mon.resp_ap.connect(e2e.mem_export);
   endfunction
 
 endclass: cache_env

@@ -10,15 +10,11 @@ import rv32i_types_pkg::*;
 class end2end extends uvm_scoreboard;
   `uvm_component_utils(end2end) 
 
-  uvm_analysis_export #(cpu_transaction) cpu_req_export;
-  uvm_analysis_export #(cpu_transaction) cpu_resp_export;
-  uvm_analysis_export #(cpu_transaction) mem_req_export;
-  uvm_analysis_export #(cpu_transaction) mem_resp_export;
+  uvm_analysis_export #(cpu_transaction) cpu_export;
+  uvm_analysis_export #(cpu_transaction) mem_export;
 
-  uvm_tlm_analysis_fifo #(cpu_transaction) cpu_req_fifo;
-  uvm_tlm_analysis_fifo #(cpu_transaction) cpu_resp_fifo;
-  uvm_tlm_analysis_fifo #(cpu_transaction) mem_req_fifo;
-  uvm_tlm_analysis_fifo #(cpu_transaction) mem_resp_fifo;
+  uvm_tlm_analysis_fifo #(cpu_transaction) cpu_fifo;
+  uvm_tlm_analysis_fifo #(cpu_transaction) mem_fifo;
 
   word_t cache[word_t]; // holds values currently stored in cache
 
@@ -30,22 +26,16 @@ class end2end extends uvm_scoreboard;
   endfunction: new
 
   function void build_phase(uvm_phase phase);
-    cpu_req_export = new("cpu_req_export", this);
-    cpu_resp_export = new("cpu_resp_export", this);
-    mem_req_export = new("mem_req_export", this);
-    mem_resp_export = new("mem_resp_export", this);
+    cpu_export = new("cpu_export", this);
+    mem_export = new("mem_export", this);
 
-    cpu_req_fifo = new("cpu_req_fifo", this);
-    cpu_resp_fifo = new("cpu_resp_fifo", this);
-    mem_req_fifo = new("mem_req_fifo", this);
-    mem_resp_fifo = new("mem_resp_fifo", this);
+    cpu_fifo = new("cpu_fifo", this);
+    mem_fifo = new("mem_fifo", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
-    cpu_req_export.connect(cpu_req_fifo.analysis_export);
-    cpu_resp_export.connect(cpu_resp_fifo.analysis_export);
-    mem_req_export.connect(mem_req_fifo.analysis_export);
-    mem_resp_export.connect(mem_resp_fifo.analysis_export);
+    cpu_export.connect(cpu_fifo.analysis_export);
+    mem_export.connect(mem_fifo.analysis_export);
   endfunction
 
   task run_phase(uvm_phase phase);
@@ -53,10 +43,10 @@ class end2end extends uvm_scoreboard;
     cpu_transaction mem_tx;
 
     forever begin
-      cpu_resp_fifo.get(cpu_tx);
+      cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
   
-      if (mem_resp_fifo.is_empty()) begin
+      if (mem_fifo.is_empty()) begin
         // quiet memory bus
         if (cache.exists(cpu_tx.addr)) begin
           // data is cached
@@ -72,7 +62,7 @@ class end2end extends uvm_scoreboard;
       end else begin
         // active memory bus
 
-        mem_resp_fifo.get(mem_tx);
+        mem_fifo.get(mem_tx);
         `uvm_info(this.get_name(), $sformatf("Recieved new mem value:\n%s", mem_tx.sprint()), UVM_HIGH);
         
         if (cache.exists(cpu_tx.addr)) begin
@@ -89,8 +79,8 @@ class end2end extends uvm_scoreboard;
         `uvm_info(this.get_name(), $sformatf("\nInitiated by CPU Transaction:\n%s", cpu_tx.sprint()), UVM_MEDIUM);
       end
 
-      while(!mem_resp_fifo.is_empty()) begin
-        mem_resp_fifo.get(mem_tx); //clear mem fifo
+      while(!mem_fifo.is_empty()) begin
+        mem_fifo.get(mem_tx); //clear mem fifo
       end
      
     end
