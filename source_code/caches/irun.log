@@ -1,0 +1,16 @@
+irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	irun(64)	15.20-s030: Started on Feb 11, 2022 at 13:51:36 EST
+irun
+	-access +rwc
+	+nctimescale+1ns/1ns
+	-coverage all
+	-covoverwrite
+	-incdir /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/include/
+	/home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
+	l1_cache.sv
+	/home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
+	tb/tb_l1_cache.sv
+irun: *E,FILEMIS: Cannot find the provided file l1_cache.sv.
+irun: *E,FILEMIS: Cannot find the provided file /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv.
+irun: *E,FILEMIS: Cannot find the provided file tb/tb_l1_cache.sv.
+TOOL:	irun(64)	15.20-s030: Exiting on Feb 11, 2022 at 13:51:36 EST  (total: 00:00:00)
