@@ -24,7 +24,7 @@
 `ifndef LOADSTORE_UNIT_IF_VH
 `define LOADSTORE_UNIT_IF_VH
 
-interface loadstore_unit_if();
+interface loadstore_unit_if(input lsu_control_signals_t control_sigs);
 
   import rv32i_types_pkg::*;
 
@@ -44,6 +44,15 @@ interface loadstore_unit_if();
   load_t load_type;
   opcode_t opcode;
   opcode_t opcode_ls;
+
+  always_comb begin : CONNECTIONS
+    wen = control_sigs.wen;
+    load_type = control_sigs.load_type;
+    opcode = control_sigs.opcode;
+    dren = control_sigs.dren;
+    dwen = control_sigs.dwen;
+    reg_rd = control_sigs.reg_rd;
+  end
 
   modport execute (
     input port_a, port_b, store_data, pc, load_type, dren, 

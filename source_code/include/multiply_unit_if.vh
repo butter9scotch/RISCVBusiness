@@ -25,7 +25,7 @@
 `ifndef MULTIPLY_UNIT_IF_VH
 `define MULTIPLY_UNIT_IF_VH
 
-interface multiply_unit_if();
+interface multiply_unit_if(input mult_control_signals_t control_sigs);
 
   import rv32i_types_pkg::*;
 
@@ -43,6 +43,14 @@ interface multiply_unit_if();
   logic busy_mu;
   logic done_mu;
 
+  always_comb begin : CONNECTIONS
+    start_mu = control_sigs.ena;
+    high_low_sel = control_sigs.high_low_sel;
+    decode_done = control_sigs.decode_done;
+    wen = control_sigs.wen;
+    is_signed = control_sigs.is_signed;
+    reg_rd = control_sigs.reg_rd;
+  end
   modport execute (
     input rs1_data, rs2_data, start_mu, high_low_sel, decode_done, wen, 
           is_signed, reg_rd, 

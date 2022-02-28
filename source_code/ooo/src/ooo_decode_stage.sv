@@ -191,21 +191,21 @@ module ooo_decode_stage (
   *** Signals for Bind Tracking - Read-Only, These don't affect execution
   *********************************************************/
   // CPU Tracker binding
-  cpu_tracker_t tracker_sigs;
-  assign tracker_sigs.funct3     = cu_if.instr[14:12];
-  assign tracker_sigs.funct12    = cu_if.instr[31:20];
-  assign tracker_sigs.instr_30   = cu_if.instr[30];
-  assign tracker_sigs.imm_S      = cu_if.imm_S;
-  assign tracker_sigs.imm_I      = cu_if.imm_I;
-  assign tracker_sigs.imm_U      = cu_if.imm_U;
-  assign tracker_sigs.imm_UJ_ext = imm_UJ_ext;
-  assign tracker_sigs.imm_SB     = cu_if.imm_SB;
-  assign tracker_sigs.reg_rs1    = cu_if.reg_rs1;
-  assign tracker_sigs.reg_rs2    = cu_if.reg_rs2;
-  assign tracker_sigs.instr      = fetch_decode_if.instr;
-  assign tracker_sigs.reg_rd     = cu_if.reg_rd;
-  assign tracker_sigs.pc         = fetch_decode_if.pc;
-  assign tracker_sigs.opcode     = cu_if.opcode;
+  cpu_tracker_t CPU_TRACKER;
+  assign CPU_TRACKER.funct3     = cu_if.instr[14:12];
+  assign CPU_TRACKER.funct12    = cu_if.instr[31:20];
+  assign CPU_TRACKER.instr_30   = cu_if.instr[30];
+  assign CPU_TRACKER.imm_S      = cu_if.imm_S;
+  assign CPU_TRACKER.imm_I      = cu_if.imm_I;
+  assign CPU_TRACKER.imm_U      = cu_if.imm_U;
+  assign CPU_TRACKER.imm_UJ_ext = imm_UJ_ext;
+  assign CPU_TRACKER.imm_SB     = cu_if.imm_SB;
+  assign CPU_TRACKER.reg_rs1    = cu_if.reg_rs1;
+  assign CPU_TRACKER.reg_rs2    = cu_if.reg_rs2;
+  assign CPU_TRACKER.instr      = fetch_decode_if.instr;
+  assign CPU_TRACKER.reg_rd     = cu_if.reg_rd;
+  assign CPU_TRACKER.pc         = fetch_decode_if.pc;
+  assign CPU_TRACKER.opcode     = cu_if.opcode;
 
   /*********************************************************
   *** Stall signals
@@ -224,7 +224,7 @@ module ooo_decode_stage (
             //HALT
             decode_execute_if.halt_instr <= '0;
             //CPU tracker
-            decode_execute_if.tracker_sigs <= '0;
+            decode_execute_if.CPU_TRACKER <= '0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
@@ -233,14 +233,14 @@ module ooo_decode_stage (
             //HALT
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
-          decode_execute_if.tracker_sigs <= '0;
+          decode_execute_if.CPU_TRACKER <= '0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
-          decode_execute_if.cpu_track_sigs <= tracker_sigs;
+          decode_execute_if.CPU_TRACKER <= CPU_TRACKER;
         end
     end
   end

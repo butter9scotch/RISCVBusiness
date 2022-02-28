@@ -25,7 +25,7 @@
 `ifndef BRANCH_RES_IF_VH
 `define BRANCH_RES_IF_VH
 
-interface branch_res_if();
+interface branch_res_if(input jump_control_signals_t control_sigs);
 
   import rv32i_types_pkg::*;
 
@@ -33,7 +33,11 @@ interface branch_res_if();
   logic [12:0] imm_sb;
   branch_t branch_type;
   logic branch_taken;
-  
+
+  always_comb begin : CONNECTIONS
+    branch_type = control_sigs.branch_type;
+
+  end
   modport bres (
     input rs1_data, rs2_data, pc, imm_sb, branch_type,
     output branch_addr, branch_taken
