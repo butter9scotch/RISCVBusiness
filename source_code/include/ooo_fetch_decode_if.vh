@@ -41,11 +41,11 @@ interface ooo_fetch_decode_if;
 
   modport fetch(
     output token, pc, pc4, instr, mal_insn, fault_insn, prediction
-  )
+  );
 
   modport decode(
     input token, pc, pc4, instr, mal_insn, fault_insn, prediction
-  )
+  );
 
 endinterface
 `endif //OOO_FETCH_DECODE_IF_VH

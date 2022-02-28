@@ -50,6 +50,7 @@ interface control_unit_if;
   logic high_low_sel;
   logic div_type;
   scalar_fu_t sfu_type;
+  load_t load_type;
 
   // New cpu tracker signals
   cpu_tracker_t cpu_track_sigs;
@@ -63,7 +64,7 @@ interface control_unit_if;
   arith_control_signals_t arith_sigs;
   mult_control_signals_t mult_sigs;
   div_control_signals_t div_sigs;
-  lsu_constrol_signals_t lsu_sigs;
+  lsu_control_signals_t lsu_sigs;
 
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
@@ -81,7 +82,7 @@ interface control_unit_if;
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
     csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, sign_type, sfu_type, 
-    high_low_sel, div_type
+    high_low_sel, div_type, source_a_sel, source_b_sel
   );
 
 endinterface

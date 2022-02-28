@@ -33,9 +33,9 @@ interface ooo_decode_execute_if();
   import machine_mode_types_1_11_pkg::*;
 
   // noted data signals that are needed in execute stage
-  wort_t pc,
-  word_t pc4,
-  word_t immediate,
+  word_t pc;
+  word_t pc4;
+  word_t immediate;
   word_t port_a; //
   word_t port_b; //
   word_t reg_file_wdata; //
@@ -52,7 +52,7 @@ interface ooo_decode_execute_if();
   branch_control_signals_t branch_sigs; // 
   mult_control_signals_t mult_sigs; //
   div_control_signals_t div_sigs; //
-  lsu_constrol_signals_t lsu_sigs; //
+  lsu_control_signals_t lsu_sigs; //
   
   cpu_tracker_signals_t tracker_sigs; //
 

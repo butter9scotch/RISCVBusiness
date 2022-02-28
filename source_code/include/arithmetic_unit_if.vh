@@ -15,6 +15,8 @@ interface arithmetic_unit_if(input arith_control_signals_t control_sigs);
   w_src_t w_src;
   word_t wdata_au;
   logic wen_au;
+  word_t imm_UJ_ext;
+  word_t imm_I_ext;
 
   always_comb begin : CONNECTIONS
     wen = control_sigs.wwen;
@@ -23,8 +25,9 @@ interface arithmetic_unit_if(input arith_control_signals_t control_sigs);
     reg_rd = control_sigs.reg_rd;
   end
 
-  modport execute (
+  modport au (
     input wen, aluop, port_a, port_b, reg_file_wdata, csr_rdata, w_src,
+    imm_UJ_ext, imm_I_ext,
     output wdata_au, wen_au
   );
 

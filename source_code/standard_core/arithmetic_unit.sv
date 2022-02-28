@@ -26,7 +26,7 @@
 `include "alu_if.vh"
 
 module arithmetic_unit (
-  arithmetic_unit_if.execute auif
+  arithmetic_unit_if.au auif
 );
   
   import rv32i_types_pkg::*;
@@ -56,10 +56,10 @@ module arithmetic_unit (
   always_comb begin
     if (cu_if.j_sel) begin
       base = auif.pc;
-      offset = imm_UJ_ext;
+      offset = auif.imm_UJ_ext;
     end else begin
       base = auif.port_a;
-      offset = imm_I_ext;
+      offset = auif.imm_I_ext;
     end
   end 
 endmodule

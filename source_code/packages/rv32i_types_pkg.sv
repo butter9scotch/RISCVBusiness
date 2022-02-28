@@ -28,6 +28,7 @@
 `include "machine_mode_types_1_11_pkg.sv"
 
 package rv32i_types_pkg;
+  import alu_types_pkg::aluop_t;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
   parameter OP_W = 7;
@@ -237,7 +238,7 @@ package rv32i_types_pkg;
 
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
-    aluop_t alu_op;
+    alu_types_pkg::aluop_t alu_op;
     w_src_t w_src;
     logic wen;
     logic [4:0] reg_rd;
@@ -293,18 +294,6 @@ package rv32i_types_pkg;
     word_t j_offset;
     logic j_sel;
   } jump_control_signals_t;
-
-  typedef struct packed {
-    logic illegal_insn;
-    logic breakpoint;
-    logic ecall_insn;
-    logic ret_insn;
-    logic token;
-    logic mal_insn;
-    logic fault_insn;
-    logic wfi;
-    w_src_t w_src;
-  } exception_control_signals_t;
 
 
   // do not use atm

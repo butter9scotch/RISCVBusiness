@@ -25,7 +25,7 @@
 module agu (
   input logic [31:0] port_a,
   input logic [31:0] port_b,
-  input load_t load_type,
+  input rv32i_types_pkg::load_t load_type,
   output logic [3:0] byte_en_standard,
   output logic [31:0] address,
   output logic mal_addr  
