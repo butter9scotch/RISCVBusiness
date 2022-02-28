@@ -35,6 +35,7 @@
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
 `include "ooo_execute_commit_if.vh"
+`include "completion_buffer_if.vh"
 
 module ooo_commit_stage(
   input logic CLK, nRST,halt,
@@ -52,6 +53,7 @@ module ooo_commit_stage(
 
   logic illegal_braddr, illegal_jaddr;
   logic valid_pc, latest_valid_pc;
+  logic branch_mispredict;
 
   assign hazard_if.fault_l      = 1'b0;
   assign hazard_if.mal_l        = execute_commit_if.dren & execute_commit_if.mal_addr;
@@ -74,6 +76,7 @@ module ooo_commit_stage(
   assign illegal_braddr         = (execute_commit_if.branch_instr & (execute_commit_if.br_resolved_addr[1:0] != 2'b00));
 
   assign valid_pc = (execute_mem_if.opcode != opcode_t'('h0));
+  assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) 
@@ -97,85 +100,51 @@ module ooo_commit_stage(
   /*******************************************************
   *** Write to Completion Buffer logic 
   *******************************************************/
-  assign cb_if.index_a     = 0; // TODO
-  assign cb_if.wdata_a     = execute_commit_if.wdata_au;
-  assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
-  assign cb_if.exception_a = 0; // TODO
-  assign cb_if.ready_a     = 0; // TODO
-  assign cb_if.wen_a       = 0; // TODO
-  assign cb_if.valid_a     = 0; // TODO
-  assign cb_if.branch_mispredict  = 0;  // TODO
+  assign cb_if.index_a     = execute_comm_if.index_a; 
+  assign cb_if.wdata_a     = branch_mispredict ?  execute_commit_if.br_resolved_addr : 
+                             execute_commit_if.jump_instr ?  execute_commit_if.jump_addr : 
+                             cb_if.exception_a ? execute_commit_if.pc_a : 
+                             execute_comm_if.wdata_au; 
+  assign cb_if.vd_a        = execute_comm_if.reg_rd_au; 
+  assign cb_if.exception_a = execute_commit_if.exception_a; 
+  assign cb_if.ready_a     = execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr; 
+  assign cb_if.wen_a       = (cb_if.exception_a | execute_commit_if.branch_instr | execute_commit_if.jump_instr) ? 1'b0 : 1'b1; 
+  assign cb_if.valid_a     = execute_commit_if.branch_instr ? ~branch_mispredict : 
+                             execute_commit_if.jump_instr ? 1'b0 :
+                             1'b1; 
+  assign cb_if.branch_mispredict  = branch_mispredict;
 
-  assign cb_if.index_mu     = 0;  // TODO
-  assign cb_if.wdata_mu     = execute_commit_if.wdata_mu;  
-  assign cb_if.vd_mu        = execute_commit_if.reg_rd_mu; 
-  assign cb_if.exception_mu = 0; // TODO
-  assign cb_if.ready_mu     = 0; // TODO
+  assign cb_if.index_mu     = execute_comm_if.index_mu; 
+  assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_comm_if.wdata_mu;  
+  assign cb_if.vd_mu        = execute_comm_if.reg_rd_mu; 
+  assign cb_if.exception_mu = execute_commit_if.exception_mu; 
+  assign cb_if.ready_mu     = execute_commit_if.wen_mu;
 
-  assign cb_if.index_du     = 0; // TODO
-  assign cb_if.wdata_du     = execute_commit_if.wdata_du; 
-  assign cb_if.vd_du        = execute_commit_if.reg_rd_du; 
-  assign cb_if.exception_du = 0; // TODO
-  assign cb_if.ready_du     = 0; // TODO
+  assign cb_if.index_du     = execute_comm_if.index_du; 
+  assign cb_if.wdata_du     = execute_commit_if.exception_du ? execute_commit_if.pc_du : execute_comm_if.wdata_du; 
+  assign cb_if.vd_du        = execute_comm_if.reg_rd_du; 
+  assign cb_if.exception_du = execute_commit_if.exception_du; 
+  assign cb_if.ready_du     = execute_commit_if.wen_du; 
 
-  assign cb_if.index_ls     = 0; // TODO
-  assign cb_if.wdata_ls     = execute_commit_if.wdata_ls; 
-  assign cb_if.vd_ls        = execute_commit_if.reg_rd_ls; 
-  assign cb_if.exception_ls = 0; // TODO
-  assign cb_if.ready_ls     = 0; // TODO
-  assign cb_if.mal_ls       = 0; // TODO
+  assign cb_if.index_ls     = execute_comm_if.index_ls; 
+  assign cb_if.wdata_ls     = execute_commit_if.exception_ls ? execute_commit_if.pc_ls : execute_comm_if.wdata_ls; 
+  assign cb_if.vd_ls        = execute_comm_if.reg_rd_ls; 
+  assign cb_if.exception_ls = execute_commit_if.exception_ls; 
+  assign cb_if.ready_ls     = execute_commit_if.wen_ls; 
+  assign cb_if.mal_ls       = execute_commit_if.mal_addr; 
 
   /*******************************************************
   *** CPU tracker  
   *******************************************************/
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
-      cb_if.CPU_TRACKER.instr      <= '0;
-      cb_if.CPU_TRACKER.pc         <= '0;
-      cb_if.CPU_TRACKER.opcode     <= '0;
-      cb_if.CPU_TRACKER.funct3     <= '0;
-      cb_if.CPU_TRACKER.funct12    <= '0;
-      cb_if.CPU_TRACKER.rs1        <= '0;
-      cb_if.CPU_TRACKER.rs2        <= '0;
-      cb_if.CPU_TRACKER.reg_rd     <= '0;
-      cb_if.CPU_TRACKER.imm_S      <= '0;
-      cb_if.CPU_TRACKER.imm_I      <= '0;
-      cb_if.CPU_TRACKER.imm_U      <= '0;
-      cb_if.CPU_TRACKER.imm_UJ_ext <= '0;
-      cb_if.CPU_TRACKER.imm_SB     <= '0;
-      cb_if.CPU_TRACKER.instr_30   <= '0;
+      cb_if.tracker_sigs      <= '0;
     end
     else begin
       if (hazard_if.ex_comm_flush && hazard_if.pc_en || halt ) begin
-        cb_if.CPU_TRACKER.instr      <= '0;
-        cb_if.CPU_TRACKER.pc         <= '0;
-        cb_if.CPU_TRACKER.opcode     <= '0;
-        cb_if.CPU_TRACKER.funct3     <= '0;
-        cb_if.CPU_TRACKER.funct12    <= '0;
-        cb_if.CPU_TRACKER.rs1        <= '0;
-        cb_if.CPU_TRACKER.rs2        <= '0;
-        cb_if.CPU_TRACKER.reg_rd     <= '0;
-        cb_if.CPU_TRACKER.imm_S      <= '0;
-        cb_if.CPU_TRACKER.imm_I      <= '0;
-        cb_if.CPU_TRACKER.imm_U      <= '0;
-        cb_if.CPU_TRACKER.imm_UJ_ext <= '0;
-        cb_if.CPU_TRACKER.imm_SB     <= '0;
-        cb_if.CPU_TRACKER.instr_30   <= '0;
+        cb_if.tracker_sigs <= '0;
       end else if(hazard_if.pc_en ) begin
-        cb_if.CPU_TRACKER.instr      <= execute_commit_if.CPU_TRACKER.instr;
-        cb_if.CPU_TRACKER.pc         <= execute_commit_if.CPU_TRACKER.pc;
-        cb_if.CPU_TRACKER.opcode     <= execute_commit_if.CPU_TRACKER.opcode;
-        cb_if.CPU_TRACKER.funct3     <= execute_commit_if.CPU_TRACKER.funct3;
-        cb_if.CPU_TRACKER.funct12    <= execute_commit_if.CPU_TRACKER.funct12;
-        cb_if.CPU_TRACKER.rs1        <= execute_commit_if.CPU_TRACKER.rs1;
-        cb_if.CPU_TRACKER.rs2        <= execute_commit_if.CPU_TRACKER.rs2;
-        cb_if.CPU_TRACKER.reg_rd     <= execute_commit_if.CPU_TRACKER.reg_rd;
-        cb_if.CPU_TRACKER.imm_S      <= execute_commit_if.CPU_TRACKER.imm_S;
-        cb_if.CPU_TRACKER.imm_I      <= execute_commit_if.CPU_TRACKER.imm_I;
-        cb_if.CPU_TRACKER.imm_U      <= execute_commit_if.CPU_TRACKER.imm_U;
-        cb_if.CPU_TRACKER.imm_UJ_ext <= execute_commit_if.CPU_TRACKER.imm_UJ_ext;
-        cb_if.CPU_TRACKER.imm_SB     <= execute_commit_if.CPU_TRACKER.imm_SB;
-        cb_if.CPU_TRACKER.instr_30   <= execute_commit_if.CPU_TRACKER.instr_30;
+        cb_if.tracker_sigsr      <= execute_commit_if.tracker_sigs;
       end
     end
   end

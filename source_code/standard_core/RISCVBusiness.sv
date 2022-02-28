@@ -145,8 +145,6 @@ module RISCVBusiness (
       );
    
    rv32i_reg_file reg_file (.*);
-   branch_res branch_res (.br_if(branch_if));
-   jump_calc jump_calc (.jump_if(jump_if));
 
    ooo_hazard_unit hazard_unit (
        .hazard_if(hazard_if)

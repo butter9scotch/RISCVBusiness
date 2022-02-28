@@ -29,7 +29,7 @@ interface ooo_execute_commit_if();
   logic token;
   logic intr_seen;
   logic jump_instr;
-  word_t jump_addr;
+  logic jump_addr;
   logic branch_instr;
   logic prediction;
   logic branch_taken;
@@ -59,6 +59,18 @@ interface ooo_execute_commit_if();
   word_t br_resolved_addr;
   cpu_tracker_signals_t CPU_TRACKER;
   cpu_tracker_signals_t CPU_TRACKER_OUT;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls;
+  word_t pc_a;
+  word_t pc_mu;
+  word_t pc_du;
+  word_t pc_ls;
+  logic exception_a;
+  logic exception_mu;
+  logic exception_du;
+  logic exception_ls;
 
   modport execute (
     output halt_instr, csr_instr, instr_30, wen_au, wen_mu, wen_du, 
@@ -69,7 +81,10 @@ interface ooo_execute_commit_if();
            imm_S, imm_SB, w_sel, funct3, rs1, rs2, 
            reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, opcode, csr_rdata, 
            imm_UJ_ext, imm_U, instr, wdata_au, wdata_mu, wdata_du, 
-           wdata_ls, memory_addr, pc, br_resolved_addr, CPU_TRACKER
+           wdata_ls, memory_addr, pc, br_resolved_addr, CPU_TRACKER,
+           index_a, index_mu, index_du, index_ls,
+           pc_a, pc_mu, pc_du, pc_ls,
+           exception_a, exception_mu, exception_du, exception_ls
   );
 
   modport commit (
@@ -82,7 +97,10 @@ interface ooo_execute_commit_if();
            rs1, rs2, reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, 
            opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 
            wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr,
-           CPU_TRACKER,
+           CPU_TRACKER, index_a, index_mu, index_du, index_ls, 
+           pc_a, pc_mu, pc_du, pc_ls, 
+           exception_a, exception_mu, exception_du, exception_ls,
+    output CPU_TRACKER_OUT
   );
 
 endinterface

@@ -26,7 +26,7 @@
 `include "alu_if.vh"
 
 module arithmetic_unit (
-  arithmetic_unit_if.execute auif
+  arithmetic_unit_if.au auif
 );
   
   import rv32i_types_pkg::*;
@@ -48,6 +48,18 @@ module arithmetic_unit (
   end
   // auif.wen = auif.wen_au; 
 
-  
+  /*******************************************************
+  *** Jump Target Calculator and Associated Logic 
+  *******************************************************/
 
+  word_t base, offset;
+  always_comb begin
+    if (cu_if.j_sel) begin
+      base = auif.pc;
+      offset = auif.imm_UJ_ext;
+    end else begin
+      base = auif.port_a;
+      offset = auif.imm_I_ext;
+    end
+  end 
 endmodule

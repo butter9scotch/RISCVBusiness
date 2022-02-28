@@ -59,6 +59,8 @@ interface control_unit_if;
   logic [1:0] source_a_sel, source_b_sel;
 
   // functional unit control signal structs
+  //branch_control_signals_t branch_sigs;
+  csr_control_signals_t csr_sigs;
   arith_control_signals_t arith_sigs;
   mult_control_signals_t mult_sigs;
   div_control_signals_t div_sigs;
@@ -72,8 +74,9 @@ interface control_unit_if;
 
   modport control_unit(
     input instr, 
-    output arith_sigs, mult_sigs, div_sigs, lsu_sigs, cpu_track_sigs,
-    dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,
+    output arith_sigs, mult_sigs, div_sigs, lsu_sigs, csr_sigs, 
+    cpu_track_sigs, 
+    output dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,
     alu_b_sel, w_src, load_type, branch_type, shamt,
     imm_I, imm_S, imm_SB, imm_UJ, imm_U, imm_shamt_sel, alu_op, 
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 

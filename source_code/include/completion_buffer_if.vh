@@ -10,7 +10,7 @@ interface completion_buffer_if();
   logic halt_instr;
 
   // DECODE STAGE
-  logic [$clog2(NUM)-1:0] cur_tail;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] cur_tail;
   logic [4:0] vd_final;
   word_t wdata_final;
   logic alloc_ena;
@@ -33,7 +33,7 @@ interface completion_buffer_if();
   logic rv32v_wb_scalar_ena;
   logic rv32v_wb_scalar_ready;
   logic rv32v_wb_exception;
-  logic [$clog2(NUM)-1:0] rv32v_wb_scalar_index;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] rv32v_wb_scalar_index;
   logic [4:0] rv32v_wb_vd;
   word_t rv32v_wb_scalar_data;
 
@@ -41,10 +41,10 @@ interface completion_buffer_if();
   logic rv32f_commit_ena;
 
   //FUNCTIONAL UNIT RESULT
-  logic [$clog2(NUM)-1:0] index_a;
-  logic [$clog2(NUM)-1:0] index_mu;
-  logic [$clog2(NUM)-1:0] index_du;
-  logic [$clog2(NUM)-1:0] index_ls;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls;
   word_t wdata_a;
   word_t wdata_mu;
   word_t wdata_du;
@@ -105,10 +105,6 @@ interface completion_buffer_if();
   modport rv32v (
     input rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ready, rv32v_wb_exception, rv32v_wb_scalar_index, rv32v_wb_vd, rv32v_commit_ena,
     output rv32v_wb_scalar_data
-  );
-
-  modport register (
-    input vd_final, wdata_final, scalar_commit_ena
   );
 
 endinterface

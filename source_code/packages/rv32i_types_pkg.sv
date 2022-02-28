@@ -28,6 +28,7 @@
 `include "machine_mode_types_1_11_pkg.sv"
 
 package rv32i_types_pkg;
+  import alu_types_pkg::aluop_t;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
   parameter OP_W = 7;
@@ -238,6 +239,7 @@ package rv32i_types_pkg;
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
     alu_types_pkg::aluop_t alu_op;
+    w_src_t w_src;
     logic wen;
     logic [4:0] reg_rd;
   } arith_control_signals_t;
@@ -268,7 +270,32 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
   } lsu_control_signals_t;
-  
+
+  typedef struct packed {
+    logic csr_instr;
+    logic csr_swap;
+    logic csr_clr;
+    logic csr_set;
+    machine_mode_types_1_11_pkg::csr_addr_t csr_addr;
+    logic csr_imm;
+    logic [31:0] csr_imm_value;
+    logic instr_null;
+  } csr_control_signals_t;
+
+  typedef struct packed {
+    branch_t branch_type;
+    logic branch_instr;
+    logic prediction;
+  } branch_control_signals_t;
+
+  typedef struct packed {
+    logic jump_instr;
+    word_t j_base;
+    word_t j_offset;
+    logic j_sel;
+  } jump_control_signals_t;
+
+
   // do not use atm
   typedef struct packed {
     word_t w_data;
@@ -285,10 +312,14 @@ package rv32i_types_pkg;
     logic [11:0] imm_UJ_ext;
     logic [12:0] imm_SB;
     logic instr_30;
-    logic [4:0]reg_rs1;
-    logic [4:0] reg_rs2; 
+    logic [4:0] reg_rs1;
+    logic [4:0] reg_rs2;
+    logic [4:0] reg_rd; 
     word_t instr;
+    word_t pc;
+    opcode_t opcode;
   } cpu_tracker_t;
+
   // TODO: add floating point control signals struct here
 ////////
 
@@ -371,7 +402,7 @@ package rv32i_types_pkg;
     logic fault_insn;
     logic wfi;
     w_src_t w_src;
-  } exception_struct_t;
+  } exception_control_signals_t;
 
   typedef struct packed {
     word_t instr;
@@ -390,6 +421,7 @@ package rv32i_types_pkg;
     logic instr_30;
   } cpu_tracker_signals_t;
 
+  parameter NUM_CB_ENTRY = 16;
 
 endpackage
 `endif //RV32I_TYPES_PKG_SV
