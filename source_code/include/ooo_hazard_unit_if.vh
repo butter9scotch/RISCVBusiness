@@ -24,6 +24,7 @@ interface ooo_hazard_unit_if();
   logic intr_taken;
   logic load;
   logic stall_ex;
+  logic stall_de;
   logic jump;
   logic branch;
   logic mispredict;
@@ -70,8 +71,8 @@ interface ooo_hazard_unit_if();
 
   modport decode (
     input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, intr,
-    output halt, dflushed, iflushed, ifence_pc, fu_type
+           stall_de, intr,
+    output halt, dflushed, iflushed, ifence_pc, fu_type, ifence
   );
 
   modport execute (
@@ -82,15 +83,11 @@ interface ooo_hazard_unit_if();
            epc
   );
 
-  modport fetch1 (
+  modport fetch (
     input pc_en, npc_sel, stall, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, 
-           priv_pc
-  );
-
-  modport fetch2 (
-    input pc_en, if_id_flush, iren, intr, 
-    output i_mem_busy, stall
+           priv_pc, if_id_flush, iren, 
+    output i_mem_busy 
   );
 
   modport hazard_unit (

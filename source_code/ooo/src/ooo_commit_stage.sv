@@ -98,8 +98,8 @@ module ooo_commit_stage(
   *** Write to Completion Buffer logic 
   *******************************************************/
   assign cb_if.index_a     = 0; // TODO
-  assign cb_if.wdata_a     = execute_comm_if.wdata_au;
-  assign cb_if.vd_a        = execute_comm_if.reg_rd_au; 
+  assign cb_if.wdata_a     = execute_commit_if.wdata_au;
+  assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
   assign cb_if.exception_a = 0; // TODO
   assign cb_if.ready_a     = 0; // TODO
   assign cb_if.wen_a       = 0; // TODO
@@ -107,20 +107,20 @@ module ooo_commit_stage(
   assign cb_if.branch_mispredict  = 0;  // TODO
 
   assign cb_if.index_mu     = 0;  // TODO
-  assign cb_if.wdata_mu     = execute_comm_if.wdata_mu;  
-  assign cb_if.vd_mu        = execute_comm_if.reg_rd_mu; 
+  assign cb_if.wdata_mu     = execute_commit_if.wdata_mu;  
+  assign cb_if.vd_mu        = execute_commit_if.reg_rd_mu; 
   assign cb_if.exception_mu = 0; // TODO
   assign cb_if.ready_mu     = 0; // TODO
 
   assign cb_if.index_du     = 0; // TODO
-  assign cb_if.wdata_du     = execute_comm_if.wdata_du; 
-  assign cb_if.vd_du        = execute_comm_if.reg_rd_du; 
+  assign cb_if.wdata_du     = execute_commit_if.wdata_du; 
+  assign cb_if.vd_du        = execute_commit_if.reg_rd_du; 
   assign cb_if.exception_du = 0; // TODO
   assign cb_if.ready_du     = 0; // TODO
 
   assign cb_if.index_ls     = 0; // TODO
-  assign cb_if.wdata_ls     = execute_comm_if.wdata_ls; 
-  assign cb_if.vd_ls        = execute_comm_if.reg_rd_ls; 
+  assign cb_if.wdata_ls     = execute_commit_if.wdata_ls; 
+  assign cb_if.vd_ls        = execute_commit_if.reg_rd_ls; 
   assign cb_if.exception_ls = 0; // TODO
   assign cb_if.ready_ls     = 0; // TODO
   assign cb_if.mal_ls       = 0; // TODO

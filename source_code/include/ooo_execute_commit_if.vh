@@ -83,7 +83,6 @@ interface ooo_execute_commit_if();
            opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 
            wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr,
            CPU_TRACKER,
-    output CPU_TRACKER_OUT
   );
 
 endinterface

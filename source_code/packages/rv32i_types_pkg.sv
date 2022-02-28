@@ -237,7 +237,7 @@ package rv32i_types_pkg;
 
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
-    aluop_t alu_op;
+    alu_types_pkg::aluop_t alu_op;
     logic wen;
     logic [4:0] reg_rd;
   } arith_control_signals_t;
@@ -279,7 +279,7 @@ package rv32i_types_pkg;
   typedef struct packed {
     logic [2:0] funct3;
     logic [11:0] funct12;
-    logic [11:0] imm_S    
+    logic [11:0] imm_S;
     logic [11:0] imm_I;
     word_t imm_U;
     logic [11:0] imm_UJ_ext;

@@ -22,7 +22,7 @@
 *   Description:  Decode stage for out of order pipeline 
 */
 
-`include "ooo_fetch2_decode_if.vh"
+`include "ooo_fetch_decode_if.vh"
 `include "ooo_decode_execute_if.vh"
 `include "control_unit_if.vh"
 `include "component_selection_defines.vh"
@@ -34,7 +34,7 @@
 
 module ooo_decode_stage (
   input logic CLK, nRST, halt,
-  ooo_fetch2_decode_if.decode fetch_decode_if,
+  ooo_fetch_decode_if.decode fetch_decode_if,
   ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
   ooo_hazard_unit_if.decode hazard_if,
@@ -198,10 +198,10 @@ module ooo_decode_stage (
   /*********************************************************
   *** Stall signals
   *********************************************************/
-  assign stall_multiply = hazard_if.stall; 
-  assign stall_divide = hazard_if.stall; 
-  assign stall_arith = hazard_if.stall; 
-  assign stall_loadstore = hazard_if.stall; 
+  assign decode_execute_if.stall_multiply = hazard_if.stall_mu; 
+  assign decode_execute_if.stall_divide = hazard_if.stall_du; 
+  assign decode_execute_if.stall_arith = hazard_if.stall_au; 
+  assign decode_execute_if.stall_loadstore = hazard_if.stall_ls; 
 
 
 
@@ -213,25 +213,25 @@ module ooo_decode_stage (
             //HALT
             decode_execute_if.halt_instr <= '0;
             //CPU tracker
-            decode_execute_if.tracker_sigs <= '0;
+            decode_execute_if.cpu_tracker <= '0;
     end 
     else begin 
-        if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+        if (((hazard_if.id_ex_flush | hazard_if.stall_de) & hazard_if.pc_en) | halt) begin
             //FUNC UNIT
           decode_execute_if.sfu_type   <= ARITH_S;
            //REG_FILE/ WRITEBACK
             //HALT
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
-          decode_execute_if.tracker_sigs <= '0;
-        end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+          decode_execute_if.cpu_tracker <= '0;
+        end else if(hazard_if.pc_en & ~hazard_if.stall_de) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           //REG_FILE/ WRITEBACK
           //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
-          decode_execute_if.cpu_track_sigs <= tracker_sigs;
+          decode_execute_if.cpu_tracker <= tracker_sigs;
         end
     end
   end
@@ -253,7 +253,6 @@ module ooo_decode_stage (
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
         decode_execute_if.lsu_sigs <= '0;
-      end
       // normal operation
       end else if(hazard_if.pc_en) begin
         decode_execute_if.mult_sigs <= cu_if.mult_sigs;

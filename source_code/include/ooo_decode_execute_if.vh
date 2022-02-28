@@ -91,6 +91,10 @@ interface ooo_decode_execute_if();
   logic div_type;
   logic instr_30;
   logic wfi;
+  logic stall_multiply;
+  logic stall_divide;
+  logic stall_arith;
+  logic stall_loadstore;
   divide_struct_t      divide;
   multiply_struct_t    multiply;
   loadstore_struct_t   loadstore;
@@ -99,7 +103,12 @@ interface ooo_decode_execute_if();
   branch_struct_t      BRANCH_STRUCT;
   csr_struct_t         CSR_STRUCT;
   exception_struct_t   EXCEPTION_STRUCT;
+  cpu_tracker_t cpu_tracker;
   logic high_low_sel;
+  arith_control_signals_t arith_sigs;
+  mult_control_signals_t mult_sigs;
+  div_control_signals_t div_sigs;
+  lsu_control_signals_t lsu_sigs;
 
   modport decode (
     output port_a, port_b, reg_file_wdata, store_wdata, rs1_data, rs2_data, 
@@ -113,7 +122,8 @@ interface ooo_decode_execute_if();
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, div_type, instr_30, wfi, divide, 
           multiply, loadstore, arith, JUMP_STRUCT, BRANCH_STRUCT, CSR_STRUCT, 
-          EXCEPTION_STRUCT
+          EXCEPTION_STRUCT, stall_multiply, stall_divide, stall_arith, stall_loadstore,
+          cpu_tracker, arith_sigs, mult_sigs, div_sigs, lsu_sigs
   );
 
   modport execute (
@@ -128,7 +138,8 @@ interface ooo_decode_execute_if();
           csr_imm, illegal_insn, ecall_insn, ret_insn, breakpoint, token, 
           mal_insn, fault_insn, high_low_sel, div_type, instr_30, wfi, 
           divide, multiply, loadstore, arith, JUMP_STRUCT, BRANCH_STRUCT, CSR_STRUCT, 
-          EXCEPTION_STRUCT
+          EXCEPTION_STRUCT, stall_multiply, stall_divide, stall_arith, stall_loadstore,
+          cpu_tracker, arith_sigs, mult_sigs, div_sigs, lsu_sigs
   );
 
 endinterface

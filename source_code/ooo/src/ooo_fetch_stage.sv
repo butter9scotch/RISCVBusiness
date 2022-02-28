@@ -14,12 +14,12 @@
 *   limitations under the License.
 *
 *
-*   Filename:     tspp_fetch_stage.sv
+*   Filename:     ooo_fetch_stage.sv
 *
-*   Created by:   John Skubic
-*   Email:        jskubic@purdue.edu
+*   Created by:   Nicholas Gildenhuys
+*   Email:        ngildenh@purdue.edu
 *   Date Created: 06/19/2016
-*   Description:  Fetch stage for the two stage pipeline
+*   Description:  Fetch stage for the out of order pipeline
 */
 
 `include "ooo_fetch_decode_if.vh"
@@ -27,22 +27,23 @@
 `include "component_selection_defines.vh"
 `include "ooo_hazard_unit_if.vh"
 
-module pipe5_fetch2_stage (
+module ooo_fetch_stage (
   input logic CLK, nRST,halt,
   ooo_fetch_decode_if.fetch fetch_decode_if,
   predictor_pipeline_if.access predict_if,
-  pipe5_hazard_unit_if.fetch2 hazard_if,
+  ooo_hazard_unit_if.fetch hazard_if,
   generic_bus_if.cpu igen_bus_if
 );
   import rv32i_types_pkg::*;
 
   parameter RESET_PC = 32'h80000000;
   word_t pc, pc4, instr;
-  logic mal_addr, prediction;
+  logic mal_addr;
+  word_t program_counter_pc;
+  word_t next_pc;
   
-  //Gte the current PC from fetch1 stage
-  //assign pc = fetch1_fetch2_if.pc;
-  assign pc4 = next_pc + 4;
+  //Get the current PC from fetch stage
+  assign fetch_decode_if.pc4 = next_pc + 4;
   assign mal_addr  = (igen_bus_if.addr[1:0] != 2'b00);
 
   //Instruction Access logic
@@ -58,21 +59,21 @@ module pipe5_fetch2_stage (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       program_counter_pc <= RESET_PC;
-      prediction <= '0;
+      fetch_decode_if.prediction <= '0;
     end else begin
       // normal operation
       if(halt) begin
         // halt case
         program_counter_pc <= RESET_PC;
-        prediction <= '0;
+        fetch_decode_if.prediction <= '0;
       end else if((hazard_if.pc_en && ~hazard_if.stall) || hazard_if.insert_priv_pc) begin
         // normal operations/incrementation
         program_counter_pc <= next_pc;
-        prediction <= predict_if.predict_taken;
+        fetch_decode_if.prediction <= predict_if.predict_taken;
       end else begin
         // stall
         program_counter_pc <= program_counter_pc;
-        prediction <= prediction;
+        fetch_decode_if.prediction <= fetch_decode_if.prediction;
       end
     end
   end
@@ -83,8 +84,8 @@ module pipe5_fetch2_stage (
   always_comb begin
     next_pc = pc4;
     if(hazard_if.insert_priv_pc) begin
-      next_pc = hazard_if;
-    end else if(hazard_if/intr_taken) begin
+      next_pc = hazard_if.priv_pc;
+    end else if(hazard_if.intr_taken) begin
       next_pc = program_counter_pc;
     end else if(hazard_if.csr_flush) begin
       next_pc = hazard_if.csr_flush + 4;

@@ -147,10 +147,10 @@ module control_unit
   /***** LOADSTORE CONTROL SIGNALS *****/
   // Assign memory read/write enables
   assign cu_if.lsu_sigs.load_type = load_t'(instr_i.funct3);
-  assign cu_if.lsu_sigs.byte_en = 
+  //assign cu_if.lsu_sigs.byte_en = TODO
   assign cu_if.lsu_sigs.dren = (cu_if.opcode == LOAD);
   assign cu_if.lsu_sigs.dwen = (cu_if.opcode == STORE);
-  assign cu_is.lsu_sigs.opcode = cu_if.opcode;
+  assign cu_if.lsu_sigs.opcode = cu_if.opcode;
 
 
   // common signals 
@@ -222,7 +222,7 @@ module control_unit
   
   /***** MULTIPLY CONTROL SIGNALS *****/
   // mult specific signals
-  assign cu_if.mult_sigs.ena = cuif.sfu_type == MUL_S;
+  assign cu_if.mult_sigs.ena = cu_if.sfu_type == MUL_S;
   //upper is 1, lower is 0
   assign cu_if.mult_sigs.high_low_sel = (|instr_r.funct3[1:0]); 
   assign cu_if.mult_sigs.is_signed = cu_if.sign_type; // decoded below
@@ -238,14 +238,14 @@ module control_unit
   // TODO: try and get rid of this signal
   assign cu_if.mult_sigs.decode_done = 0;
   // comomon signals
-  assign cu_if.mult_sigs.wen = cuif.wen;
-  assign cu_if.mult_sigs.reg_rd = cuif.reg_rd;
+  assign cu_if.mult_sigs.wen = cu_if.wen;
+  assign cu_if.mult_sigs.reg_rd = cu_if.reg_rd;
 
 
   /***** DIVIDE CONTROL SIGNALS *****/
   // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
   assign cu_if.div_sigs.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
-  assign cu_if.div_sigs.ena = cuif.sfu_type == DIV_S;
+  assign cu_if.div_sigs.ena = cu_if.sfu_type == DIV_S;
   assign cu_if.div_sigs.is_signed = cu_if.sign_type;
 
   // comomon signals

@@ -29,8 +29,8 @@
 `include "cache_control_if.vh"
 //`include "sparce_pipeline_if.vh"
 `include "core_interrupt_if.vh"
-`include "ooo_fetch1_fetch2_if.vh"
-`include "ooo_fetch2_decode_if.vh"
+//`include "ooo_fetch1_fetch2_if.vh"
+`include "ooo_fetch_decode_if.vh"
 `include "ooo_decode_execute_if.vh"
 `include "ooo_execute_commit_if.vh"
 `include "completion_buffer_if.vh"
@@ -67,8 +67,8 @@ module RISCVBusiness (
   cache_control_if cc_if();
   //sparce_pipeline_if sparce_if();
 
-  ooo_fetch1_fetch2_if fetch1_fetch2_if();
-  ooo_fetch2_decode_if fetch_decode_if();
+  //ooo_fetch1_fetch2_if fetch1_fetch2_if();
+  ooo_fetch_decode_if fetch_decode_if();
   ooo_decode_execute_if decode_execute_if();
   ooo_execute_commit_if execute_commit_if();
   ooo_hazard_unit_if hazard_if();
@@ -78,24 +78,34 @@ module RISCVBusiness (
   completion_buffer_if cb_if();
   logic halt;    //JOHN CHANGED THIS
 
-   ooo_fetch1_stage fetch1_stage (
-        .CLK(CLK)
-       ,.nRST(nRST)
-       ,.halt(halt)
-       ,.fetch1_fetch2_if(fetch1_fetch2_if)
-       ,.predict_if(predict_if)
-       ,.hazard_if(hazard_if)
-      );
+//   ooo_fetch1_stage fetch1_stage (
+//        .CLK(CLK)
+//       ,.nRST(nRST)
+//       ,.halt(halt)
+//       ,.fetch1_fetch2_if(fetch1_fetch2_if)
+//       ,.predict_if(predict_if)
+//       ,.hazard_if(hazard_if)
+//      );
+//
+//   ooo_fetch2_stage fetch2_stage (
+//        .CLK(CLK)
+//       ,.nRST(nRST)
+//       ,.halt(halt)
+//       ,.fetch1_fetch2_if(fetch1_fetch2_if)
+//       ,.fetch_decode_if(fetch_decode_if)
+//       ,.igen_bus_if(icache_gen_bus_if)
+//       ,.hazard_if(hazard_if)
+//      );
 
-   ooo_fetch2_stage fetch2_stage (
-        .CLK(CLK)
-       ,.nRST(nRST)
-       ,.halt(halt)
-       ,.fetch1_fetch2_if(fetch1_fetch2_if)
-       ,.fetch_decode_if(fetch_decode_if)
-       ,.igen_bus_if(icache_gen_bus_if)
-       ,.hazard_if(hazard_if)
-      );
+  ooo_fetch_stage fetch_stage (
+      .CLK(CLK)
+    ,.nRST(nRST)
+    ,.halt(halt)
+    ,.fetch_decode_if(fetch_decode_if)
+    ,.predict_if(predict_if)
+    ,.hazard_if(hazard_if)
+    ,.igen_bus_if(icache_mc_if)
+  );
 
    ooo_decode_stage decode_stage (
         .CLK(CLK)
@@ -106,6 +116,7 @@ module RISCVBusiness (
        ,.rf_if(rf_if)
        ,.hazard_if(hazard_if)
        ,.cc_if(cc_if)
+       ,.cb_if(cb_if)
       );
 
    ooo_execute_stage execute_stage (
@@ -146,7 +157,7 @@ module RISCVBusiness (
    begin
        if (!nRST)
            halt <= 1'b0;
-       else if (mem_wb_if.halt_instr)
+       else if (cb_if.halt_instr)
            halt <= 1'b1;
 
    end
