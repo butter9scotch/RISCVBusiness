@@ -7,7 +7,7 @@
 *
 *       http://www.apache.org/licenses/LICENSE-2.0
 *
-*   Unless required by applicable law or agreed to in writing, software
+*   Unless `quired by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
@@ -22,8 +22,8 @@
 *   Description:  L2 Cache. The following are configurable:
 *                   - Cache Size
 *                   - Non-Cacheable start address
-*                   - Block Size | max 8
-*	            - ASSOC | either 1 or 2
+*                   - Block Size | max 4
+*	                - ASSOC | either 2 or 4
 */
 
 `include "generic_bus_if.vh"
@@ -79,28 +79,54 @@ module l2_cache #(
     } decoded_addr_t;
 
     //Declarations
+    decoded_addr_t decoded_addr;
+    assign decoded_addr = proc_gen_bus_if.addr;
 
     fsm_t state, nextstate;
 
     // cache blocks, indexing cache chooses a set
     cache_sets cache [N_SETS - 1:0];
-    cache_sets next_cache [N_SETS - 1:0];
+    cache_sets nextcache [N_SETS - 1:0];
 
-     // cache replacement policy variables
-    logic ridx;
-    logic last_used [N_SETS - 1:0];
-    logic next_last_used [N_SETS - 1:0];
-
+    // Cache Hit
+    logic hit, pass_through;
+    word_t [BLOCK_SIZE - 1:0] hit_data;
+    logic [(ASSOC/2)-1] hit_idx;
 
     //Sequential Logic
     always_ff @(posedge CLK, negedge nRST)begin
         if(~nRST)begin
-            state <= IDLE;
+            state <= IDLE; //Cache state machine reset state
+            cache <= '0; // Cache frame reset
+            
         end
         else begin
-            state <= nextstate; 
+            state <= nextstate; //update FSM
+            cache <= nextcache; // update cache frames
         end
     end// always_ff
+
+    always_comb begin // output always_comb
+        nextcache = cache;
+
+        if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin //Passthrough
+            pass_through = 1'b1;
+        end 
+
+        for(int i = 0; i < ASSOC; i++begin
+            if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
+                    hit = 1'b0;
+            end
+        end
+    end // output always_comb end
+
+    always_comb begin // state machine comb
+    nextstate = state;
+    casez(state)
+        IDLE: begin
+            nextstate = IDLE;
+        end 
+    end // end state machine alqways_comb
 
 
 endmodule // l2_cache
