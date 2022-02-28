@@ -45,9 +45,9 @@ module l2_cache #(
     import rv32i_types_pkg::*;
 
     // local parameters
-    localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
-    localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;
-    localparam N_FRAME_BITS       = $clog2(ASSOC);
+    localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8); // Default 32
+    localparam N_SETS             = N_TOTAL_FRAMES / ASSOC; //Default 8
+    localparam N_FRAME_BITS       = $clog2(ASSOC); 
     localparam N_SET_BITS         = $clog2(N_SETS);
     localparam N_BLOCK_BITS       = $clog2(BLOCK_SIZE);
     localparam N_TAG_BITS         = WORD_SIZE - N_SET_BITS - N_BLOCK_BITS - 2;
@@ -73,7 +73,7 @@ module l2_cache #(
     // Cache address decode type
     typedef struct packed {
         logic [N_TAG_BITS - 1:0] tag_bits;
-        logic [N_SET_BITS - 1:0] set_bits;
+        logic [N_SET_BITS - 1:0] index_bits;
         logic [N_BLOCK_BITS - 1:0] block_bits;
         logic [1:0] byte_bits;
     } decoded_addr_t;
@@ -88,7 +88,7 @@ module l2_cache #(
     cache_sets cache [N_SETS - 1:0];
     cache_sets nextcache [N_SETS - 1:0];
 
-    // Cache Hit
+    // Cache Hit signals
     logic hit, pass_through;
     word_t [BLOCK_SIZE - 1:0] hit_data;
     logic [(ASSOC/2)-1] hit_idx;
@@ -106,19 +106,26 @@ module l2_cache #(
         end
     end// always_ff
 
+    
     always_comb begin // output always_comb
-        nextcache = cache;
+        hit = 1'b0;
+        pass_through = 1'b0;
 
         if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin //Passthrough
             pass_through = 1'b1;
         end 
-
-        for(int i = 0; i < ASSOC; i++begin
-            if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
-                    hit = 1'b0;
+        else begin 
+            for(int i = 0; i < ASSOC; i++)begin
+                if((cache[decoded_addr.index_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.index_bits].valid)begin //hit
+                        hit = 1'b1;
+                end
             end
         end
     end // output always_comb end
+
+    always_comb begin // Cache update logic
+        nextcache = cache;
+    end //end cache update logic
 
     always_comb begin // state machine comb
     nextstate = state;
