@@ -106,11 +106,6 @@ interface ooo_hazard_unit_if();
            stall_all, priv_pc
   );
 
-  modport memory (
-    input ex_mem_flush, pc_en, dmem_access, d_mem_busy, 
-    output dren, dwen  
-  );
-
   modport commit (
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 

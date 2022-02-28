@@ -29,7 +29,7 @@ interface ooo_execute_commit_if();
   logic token;
   logic intr_seen;
   logic jump_instr;
-  word_t jump_addr;
+  logic jump_addr;
   logic branch_instr;
   logic prediction;
   logic branch_taken;
@@ -57,8 +57,6 @@ interface ooo_execute_commit_if();
   word_t memory_addr;
   word_t pc;
   word_t br_resolved_addr;
-  cpu_tracker_signals_t CPU_TRACKER;
-  cpu_tracker_signals_t CPU_TRACKER_OUT;
 
   modport execute (
     output halt_instr, csr_instr, instr_30, wen_au, wen_mu, wen_du, 
@@ -69,7 +67,7 @@ interface ooo_execute_commit_if();
            imm_S, imm_SB, w_sel, funct3, rs1, rs2, 
            reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, opcode, csr_rdata, 
            imm_UJ_ext, imm_U, instr, wdata_au, wdata_mu, wdata_du, 
-           wdata_ls, memory_addr, pc, br_resolved_addr, CPU_TRACKER
+           wdata_ls, memory_addr, pc, br_resolved_addr
   );
 
   modport commit (
@@ -81,9 +79,7 @@ interface ooo_execute_commit_if();
            funct12, imm_I, imm_S, imm_SB, w_sel, funct3, 
            rs1, rs2, reg_rd_au, reg_rd_mu, reg_rd_du, reg_rd_ls, 
            opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 
-           wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr,
-           CPU_TRACKER,
-    output CPU_TRACKER_OUT
+           wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr
   );
 
 endinterface

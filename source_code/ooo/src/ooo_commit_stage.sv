@@ -130,52 +130,13 @@ module ooo_commit_stage(
   *******************************************************/
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
-      cb_if.CPU_TRACKER.instr      <= '0;
-      cb_if.CPU_TRACKER.pc         <= '0;
-      cb_if.CPU_TRACKER.opcode     <= '0;
-      cb_if.CPU_TRACKER.funct3     <= '0;
-      cb_if.CPU_TRACKER.funct12    <= '0;
-      cb_if.CPU_TRACKER.rs1        <= '0;
-      cb_if.CPU_TRACKER.rs2        <= '0;
-      cb_if.CPU_TRACKER.reg_rd     <= '0;
-      cb_if.CPU_TRACKER.imm_S      <= '0;
-      cb_if.CPU_TRACKER.imm_I      <= '0;
-      cb_if.CPU_TRACKER.imm_U      <= '0;
-      cb_if.CPU_TRACKER.imm_UJ_ext <= '0;
-      cb_if.CPU_TRACKER.imm_SB     <= '0;
-      cb_if.CPU_TRACKER.instr_30   <= '0;
+      cb_if.tracker_sigs      <= '0;
     end
     else begin
       if (hazard_if.ex_comm_flush && hazard_if.pc_en || halt ) begin
-        cb_if.CPU_TRACKER.instr      <= '0;
-        cb_if.CPU_TRACKER.pc         <= '0;
-        cb_if.CPU_TRACKER.opcode     <= '0;
-        cb_if.CPU_TRACKER.funct3     <= '0;
-        cb_if.CPU_TRACKER.funct12    <= '0;
-        cb_if.CPU_TRACKER.rs1        <= '0;
-        cb_if.CPU_TRACKER.rs2        <= '0;
-        cb_if.CPU_TRACKER.reg_rd     <= '0;
-        cb_if.CPU_TRACKER.imm_S      <= '0;
-        cb_if.CPU_TRACKER.imm_I      <= '0;
-        cb_if.CPU_TRACKER.imm_U      <= '0;
-        cb_if.CPU_TRACKER.imm_UJ_ext <= '0;
-        cb_if.CPU_TRACKER.imm_SB     <= '0;
-        cb_if.CPU_TRACKER.instr_30   <= '0;
+        cb_if.tracker_sigs <= '0;
       end else if(hazard_if.pc_en ) begin
-        cb_if.CPU_TRACKER.instr      <= execute_commit_if.CPU_TRACKER.instr;
-        cb_if.CPU_TRACKER.pc         <= execute_commit_if.CPU_TRACKER.pc;
-        cb_if.CPU_TRACKER.opcode     <= execute_commit_if.CPU_TRACKER.opcode;
-        cb_if.CPU_TRACKER.funct3     <= execute_commit_if.CPU_TRACKER.funct3;
-        cb_if.CPU_TRACKER.funct12    <= execute_commit_if.CPU_TRACKER.funct12;
-        cb_if.CPU_TRACKER.rs1        <= execute_commit_if.CPU_TRACKER.rs1;
-        cb_if.CPU_TRACKER.rs2        <= execute_commit_if.CPU_TRACKER.rs2;
-        cb_if.CPU_TRACKER.reg_rd     <= execute_commit_if.CPU_TRACKER.reg_rd;
-        cb_if.CPU_TRACKER.imm_S      <= execute_commit_if.CPU_TRACKER.imm_S;
-        cb_if.CPU_TRACKER.imm_I      <= execute_commit_if.CPU_TRACKER.imm_I;
-        cb_if.CPU_TRACKER.imm_U      <= execute_commit_if.CPU_TRACKER.imm_U;
-        cb_if.CPU_TRACKER.imm_UJ_ext <= execute_commit_if.CPU_TRACKER.imm_UJ_ext;
-        cb_if.CPU_TRACKER.imm_SB     <= execute_commit_if.CPU_TRACKER.imm_SB;
-        cb_if.CPU_TRACKER.instr_30   <= execute_commit_if.CPU_TRACKER.instr_30;
+        cb_if.tracker_sigsr      <= execute_commit_if.tracker_sigs;
       end
     end
   end

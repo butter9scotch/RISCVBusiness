@@ -156,7 +156,7 @@ module ooo_decode_stage (
   end
 
   always_comb begin
-    case(cu_if.w_src)
+    case(cu_if.arith_sigs.w_src)
       3'd1    : next_reg_file_wdata = fetch_decode_if.pc4;
       3'd2    : next_reg_file_wdata = cu_if.imm_U;
       default : next_reg_file_wdata = '0; 
@@ -169,7 +169,7 @@ module ooo_decode_stage (
   word_t base, offset;
   jump_control_signals_t jump_signals;
   always_comb begin
-    if (cu_if.j_sel) begin
+    if (cu_if.jump_sigs.j_sel) begin
       base = fetch_decode_if.pc;
       offset = imm_UJ_ext;
     end else begin
@@ -180,6 +180,7 @@ module ooo_decode_stage (
   assign jump_signals.base = base;
   assign jump_signals.offset = offset;
   assign jump_signals.jump_instr = cu_if.jump;
+  assign jump_signals.j_sel = cu_if.j_sel;
 
   /*******************************************************
   *** Hazard unit connection  
@@ -275,13 +276,23 @@ module ooo_decode_stage (
   /***** FUNCTIONAL UNIT SOURCE LATCHES *****/
   always_ff @(posedge CLK, negedge nRST) begin : SOURCE_LATCHES
     if(~nRST) begin
+      decode_execute_if.pc <= '0;
+      decode_execute_if.pc4 <= '0;
+      decode_execute_if.immediate <= '0;
       decode_execute_if.port_a <= '0; 
       decode_execute_if.port_b <= '0; 
+
     end else begin
       if(hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) begin
+        decode_execute_if.pc <= '0;
+        decode_execute_if.pc4 <= '0;
+        decode_execute_if.immediate <= '0;
         decode_execute_if.port_a <= '0; 
         decode_execute_if.port_b <= '0; 
       end else if(hazard_if.pc_en) begin
+        decode_execute_if.pc <= fetch_decode_if.pc;
+        decode_execute_if.pc4 <= fetch_decode_if.pc4;
+        decode_execute_if.immediate <= ; // TODO figure out how to do this
         decode_execute_if.port_a <= fu_source_a; 
         decode_execute_if.port_b <= fu_source_b; 
       end
