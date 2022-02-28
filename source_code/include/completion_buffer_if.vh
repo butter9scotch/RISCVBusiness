@@ -8,7 +8,7 @@ interface completion_buffer_if();
   parameter NUM = 16;
   
   // DECODE STAGE
-  logic [$clog2(NUM)-1:0] cur_tail;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] cur_tail;
   logic [4:0] vd_final;
   word_t wdata_final;
   logic alloc_ena;
@@ -31,7 +31,7 @@ interface completion_buffer_if();
   logic rv32v_wb_scalar_ena;
   logic rv32v_wb_scalar_ready;
   logic rv32v_wb_exception;
-  logic [$clog2(NUM)-1:0] rv32v_wb_scalar_index;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] rv32v_wb_scalar_index;
   logic [4:0] rv32v_wb_vd;
   word_t rv32v_wb_scalar_data;
 
@@ -39,10 +39,10 @@ interface completion_buffer_if();
   logic rv32f_commit_ena;
 
   //FUNCTIONAL UNIT RESULT
-  logic [$clog2(NUM)-1:0] index_a;
-  logic [$clog2(NUM)-1:0] index_mu;
-  logic [$clog2(NUM)-1:0] index_du;
-  logic [$clog2(NUM)-1:0] index_ls;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls;
   word_t wdata_a;
   word_t wdata_mu;
   word_t wdata_du;
@@ -78,14 +78,6 @@ interface completion_buffer_if();
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
            wdata_final
   );
-  modport commit (
-    output alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
-           rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, ready_a, 
-           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, valid_a, 
-           mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
-           rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, 
-  );
 
   modport decode (
     input cur_tail, full, empty,
@@ -103,10 +95,6 @@ interface completion_buffer_if();
   modport rv32v (
     input rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ready, rv32v_wb_exception, rv32v_wb_scalar_index, rv32v_wb_vd, rv32v_commit_ena,
     output rv32v_wb_scalar_data
-  );
-
-  modport register (
-    input vd_final, wdata_final, scalar_commit_ena
   );
 
 endinterface

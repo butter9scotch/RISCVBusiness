@@ -1,7 +1,10 @@
 `include "ooo_hazard_unit_if.vh"
+`include "completion_buffer_if.vh"
+
 module ooo_hazard_unit (
   ooo_hazard_unit_if.hazard_unit hazard_if,
-  prv_pipeline_if.hazard  prv_pipe_if
+  prv_pipeline_if.hazard  prv_pipe_if,
+  completion_buffer_if.hu cb_if
 );
 
   logic wait_for_imem;

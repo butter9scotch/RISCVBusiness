@@ -432,6 +432,7 @@ package rv32i_types_pkg;
     logic instr_30;
   } cpu_tracker_signals_t;
 
+  parameter NUM_CB_ENTRY = 16;
 
 endpackage
 `endif //RV32I_TYPES_PKG_SV

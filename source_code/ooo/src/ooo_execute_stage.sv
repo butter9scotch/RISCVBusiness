@@ -287,7 +287,7 @@ module ooo_execute_stage(
       execute_commit_if.intr_seen        <= '0;
       execute_commit_if.jump_instr       <= '0;
       execute_commit_if.jump_addr        <= '0;
-      execute_commit_if.branch_instr     <= '0;
+      //execute_commit_if.branch_instr     <= '0;
       execute_commit_if.br_resolved_addr <= '0;
       //BRANCH PREDICTOR UPDATE
       execute_commit_if.branch_instr      <= '0;
@@ -338,7 +338,7 @@ module ooo_execute_stage(
         execute_commit_if.intr_seen        <= '0;
         execute_commit_if.jump_instr       <= '0;
         execute_commit_if.jump_addr        <= '0;
-        execute_commit_if.branch_instr     <= '0;
+        //execute_commit_if.branch_instr     <= '0;
         execute_commit_if.br_resolved_addr <= '0;
         //BRANCH PREDICTOR UPDATE
         execute_commit_if.branch_instr      <= '0;
@@ -354,7 +354,7 @@ module ooo_execute_stage(
       end else if(hazard_if.pc_en ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
-        execute_commit_if.wen_au                 <= auif.wen;
+        execute_commit_if.wen_au                 <= auif.wen; 
         execute_commit_if.wdata_au               <= auif.wdata_au;
         execute_commit_if.reg_rd_au              <= auif.reg_rd;
         //MULTIPLY
@@ -387,7 +387,7 @@ module ooo_execute_stage(
         execute_commit_if.intr_seen              <= intr_taken_ex; //TODO
         execute_commit_if.jump_instr             <= decode_execute_if.JUMP_STRUCT.jump_instr;
         execute_commit_if.jump_addr              <= jump_if.jump_addr;
-        execute_commit_if.branch_instr           <= branch_addr;
+        //execute_commit_if.branch_instr           <= branch_addr;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
         execute_commit_if.branch_instr           <= decode_execute_if.BRANCH_STRUCT.branch_instr;
