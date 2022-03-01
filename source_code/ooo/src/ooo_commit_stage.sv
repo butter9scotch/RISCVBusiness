@@ -133,6 +133,34 @@ module ooo_commit_stage(
   assign cb_if.ready_ls     = execute_commit_if.wen_ls; 
   assign cb_if.mal_ls       = execute_commit_if.mal_addr; 
 
+  assign cb_if.ready_a  = execute_commit_if.arith_sigs.ready_a;
+  assign cb_if.ready_mu = execute_commit_if.mult_sigs.ready_mu;
+  assign cb_if.ready_ls = execute_commit_if.lsu_sigs.ready_ls;
+  assign cb_if.ready_du = execute_commit_if.div_sigs.ready_du;
+
+
+
+
+  always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
+    if (~nRST) begin
+      execute_commit_if.mult_sigs <= '0;
+      execute_commit_if.div_sigs <= '0;
+      execute_commit_if.lsu_sigs <= '0;
+      execute_commit_if.arith_sigs <= '0;
+    end else begin
+      if (((hazard_if.id_ex_flush) & hazard_if.pc_en) | halt) begin
+        execute_commit_if.mult_sigs <= '0;
+        execute_commit_if.div_sigs <= '0;
+        execute_commit_if.lsu_sigs <= '0;
+        execute_commit_if.arith_sigs <= '0;
+      end else if(hazard_if.pc_en) begin
+        execute_commit_if.mult_sigs <= decode_execute_if.mult_sigs;
+        execute_commit_if.div_sigs <= decode_execute_if.div_sigs;
+        execute_commit_if.lsu_sigs <= decode_execute_if.lsu_sigs;
+        execute_commit_if.arith_sigs <= decode_execute_if.arith_sigs;
+      end
+    end
+  end
   /*******************************************************
   *** CPU tracker  
   *******************************************************/

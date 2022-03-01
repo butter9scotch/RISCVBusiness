@@ -29,8 +29,10 @@ module completion_buffer # (
 )
 (
   input CLK, nRST,
-  completion_buffer_if.cb cb_if
+  completion_buffer_if.cb cb_if,
+  rv32i_reg_file_if.writeback rf_if
 );
+
   import rv32i_types_pkg::*;
 
   typedef struct packed {
@@ -49,15 +51,18 @@ module completion_buffer # (
   cb_entry next_cb [0:NUM_ENTRY-1]; 
   logic move_head, flush_cb;
   integer i;
-
   assign cb_if.cur_tail          = tail[$clog2(NUM_ENTRY)-1:0]; 
-  assign cb_if.vd_final          = cb[head].vd; 
-  assign cb_if.wdata_final       = cb[head].data; 
+  //Register file signals here... this is just to stay consistent with the vector unit
+  assign rf_if.w_data            = cb[head].data; 
+  assign rf_if.rd                = cb[head].vd; 
+  assign rf_if.wen               = cb[head].valid & ~cb_if.flush & cb[head].wen; 
+  // assign cb_if.scalar_commit_ena = cb[head].valid & ~cb_if.flush & cb[head].wen;
+  // assign cb_if.vd_final          = cb[head].vd; 
+  // assign cb_if.wdata_final       = cb[head].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
   assign cb_if.flush             = cb[head].exception | cb[head].branch_mispredict_mal;
   assign cb_if.exception         = cb[head].exception | cb_if.rv32v_exception; // WEN to epc register
-  assign cb_if.scalar_commit_ena = cb[head].valid & ~cb_if.flush & cb[head].wen;
   //assign cb_if.scalar_commit_ena = cb[head].valid & ~cb_if.flush;
   assign cb_if.rv32v_commit_ena  = cb[head].rv32v & ~cb[head].wen; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head].rv32f & cb[head].valid & ~cb_if.flush & ~cb[head].wen; 
@@ -68,6 +73,8 @@ module completion_buffer # (
   assign cb_if.branch_mispredict_ena = cb[head].branch_mispredict_mal & ~cb[head].exception;
   assign cb_if.mal_priv = cb[head].branch_mispredict_mal & cb[head].exception;
  
+  //Hazard unit logic
+  assign hazard_if.rob_full = cb_if.full;
 
   // HEAD AND TAIL POINTER LOGIC
   always_ff @ (posedge CLK, negedge nRST) begin

@@ -101,7 +101,7 @@ def compile_asm(file_name):
     output_name = output_dir + short_name + '.elf'
 
     # Added 64-bit support
-    xlen = 'rv64g' if '64' in ARCH else 'rv32g'
+    xlen = 'rv64g' if '64' in ARCH else 'rv32im'
     abi = 'lp64' if '64' in ARCH else 'ilp32'
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))

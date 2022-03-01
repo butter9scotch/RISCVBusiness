@@ -107,6 +107,7 @@ interface completion_buffer_if();
     output rv32v_wb_scalar_data
   );
 
+
 endinterface
 
 `endif //COMPLETION_BUFFER_IF_VH

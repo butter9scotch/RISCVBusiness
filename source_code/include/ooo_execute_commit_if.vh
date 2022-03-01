@@ -72,7 +72,11 @@ interface ooo_execute_commit_if();
   logic exception_mu;
   logic exception_du;
   logic exception_ls;
-  cpu_tracker_signals_t tracker_sigs;
+  arith_control_signals_t arith_sigs;
+  mult_control_signals_t mult_sigs;
+  div_control_signals_t div_sigs;
+  lsu_control_signals_t lsu_sigs;
+
 
   modport execute (
     output halt_instr, csr_instr, instr_30, wen_au, wen_mu, wen_du, 
@@ -86,7 +90,8 @@ interface ooo_execute_commit_if();
            wdata_ls, memory_addr, pc, br_resolved_addr, CPU_TRACKER,
            index_a, index_mu, index_du, index_ls,
            pc_a, pc_mu, pc_du, pc_ls,
-           exception_a, exception_mu, exception_du, exception_ls, pc4
+           exception_a, exception_mu, exception_du, exception_ls, pc4,
+           arith_sigs, mult_sigs, div_sigs, lsu_sigs
   );
 
   modport commit (
@@ -100,7 +105,8 @@ interface ooo_execute_commit_if();
            opcode, csr_rdata, imm_UJ_ext, imm_U, instr, wdata_au, 
            wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr, index_a, index_mu, index_du, index_ls, 
            pc_a, pc_mu, pc_du, pc_ls, 
-           exception_a, exception_mu, exception_du, exception_ls, pc4, CPU_TRACKER
+           exception_a, exception_mu, exception_du, exception_ls, pc4, CPU_TRACKER,
+           arith_sigs, mult_sigs, div_sigs, lsu_sigs
   );
 
 endinterface

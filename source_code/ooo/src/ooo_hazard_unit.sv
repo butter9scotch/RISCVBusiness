@@ -6,13 +6,14 @@ module ooo_hazard_unit (
   prv_pipeline_if.hazard  prv_pipe_if,
   completion_buffer_if.hu cb_if
 );
+  import rv32i_types_pkg::*;
 
   logic wait_for_imem;
   logic wait_for_dmem;
   logic branch_jump;
   logic load_stall;
   logic e_fetch_stage, e_decode_stage, e_execute_stage;
-  logic intr_e_flush, intr_execption;
+  logic intr_e_flush, intr_exception;
 
   //Incrementing PC only when instruction has been fetched
   assign wait_for_imem = hazard_if.iren & hazard_if.i_mem_busy;
@@ -34,10 +35,16 @@ module ooo_hazard_unit (
   assign hazard_if.pc_en =  ~pc_stall;
 
   //FETCH_DECODE
-  assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
-  assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;
-  assign hazard_if.stall_mu = (hazard_if.fu_type == MUL_S) & hazard_if.busy_mul;
-  assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
+  // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
+  assign hazard_if.stall_au = 0;
+  // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;
+  assign hazard_if.stall_du = 0;
+  // assign hazard_if.stall_mu = (hazard_if.fu_type == MUL_S) & hazard_if.busy_mul;
+  assign hazard_if.stall_mu = 0;
+  // assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
+  assign hazard_if.stall_ls = 0;
+  assign hazard_if.stall_de = 0;
+  assign hazard_if.stall_ex = hazard_if.rob_full;
 
   logic structural_hazard;
   assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
@@ -47,18 +54,14 @@ module ooo_hazard_unit (
   
   //Branch jump 
   assign branch_jump = hazard_if.jump || (hazard_if.branch && hazard_if.mispredict);
-  assign hazard_if.npc_sel = branch_jump & ~intr_execption;
+  assign hazard_if.npc_sel = branch_jump & ~intr_exception;
 
   //Pipe flush logic 
-  assign hazard_if.csr_flush = hazard_if.csr;
-  assign hazard_if.ifence_flush = hazard_if.ifence && (~hazard_if.dflushed || ~hazard_if.iflushed);
-  assign hazard_if.if_id_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
-  assign hazard_if.id_ex_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
 
 
  // RAW hazard because of load -> Stall the pipe
   //assign load_stall = (((hazard_if.reg_rd == hazard_if.reg_rs1) || (hazard_if.reg_rd == hazard_if.reg_rs2)) & hazard_if.load) ? 1'b1 : 1'b0;
-  assign hazard_if.stall = load_stall & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush | hazard_if.stall_ex;
+  assign hazard_if.stall = hazard_if.d_mem_busy & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush | hazard_if.stall_ex;
 
  //Exceptions
   //assign e_fetch_stage       = hazard_if.fault_insn | hazard_if.mal_insn | hazard_if.fault_l | hazard_if.fault_s; REMOVE?
@@ -93,12 +96,26 @@ module ooo_hazard_unit (
   assign hazard_if.iren           = 1'b1; 
 
   //Pick up here
+  assign pc_en = 1; //TODO
 
   assign prv_pipe_if.pipe_clear   =   e_execute_stage | e_decode_stage | e_fetch_stage| hazard_if.intr_taken;
 
-  assign intr_execption = e_fetch_stage | e_decode_stage | e_execute_stage | hazard_if.intr_taken | prv_pipe_if.ret;
-  assign intr_e_flush = intr_execption;
-  assign pc_en = 1; //TODO
+  // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
+  // assign intr_e_flush = intr_exception;
+  // assign hazard_if.csr_flush = hazard_if.csr;
+  // assign hazard_if.ifence_flush = hazard_if.ifence && (~hazard_if.dflushed || ~hazard_if.iflushed);
+  // assign hazard_if.if_id_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
+  // assign hazard_if.id_ex_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
+
+  assign intr_exception = 0;
+  assign intr_e_flush = 0;
+  assign hazard_if.csr_flush = 0;
+  assign hazard_if.ifence_flush = 0;
+  assign hazard_if.if_id_flush  = 0;
+  assign hazard_if.id_ex_flush  = 0;
+
+
+
 
   
 endmodule

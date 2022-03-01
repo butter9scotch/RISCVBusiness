@@ -120,6 +120,10 @@ interface ooo_hazard_unit_if();
     output d_mem_busy, dren, dwen
   );
 
+  modport cb (
+    output rob_full
+  );
+
 endinterface
 
 `endif //OOO_HAZARD_UNIT_IF_VH

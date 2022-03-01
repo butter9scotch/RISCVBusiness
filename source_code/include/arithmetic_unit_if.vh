@@ -1,10 +1,12 @@
 `ifndef ARITHMETIC_UNIT_IF_VH
 `define ARITHMETIC_UNIT_IF_VH
 
-interface arithmetic_unit_if(input arith_control_signals_t control_sigs);
+interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t control_sigs);
 
-  import alu_types_pkg::*;
+  // import alu_types_pkg::*;
   import rv32i_types_pkg::word_t;
+  import rv32i_types_pkg::aluop_t;
+  import rv32i_types_pkg::w_src_t;
 
   logic wen;
   aluop_t aluop;

@@ -28,6 +28,7 @@
 interface alu_if();
 
   import alu_types_pkg::*;
+  import rv32i_types_pkg::aluop_t;
   import rv32i_types_pkg::word_t;
 
   aluop_t aluop;

@@ -104,7 +104,7 @@ module RISCVBusiness (
     ,.fetch_decode_if(fetch_decode_if)
     ,.predict_if(predict_if)
     ,.hazard_if(hazard_if)
-    ,.igen_bus_if(icache_mc_if)
+    ,.igen_bus_if(icache_gen_bus_if)
   );
 
    ooo_decode_stage decode_stage (
@@ -130,7 +130,7 @@ module RISCVBusiness (
        //,.branch_if(branch_if)
        ,.cc_if(cc_if)
        ,.prv_pipe_if(prv_pipe_if)
-       ,.dgen_bus_if(gen_bus_if)
+       ,.dgen_bus_if(dcache_gen_bus_if)
       );
 
    ooo_commit_stage commit_stage (
@@ -143,6 +143,13 @@ module RISCVBusiness (
        ,.predict_if(predict_if)
        ,.cb_if(cb_if)
       );
+
+   completion_buffer completion_buffer (
+     .CLK 
+     ,.nRST 
+     ,.cb_if
+     ,.rf_if
+    );
    
    rv32i_reg_file reg_file (.*);
 

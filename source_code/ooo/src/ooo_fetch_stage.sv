@@ -43,16 +43,16 @@ module ooo_fetch_stage (
   word_t next_pc;
   
   //Get the current PC from fetch stage
-  // assign fetch_decode_if.pc4 = next_pc + 4;
+  assign pc4 = program_counter_pc + 4;
   assign mal_addr  = (igen_bus_if.addr[1:0] != 2'b00);
 
   //Instruction Access logic
-  // assign hazard_if.i_mem_busy     = igen_bus_if.busy;
-  // assign igen_bus_if.addr         = program_counter_pc;
-  // assign igen_bus_if.ren          = ~halt;
-  // assign igen_bus_if.wen          = 1'b0;
-  // assign igen_bus_if.byte_en      = 4'b1111;
-  // assign igen_bus_if.wdata        = '0;
+  assign hazard_if.i_mem_busy     = igen_bus_if.busy;
+  assign igen_bus_if.addr         = program_counter_pc;
+  assign igen_bus_if.ren          = ~halt;
+  assign igen_bus_if.wen          = 1'b0;
+  assign igen_bus_if.byte_en      = 4'b1111;
+  assign igen_bus_if.wdata        = '0;
 
 
   // program counter main flop

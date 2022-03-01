@@ -28,7 +28,7 @@
 `include "machine_mode_types_1_11_pkg.sv"
 
 package rv32i_types_pkg;
-  import alu_types_pkg::aluop_t;
+  // import alu_types_pkg::aluop_t;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
   parameter OP_W = 7;
@@ -139,6 +139,19 @@ package rv32i_types_pkg;
     FENCEI  = 3'b001
   } rv32i_miscmem_t;
 
+  typedef enum logic [3:0] {
+    ALU_SLL   = 4'b0000,
+    ALU_SRL   = 4'b0001,
+    ALU_SRA   = 4'b0010,
+    ALU_ADD   = 4'b0011,
+    ALU_SUB   = 4'b0100,
+    ALU_AND   = 4'b0101,
+    ALU_OR    = 4'b0110,
+    ALU_XOR   = 4'b0111,
+    ALU_SLT   = 4'b1000,
+    ALU_SLTU  = 4'b1001
+  } aluop_t;
+
   typedef struct packed {
     logic [6:0] funct7;
     logic [4:0] rs2;
@@ -238,7 +251,7 @@ package rv32i_types_pkg;
 
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
-    alu_types_pkg::aluop_t alu_op;
+    aluop_t alu_op;
     w_src_t w_src;
     logic wen;
     logic [4:0] reg_rd;
@@ -332,6 +345,7 @@ package rv32i_types_pkg;
     logic wen;
     sign_type_t is_signed;
     logic [4:0] reg_rd;
+    logic ready_mu;
   } multiply_struct_t;
 
   typedef struct packed {
@@ -342,6 +356,7 @@ package rv32i_types_pkg;
     logic is_signed_div;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_div;
   } divide_struct_t;
 
   typedef struct packed {
@@ -356,16 +371,18 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
     opcode_t opcode;
+    logic ready_ls;
   } loadstore_struct_t;
 
   typedef struct packed {
-    alu_types_pkg::aluop_t aluop;
+    aluop_t aluop;
     logic [31:0] port_a;
     logic [31:0] port_b;
     logic [31:0] reg_file_wdata;
     logic [31:0] pc;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_a;
   } arith_struct_t;
 
   typedef struct packed {
@@ -422,6 +439,8 @@ package rv32i_types_pkg;
   } cpu_tracker_signals_t;
 
   parameter NUM_CB_ENTRY = 16;
+
+
 
 endpackage
 `endif //RV32I_TYPES_PKG_SV

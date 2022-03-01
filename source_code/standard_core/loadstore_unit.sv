@@ -160,9 +160,9 @@ module loadstore_unit (
   /*******************************************************
   *** mal_addr  and Associated Logic 
   *******************************************************/
-  assign hazard_if.d_mem_busy = dgen_bus_if.busy;
-  assign hazard_if.dren       = dgen_bus_if.ren;
-  assign hazard_if.dwen       = dgen_bus_if.wen;
+  assign hazard_if.d_mem_busy = dgen_bus_if.busy & (lsif.dren| lsif.dwen);
+  assign hazard_if.dren       = lsif.dren;
+  assign hazard_if.dwen       = lsif.dwen;
 
   /*******************************************************
   *** data bus  and Associated Logic 

@@ -136,6 +136,7 @@ module ooo_execute_stage(
   assign lsif.port_b = decode_execute_if.port_b;
   assign lsif.store_data = decode_execute_if.port_b; // whis is an issue here because sw needs three operands
   assign lsif.pc = decode_execute_if.pc;
+  
   loadstore_unit LSU(
     .CLK(CLK),
     .nRST(nRST),
@@ -158,6 +159,7 @@ module ooo_execute_stage(
   assign hazard_if.busy_mu = mif.busy_mu;
   assign hazard_if.busy_du = dif.busy_du;
   assign hazard_if.busy_ls = lsif.busy_ls;
+  // assign hazard_if.load_stall = lsif.load_stall;
 
   /***** CSR STUFF? *****/
   //NEED CSR ENA SIGNAL

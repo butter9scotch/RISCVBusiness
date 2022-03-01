@@ -114,6 +114,8 @@ module ooo_decode_stage (
   assign rf_if.rs1 = cu_if.reg_rs1;
   assign rf_if.rs2 = cu_if.reg_rs2;
 
+  assign rf_if.rd_decode = cu_if.reg_rd;
+  assign rf_if.rden = ~hazard_if.stall_de;
   
   /*******************************************************
   *** Sign Extensions of the Immediate Value
@@ -339,6 +341,11 @@ module ooo_decode_stage (
         decode_execute_if.branch_sigs.prediction <= fetch_decode_if.prediction;
         //CSR
         decode_execute_if.csr_sigs <= cu_if.csr_sigs;
+
+        decode_execute_if.arith_sigs.ready_a <= 1;
+        decode_execute_if.div_sigs.ready_div <= 1;
+        decode_execute_if.mult_sigs.ready_mu <= 1;
+        decode_execute_if.lsu_sigs.ready_div <= 1;
         //Exceptions
         // elaborateed because half of the signals are form cu_if and 
         // other half is from the fetch decode latch

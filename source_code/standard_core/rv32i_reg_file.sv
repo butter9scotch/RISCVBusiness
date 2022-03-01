@@ -39,6 +39,7 @@ module rv32i_reg_file (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       registers <= '0;
+      in_use <= '0;
     end else begin
       if (rf_if.wen && rf_if.rd) begin
         registers[rf_if.rd] <= rf_if.w_data;

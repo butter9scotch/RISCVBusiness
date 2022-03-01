@@ -85,7 +85,8 @@ module control_unit
   // reg dest
   assign cu_if.reg_rd   = cu_if.instr[11:7]; 
   assign cu_if.shamt = cu_if.instr[24:20];
-
+  assign cu_if.arith_sigs.reg_rd = cu_if.reg_rd;
+  assign cu_if.arith_sigs.wen    = cu_if.wen;
   // Select the source for writing
   always_comb begin
     case(cu_if.opcode)
@@ -155,6 +156,7 @@ module control_unit
 
   // common signals 
   assign cu_if.lsu_sigs.reg_rd = cu_if.reg_rd;
+  assign cu_if.lsu_sigs.wen = cu_if.wen;
 
   /***** ARITHIMETIC CONTROL SIGNALS *****/
   // assign the branch type output
@@ -340,7 +342,6 @@ module control_unit
       default                 : cu_if.illegal_insn = 1'b1;
     endcase
   end
-
 
   /***** HALT SIGNALS *****/
   // HALT HACK. Just looking for j + 0x0 (infinite loop)
