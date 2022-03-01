@@ -43,11 +43,13 @@ class end2end extends uvm_scoreboard;
     cpu_transaction mem_tx;
 
     forever begin
+      //TODO: DOUBLE CHECK UVM VERBOSITY FOR INFO STATEMENTS
       cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
   
       if (mem_fifo.is_empty()) begin
         // quiet memory bus
+
         if (cache.exists(cpu_tx.addr)) begin
           // data is cached
           m_matches++;
@@ -57,38 +59,73 @@ class end2end extends uvm_scoreboard;
           m_mismatches++;
           `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
         end
-        
-        `uvm_info(this.get_name(), $sformatf("\nInitiated by CPU Transaction:\n%s", cpu_tx.sprint()), UVM_MEDIUM);
       end else begin
         // active memory bus
-
-        mem_fifo.get(mem_tx);
-        `uvm_info(this.get_name(), $sformatf("Recieved new mem value:\n%s", mem_tx.sprint()), UVM_HIGH);
-        
+      
         if (cache.exists(cpu_tx.addr)) begin
-          // data is cached
+          // data is already cached
           m_mismatches++;
           `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
         end else begin
-          // data not in cache
-          m_matches++;
-          `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
-          cache[mem_tx.addr] = mem_tx.data;
-        end
+          // data not in cache, need to get data from memory
 
-        `uvm_info(this.get_name(), $sformatf("\nInitiated by CPU Transaction:\n%s", cpu_tx.sprint()), UVM_MEDIUM);
+          // update cache from mem bus transactions
+          while(!mem_fifo.is_empty()) begin
+            mem_fifo.get(mem_tx);
+            if (mem_tx.rw) begin
+              // write
+              // writes are cache evictions
+              cacheRemove(mem_tx.addr, mem_tx.data);
+            end else begin
+              // read
+              cacheInsert(mem_tx.addr, mem_tx.data);
+            end
+          end
+
+          if (cache.exists(cpu_tx.addr)) begin
+            m_matches++;
+            `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
+          end else begin
+            m_mismatches++;
+            `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+          end
+        end   
       end
 
-      while(!mem_fifo.is_empty()) begin
-        mem_fifo.get(mem_tx); //clear mem fifo
+      if (cpu_tx.rw) begin
+        // update cache on PrWr
+        cacheUpdate(cpu_tx.addr, cpu_tx.data);
       end
-     
     end
   endtask
 
+  function void cacheInsert(word_t addr, word_t data);
+    if (cache.exists(addr)) begin
+      `uvm_error(this.get_name(), $sformatf("Attempted to insert item from cache that already exists:\ncache[%h]=%h", addr, data))
+    end else begin
+      cache[addr] = data;
+    end
+  endfunction: cacheInsert
+
+  function void cacheRemove(word_t addr, word_t data);
+    if (cache.exists(addr)) begin
+      cache.delete(addr);
+    end else begin
+      `uvm_error(this.get_name(), $sformatf("Attempted to remove item from cache that DNE:\ncache[%h]=%h", addr, data))
+    end
+  endfunction: cacheRemove
+
+  function void cacheUpdate(word_t addr, word_t data);
+    if (cache.exists(addr)) begin
+      cache[addr] = data;
+    end else begin
+      `uvm_error(this.get_name(), $sformatf("Attempted to update item from cache that DNE:\ncache[%h]=%h", addr, data))
+    end
+  endfunction: cacheUpdate
+
   function void report_phase(uvm_phase phase);
-    `uvm_info($sformatf("%s", this.get_name()), $sformatf("Matches:    %0d", m_matches), UVM_LOW);
-    `uvm_info($sformatf("%s", this.get_name()), $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
+    `uvm_info(this.get_name(), $sformatf("Matches:    %0d", m_matches), UVM_LOW);
+    `uvm_info(this.get_name(), $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
   endfunction
 
 endclass: end2end
