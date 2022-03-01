@@ -52,6 +52,7 @@ class end2end extends uvm_scoreboard;
       cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
 
+      //TODO: THIS HASN'T BEEN TESTED FOR CORRECTNESS BECAUSE WE DON'T YET HAVE PREFETCHING
       if (!mem_fifo.is_empty()) begin
         // flush all transactions made on mem bus without a processor req (prefetch)
         mem_fifo.peek(mem_tx);

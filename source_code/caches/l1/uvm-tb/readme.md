@@ -11,22 +11,23 @@
 ### Makefile Params
 - TESTCASE: selects which test to run from the `tests/` folder
 - VERBOSITY: selects UVM verbosity for prints 
-    - UVM_NONE
-    - UVM_LOW
+    - NONE
+      - only error messages shown
+    - LOW
       - actual and expected values for scoreboard errors
       - success msg for data matches
-    - UVM_MEDIUM
+    - MEDIUM
       - actual and expected values for all scoreboard checks
       - predictor default values for non-initialized memory
       - end2end transaction/propagation details
-    - UVM_HIGH
+    - HIGH
       - all uvm transactions detected in monitors, predictors, scoreboards 
       - predictor memory before:after
-    - UVM_FULL
+    - FULL
       - all connections between analysis ports
       - all agent sub-object instantiations
       - all virtual interface accesses to uvm db
-    - UVM_DEBUG
+    - DEBUG
 - RAND_SEED: this seeds the random number generator for the UVM .randomize() calls
   - value of `random` will use vsim to randomize test cases automatically
 
@@ -61,6 +62,7 @@ tb_caches_top.sv
 ```
 ## Design Notes:
 - Need to drive byte_en to memory, at least full word (4'b1000)
+- evicting the right data but wrong address
 
 ## TODO
 - [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
@@ -89,7 +91,6 @@ tb_caches_top.sv
     - need to read data from same address
     - need to write data back to memory on eviction
   - ensure that no mem bus transactions occur without ren/wen
-    - //TODO: NO IMPLEMENTATION FOR THIS AS OF RIGHT NOW
     - //TODO: this will probably change if we do prefetching
       - PrRd A // miss
         - BusRead A Block
@@ -103,7 +104,12 @@ tb_caches_top.sv
           - mem_fifo will hold the expected prefetched data
             - not incorrect but timing is backwards
         - if (**) is PrRd C
-          - 
+
+
+## Extension Ideas:
+- Timing Agent
+  - responsible for monitoring both buses like end2end and checking if the correct number of cycles for hits/misses
+- Update Nominal Sequence to have better distribution of reads/writes
 
 
 

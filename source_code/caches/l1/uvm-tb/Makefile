@@ -13,8 +13,8 @@ INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
-TESTCASE = nominal_test
-VERBOSITY = UVM_LOW
+TESTCASE = evict_test
+VERBOSITY = LOW
 RAND_SEED = random
 
 all: build run
@@ -43,7 +43,7 @@ run_gui:
 	-coverage \
 	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
-	+UVM_VERBOSITY=$(VERBOSITY) \
+	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	-do "do $(WAVES)/wave.do" -do "run -all"
 
 run:
@@ -53,7 +53,7 @@ run:
 	-coverage \
 	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
-	+UVM_VERBOSITY=$(VERBOSITY) \
+	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	-do "run -all"
 
 help:

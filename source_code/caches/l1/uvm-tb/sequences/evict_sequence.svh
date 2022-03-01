@@ -20,24 +20,27 @@ class evict_sequence extends uvm_sequence #(cpu_transaction);
   task body();
     cpu_transaction req_item;
     
-    logic [31 - `L1_TAG_BITS:0] index;
+    logic [`L1_INDEX_BITS-1:0] index;
     
     req_item = cpu_transaction::type_id::create("req_item");
     
-    repeat(2) begin
+    repeat(1) begin
       //TODO: Same index but different tag
-      $display("tag bits: %d", `L1_TAG_BITS);
+      $display("INDX bits: %d, frame: %d", `L1_INDEX_BITS, `L1_FRAME_INDEX_BITS);
       for (int i = 0; i < 2*`L1_ASSOC; i++) begin
         start_item(req_item);
         if(!req_item.randomize() with {
           if (i != 0) {
-            addr[31 - `L1_TAG_BITS:0] == index;
+            addr[`L1_INDEX_BITS-1:0] == index;
           }
           rw == '1;
           }) begin
           `uvm_fatal("Randomize Error", "not able to randomize")
         end
-        index = req_item.addr[31 - `L1_TAG_BITS:0];
+        index = req_item.addr[`L1_INDEX_BITS:0];
+        $display("idx: %h, addr: %h",index,req_item.addr);
+
+        //FIXME: LEFT OFF HERE
 
         `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
 
