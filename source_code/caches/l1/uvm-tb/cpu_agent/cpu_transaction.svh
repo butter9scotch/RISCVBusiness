@@ -12,6 +12,7 @@ class cpu_transaction extends uvm_sequence_item;
   rand bit rw; // 0 -> read; 1 -> write
   rand word_t addr;
   rand word_t data;
+  int cycle; //cycle number of transaction, used for timing
   
   rand logic [3:0] byte_sel;
   // Byte enable logic
@@ -29,6 +30,7 @@ class cpu_transaction extends uvm_sequence_item;
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
       `uvm_field_int(byte_sel, UVM_ALL_ON)
+      `uvm_field_int(cycle, UVM_NOCOMPARE)
   `uvm_object_utils_end
 
   constraint usable_addr { addr >= '0; addr < `NONCACHE_START_ADDR; }

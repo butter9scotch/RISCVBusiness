@@ -16,11 +16,14 @@ class bus_monitor extends uvm_monitor;
 
   uvm_analysis_port #(cpu_transaction) req_ap;
   uvm_analysis_port #(cpu_transaction) resp_ap;
+
+  int cycle; // number of clock cycles that have elapsed
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
     req_ap = new("req_ap", this);
     resp_ap = new("resp_ap", this);
+    cycle = 0;
   endfunction: new
 
   // Build Phase - Get handle to virtual if from config_db
@@ -30,11 +33,15 @@ class bus_monitor extends uvm_monitor;
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
+    //TODO: DO I NEED TO WORRY ABOUT OVERFLOW FOR CYCLE?
     super.run_phase(phase);
 
     forever begin
       cpu_transaction tx;
+
       @(posedge cif.CLK);
+      cycle++;
+
       if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
         tx = cpu_transaction::type_id::create("tx");
@@ -52,18 +59,21 @@ class bus_monitor extends uvm_monitor;
           tx.rw = '1; // 0 -> read; 1 -> write
           tx.data = bus_if.wdata;
         end
-    
+
+        tx.cycle = cycle;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
         while (bus_if.busy) begin
-          @(posedge cif.CLK); //wait for memory to return
+          @(posedge cif.CLK);
+          cycle++; //wait for memory to return
         end
 
         if (bus_if.ren) begin
           tx.data = bus_if.rdata;
         end
 
+        tx.cycle = cycle;
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         resp_ap.write(tx);
       end

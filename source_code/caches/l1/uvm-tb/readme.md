@@ -87,12 +87,24 @@ tb_caches_top.sv
   - ensure hit doesn't propogate to mem bus
   - ensure miss propogates with correct addr to mem bus
     - need to read data from same address
-    - may need to write data back to memory on eviction
-      - //TODO: FIGURE OUT HOW TO HANDLE EVICTION
-        - do we care about what data is evicted?
-        - can we simply note down that data has been evicted in our memory model?
+    - need to write data back to memory on eviction
   - ensure that no mem bus transactions occur without ren/wen
+    - //TODO: NO IMPLEMENTATION FOR THIS AS OF RIGHT NOW
     - //TODO: this will probably change if we do prefetching
+      - PrRd A // miss
+        - BusRead A Block
+      - Prefetch B // no cpu req
+        - BusRead B Block
+      - PrRd B or PrRd C (**)
+      - Issues:
+        - if (**) is PrRd B
+          - stall until cpu_ap sees PrRd B
+          - cache_model expected miss
+          - mem_fifo will hold the expected prefetched data
+            - not incorrect but timing is backwards
+        - if (**) is PrRd C
+          - 
+
 
 
 

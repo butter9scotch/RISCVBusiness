@@ -42,12 +42,24 @@ class end2end extends uvm_scoreboard;
   endfunction
 
   task run_phase(uvm_phase phase);
+    cpu_transaction prev_cpu_tx;
     cpu_transaction cpu_tx;
     cpu_transaction mem_tx;
+
+    prev_cpu_tx = new();
 
     forever begin
       cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
+
+      if (!mem_fifo.is_empty()) begin
+        // flush all transactions made on mem bus without a processor req (prefetch)
+        mem_fifo.peek(mem_tx);
+        while(mem_tx.cycle < prev_cpu_tx.cycle) begin
+          mem_fifo.get(mem_tx);
+          handle_mem_tx(mem_tx);
+        end
+      end
   
       if (mem_fifo.is_empty()) begin
         // quiet memory bus
@@ -74,14 +86,7 @@ class end2end extends uvm_scoreboard;
           // update cache from mem bus transactions
           while(!mem_fifo.is_empty()) begin
             mem_fifo.get(mem_tx);
-            if (mem_tx.rw) begin
-              // write
-              // writes are cache evictions
-              cache.remove(mem_tx.addr, mem_tx.data);
-            end else begin
-              // read
-              cache.insert(mem_tx.addr, mem_tx.data);
-            end
+            handle_mem_tx(mem_tx);
           end
 
           if (cache.exists(cpu_tx.addr)) begin
@@ -98,6 +103,8 @@ class end2end extends uvm_scoreboard;
         // update cache on PrWr
         cache.update(cpu_tx.addr, cpu_tx.data);
       end
+
+      prev_cpu_tx.copy(cpu_tx);
     end
   endtask
 
@@ -105,6 +112,17 @@ class end2end extends uvm_scoreboard;
     `uvm_info(this.get_name(), $sformatf("Matches:    %0d", m_matches), UVM_LOW);
     `uvm_info(this.get_name(), $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
   endfunction
+
+  function void handle_mem_tx(cpu_transaction mem_tx);
+    if (mem_tx.rw) begin
+      // write
+      // writes are cache evictions
+      cache.remove(mem_tx.addr, mem_tx.data);
+    end else begin
+      // read
+      cache.insert(mem_tx.addr, mem_tx.data);
+    end
+  endfunction: handle_mem_tx
 
 endclass: end2end
 
