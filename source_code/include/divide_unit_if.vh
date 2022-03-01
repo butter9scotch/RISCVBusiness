@@ -1,7 +1,7 @@
 `ifndef DIVIDE_UNIT_IF_VH
 `define DIVIDE_UNIT_IF_VH
 
-interface divide_unit_if(input div_control_signals_t control_sigs);
+interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_sigs);
   
   logic [31:0] rs1_data; 
   logic [31:0] rs2_data; 
@@ -18,7 +18,7 @@ interface divide_unit_if(input div_control_signals_t control_sigs);
 
   always_comb begin : CONNECTIONS
     wen = control_sigs.wen;
-    is_signed = control_sigs.is_signed;
+    is_signed_div = control_sigs.is_signed;
     div_type = control_sigs.div_type;
     start_div = control_sigs.ena;
     reg_rd = control_sigs.reg_rd;

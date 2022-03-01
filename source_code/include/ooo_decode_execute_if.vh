@@ -33,6 +33,7 @@ interface ooo_decode_execute_if();
   import machine_mode_types_1_11_pkg::*;
 
   // noted data signals that are needed in execute stage
+  word_t instr;
   word_t pc;
   word_t pc4;
   word_t immediate;
@@ -41,7 +42,12 @@ interface ooo_decode_execute_if();
   word_t reg_file_wdata; //
   scalar_fu_t sfu_type; //
   logic halt_instr; //
-
+  logic stall_multiply;
+  logic stall_divide;
+  logic stall_arith;
+  logic stall_loadstore;
+  logic ifence;
+  logic prediction; //TEMPORARY
 
   // new structs for the interface
   exception_control_signals_t exception_sigs; //
@@ -63,7 +69,17 @@ interface ooo_decode_execute_if();
     mult_sigs,
     div_sigs,
     lsu_sigs,
-    tracker_sigs 
+    tracker_sigs,
+    stall_multiply,
+    stall_divide,
+    stall_arith,
+    stall_loadstore,
+    pc,
+    pc4,
+    immediate,
+    ifence,
+    prediction,
+    instr
   );
 
   modport execute (
@@ -73,7 +89,12 @@ interface ooo_decode_execute_if();
     mult_sigs,
     div_sigs,
     lsu_sigs,
-    tracker_sigs 
+    tracker_sigs,
+    pc,
+    immediate,
+    pc4,
+    prediction,
+    instr
   );
 
 endinterface

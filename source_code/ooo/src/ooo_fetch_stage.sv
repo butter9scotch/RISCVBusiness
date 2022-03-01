@@ -43,16 +43,16 @@ module ooo_fetch_stage (
   word_t next_pc;
   
   //Get the current PC from fetch stage
-  assign fetch_decode_if.pc4 = next_pc + 4;
+  // assign fetch_decode_if.pc4 = next_pc + 4;
   assign mal_addr  = (igen_bus_if.addr[1:0] != 2'b00);
 
   //Instruction Access logic
-  assign hazard_if.i_mem_busy     = igen_bus_if.busy;
-  assign igen_bus_if.addr         = program_counter_pc;
-  assign igen_bus_if.ren          = ~halt;
-  assign igen_bus_if.wen          = 1'b0;
-  assign igen_bus_if.byte_en      = 4'b1111;
-  assign igen_bus_if.wdata        = '0;
+  // assign hazard_if.i_mem_busy     = igen_bus_if.busy;
+  // assign igen_bus_if.addr         = program_counter_pc;
+  // assign igen_bus_if.ren          = ~halt;
+  // assign igen_bus_if.wen          = 1'b0;
+  // assign igen_bus_if.byte_en      = 4'b1111;
+  // assign igen_bus_if.wdata        = '0;
 
 
   // program counter main flop
@@ -93,7 +93,7 @@ module ooo_fetch_stage (
       next_pc = hazard_if.ifence_pc + 4;
     end else if(hazard_if.npc_sel) begin
       next_pc = hazard_if.brj_addr;
-    end else if(hazard_if.predict_taken) begin
+    end else if(predict_if.predict_taken) begin
       next_pc = predict_if.target_addr;
     end else begin
       next_pc = pc4;
@@ -108,7 +108,7 @@ module ooo_fetch_stage (
         fetch_decode_if.pc                  <='h0; 
         fetch_decode_if.pc4                 <='h0;
         fetch_decode_if.instr               <='h0; 
-        fetch_decode_if.prediction          <='h0; 
+        // fetch_decode_if.prediction          <='h0; 
         fetch_decode_if.mal_insn            <='h0;
         fetch_decode_if.fault_insn          <= 1'b0;
       end
@@ -118,7 +118,7 @@ module ooo_fetch_stage (
             fetch_decode_if.token               <='h0; 
             fetch_decode_if.pc                  <='h0; 
             fetch_decode_if.pc4                 <='h0;
-            fetch_decode_if.prediction          <='h0; 
+            // fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
         end
@@ -126,7 +126,7 @@ module ooo_fetch_stage (
           // hazard flush
             fetch_decode_if.token               <='h0; 
             fetch_decode_if.instr               <='h0; 
-            fetch_decode_if.prediction          <='h0; 
+            // fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
         end 
@@ -136,7 +136,7 @@ module ooo_fetch_stage (
             fetch_decode_if.pc                  <= program_counter_pc;
             fetch_decode_if.pc4                 <= pc4;
             fetch_decode_if.instr               <= instr;
-            fetch_decode_if.prediction          <= predict_if.predict_taken;
+            // fetch_decode_if.prediction          <= predict_if.predict_taken;
             //Exceptions
             fetch_decode_if.mal_insn            <= mal_addr;
             fetch_decode_if.fault_insn          <= 1'b0;

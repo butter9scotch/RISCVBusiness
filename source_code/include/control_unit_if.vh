@@ -65,6 +65,7 @@ interface control_unit_if;
   mult_control_signals_t mult_sigs;
   div_control_signals_t div_sigs;
   lsu_control_signals_t lsu_sigs;
+  jump_control_signals_t jump_sigs;
 
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
@@ -75,8 +76,8 @@ interface control_unit_if;
   modport control_unit(
     input instr, 
     output arith_sigs, mult_sigs, div_sigs, lsu_sigs, csr_sigs, 
-    cpu_track_sigs, 
-    output dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,
+    cpu_track_sigs, jump_sigs,
+    dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,
     alu_b_sel, w_src, load_type, branch_type, shamt,
     imm_I, imm_S, imm_SB, imm_UJ, imm_U, imm_shamt_sel, alu_op, 
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 

@@ -50,9 +50,9 @@ module loadstore_unit (
   logic [3:0] byte_en_ff1, byte_en_ff0;
   load_t load_type_ff1, load_type_ff0;
   opcode_t opcode_ff0, opcode_ff1;
+  logic mal_addr_ff0, mal_addr_ff1;
 
   logic [3:0] byte_en_standard;
-  logic mal_addr;
   logic stall;
 
   assign stall = '0;
@@ -72,7 +72,7 @@ module loadstore_unit (
     .load_type(lsif.load_type),
     .byte_en_standard(byte_en_ff0),
     .address(address_ff0), 
-    .mal_addr(mal_addr)
+    .mal_addr(mal_addr_ff0)
   );
 
   always_ff @(posedge CLK, negedge nRST) begin
@@ -84,6 +84,7 @@ module loadstore_unit (
       reg_rd_ff1     <= '0;
       address_ff1    <= '0;
       byte_en_ff1    <= '0;
+      mal_addr_ff1    <= '0;
       load_type_ff1  <= load_t'('0);
       pc_ff1         <= '0;
       opcode_ff1     <= opcode_t'('0);
@@ -96,6 +97,7 @@ module loadstore_unit (
         reg_rd_ff1     <= '0;
         address_ff1    <= '0;
         byte_en_ff1    <= '0;
+        mal_addr_ff1    <= '0;
         load_type_ff1  <= load_t'('0);
         pc_ff1         <= '0;
         opcode_ff1     <= opcode_t'('0);
@@ -110,6 +112,7 @@ module loadstore_unit (
         reg_rd_ff1     <= reg_rd_ff0;
         address_ff1    <= address_ff0;
         byte_en_ff1    <= byte_en_ff0;
+        mal_addr_ff1    <= mal_addr_ff0;
         load_type_ff1  <= load_type_ff0;
         pc_ff1         <= pc_ff0;
         opcode_ff1     <= opcode_ff0;
@@ -120,10 +123,12 @@ module loadstore_unit (
   // OUTPUT:
   assign lsif.wdata_ls = dgen_bus_if.rdata;
   assign lsif.wen_ls   = wen_ff1;
-  assign lsif.reg_rd   = reg_rd_ff1;
+  assign lsif.reg_rd_ls   = reg_rd_ff1;
   assign lsif.dren_ls  = dren_ff1;
   assign lsif.dwen_ls  = dwen_ff1;
   assign lsif.opcode_ls  = opcode_ff1;
+  assign lsif.mal_addr = mal_addr_ff1;
+  assign lsif.memory_addr = address_ff1;
  
 
   /*******************************************************
@@ -162,17 +167,18 @@ module loadstore_unit (
   /*******************************************************
   *** data bus  and Associated Logic 
   *******************************************************/
-  assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr;
-  assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr;
-  assign dgen_bus_if.byte_en = byte_en;
-  assign dgen_bus_if.addr    = address_ff1;
-  always_comb begin
-    dgen_bus_if.wdata = '0;
-    case(load_type_ff1) // load_type can be used for store_type as well
-      LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
-      LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
-      LW: dgen_bus_if.wdata = store_data_ff1; 
-    endcase
-  end
+  // TODO: Fix this 
+  // assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr_ff1;
+  // assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr_ff1;
+  // assign dgen_bus_if.byte_en = byte_en;
+  // assign dgen_bus_if.addr    = address_ff1;
+  // always_comb begin
+    // dgen_bus_if.wdata = '0;
+    // case(load_type_ff1) // load_type can be used for store_type as well
+      // LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
+      // LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
+      // LW: dgen_bus_if.wdata = store_data_ff1; 
+    // endcase
+  // end
 
 endmodule

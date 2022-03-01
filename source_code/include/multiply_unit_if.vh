@@ -25,7 +25,7 @@
 `ifndef MULTIPLY_UNIT_IF_VH
 `define MULTIPLY_UNIT_IF_VH
 
-interface multiply_unit_if(input mult_control_signals_t control_sigs);
+interface multiply_unit_if(input rv32i_types_pkg::mult_control_signals_t control_sigs);
 
   import rv32i_types_pkg::*;
 

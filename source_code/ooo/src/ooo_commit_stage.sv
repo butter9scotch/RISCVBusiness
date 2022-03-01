@@ -75,7 +75,7 @@ module ooo_commit_stage(
   assign illegal_jaddr          = (execute_commit_if.jump_instr & (execute_commit_if.jump_addr[1:0] != 2'b00));
   assign illegal_braddr         = (execute_commit_if.branch_instr & (execute_commit_if.br_resolved_addr[1:0] != 2'b00));
 
-  assign valid_pc = (execute_mem_if.opcode != opcode_t'('h0));
+  assign valid_pc = (execute_commit_if.opcode != opcode_t'('h0));
   assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
 
   always_ff @(posedge CLK, negedge nRST) begin
@@ -100,12 +100,12 @@ module ooo_commit_stage(
   /*******************************************************
   *** Write to Completion Buffer logic 
   *******************************************************/
-  assign cb_if.index_a     = execute_comm_if.index_a; 
+  assign cb_if.index_a     = execute_commit_if.index_a; 
   assign cb_if.wdata_a     = branch_mispredict ?  execute_commit_if.br_resolved_addr : 
                              execute_commit_if.jump_instr ?  execute_commit_if.jump_addr : 
                              cb_if.exception_a ? execute_commit_if.pc_a : 
-                             execute_comm_if.wdata_au; 
-  assign cb_if.vd_a        = execute_comm_if.reg_rd_au; 
+                             execute_commit_if.wdata_au; 
+  assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
   assign cb_if.exception_a = execute_commit_if.exception_a; 
   assign cb_if.ready_a     = execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr; 
   assign cb_if.wen_a       = (cb_if.exception_a | execute_commit_if.branch_instr | execute_commit_if.jump_instr) ? 1'b0 : 1'b1; 
@@ -114,21 +114,21 @@ module ooo_commit_stage(
                              1'b1; 
   assign cb_if.branch_mispredict  = branch_mispredict;
 
-  assign cb_if.index_mu     = execute_comm_if.index_mu; 
-  assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_comm_if.wdata_mu;  
-  assign cb_if.vd_mu        = execute_comm_if.reg_rd_mu; 
+  assign cb_if.index_mu     = execute_commit_if.index_mu; 
+  assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_commit_if.wdata_mu;  
+  assign cb_if.vd_mu        = execute_commit_if.reg_rd_mu; 
   assign cb_if.exception_mu = execute_commit_if.exception_mu; 
   assign cb_if.ready_mu     = execute_commit_if.wen_mu;
 
-  assign cb_if.index_du     = execute_comm_if.index_du; 
-  assign cb_if.wdata_du     = execute_commit_if.exception_du ? execute_commit_if.pc_du : execute_comm_if.wdata_du; 
-  assign cb_if.vd_du        = execute_comm_if.reg_rd_du; 
+  assign cb_if.index_du     = execute_commit_if.index_du; 
+  assign cb_if.wdata_du     = execute_commit_if.exception_du ? execute_commit_if.pc_du : execute_commit_if.wdata_du; 
+  assign cb_if.vd_du        = execute_commit_if.reg_rd_du; 
   assign cb_if.exception_du = execute_commit_if.exception_du; 
   assign cb_if.ready_du     = execute_commit_if.wen_du; 
 
-  assign cb_if.index_ls     = execute_comm_if.index_ls; 
-  assign cb_if.wdata_ls     = execute_commit_if.exception_ls ? execute_commit_if.pc_ls : execute_comm_if.wdata_ls; 
-  assign cb_if.vd_ls        = execute_comm_if.reg_rd_ls; 
+  assign cb_if.index_ls     = execute_commit_if.index_ls; 
+  assign cb_if.wdata_ls     = execute_commit_if.exception_ls ? execute_commit_if.pc_ls : execute_commit_if.wdata_ls; 
+  assign cb_if.vd_ls        = execute_commit_if.reg_rd_ls; 
   assign cb_if.exception_ls = execute_commit_if.exception_ls; 
   assign cb_if.ready_ls     = execute_commit_if.wen_ls; 
   assign cb_if.mal_ls       = execute_commit_if.mal_addr; 
@@ -138,13 +138,13 @@ module ooo_commit_stage(
   *******************************************************/
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
-      cb_if.tracker_sigs      <= '0;
+      cb_if.CPU_TRACKER      <= '0;
     end
     else begin
       if (hazard_if.ex_comm_flush && hazard_if.pc_en || halt ) begin
-        cb_if.tracker_sigs <= '0;
+        cb_if.CPU_TRACKER <= '0;
       end else if(hazard_if.pc_en ) begin
-        cb_if.tracker_sigsr      <= execute_commit_if.tracker_sigs;
+        cb_if.CPU_TRACKER    <= execute_commit_if.CPU_TRACKER;
       end
     end
   end

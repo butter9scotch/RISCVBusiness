@@ -81,9 +81,9 @@ module agu (
   // misaligned address
   always_comb begin
     if(byte_en == 4'hf) 
-      mal_addr = (execute_mem_if.memory_addr[1:0] != 2'b00);
+      mal_addr = (address[1:0] != 2'b00);
     else if (byte_en == 4'h3 || byte_en == 4'hc) begin
-      mal_addr = (execute_mem_if.memory_addr[1:0] == 2'b01 || execute_mem_if.memory_addr[1:0] == 2'b11);
+      mal_addr = (address[1:0] == 2'b01 || address[1:0] == 2'b11);
     end
     else 
       mal_addr = 1'b0;

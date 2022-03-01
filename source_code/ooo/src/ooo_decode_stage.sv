@@ -177,8 +177,8 @@ module ooo_decode_stage (
       offset = imm_I_ext;
     end
   end 
-  assign jump_signals.base = base;
-  assign jump_signals.offset = offset;
+  assign jump_signals.j_base = base;
+  assign jump_signals.j_offset = offset;
   assign jump_signals.jump_instr = cu_if.jump;
   assign jump_signals.j_sel = cu_if.j_sel;
 
@@ -224,7 +224,7 @@ module ooo_decode_stage (
             //HALT
             decode_execute_if.halt_instr <= '0;
             //CPU tracker
-            decode_execute_if.CPU_TRACKER <= '0;
+            decode_execute_if.tracker_sigs <= '0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall_de) & hazard_if.pc_en) | halt) begin
@@ -233,14 +233,14 @@ module ooo_decode_stage (
             //HALT
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
-          decode_execute_if.CPU_TRACKER <= '0;
-        end else if(hazard_if.pc_en & ~hazard_if.stall) begin
+          decode_execute_if.tracker_sigs <= '0;
+        end else if(hazard_if.pc_en & ~hazard_if.stall_de) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
           //CPU tracker
-          decode_execute_if.CPU_TRACKER <= CPU_TRACKER;
+          decode_execute_if.tracker_sigs <= CPU_TRACKER;
         end
     end
   end
@@ -259,7 +259,7 @@ module ooo_decode_stage (
         decode_execute_if.lsu_sigs <= '0;
       end
       // stall cases
-      else if(hazard_if.stall & hazard_if.pc_en) begin
+      else if(hazard_if.stall_de & hazard_if.pc_en) begin
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
         decode_execute_if.lsu_sigs <= '0;
@@ -313,9 +313,9 @@ module ooo_decode_stage (
       decode_execute_if.exception_sigs <= '0;
         
     end else begin
-      if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
+      if (((hazard_if.id_ex_flush | hazard_if.stall_au) & hazard_if.pc_en) | halt) begin
         decode_execute_if.arith_sigs <= '0;
-        decode_execute_if.arith.reg_file_wdata <= '0;
+        decode_execute_if.reg_file_wdata <= '0;
         //JUMP
         decode_execute_if.jump_sigs <= '0;
         //BRANCH
@@ -333,7 +333,7 @@ module ooo_decode_stage (
         //BRANCH
         // pretty sure this line is unecessary
         //decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= cu_if.imm_SB;
-        decode_execute_if.branch_sigs.br_branch_type  <= cu_if.branch_type;
+        decode_execute_if.branch_sigs.branch_type  <= cu_if.branch_type;
         decode_execute_if.branch_sigs.branch_instr      <= cu_if.branch;
         //BRANCH PREDICTOR UPDATE
         decode_execute_if.branch_sigs.prediction <= fetch_decode_if.prediction;
@@ -350,7 +350,7 @@ module ooo_decode_stage (
         decode_execute_if.exception_sigs.mal_insn     <= fetch_decode_if.mal_insn;
         decode_execute_if.exception_sigs.fault_insn   <= fetch_decode_if.fault_insn;
         decode_execute_if.exception_sigs.wfi          <= cu_if.wfi;
-        decode_execute_if.exception_sigs.w_src        <= cu_if.arith.w_src;
+        decode_execute_if.exception_sigs.w_src        <= cu_if.arith_sigs.w_src;
 
       end
     end

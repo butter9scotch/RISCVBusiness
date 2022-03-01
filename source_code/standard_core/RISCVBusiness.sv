@@ -125,9 +125,9 @@ module RISCVBusiness (
        ,.halt(halt)
        ,.decode_execute_if(decode_execute_if)
        ,.execute_commit_if(execute_commit_if)
-       ,.jump_if(jump_if)
+       //,.jump_if(jump_if)
        ,.hazard_if(hazard_if)
-       ,.branch_if(branch_if)
+       //,.branch_if(branch_if)
        ,.cc_if(cc_if)
        ,.prv_pipe_if(prv_pipe_if)
        ,.dgen_bus_if(gen_bus_if)
@@ -149,6 +149,7 @@ module RISCVBusiness (
    ooo_hazard_unit hazard_unit (
        .hazard_if(hazard_if)
        ,.prv_pipe_if(prv_pipe_if)
+       ,.cb_if(cb_if)
      );
    
    always @(posedge CLK, negedge nRST)

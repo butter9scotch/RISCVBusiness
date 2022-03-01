@@ -25,7 +25,7 @@
 `ifndef JUMP_CALC_IF_VH
 `define JUMP_CALC_IF_VH
 
-interface jump_calc_if(input branch_control_signals_t control_sigs);
+interface jump_calc_if(input rv32i_types_pkg::jump_control_signals_t control_sigs);
   import rv32i_types_pkg::word_t;
 
   word_t base, offset, jump_addr;
@@ -33,8 +33,8 @@ interface jump_calc_if(input branch_control_signals_t control_sigs);
   // jsel =1 JAL otherwise JALR
   always_comb begin : CONNECTIONS
     j_sel = control_sigs.j_sel;
-    base = control_sigs.base;
-    offset = control_sigs.offset;
+    base = control_sigs.j_base;
+    offset = control_sigs.j_offset;
   end
 
   modport jump_calc (

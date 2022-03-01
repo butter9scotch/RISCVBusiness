@@ -25,7 +25,7 @@
 `ifndef BRANCH_RES_IF_VH
 `define BRANCH_RES_IF_VH
 
-interface branch_res_if(input jump_control_signals_t control_sigs);
+interface branch_res_if(input rv32i_types_pkg::branch_control_signals_t control_sigs);
 
   import rv32i_types_pkg::*;
 

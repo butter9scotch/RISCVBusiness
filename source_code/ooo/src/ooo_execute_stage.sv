@@ -72,7 +72,9 @@ module ooo_execute_stage(
   assign auif.port_a          = decode_execute_if.port_a;
   assign auif.port_b          = decode_execute_if.port_b;
   assign auif.reg_file_wdata  = decode_execute_if.reg_file_wdata;
-  assign auif.csr_rdata       = csr_rdata; // not sure how this will ever 
+  assign auif.csr_rdata       = prv_pipe_if.rdata; // not sure how this will ever 
+  assign auif.j_sel       = decode_execute_if.jump_sigs.j_sel; // not sure how this will ever 
+  assign auif.pc       = decode_execute_if.pc; // not sure how this will ever 
   arithmetic_unit ARITHU (
     .auif(auif)
   );
@@ -86,20 +88,20 @@ module ooo_execute_stage(
   logic jump_instr;
   assign jump_instr = decode_execute_if.jump_sigs.jump_instr;
   // outputs
-  assign execute_commit_if.jump_addr  = jump_if.jump_addr;
+  // assign execute_commit_if.jump_addr  = jump_if.jump_addr;
 
 
   /*******************************************************
   *** Branch Target Resolution and Associated Logic 
   *******************************************************/
-  branch_res_if br_if(.control_sigs(decode_execute_if.branch_sigs));
+  branch_res_if branch_if(.control_sigs(decode_execute_if.branch_sigs));
   // data inputs
   assign branch_if.rs1_data    = decode_execute_if.port_a;
   assign branch_if.rs2_data    = decode_execute_if.port_b;
   assign branch_if.pc          = decode_execute_if.pc;
   // TODO: fix this immediate needs to be passed to execute for sw and branches
   assign branch_if.imm_sb      = decode_execute_if.immediate;
-  branch_res branch_res (.br_if(branch_if));
+  branch_res BRES (.br_if(branch_if));
   // extra signals used in execute stage
   assign branch_addr  = branch_if.branch_addr;
   assign resolved_addr = branch_if.branch_taken ? branch_addr : decode_execute_if.pc4;
@@ -146,20 +148,20 @@ module ooo_execute_stage(
   /*******************************************************
   *** Hazard Unit Signal Connections
   *******************************************************/
-  assign hazard_if.brj_addr   = ( jump_instr) ? decode_execute_if.JUMP_STRUCT.jump_addr : 
-                                                decode_execute_if.BRANCH_STRUCT.br_resolved_addr;
+  assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
+                                                branch_if.branch_addr;
   assign hazard_if.mispredict = decode_execute_if.prediction ^ branch_if.branch_taken;
-  assign hazard_if.branch     = decode_execute_if.branch_instr; 
-  assign hazard_if.jump       = decode_execute_if.jump_instr; 
+  assign hazard_if.branch     = decode_execute_if.branch_sigs.branch_instr; 
+  assign hazard_if.jump       = decode_execute_if.jump_sigs.jump_instr; 
 
-  assign hazard_if.busy_au = auif.busy;
-  assign hazard_if.busy_mu = mif.busy;
-  assign hazard_if.busy_du = dif.busy;
-  assign hazard_if.busy_ls = lsif.busy;
+  assign hazard_if.busy_au = auif.busy_au;
+  assign hazard_if.busy_mu = mif.busy_mu;
+  assign hazard_if.busy_du = dif.busy_du;
+  assign hazard_if.busy_ls = lsif.busy_ls;
 
   /***** CSR STUFF? *****/
   //NEED CSR ENA SIGNAL
-  assign csr_wdata = (decode_execute_if.csr_imm) ? decode_execute_if.csr_imm_value : decode_execute_if.port_a;
+  assign csr_wdata = (decode_execute_if.csr_sigs.csr_imm) ? decode_execute_if.csr_sigs.csr_imm_value : decode_execute_if.port_a;
 
   //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
   always_ff @(posedge CLK, negedge nRST) begin :INTERRUPT
@@ -182,24 +184,24 @@ module ooo_execute_stage(
   /*******************************************************
   *** CSR / Priv Interface Logic 
   *******************************************************/ 
-  assign hazard_if.csr     = decode_execute_if.csr_instr;
-  assign prv_pipe_if.swap  = decode_execute_if.csr_swap;
-  assign prv_pipe_if.clr   = decode_execute_if.csr_clr;
-  assign prv_pipe_if.set   = decode_execute_if.csr_set;
+  assign hazard_if.csr     = decode_execute_if.csr_sigs.csr_instr;
+  assign prv_pipe_if.swap  = decode_execute_if.csr_sigs.csr_swap;
+  assign prv_pipe_if.clr   = decode_execute_if.csr_sigs.csr_clr;
+  assign prv_pipe_if.set   = decode_execute_if.csr_sigs.csr_set;
   assign prv_pipe_if.wdata = csr_wdata;
-  assign prv_pipe_if.addr  = decode_execute_if.csr_addr;
+  assign prv_pipe_if.addr  = decode_execute_if.csr_sigs.csr_addr;
   assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr | prv_pipe_if.set); //TODO add to latch
-  assign prv_pipe_if.instr = (decode_execute_if.instr != '0);
+  assign prv_pipe_if.instr = (decode_execute_if.csr_sigs.csr_instr != '0);
   assign hazard_if.csr_pc = decode_execute_if.pc;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
       csr_reg <= 1'b0;
     else 
-      csr_reg <= decode_execute_if.csr_instr;
+      csr_reg <= decode_execute_if.csr_sigs.csr_instr;
   end
 
-  assign csr_pulse = decode_execute_if.csr_instr && ~csr_reg;
+  assign csr_pulse = decode_execute_if.csr_sigs.csr_instr && ~csr_reg;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
@@ -210,7 +212,7 @@ module ooo_execute_stage(
 
 
   //Forwading logic
-  assign hazard_if.load   = decode_execute_if.dren;
+  assign hazard_if.load   = decode_execute_if.lsu_sigs.dren;
 
 
   /*******************************************************
@@ -322,49 +324,49 @@ module ooo_execute_stage(
         //ARITHMETIC
         execute_commit_if.wen_au                 <= auif.wen; 
         execute_commit_if.wdata_au               <= auif.wdata_au;
-        execute_commit_if.reg_rd_au              <= auif.reg_rd;
+        execute_commit_if.reg_rd_au              <= auif.reg_rd_au;
         //MULTIPLY
         execute_commit_if.wen_mu                 <= mif.wen;
         execute_commit_if.wdata_mu               <= mif.wdata_mu;
-        execute_commit_if.reg_rd_mu              <= mif.reg_rd;
+        execute_commit_if.reg_rd_mu              <= mif.reg_rd_mu;
         //DIVIDE
         execute_commit_if.wen_du                 <= dif.wen;
         execute_commit_if.wdata_du               <= dif.wdata_du;
-        execute_commit_if.reg_rd_du              <= dif.reg_rd;
+        execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
         //LOADSTORE
         execute_commit_if.wen_ls                 <= lsif.wen;
         execute_commit_if.wdata_ls               <= lsif.wdata_ls;
-        execute_commit_if.reg_rd_ls              <= lsif.reg_rd;
-        execute_commit_if.opcode                 <= decode_execute_if.loadstore.opcode;
+        execute_commit_if.reg_rd_ls              <= lsif.reg_rd_ls;
+        execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;
         execute_commit_if.dren                   <= lsif.dren_ls;
         execute_commit_if.dwen                   <= lsif.dwen_ls;
         //EXCEPTION
-        execute_commit_if.mal_addr               <= decode_execute_if.EXCEPTION.mal_addr;
-        execute_commit_if.breakpoint             <= decode_execute_if.EXCEPTION.breakpoint;
-        execute_commit_if.ecall_insn             <= decode_execute_if.EXCEPTION.ecall_insn;
-        execute_commit_if.ret_insn               <= decode_execute_if.EXCEPTION.ret_insn;
-        execute_commit_if.illegal_insn           <= decode_execute_if.EXCEPTION.illegal_insn;
+        execute_commit_if.mal_addr               <= lsif.mal_addr;
+        execute_commit_if.breakpoint             <= decode_execute_if.exception_sigs.breakpoint;
+        execute_commit_if.ecall_insn             <= decode_execute_if.exception_sigs.ecall_insn;
+        execute_commit_if.ret_insn               <= decode_execute_if.exception_sigs.ret_insn;
+        execute_commit_if.illegal_insn           <= decode_execute_if.exception_sigs.illegal_insn;
         execute_commit_if.invalid_csr            <= prv_pipe_if.invalid_csr;
-        execute_commit_if.mal_insn               <= decode_execute_if.EXCEPTION.mal_insn;
-        execute_commit_if.fault_insn             <= decode_execute_if.EXCEPTION.fault_insn;
+        execute_commit_if.mal_insn               <= decode_execute_if.exception_sigs.mal_insn;
+        execute_commit_if.fault_insn             <= decode_execute_if.exception_sigs.fault_insn;
         execute_commit_if.memory_addr            <= lsif.memory_addr;
-        execute_commit_if.pc                     <= decode_execute_if.arith.pc;
+        execute_commit_if.pc                     <= decode_execute_if.pc;
         execute_commit_if.token                  <= 0;
         execute_commit_if.intr_seen              <= intr_taken_ex; //TODO
-        execute_commit_if.jump_instr             <= decode_execute_if.JUMP_STRUCT.jump_instr;
+        execute_commit_if.jump_instr             <= decode_execute_if.jump_sigs.jump_instr;
         execute_commit_if.jump_addr              <= jump_if.jump_addr;
         //execute_commit_if.branch_instr           <= branch_addr;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
-        execute_commit_if.branch_instr           <= decode_execute_if.BRANCH_STRUCT.branch_instr;
+        execute_commit_if.branch_instr           <= decode_execute_if.branch_sigs.branch_instr;
         execute_commit_if.branch_taken           <= branch_if.branch_taken;
-        execute_commit_if.prediction             <= decode_execute_if.BRANCH_STRUCT.prediction;
+        execute_commit_if.prediction             <= decode_execute_if.branch_sigs.prediction;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
-        execute_commit_if.pc4                    <= decode_execute_if.BRANCH_STRUCT.pc4;
+        execute_commit_if.pc4                    <= decode_execute_if.pc4;
         //Halt
         execute_commit_if.halt_instr             <= decode_execute_if.halt_instr;
         //CPU tracker
-        execute_commit_if.CPU_TRACKER <= decode_execute_if.CPU_TRACKER;
+        execute_commit_if.CPU_TRACKER <= decode_execute_if.tracker_sigs;
        
       end
     end

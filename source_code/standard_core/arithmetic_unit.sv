@@ -34,15 +34,15 @@ module arithmetic_unit (
   alu_if aluif();
   alu ALU (.alu_if(aluif));
 
-  assign alu_if.port_a = auif.port_a;
-  assign alu_if.port_b = auif.port_b;
-  assign alu_if.aluop  = auif.aluop;
+  assign aluif.port_a = auif.port_a;
+  assign aluif.port_b = auif.port_b;
+  assign aluif.aluop  = auif.aluop;
 
   // assign wdata_au = csr_instr_sel ? auif.csr_rdata : aluif.port_out;
   always_comb begin
     case(auif.w_src)
     CSR:     auif.wdata_au = auif.csr_rdata;
-    ALU_SRC: auif.wdata_au = alu_if.port_out;
+    ALU_SRC: auif.wdata_au = aluif.port_out;
     default: auif.wdata_au = auif.reg_file_wdata;
     endcase
   end
@@ -54,7 +54,7 @@ module arithmetic_unit (
 
   word_t base, offset;
   always_comb begin
-    if (cu_if.j_sel) begin
+    if (auif.j_sel) begin
       base = auif.pc;
       offset = auif.imm_UJ_ext;
     end else begin

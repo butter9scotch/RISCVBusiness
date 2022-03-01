@@ -19,7 +19,7 @@ module ooo_hazard_unit (
   assign wait_for_dmem = hazard_if.dmem_access & hazard_if.d_mem_busy;  
 
   //BUSY
-  assign hazard_if.busy_ls = hazard_if.dren | hazard_if.dwen; 
+  // assign hazard_if.busy_ls = hazard_if.dren | hazard_if.dwen; 
   // input hazard_if.busy_au 
   // input hazard_if.busy_mul 
   // input hazard_if.busy_div
@@ -30,7 +30,7 @@ module ooo_hazard_unit (
   // Instruction latch enable
   // rob_full -- reorder buffer full
   logic pc_stall;
-  assign pc_stall = wait_for_imem | hazard_if.de_stall ;
+  assign pc_stall = wait_for_imem | hazard_if.stall_de ;
   assign hazard_if.pc_en =  ~pc_stall;
 
   //FETCH_DECODE
@@ -98,6 +98,7 @@ module ooo_hazard_unit (
 
   assign intr_execption = e_fetch_stage | e_decode_stage | e_execute_stage | hazard_if.intr_taken | prv_pipe_if.ret;
   assign intr_e_flush = intr_execption;
+  assign pc_en = 1; //TODO
 
   
 endmodule

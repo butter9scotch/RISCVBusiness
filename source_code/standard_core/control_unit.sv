@@ -318,13 +318,13 @@ module control_unit
   // new struct refactor
   // TODO: remove intermediaries from part of the interface
   assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM);
-  assign cu_ifcu_if.csr_sigs.csr_swap = cu_if.csr_swap;
-  assign cu_ifcu_if.csr_sigs.csr_clr = cu_if.csr_clr;
-  assign cu_ifcu_if.csr_sigs.csr_set = cu_if.csr_set;
-  assign cu_ifcu_if.csr_sigs.csr_addr = cu_if.csr_addr;
-  assign cu_ifcu_if.csr_sigs.csr_imm = cu_if.csr_imm;
-  assign cu_ifcu_if.csr_sigs.csr_imm_value = {27'd0, cu_if.zimm};
-  assign cu_ifcu_if.csr_sigs.instr_null = (cu_if.instr == '0);
+  assign cu_if.csr_sigs.csr_swap = cu_if.csr_swap;
+  assign cu_if.csr_sigs.csr_clr = cu_if.csr_clr;
+  assign cu_if.csr_sigs.csr_set = cu_if.csr_set;
+  assign cu_if.csr_sigs.csr_addr = cu_if.csr_addr;
+  assign cu_if.csr_sigs.csr_imm = cu_if.csr_imm;
+  assign cu_if.csr_sigs.csr_imm_value = {27'd0, cu_if.zimm};
+  assign cu_if.csr_sigs.instr_null = (cu_if.instr == '0);
 
   /***** IFENCE CONTROL SIGNALS *****/
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
