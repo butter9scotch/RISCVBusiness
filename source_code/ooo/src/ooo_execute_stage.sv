@@ -257,6 +257,16 @@ module ooo_execute_stage(
       execute_commit_if.intr_seen        <= '0;
       execute_commit_if.jump_instr       <= '0;
       execute_commit_if.jump_addr        <= '0;
+      execute_commit_if.exception_a            <= 0; // TODO
+      execute_commit_if.exception_mu            <= 0; // TODO
+      execute_commit_if.exception_du            <= 0; // TODO
+      execute_commit_if.exception_ls            <= 0; // TODO
+
+      execute_commit_if.index_a  = '0;
+      execute_commit_if.index_mu = '0;
+      execute_commit_if.index_ls = '0;
+      execute_commit_if.index_du = '0;
+
       //execute_commit_if.branch_instr     <= '0;
       execute_commit_if.br_resolved_addr <= '0;
       //BRANCH PREDICTOR UPDATE
@@ -266,6 +276,7 @@ module ooo_execute_stage(
       execute_commit_if.br_resolved_addr  <= '0;
       execute_commit_if.pc                <= '0;
       execute_commit_if.pc4               <= '0;
+
       //Halt
       execute_commit_if.halt_instr       <= '0;
       //CPU tracker
@@ -308,6 +319,17 @@ module ooo_execute_stage(
         execute_commit_if.intr_seen        <= '0;
         execute_commit_if.jump_instr       <= '0;
         execute_commit_if.jump_addr        <= '0;
+        execute_commit_if.exception_a            <= 0; // TODO
+        execute_commit_if.exception_mu            <= 0; // TODO
+        execute_commit_if.exception_du            <= 0; // TODO
+        execute_commit_if.exception_ls            <= 0; // TODO
+
+        execute_commit_if.index_a  = '0;
+        execute_commit_if.index_mu = '0;
+        execute_commit_if.index_ls = '0;
+        execute_commit_if.index_du = '0;
+
+
         //execute_commit_if.branch_instr     <= '0;
         execute_commit_if.br_resolved_addr <= '0;
         //BRANCH PREDICTOR UPDATE
@@ -324,7 +346,7 @@ module ooo_execute_stage(
       end else if(hazard_if.pc_en ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
-        execute_commit_if.wen_au                 <= auif.wen; 
+        execute_commit_if.wen_au                 <= auif.wen_au; 
         execute_commit_if.wdata_au               <= auif.wdata_au;
         execute_commit_if.reg_rd_au              <= auif.reg_rd_au;
         //MULTIPLY
@@ -357,6 +379,11 @@ module ooo_execute_stage(
         execute_commit_if.intr_seen              <= intr_taken_ex; //TODO
         execute_commit_if.jump_instr             <= decode_execute_if.jump_sigs.jump_instr;
         execute_commit_if.jump_addr              <= jump_if.jump_addr;
+
+        execute_commit_if.exception_a            <= 0; // TODO
+        execute_commit_if.exception_mu            <= 0; // TODO
+        execute_commit_if.exception_du            <= 0; // TODO
+        execute_commit_if.exception_ls            <= 0; // TODO
         //execute_commit_if.branch_instr           <= branch_addr;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
@@ -365,6 +392,13 @@ module ooo_execute_stage(
         execute_commit_if.prediction             <= decode_execute_if.branch_sigs.prediction;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         execute_commit_if.pc4                    <= decode_execute_if.pc4;
+
+        execute_commit_if.index_a  = auif.index_a;
+        execute_commit_if.index_mu = mif.index_mu;
+        execute_commit_if.index_ls = lsif.index_ls;
+        execute_commit_if.index_du = dif.index_du;
+
+        
         //Halt
         execute_commit_if.halt_instr             <= decode_execute_if.halt_instr;
         //CPU tracker

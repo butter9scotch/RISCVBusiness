@@ -106,7 +106,7 @@ interface ooo_hazard_unit_if();
     output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
            ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, priv_pc
+           stall_all, priv_pc, ex_comm_flush
   );
 
   modport commit (

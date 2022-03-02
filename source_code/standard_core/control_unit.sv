@@ -354,5 +354,11 @@ module control_unit
       assign cu_if.halt = '0;
     end
   endgenerate
+
+
+  assign cu_if.arith_sigs.ready_a = 1;
+  assign cu_if.mult_sigs.ready_mu = 1;
+  assign cu_if.div_sigs.ready_du = 1;
+  assign cu_if.lsu_sigs.ready_ls = 1;
 endmodule
 

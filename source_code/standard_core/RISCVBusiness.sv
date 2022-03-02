@@ -150,6 +150,14 @@ module RISCVBusiness (
      ,.cb_if
      ,.rf_if
     );
+
+    assign cb_if.rv32v_commit_done  = 0;
+    assign cb_if.rv32v_exception  = 0;
+    assign cb_if.rv32v_wb_scalar_ready  = 0;
+    assign cb_if.rv32v_wb_exception = 0;
+    assign cb_if.rv32v_wb_scalar_index  = 0;
+    assign cb_if.rv32v_wb_vd  = 0;
+    assign cb_if.scalar_commit_ena = 0; 
    
    rv32i_reg_file reg_file (.*);
 

@@ -42,6 +42,8 @@ interface multiply_unit_if(input rv32i_types_pkg::mult_control_signals_t control
   logic [31:0] wdata_mu;
   logic busy_mu;
   logic done_mu;
+  [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
+
 
   always_comb begin : CONNECTIONS
     start_mu = control_sigs.ena;
@@ -50,6 +52,7 @@ interface multiply_unit_if(input rv32i_types_pkg::mult_control_signals_t control
     wen = control_sigs.wen;
     is_signed = control_sigs.is_signed;
     reg_rd = control_sigs.reg_rd;
+    index_mu = control_sigs.index_mu;
   end
   modport execute (
     input rs1_data, rs2_data, start_mu, high_low_sel, decode_done, wen, 

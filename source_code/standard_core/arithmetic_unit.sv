@@ -37,6 +37,7 @@ module arithmetic_unit (
   assign aluif.port_a = auif.port_a;
   assign aluif.port_b = auif.port_b;
   assign aluif.aluop  = auif.aluop;
+  // assign auif.wen_au
 
   // assign wdata_au = csr_instr_sel ? auif.csr_rdata : aluif.port_out;
   always_comb begin

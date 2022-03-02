@@ -37,6 +37,7 @@ package rv32i_types_pkg;
   parameter SW_W = 3;
   parameter IMM_W = 3;
   parameter REG_W = 3;
+  parameter NUM_CB_ENTRY = 16;
 
   typedef logic [WORD_SIZE-1:0] word_t;
 
@@ -255,6 +256,8 @@ package rv32i_types_pkg;
     w_src_t w_src;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_a;
+    [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
   } arith_control_signals_t;
 
   typedef struct packed {
@@ -264,6 +267,8 @@ package rv32i_types_pkg;
     logic decode_done;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_mu;
+    [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
   } mult_control_signals_t;
 
   typedef struct packed {
@@ -272,6 +277,8 @@ package rv32i_types_pkg;
     logic is_signed;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_du;
+    [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
   } div_control_signals_t;
 
   typedef struct packed {
@@ -282,6 +289,8 @@ package rv32i_types_pkg;
     opcode_t opcode;
     logic wen;
     logic [4:0] reg_rd;
+    logic ready_ls;
+    [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
   } lsu_control_signals_t;
 
   typedef struct packed {
@@ -345,7 +354,6 @@ package rv32i_types_pkg;
     logic wen;
     sign_type_t is_signed;
     logic [4:0] reg_rd;
-    logic ready_mu;
   } multiply_struct_t;
 
   typedef struct packed {
@@ -356,7 +364,6 @@ package rv32i_types_pkg;
     logic is_signed_div;
     logic wen;
     logic [4:0] reg_rd;
-    logic ready_div;
   } divide_struct_t;
 
   typedef struct packed {
@@ -371,7 +378,6 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
     opcode_t opcode;
-    logic ready_ls;
   } loadstore_struct_t;
 
   typedef struct packed {
@@ -382,7 +388,6 @@ package rv32i_types_pkg;
     logic [31:0] pc;
     logic wen;
     logic [4:0] reg_rd;
-    logic ready_a;
   } arith_struct_t;
 
   typedef struct packed {
@@ -438,7 +443,6 @@ package rv32i_types_pkg;
     logic instr_30;
   } cpu_tracker_signals_t;
 
-  parameter NUM_CB_ENTRY = 16;
 
 
 

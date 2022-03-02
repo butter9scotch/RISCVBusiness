@@ -217,6 +217,13 @@ module ooo_decode_stage (
   assign decode_execute_if.stall_arith = hazard_if.stall_au; 
   assign decode_execute_if.stall_loadstore = hazard_if.stall_ls; 
 
+  /*********************************************************
+  *** Completion buffer signals
+  *********************************************************/
+  logic TODO = 0;
+  assign cb_if.alloc_ena = ~hazard_if.stall_de;
+  assign cb_if.rv32v_wb_scalar_ena  = TODO;
+  assign cb_if.rv32v_instr  = TODO;
 
 
   always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
@@ -254,22 +261,45 @@ module ooo_decode_stage (
       decode_execute_if.div_sigs <= '0;
       decode_execute_if.lsu_sigs <= '0;
     end else begin
-      if ((hazard_if.id_ex_flush & hazard_if.pc_en) | halt) begin
-        // case of a flush
+      if ((hazard_if.id_ex_flush & hazard_if.pc_en) | halt) begin : FLUSH
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
         decode_execute_if.lsu_sigs <= '0;
-      end
-      // stall cases
-      else if(hazard_if.stall_de & hazard_if.pc_en) begin
-        decode_execute_if.mult_sigs <= '0;
-        decode_execute_if.div_sigs <= '0;
-        decode_execute_if.lsu_sigs <= '0;
-      // normal operation
-      end else if(hazard_if.pc_en) begin
-        decode_execute_if.mult_sigs <= cu_if.mult_sigs;
-        decode_execute_if.div_sigs <= cu_if.div_sigs;
-        decode_execute_if.lsu_sigs <= cu_if.lsu_sigs;
+      end else if (hazard_if.stall_de & hazard_if.pc_en) begin : BUBBLES
+          decode_execute_if.mult_sigs <= '0;
+          decode_execute_if.div_sigs <= '0;
+          decode_execute_if.lsu_sigs <= '0;
+      end else begin
+        if(hazard_if.pc_en & ~(hazard_if.stall_mu)) begin
+          decode_execute_if.mult_sigs.ena <= cu_if.mult_sigs.ena;
+          decode_execute_if.mult_sigs.high_low_sel <= cu_if.mult_sigs.high_low_sel;
+          decode_execute_if.mult_sigs.is_signed <= cu_if.mult_sigs.is_signed;
+          decode_execute_if.mult_sigs.decode_done <= cu_if.mult_sigs.decode_done;
+          decode_execute_if.mult_sigs.wen <= cu_if.mult_sigs.wen;
+          decode_execute_if.mult_sigs.reg_rd <= cu_if.mult_sigs.reg_rd;
+          decode_execute_if.mult_sigs.ready_mu <= cu_if.mult_sigs.ready_mu;
+          decode_execute_if.mult_sigs.index_mu <= cb_if.cur_tail;
+        end
+        if(hazard_if.pc_en & ~(hazard_if.stall_du)) begin
+          decode_execute_if.div_sigs.ena <= cu_if.div_sigs.ena;
+          decode_execute_if.div_sigs.div_type <= cu_if.div_sigs.div_type;
+          decode_execute_if.div_sigs.is_signed <= cu_if.div_sigs.is_signed;
+          decode_execute_if.div_sigs.wen <= cu_if.div_sigs.wen;
+          decode_execute_if.div_sigs.reg_rd <= cu_if.div_sigs.reg_rd;
+          decode_execute_if.div_sigs.ready_du <= cu_if.div_sigs.ready_du;
+          decode_execute_if.div_sigs.index_du <= cb_if.cur_tail;
+        end
+        if(hazard_if.pc_en & ~(hazard_if.stall_ls)) begin
+          decode_execute_if.lsu_sigs.load_type <= cu_if.lsu_sigs.load_type;
+          decode_execute_if.lsu_sigs.byte_en <= cu_if.lsu_sigs.byte_en;
+          decode_execute_if.lsu_sigs.dren <= cu_if.lsu_sigs.dren;
+          decode_execute_if.lsu_sigs.dwen <= cu_if.lsu_sigs.dwen;
+          decode_execute_if.lsu_sigs.opcode <= cu_if.lsu_sigs.opcode;
+          decode_execute_if.lsu_sigs.wen <= cu_if.lsu_sigs.wen;
+          decode_execute_if.lsu_sigs.reg_rd <= cu_if.lsu_sigs.reg_rd;
+          decode_execute_if.lsu_sigs.ready_ls <= cu_if.lsu_sigs.ready_ls;
+          decode_execute_if.lsu_sigs.index_ls <= cb_if.cur_tail;
+        end
       end
     end
   end
@@ -328,7 +358,13 @@ module ooo_decode_stage (
         decode_execute_if.exception_sigs <= '0;
 
       end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
-        decode_execute_if.arith_sigs <= cu_if.arith_sigs;
+        decode_execute_if.arith_sigs.alu_op <= cu_if.arith_sigs.alu_op;
+        decode_execute_if.arith_sigs.w_src <= cu_if.arith_sigs.w_src;
+        decode_execute_if.arith_sigs.wen <= cu_if.arith_sigs.wen;
+        decode_execute_if.arith_sigs.reg_rd <= cu_if.arith_sigs.reg_rd;
+        decode_execute_if.arith_sigs.ready_a <= cu_if.arith_sigs.ready_a;
+        decode_execute_if.arith_sigs.index_a <= cb_if.cur_tail;
+
         decode_execute_if.reg_file_wdata <= next_reg_file_wdata;
         //JUMP
         decode_execute_if.jump_sigs <= jump_signals;
@@ -342,10 +378,10 @@ module ooo_decode_stage (
         //CSR
         decode_execute_if.csr_sigs <= cu_if.csr_sigs;
 
-        decode_execute_if.arith_sigs.ready_a <= 1;
-        decode_execute_if.div_sigs.ready_div <= 1;
-        decode_execute_if.mult_sigs.ready_mu <= 1;
-        decode_execute_if.lsu_sigs.ready_div <= 1;
+        // decode_execute_if.arith_sigs.ready_a <= 1;
+        // decode_execute_if.div_sigs.ready_div <= 1;
+        // decode_execute_if.mult_sigs.ready_mu <= 1;
+        // decode_execute_if.lsu_sigs.ready_ls <= 1;
         //Exceptions
         // elaborateed because half of the signals are form cu_if and 
         // other half is from the fetch decode latch

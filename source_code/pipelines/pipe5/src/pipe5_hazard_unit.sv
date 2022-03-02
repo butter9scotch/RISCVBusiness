@@ -9,7 +9,7 @@ module pipe5_hazard_unit (
   logic branch_jump;
   logic load_stall;
   logic e_fetch_stage, e_decode_stage, e_execute_stage;
-  logic intr_e_flush, intr_execption;
+  logic intr_e_flush, intr_exception;
 
   //Incrementing PC only when instruction has been fetched
   assign wait_for_imem = hazard_if.iren & hazard_if.i_mem_busy;
@@ -20,7 +20,7 @@ module pipe5_hazard_unit (
   
   //Branch jump 
   assign branch_jump = hazard_if.jump || (hazard_if.branch && hazard_if.mispredict);
-  assign hazard_if.npc_sel = branch_jump & ~intr_execption;
+  assign hazard_if.npc_sel = branch_jump & ~intr_exception;
 
   //Pipe flush logic 
   assign hazard_if.csr_flush = hazard_if.csr;
@@ -65,8 +65,8 @@ module pipe5_hazard_unit (
   assign hazard_if.iren           = 1'b1; 
   assign prv_pipe_if.pipe_clear   =   e_execute_stage | e_decode_stage | e_fetch_stage| hazard_if.intr_taken;
 
-  assign intr_execption = e_fetch_stage | e_decode_stage | e_execute_stage | hazard_if.intr_taken | prv_pipe_if.ret;
-  assign intr_e_flush = intr_execption;
+  assign intr_exception = e_fetch_stage | e_decode_stage | e_execute_stage | hazard_if.intr_taken | prv_pipe_if.ret;
+  assign intr_e_flush = intr_exception;
 
   
 endmodule

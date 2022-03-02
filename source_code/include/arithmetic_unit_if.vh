@@ -4,9 +4,7 @@
 interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t control_sigs);
 
   // import alu_types_pkg::*;
-  import rv32i_types_pkg::word_t;
-  import rv32i_types_pkg::aluop_t;
-  import rv32i_types_pkg::w_src_t;
+  import rv32i_types_pkg::*;
 
   logic wen;
   aluop_t aluop;
@@ -23,12 +21,15 @@ interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t cont
   logic [4:0] reg_rd_au;
   logic busy_au;
   logic j_sel;
+  [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
+
 
   always_comb begin : CONNECTIONS
     wen_au = control_sigs.wen;
     aluop = control_sigs.alu_op;
     w_src =  control_sigs.w_src;
     reg_rd_au = control_sigs.reg_rd;
+    index_a = control_sigs.index_a;
   end
 
   modport au (

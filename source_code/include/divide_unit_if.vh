@@ -3,6 +3,8 @@
 
 interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_sigs);
   
+  import rv32i_types_pkg::*;
+  
   logic [31:0] rs1_data; 
   logic [31:0] rs2_data; 
   logic [31:0] wdata_du; 
@@ -15,6 +17,8 @@ interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_si
   logic start_div;
   logic busy_du;
   logic done_du;
+  [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
+
 
   always_comb begin : CONNECTIONS
     wen = control_sigs.wen;
@@ -22,6 +26,7 @@ interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_si
     div_type = control_sigs.div_type;
     start_div = control_sigs.ena;
     reg_rd = control_sigs.reg_rd;
+    index_du = control_sigs.index_du;
   end
 
   modport execute (

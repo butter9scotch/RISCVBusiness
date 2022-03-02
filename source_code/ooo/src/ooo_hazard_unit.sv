@@ -112,7 +112,7 @@ module ooo_hazard_unit (
   assign hazard_if.csr_flush = 0;
   assign hazard_if.ifence_flush = 0;
   assign hazard_if.if_id_flush  = 0;
-  assign hazard_if.id_ex_flush  = 0;
+  assign hazard_if.ex_comm_flush  = 0;
 
 
 
