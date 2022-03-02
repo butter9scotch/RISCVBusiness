@@ -254,15 +254,15 @@ module l1_cache #(
 
     
 
-    ///WAS COMMENTED OUT BUT I DONT KNOW WHEN
-    always_comb begin
-        if(ASSOC == 1) begin
-            ridx  = 1'b0;
-        end
-        else if (ASSOC == 2) begin
-            ridx  = ~last_used[decoded_addr.set_bits];
-        end
-    end
+    ///WAS COMMENTED OUT Because combined with block below
+    //always_comb begin
+    //    if(ASSOC == 1) begin
+    //        ridx  = 1'b0;
+    //    end
+    //    else if (ASSOC == 2) begin
+    //        ridx  = ~last_used[decoded_addr.set_bits];
+    //    e:nd
+    //end
     ///
 
 
