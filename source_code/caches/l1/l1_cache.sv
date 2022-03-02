@@ -349,7 +349,8 @@ module l1_cache #(
 		//next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
                 mem_gen_bus_if.addr   = read_addr; 
                 mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
-                
+               
+ 
                 if(finish_word) begin
                     clr_word_ctr 					  = 1'b1;
                     next_read_addr 					  = decoded_addr;
