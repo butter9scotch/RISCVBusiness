@@ -1,36 +1,26 @@
 irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
-TOOL:	irun(64)	15.20-s030: Started on Feb 12, 2022 at 15:21:08 EST
+TOOL:	irun(64)	15.20-s030: Started on Mar 02, 2022 at 01:47:53 EST
 irun
 	-gui
 	-access +rwc
 	+nctimescale+1ns/1ns
 	-coverage all
 	-covoverwrite
-	-incdir /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/include/
-	/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
+	-incdir /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/include/
+	/home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
 	l1_cache.sv
-	/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
+	../memory_arbiter.sv
 	tb/tb_l1_cache.sv
-file: /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
-	package worklib.rv32i_types_pkg:sv
-		errors: 0, warnings: 0
+Recompiling... reason: file './l1_cache.sv' is newer than expected.
+	expected: Wed Mar  2 01:39:34 2022
+	actual:   Wed Mar  2 01:47:48 2022
 file: l1_cache.sv
-	interface worklib.generic_bus_if:vh
-		errors: 0, warnings: 0
 	module worklib.l1_cache:sv
-		errors: 0, warnings: 0
-file: /home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
-	module worklib.memory_arbiter:sv
-		errors: 0, warnings: 0
-file: tb/tb_l1_cache.sv
-	module worklib.tb_l1_cache:sv
-		errors: 0, warnings: 0
-	program worklib.test:sv
 		errors: 0, warnings: 0
 		Caching library 'worklib' ....... Done
 	Elaborating the design hierarchy:
 	Top level design units:
-		$unit_0x6b22b362
+		$unit_0x6a38ea24
 		rv32i_types_pkg
 		memory_arbiter
 		tb_l1_cache
@@ -51,14 +41,8 @@ ncelab: *W,COVFHT: FSM hold transitions (transitions to the current state) are n
 	Enabling instrumentation for coverage types: block expression FSM toggle functional
 ncelab: *W,COVDCL: By default expression coverage is scored only for Verilog logical operators (|| and &&) and VHDL logical operators (OR, AND, NOR, and NAND), and is scored only in condition expressions. To score coverage for other operators and for expressions in other statements, use the "set_expr_coverable_operators" and "set_expr_coverable_statements" coverage configuration file commands with suitable options at elaboration.
 	Generating native compiled code:
-		worklib.l1_cache:sv <0x188713c7>
-			streams:  21, words: 65236
-		worklib.memory_arbiter:sv <0x7016e9e8>
-			streams:   4, words: 12041
-		worklib.tb_l1_cache:sv <0x450eea47>
-			streams:  13, words:  4468
-		worklib.test:sv <0x736a8f29>
-			streams:   1, words: 98488
+		worklib.l1_cache:sv <0x30814b19>
+			streams:  18, words: 62250
 ncelab: *W,COVNOEN: By default, toggle coverage is not supported for systemverilog enumerated nets and variables. To enable toggle coverage of these objects, specify the 'set_toggle_scoring -sv_enum' command in the coverage configuration file.
     integer 	 test_num, test_value, test_value2;
             	        |
@@ -77,7 +61,7 @@ ncelab: *W,COVMDD (./l1_cache.sv,108|19): Toggle coverage for bit, logic, reg, w
 		Registers:              90      76
 		Scalar wires:           22       -
 		Vectored wires:          1       -
-		Always blocks:          14      14
+		Always blocks:           9       9
 		Initial blocks:          2       2
 		Cont. assignments:       4       4
 		Pseudo assignments:     11      11
@@ -91,6 +75,66 @@ ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009
 Relinquished control to SimVision...
 ncsim> 
 ncsim> source /package/eda/cadence/INCISIVE152/tools/inca/files/ncsimrc
+ncsim> database -open waves -into waves.shm -default
+Created default SHM database waves
+ncsim> probe -create -shm tb_l1_cache.TB_DUT.CLK tb_l1_cache.TB_DUT.__assert_1 tb_l1_cache.mem_gen_bus_if.addr tb_l1_cache.proc_gen_bus_if.addr tb_l1_cache.TB_DUT.__assert_2 tb_l1_cache.TB_DUT.__assert_3 tb_l1_cache.proc_gen_bus_if.rdata tb_l1_cache.TB_DUT.__assert_4 tb_l1_cache.TB_DUT.__assert_6 tb_l1_cache.mem_gen_bus_if.wdata tb_l1_cache.TB_DUT.test_value tb_l1_cache.TB_DUT.__assert_7 tb_l1_cache.TB_DUT.__assert_8 tb_l1_cache.TB_DUT.test_value2 tb_l1_cache.TB_DUT.__assert_9 tb_l1_cache.TB_DUT.__assert_10 tb_l1_cache.TB_DUT.__assert_11 tb_l1_cache.TB_DUT.clear tb_l1_cache.TB_DUT.clear_done tb_l1_cache.TB_DUT.flush tb_l1_cache.TB_DUT.flush_done tb_l1_cache.TB_DUT.nRST tb_l1_cache.TB_DUT.test_case tb_l1_cache.TB_DUT.test_num tb_l1_cache.mem_gen_bus_if.generic_bus.addr tb_l1_cache.mem_gen_bus_if.generic_bus.busy tb_l1_cache.mem_gen_bus_if.generic_bus.byte_en tb_l1_cache.mem_gen_bus_if.generic_bus.rdata tb_l1_cache.mem_gen_bus_if.generic_bus.ren tb_l1_cache.mem_gen_bus_if.generic_bus.wdata tb_l1_cache.mem_gen_bus_if.generic_bus.wen tb_l1_cache.proc_gen_bus_if.cpu.addr tb_l1_cache.proc_gen_bus_if.cpu.busy tb_l1_cache.proc_gen_bus_if.cpu.byte_en tb_l1_cache.proc_gen_bus_if.cpu.rdata tb_l1_cache.proc_gen_bus_if.cpu.ren tb_l1_cache.proc_gen_bus_if.cpu.wdata tb_l1_cache.proc_gen_bus_if.cpu.wen
+Created probe 1
+ncsim> run
+Simulation complete via $finish(1) at time 23805 NS + 3
+./tb/tb_l1_cache.sv:313 */	$finish;	
+ncsim> probe -create -shm tb_l1_cache.DUT.cache[0]
+Created probe 2
+ncsim> reset
+ncsim: *W,C58RST: Reset command executed. Coverage is enabled for the subsequent simulation run.  The coverage test name needs to be changed to prevent data overwrite, and any coverage control commands previously used must be reissued.
+ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+Loaded snapshot worklib.memory_arbiter:sv
+ncsim> run
+Simulation complete via $finish(1) at time 23805 NS + 3
+./tb/tb_l1_cache.sv:313 */	$finish;	
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
+ncsim> ^C
 ncsim> ^C
 ncsim> exit
 
@@ -102,6 +146,6 @@ coverage setup:
   testname :  test
 
 coverage files:
-  model(design data) :  ./cov_work/scope/icc_6dc14cdb_7b42be67.ucm
-  data               :  ./cov_work/scope/test/icc_6dc14cdb_7b42be67.ucd
-TOOL:	irun(64)	15.20-s030: Exiting on Feb 12, 2022 at 15:24:12 EST  (total: 00:03:04)
+  model(design data) :  ./cov_work/scope/icc_15c09a18_7b42be67.ucm (reused)
+  data               :  ./cov_work/scope/test/icc_15c09a18_7b42be67.ucd
+TOOL:	irun(64)	15.20-s030: Exiting on Mar 02, 2022 at 01:55:20 EST  (total: 00:07:27)

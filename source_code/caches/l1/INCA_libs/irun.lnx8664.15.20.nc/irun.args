@@ -10,8 +10,8 @@
 all
 -covoverwrite
 -incdir
-/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/include/
-/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
+/home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/include/
+/home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
 l1_cache.sv
-/home/asicfab/a/socet18/AFTx06/RISCVBusiness/source_code/caches/memory_arbiter.sv
+../memory_arbiter.sv
 tb/tb_l1_cache.sv
