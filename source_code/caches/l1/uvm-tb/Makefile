@@ -13,7 +13,7 @@ INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
-TESTCASE = evict_test
+TESTCASE = nominal_test
 VERBOSITY = LOW
 RAND_SEED = random
 

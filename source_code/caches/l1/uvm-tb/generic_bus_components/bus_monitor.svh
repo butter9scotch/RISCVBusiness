@@ -33,7 +33,7 @@ class bus_monitor extends uvm_monitor;
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
-    //TODO: DO I NEED TO WORRY ABOUT OVERFLOW FOR CYCLE?
+    //TODO: DO I NEED TO WORRY ABOUT INTEGER OVERFLOW FOR CYCLE?
     super.run_phase(phase);
 
     forever begin
@@ -64,6 +64,7 @@ class bus_monitor extends uvm_monitor;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
+      //TODO: CHECK FOR INFITE BUSY FLAG
         while (bus_if.busy) begin
           @(posedge cif.CLK);
           cycle++; //wait for memory to return

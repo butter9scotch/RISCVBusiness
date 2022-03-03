@@ -96,7 +96,7 @@ tb_caches_top.sv
         - BusRead A Block
       - Prefetch B // no cpu req
         - BusRead B Block
-      - PrRd B or PrRd C (**)
+      - PrRd C (**) //hit
       - Issues:
         - if (**) is PrRd B
           - stall until cpu_ap sees PrRd B

@@ -8,6 +8,9 @@ import rv32i_types_pkg::*;
 
 class cache_env_config extends uvm_object;
     // TODO: WHAT CONFIGURATION INFO SHOULD WE ADD HERE?
+
+    int mem_timeout; //TODO: IMPLEMENT MEM_TIMEOUT, SEE I2C CONFIG TB FOR COMMAND LINE HOOK - LATEST COMMIT, something like get/set config
+
     function new(string name = "cache_env_config");
         super.new(name);
     endfunction

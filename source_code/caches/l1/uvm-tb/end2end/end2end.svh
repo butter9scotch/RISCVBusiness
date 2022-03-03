@@ -56,7 +56,7 @@ class end2end extends uvm_scoreboard;
       if (!mem_fifo.is_empty()) begin
         // flush all transactions made on mem bus without a processor req (prefetch)
         mem_fifo.peek(mem_tx);
-        while(mem_tx.cycle < prev_cpu_tx.cycle) begin
+        while(mem_tx.cycle > prev_cpu_tx.cycle) begin
           mem_fifo.get(mem_tx);
           handle_mem_tx(mem_tx);
         end
@@ -86,6 +86,7 @@ class end2end extends uvm_scoreboard;
 
           // update cache from mem bus transactions
           while(!mem_fifo.is_empty()) begin
+            //TODO: DO WE WANT TO COUNT THE NUMBER OF TXNS TO ENSURE THE WHOLE WORD IS READ FROM MEM
             mem_fifo.get(mem_tx);
             handle_mem_tx(mem_tx);
           end

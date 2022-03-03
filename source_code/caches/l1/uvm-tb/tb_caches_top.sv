@@ -7,6 +7,9 @@
 // BFM file
 `include "memory_bfm.sv"
 
+// Interface checker file
+`include "interface_checker.svh"
+
 // interface file
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
@@ -56,6 +59,12 @@ module tb_caches_top ();
   .cif(cpu_cif.cache),
 	.mem_gen_bus_if(l1_bus_if.cpu),
 	.proc_gen_bus_if(cpu_bus_if.generic_bus));
+
+  interface_checker if_check(
+    .cif(cpu_cif.cache),
+	  .cpu_if(cpu_bus_if.generic_bus),
+    .mem_if(l1_bus_if.generic_bus)
+  );  
 
   initial begin
     uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cpu_cif", cpu_cif);

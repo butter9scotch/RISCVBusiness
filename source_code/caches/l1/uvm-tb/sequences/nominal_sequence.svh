@@ -15,6 +15,8 @@ class nominal_sequence extends uvm_sequence #(cpu_transaction);
     super.new(name);
   endfunction: new
 
+  // rand int N;  //TODO: RANDOMIZE N
+
   task body();
     cpu_transaction req_item;
     int N; // total number of processor side transactions
