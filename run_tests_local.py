@@ -106,7 +106,7 @@ def compile_asm(file_name):
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))
 
-    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi, '-static',
+    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi, '-static',
                 '-mcmodel=medany', '-fvisibility=hidden', '-nostdlib',
                 '-nostartfiles', '-T./verification/asm-env/link.ld',
                 '-I./verification/asm-env/asm', file_name, '-o', output_name]
@@ -115,7 +115,7 @@ def compile_asm(file_name):
         return -1
 
     # create an meminit.hex file from the elf file produced above
-    cmd_arr = ['elf2hex', '8', '65536', output_name, '2147483648']
+    cmd_arr = ['/home/ecegrid/a/socpub/Public/riscv_dev/riscv_installs/RV_current/bin/elf2hex', '8', '65536', output_name, '2147483648']
     hex_file_loc = output_dir + 'meminit.hex'
     with open(hex_file_loc, 'w') as hex_file:
         failure = subprocess.call(cmd_arr, stdout=hex_file)
@@ -139,18 +139,19 @@ def compile_asm_for_self(file_name):
     abi = 'lp64' if '64' in ARCH else 'ilp32'
 
 
-    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
+    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
                 '-static', '-mcmodel=medany', '-fvisibility=hidden',
                 '-nostdlib', '-nostartfiles', 
                 '-T./verification/asm-env/link.ld',
                 '-I./verification/asm-env/selfasm', file_name, '-o',
                 output_name]
+    #print " ".join(cmd_arr)
     failure = subprocess.call(cmd_arr)
     if failure:
         return -1
 
     # create an meminit.hex file from the elf file produced above
-    cmd_arr = ['elf2hex', '8', '65536', output_name, '2147483648']
+    cmd_arr = ['/home/ecegrid/a/socpub/Public/riscv_dev/riscv_installs/RV_current/bin/elf2hex', '8', '65536', output_name, '2147483648']
     hex_file_loc = output_dir + 'meminit.hex'
     with open(hex_file_loc, 'w') as hex_file:
         failure = subprocess.call(cmd_arr, stdout=hex_file)
@@ -438,8 +439,7 @@ def run_spike_asm(file_name):
 
     elf_name = output_dir + short_name + '.elf'
     log_name = output_dir + short_name + '_spike.hex'
-    cmd_arr = ['spike', '-l', '--isa=RV32IM', '+signature=' + log_name, elf_name]
-    print(cmd_arr)
+    cmd_arr = ['spike', '-l', '--isa=RV32G', '+signature=' + log_name, elf_name]
     spike_log = open(output_dir + short_name + '_spike.trace', 'w')
     failure = subprocess.call(cmd_arr, stdout = spike_log, stderr = spike_log)
     spike_log.close()
@@ -598,49 +598,15 @@ def run_selfasm():
         loc = "./verification/self-tests/" + ARCH + "/" + FILE_NAME + "*.S"
         files = glob.glob(loc)
     print "Starting self tests..."
+    print files
     for f in files:
-        # TODO: Fix timer error
-        #if 'timer2' in f: continue
-
-        if 'asicfab' in os.environ['HOSTNAME']:
-            # Do work remotely
-            test_name = f.split('/')[-1][:-2]
-            ee256_cmd = '#!/bin/sh\nexport RISCV=~/riscv-toolchain\nexport PATH='
-            ee256_cmd += '~/riscv-toolchain/bin:$PATH\ncd '
-            ee256_cmd += 'RISCVBusiness \npython compile_asm_for_self.py ' + f
-
-            with open('compile256.cmd', 'w') as cmd_f:
-                cmd_f.write(ee256_cmd)
-            asic_fab_cmd = "#!/bin/sh\nssh socetlnx03@128.46.75.147 'bash -s'  < compile256.cmd"
-            with open('compile_asicfab.cmd', 'w') as cmd_f:
-                cmd_f.write(asic_fab_cmd)
-            ret = subprocess.call(['chmod', '+x', 'compile_asicfab.cmd'])
-            if ret != 0:
-                print('Could not make executable')
-                sys.exit()
-            ret = subprocess.call(['compile_asicfab.cmd'])
-            if ret != 0:
-                print('Failed compiling on EE256')
-                sys.exit()
-
-            # Now bring the hex file over to asicfab
-            if not os.path.exists('./sim_out/' + ARCH + '/' + test_name):
-                os.makedirs('./sim_out/' + ARCH + '/' + test_name)
-            scp_cmd = 'scp -q socetlnx03@128.46.75.147:~/'
-            scp_cmd += 'RISCVBusiness/sim_out/' + ARCH + '/' + test_name
-            scp_cmd += '/* ./sim_out/' + ARCH + '/' + test_name
-            ret = subprocess.call(scp_cmd.split())
-            if ret != 0:
-                print('Could not transfer to asicfab')
-        else:
-            # Do the work locally
-            ret = compile_asm_for_self(f)
-            if ret != 0:
-                if ret == -1:
-                    print "An error has occured during GCC compilation"
-                elif ret == -2:
-                    print "An error has occured converting elf to hex"
-                sys.exit(ret)
+        ret = compile_asm_for_self(f)
+        if ret != 0:
+           if ret == -1:
+               print "An error has occured during GCC compilation"
+           elif ret == -2:
+               print "An error has occured converting elf to hex"
+           sys.exit(ret)
 
         clean_init_hex_for_self(f)
         ret = run_self_sim(f)
