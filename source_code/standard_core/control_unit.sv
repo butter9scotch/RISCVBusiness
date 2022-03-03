@@ -90,12 +90,12 @@ module control_unit
   // Select the source for writing
   always_comb begin
     case(cu_if.opcode)
-      LOAD                  : cu_if.arith_sigs.w_src   = 3'd0;
-      JAL, JALR             : cu_if.arith_sigs.w_src   = 3'd1;
-      LUI                   : cu_if.arith_sigs.w_src   = 3'd2;
-      IMMED, AUIPC, REGREG  : cu_if.arith_sigs.w_src   = 3'd3;
-      SYSTEM                : cu_if.arith_sigs.w_src   = 3'd4;
-      default               : cu_if.arith_sigs.w_src   = 3'd0;
+      LOAD                  : cu_if.arith_sigs.w_src   = LOAD_SRC;
+      JAL, JALR             : cu_if.arith_sigs.w_src   = JUMP_SRC;
+      LUI                   : cu_if.arith_sigs.w_src   = LUI_SRC;
+      IMMED, AUIPC, REGREG  : cu_if.arith_sigs.w_src   = ALU_SRC;
+      SYSTEM                : cu_if.arith_sigs.w_src   = CSR;
+      default               : cu_if.arith_sigs.w_src   = LOAD_SRC;
     endcase
   end
   // Assign register write enable
@@ -356,9 +356,9 @@ module control_unit
   endgenerate
 
 
-  assign cu_if.arith_sigs.ready_a = 1;
-  assign cu_if.mult_sigs.ready_mu = 1;
-  assign cu_if.div_sigs.ready_du = 1;
-  assign cu_if.lsu_sigs.ready_ls = 1;
+  assign cu_if.arith_sigs.ready_a =  (cu_if.sfu_type == ARITH_S);
+  assign cu_if.mult_sigs.ready_mu = cu_if.wen &  (cu_if.sfu_type == MUL_S);
+  assign cu_if.div_sigs.ready_du = cu_if.wen &  (cu_if.sfu_type == DIV_S);
+  assign cu_if.lsu_sigs.ready_ls = (cu_if.sfu_type == LOADSTORE_S);
 endmodule
 

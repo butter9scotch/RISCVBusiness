@@ -43,7 +43,7 @@ module divide_unit (
     .dividend(dif.rs1_data),
     .divisor(dif.rs2_data),
     .is_signed(dif.is_signed_div),
-    .start(dif.start_div && (start_div_state == OFF)),
+    .start(dif.start_div & ~start_reg),
     .finished(done),
     .quotient(quotient),
     .remainder(remainder)
@@ -67,15 +67,15 @@ module divide_unit (
     end
   end
 
-  always_ff @(posedge CLK or negedge nRST) begin
-    if (~nRST) begin
-      start_div_state = OFF;
-    end else begin
-      case (start_div_state)
-      OFF:  if (dif.start_div) start_div_state <= BUSY;
-      BUSY: if (done) start_div_state <= OFF;
-      endcase
-    end
-  end
+  // always_ff @(posedge CLK or negedge nRST) begin
+  //   if (~nRST) begin
+  //     start_div_state = OFF;
+  //   end else begin
+  //     case (start_div_state)
+  //     OFF:  if (dif.start_div) start_div_state <= BUSY;
+  //     BUSY: if (done) start_div_state <= OFF;
+  //     endcase
+  //   end
+  // end
 
 endmodule

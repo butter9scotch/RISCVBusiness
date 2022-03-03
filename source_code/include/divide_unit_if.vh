@@ -17,7 +17,7 @@ interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_si
   logic start_div;
   logic busy_du;
   logic done_du;
-  [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
 
 
   always_comb begin : CONNECTIONS
@@ -25,7 +25,7 @@ interface divide_unit_if(input rv32i_types_pkg::div_control_signals_t control_si
     is_signed_div = control_sigs.is_signed;
     div_type = control_sigs.div_type;
     start_div = control_sigs.ena;
-    reg_rd = control_sigs.reg_rd;
+    reg_rd_du = control_sigs.reg_rd;
     index_du = control_sigs.index_du;
   end
 

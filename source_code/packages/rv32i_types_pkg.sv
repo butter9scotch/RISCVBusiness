@@ -252,23 +252,24 @@ package rv32i_types_pkg;
 
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
+
     aluop_t alu_op;
     w_src_t w_src;
     logic wen;
     logic [4:0] reg_rd;
     logic ready_a;
-    [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
+    logic [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
   } arith_control_signals_t;
 
   typedef struct packed {
     logic ena;
     logic high_low_sel;
-    logic is_signed;
+    sign_type_t is_signed;
     logic decode_done;
     logic wen;
     logic [4:0] reg_rd;
     logic ready_mu;
-    [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
+    logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
   } mult_control_signals_t;
 
   typedef struct packed {
@@ -278,7 +279,7 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
     logic ready_du;
-    [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
+    logic [$clog2(NUM_CB_ENTRY)-1:0] index_du; 
   } div_control_signals_t;
 
   typedef struct packed {
@@ -290,7 +291,7 @@ package rv32i_types_pkg;
     logic wen;
     logic [4:0] reg_rd;
     logic ready_ls;
-    [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
+    logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
   } lsu_control_signals_t;
 
   typedef struct packed {
@@ -343,7 +344,6 @@ package rv32i_types_pkg;
   } cpu_tracker_t;
 
   // TODO: add floating point control signals struct here
-////////
 
   typedef struct packed {
     logic [31:0] rs1_data;

@@ -21,7 +21,7 @@ interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t cont
   logic [4:0] reg_rd_au;
   logic busy_au;
   logic j_sel;
-  [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
 
 
   always_comb begin : CONNECTIONS

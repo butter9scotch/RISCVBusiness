@@ -47,31 +47,36 @@ module completion_buffer # (
   } cb_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
+  logic [$clog2(NUM_ENTRY) - 1:0] head_sel;
   cb_entry cb [0:NUM_ENTRY-1]; 
   cb_entry next_cb [0:NUM_ENTRY-1]; 
   logic move_head, flush_cb;
   integer i;
+
+  assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
+  // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
+
   assign cb_if.cur_tail          = tail[$clog2(NUM_ENTRY)-1:0]; 
   //Register file signals here... this is just to stay consistent with the vector unit
-  assign rf_if.w_data            = cb[head].data; 
-  assign rf_if.rd                = cb[head].vd; 
-  assign rf_if.wen               = cb[head].valid & ~cb_if.flush & cb[head].wen; 
-  // assign cb_if.scalar_commit_ena = cb[head].valid & ~cb_if.flush & cb[head].wen;
-  // assign cb_if.vd_final          = cb[head].vd; 
-  // assign cb_if.wdata_final       = cb[head].data; 
+  assign rf_if.w_data            = cb[head_sel].data; 
+  assign rf_if.rd                = cb[head_sel].vd; 
+  assign rf_if.wen               = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen; 
+  // assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen;
+  assign cb_if.vd_final          = cb[head_sel].vd; 
+  assign cb_if.wdata_final       = cb[head_sel].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
-  assign cb_if.flush             = cb[head].exception | cb[head].branch_mispredict_mal;
-  assign cb_if.exception         = cb[head].exception | cb_if.rv32v_exception; // WEN to epc register
-  //assign cb_if.scalar_commit_ena = cb[head].valid & ~cb_if.flush;
-  assign cb_if.rv32v_commit_ena  = cb[head].rv32v & ~cb[head].wen; // For vector instr that is not writing back to scalar reg
-  assign cb_if.rv32f_commit_ena  = cb[head].rv32f & cb[head].valid & ~cb_if.flush & ~cb[head].wen; 
+  assign cb_if.flush             = cb[head_sel].exception | cb[head_sel].branch_mispredict_mal;
+  assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
+  //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
+  assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
+  assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
-  assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head].valid & ~cb_if.flush;
+  assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
-  assign cb_if.branch_mispredict_ena = cb[head].branch_mispredict_mal & ~cb[head].exception;
-  assign cb_if.mal_priv = cb[head].branch_mispredict_mal & cb[head].exception;
+  assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
+  assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
  
   //Hazard unit logic
   assign hazard_if.rob_full = cb_if.full;
@@ -127,7 +132,7 @@ module completion_buffer # (
     next_cb = cb;
     // Clear head entry when committed
     if (move_head) begin
-      next_cb[head] = '0;
+      next_cb[head_sel] = '0;
     end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin

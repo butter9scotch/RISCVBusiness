@@ -30,7 +30,7 @@ module multiplier
 	input logic nRST,
 	input logic [31:0] multiplicand,
 	input logic [31:0] multiplier,
-	input sign_type_t [1:0] is_signed,
+	input sign_type_t is_signed,
 	input logic start,
 	output logic finished,
 	output logic next_finished,

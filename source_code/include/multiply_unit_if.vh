@@ -42,7 +42,7 @@ interface multiply_unit_if(input rv32i_types_pkg::mult_control_signals_t control
   logic [31:0] wdata_mu;
   logic busy_mu;
   logic done_mu;
-  [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu; 
 
 
   always_comb begin : CONNECTIONS

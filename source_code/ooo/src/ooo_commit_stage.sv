@@ -118,7 +118,7 @@ module ooo_commit_stage(
   assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_commit_if.wdata_mu;  
   assign cb_if.vd_mu        = execute_commit_if.reg_rd_mu; 
   assign cb_if.exception_mu = execute_commit_if.exception_mu; 
-  assign cb_if.ready_mu     = execute_commit_if.wen_mu;
+  assign cb_if.ready_mu     = execute_commit_if.wen_mu; // 
 
   assign cb_if.index_du     = execute_commit_if.index_du; 
   assign cb_if.wdata_du     = execute_commit_if.exception_du ? execute_commit_if.pc_du : execute_commit_if.wdata_du; 

@@ -47,7 +47,7 @@ interface loadstore_unit_if(input rv32i_types_pkg::lsu_control_signals_t control
   opcode_t opcode;
   opcode_t opcode_ls;
   word_t memory_addr;
-  [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
 
 
   always_comb begin : CONNECTIONS

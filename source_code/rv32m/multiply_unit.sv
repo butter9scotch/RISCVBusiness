@@ -45,7 +45,7 @@ module multiply_unit (
     .multiplicand(multiplicand),
     .multiplier(multiplier),
     .is_signed(is_signed),
-    .start(start_reg),
+    .start(ena_ff0),
     .finished(done),
     .next_finished(next_done),
     .product(product)
@@ -57,10 +57,16 @@ module multiply_unit (
       high_low_sel_ff0 <= 0; 
       high_low_sel_ff1 <= 0; 
       high_low_sel_ff2 <= 0; 
+      // ena_ff0 <= 0; // something like this 
+      // ena_ff1 <= 0; // something like this 
+      // ena_ff2 <= 0; // something like this 
     end else begin
       high_low_sel_ff0 <= mif.high_low_sel;
       high_low_sel_ff1 <= high_low_sel_ff0;
       high_low_sel_ff2 <= high_low_sel_ff1;
+      // ena_ff0 <= mif.start_mu;
+      // ena_ff1 <= ena_ff0;
+      // ena_ff2 <= ena_ff1;
     end
   end
 
