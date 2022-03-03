@@ -356,7 +356,7 @@ module control_unit
   endgenerate
 
 
-  assign cu_if.arith_sigs.ready_a =  (cu_if.sfu_type == ARITH_S);
+  assign cu_if.arith_sigs.ready_a =  (cu_if.sfu_type == ARITH_S) && ~cu_if.pc_en;
   assign cu_if.mult_sigs.ready_mu = cu_if.wen &  (cu_if.sfu_type == MUL_S);
   assign cu_if.div_sigs.ready_du = cu_if.wen &  (cu_if.sfu_type == DIV_S);
   assign cu_if.lsu_sigs.ready_ls = (cu_if.sfu_type == LOADSTORE_S);

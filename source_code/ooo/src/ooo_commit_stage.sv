@@ -76,7 +76,8 @@ module ooo_commit_stage(
   assign illegal_braddr         = (execute_commit_if.branch_instr & (execute_commit_if.br_resolved_addr[1:0] != 2'b00));
 
   assign valid_pc = (execute_commit_if.opcode != opcode_t'('h0));
-  assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
+  assign branch_mispredict = 0;
+  //assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) 
@@ -107,7 +108,7 @@ module ooo_commit_stage(
                              execute_commit_if.wdata_au; 
   assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
   assign cb_if.exception_a = execute_commit_if.exception_a; 
-  assign cb_if.ready_a     = execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr; 
+  assign cb_if.ready_a     = execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr & valid_pc; 
   assign cb_if.wen_a       = (cb_if.exception_a | execute_commit_if.branch_instr | execute_commit_if.jump_instr) ? 1'b0 : 1'b1; 
   assign cb_if.valid_a     = execute_commit_if.branch_instr ? ~branch_mispredict : 
                              execute_commit_if.jump_instr ? 1'b0 :
@@ -118,47 +119,23 @@ module ooo_commit_stage(
   assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_commit_if.wdata_mu;  
   assign cb_if.vd_mu        = execute_commit_if.reg_rd_mu; 
   assign cb_if.exception_mu = execute_commit_if.exception_mu; 
-  assign cb_if.ready_mu     = execute_commit_if.wen_mu; // 
+  assign cb_if.ready_mu     = 0; // 
 
   assign cb_if.index_du     = execute_commit_if.index_du; 
   assign cb_if.wdata_du     = execute_commit_if.exception_du ? execute_commit_if.pc_du : execute_commit_if.wdata_du; 
   assign cb_if.vd_du        = execute_commit_if.reg_rd_du; 
   assign cb_if.exception_du = execute_commit_if.exception_du; 
-  assign cb_if.ready_du     = execute_commit_if.wen_du; 
+  assign cb_if.ready_du     = 0; 
 
   assign cb_if.index_ls     = execute_commit_if.index_ls; 
   assign cb_if.wdata_ls     = execute_commit_if.exception_ls ? execute_commit_if.pc_ls : execute_commit_if.wdata_ls; 
   assign cb_if.vd_ls        = execute_commit_if.reg_rd_ls; 
   assign cb_if.exception_ls = execute_commit_if.exception_ls; 
-  assign cb_if.ready_ls     = execute_commit_if.wen_ls; 
+  assign cb_if.ready_ls     = 0; 
   assign cb_if.mal_ls       = execute_commit_if.mal_addr; 
+  assign cb_if.halt_instr   = execute_commit_if.halt_instr;
+  //assign cb_if.opcode_commit = execute_commit_if.opcode;
 
-
-
-
-
-
-
-  always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
-    if (~nRST) begin
-      execute_commit_if.mult_sigs <= '0;
-      execute_commit_if.div_sigs <= '0;
-      execute_commit_if.lsu_sigs <= '0;
-      execute_commit_if.arith_sigs <= '0;
-    end else begin
-      if (((hazard_if.ex_comm_flush) & hazard_if.pc_en) | halt) begin
-        execute_commit_if.mult_sigs <= '0;
-        execute_commit_if.div_sigs <= '0;
-        execute_commit_if.lsu_sigs <= '0;
-        execute_commit_if.arith_sigs <= '0;
-      end else if(hazard_if.pc_en) begin
-        execute_commit_if.mult_sigs <= decode_execute_if.mult_sigs;
-        execute_commit_if.div_sigs <= decode_execute_if.div_sigs;
-        execute_commit_if.lsu_sigs <= decode_execute_if.lsu_sigs;
-        execute_commit_if.arith_sigs <= decode_execute_if.arith_sigs;
-      end
-    end
-  end
   /*******************************************************
   *** CPU tracker  
   *******************************************************/

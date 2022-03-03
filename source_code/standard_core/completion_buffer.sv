@@ -75,8 +75,10 @@ module completion_buffer # (
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
-  assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
-  assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
+  //assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
+  //assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
+  assign cb_if.branch_mispredict_ena = 0;
+  assign cb_if.mal_priv = 0;
  
   //Hazard unit logic
   assign hazard_if.rob_full = cb_if.full;
@@ -105,7 +107,7 @@ module completion_buffer # (
     next_tail = tail;
     if (flush_cb) begin
       next_tail = 0;
-    end else if (cb_if.alloc_ena & ~cb_if.full) begin
+    end else if (cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(6'b0))) begin
       next_tail = tail + 1;
     end
   end
@@ -146,8 +148,9 @@ module completion_buffer # (
       next_cb[tail].rv32v = 1;
       if (cb_if.rv32v_wb_scalar_ena) begin
         next_cb[tail].wen = 1;
-      end else
+      end else begin
         next_cb[tail].wen = 0;
+      end
     end
     // Next state for arithemtic unit result
     if (cb_if.ready_a) begin

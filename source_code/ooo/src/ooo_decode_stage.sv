@@ -55,7 +55,8 @@ module ooo_decode_stage (
   * Input to the Control Unit
   *******************************************************/
   assign cu_if.instr = fetch_decode_if.instr;
-
+  assign cu_if.pc_en = hazard_if.pc_en;
+  
   control_unit cu (
     .cu_if(cu_if)
   );
@@ -115,7 +116,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = ~hazard_if.stall_de;
+  assign rf_if.rden = cu_if.pc_en;
   
   /*******************************************************
   *** Sign Extensions of the Immediate Value
@@ -188,6 +189,19 @@ module ooo_decode_stage (
   *** Hazard unit connection  
   *******************************************************/
   assign hazard_if.halt = cu_if.halt; //TODO
+  assign hazard_if.rs1_busy  = rf_if.rs1_busy;
+  assign hazard_if.rs2_busy  = rf_if.rs2_busy;
+  assign hazard_if.rd_busy   = rf_if.rd_busy;
+  assign hazard_if.source_a_sel = cu_if.source_a_sel;
+  assign hazard_if.source_b_sel = cu_if.source_b_sel;
+  always_comb begin
+    case (cu_if.sfu_type) 
+      LOADSTORE_S: hazard_if.wen = cu_if.lsu_sigs.wen;
+      ARITH_S:     hazard_if.wen = cu_if.arith_sigs.wen;
+      DIV_S:       hazard_if.wen = cu_if.div_sigs.wen;
+      MUL_S:       hazard_if.wen = cu_if.mult_sigs.wen;
+    endcase
+  end
 
   /*********************************************************
   *** Signals for Bind Tracking - Read-Only, These don't affect execution
@@ -221,10 +235,10 @@ module ooo_decode_stage (
   *** Completion buffer signals
   *********************************************************/
   logic TODO = 0;
-  assign cb_if.alloc_ena = ~hazard_if.stall_de;
+  assign cb_if.alloc_ena = hazard_if.pc_en & ~hazard_if.stall_de;
   assign cb_if.rv32v_wb_scalar_ena  = TODO;
   assign cb_if.rv32v_instr  = TODO;
-
+  assign cb_if.opcode = cu_if.opcode;
 
   always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
     if (~nRST) begin
@@ -243,7 +257,7 @@ module ooo_decode_stage (
           decode_execute_if.halt_instr <= '0;
             //CPU tracker
           decode_execute_if.tracker_sigs <= '0;
-        end else if(hazard_if.pc_en & ~hazard_if.stall_de) begin
+        end else if(~hazard_if.stall_de) begin
           //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           //HALT
@@ -270,7 +284,7 @@ module ooo_decode_stage (
           decode_execute_if.div_sigs <= '0;
           decode_execute_if.lsu_sigs <= '0;
       end else begin
-        if(hazard_if.pc_en & ~(hazard_if.stall_mu)) begin
+        if(~(hazard_if.stall_mu)) begin
           decode_execute_if.mult_sigs.ena <= cu_if.mult_sigs.ena;
           decode_execute_if.mult_sigs.high_low_sel <= cu_if.mult_sigs.high_low_sel;
           decode_execute_if.mult_sigs.is_signed <= cu_if.mult_sigs.is_signed;
@@ -280,7 +294,7 @@ module ooo_decode_stage (
           decode_execute_if.mult_sigs.ready_mu <= cu_if.mult_sigs.ready_mu;
           decode_execute_if.mult_sigs.index_mu <= cb_if.cur_tail;
         end
-        if(hazard_if.pc_en & ~(hazard_if.stall_du)) begin
+        if(~(hazard_if.stall_du)) begin
           decode_execute_if.div_sigs.ena <= cu_if.div_sigs.ena;
           decode_execute_if.div_sigs.div_type <= cu_if.div_sigs.div_type;
           decode_execute_if.div_sigs.is_signed <= cu_if.div_sigs.is_signed;
@@ -289,7 +303,7 @@ module ooo_decode_stage (
           decode_execute_if.div_sigs.ready_du <= cu_if.div_sigs.ready_du;
           decode_execute_if.div_sigs.index_du <= cb_if.cur_tail;
         end
-        if(hazard_if.pc_en & ~(hazard_if.stall_ls)) begin
+        if(~(hazard_if.stall_ls)) begin
           decode_execute_if.lsu_sigs.load_type <= cu_if.lsu_sigs.load_type;
           decode_execute_if.lsu_sigs.byte_en <= cu_if.lsu_sigs.byte_en;
           decode_execute_if.lsu_sigs.dren <= cu_if.lsu_sigs.dren;
@@ -300,6 +314,7 @@ module ooo_decode_stage (
           decode_execute_if.lsu_sigs.ready_ls <= cu_if.lsu_sigs.ready_ls;
           decode_execute_if.lsu_sigs.index_ls <= cb_if.cur_tail;
         end
+
       end
     end
   end
@@ -312,20 +327,21 @@ module ooo_decode_stage (
       decode_execute_if.immediate <= '0;
       decode_execute_if.port_a <= '0; 
       decode_execute_if.port_b <= '0; 
-
-    end else begin
+      decode_execute_if.lsu_sigs.opcode <= '0;    end else begin
       if((hazard_if.id_ex_flush | hazard_if.stall_de) & hazard_if.pc_en) begin
         decode_execute_if.pc <= '0;
         decode_execute_if.pc4 <= '0;
         decode_execute_if.immediate <= '0;
         decode_execute_if.port_a <= '0; 
         decode_execute_if.port_b <= '0; 
+        decode_execute_if.lsu_sigs.opcode <= '0;
       end else if(hazard_if.pc_en) begin
         decode_execute_if.pc <= fetch_decode_if.pc;
         decode_execute_if.pc4 <= fetch_decode_if.pc4;
         decode_execute_if.immediate <= 32'hc0ffee; // TODO figure out how to do this
         decode_execute_if.port_a <= fu_source_a; 
         decode_execute_if.port_b <= fu_source_b; 
+        decode_execute_if.lsu_sigs.opcode <= cu_if.opcode;
       end
     end
   end
@@ -345,7 +361,7 @@ module ooo_decode_stage (
       decode_execute_if.exception_sigs <= '0;
         
     end else begin
-      if (((hazard_if.id_ex_flush | hazard_if.stall_au) & hazard_if.pc_en) | halt) begin
+      if (((hazard_if.id_ex_flush | ~hazard_if.stall_au) & ~hazard_if.pc_en) | halt) begin
         decode_execute_if.arith_sigs <= '0;
         decode_execute_if.reg_file_wdata <= '0;
         //JUMP
@@ -357,7 +373,7 @@ module ooo_decode_stage (
         //Exceptions
         decode_execute_if.exception_sigs <= '0;
 
-      end else if(hazard_if.pc_en & ~hazard_if.stall_au) begin
+      end else if(~hazard_if.stall_au) begin
         decode_execute_if.arith_sigs.alu_op <= cu_if.arith_sigs.alu_op;
         decode_execute_if.arith_sigs.w_src <= cu_if.arith_sigs.w_src;
         decode_execute_if.arith_sigs.wen <= cu_if.arith_sigs.wen;

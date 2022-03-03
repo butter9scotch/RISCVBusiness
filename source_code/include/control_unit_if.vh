@@ -51,6 +51,7 @@ interface control_unit_if;
   logic div_type;
   scalar_fu_t sfu_type;
   load_t load_type;
+  logic pc_en;
 
   // New cpu tracker signals
   cpu_tracker_t cpu_track_sigs;
@@ -74,7 +75,7 @@ interface control_unit_if;
   logic [4:0] zimm;
 
   modport control_unit(
-    input instr, 
+    input instr, pc_en,
     output arith_sigs, mult_sigs, div_sigs, lsu_sigs, csr_sigs, 
     cpu_track_sigs, jump_sigs,
     dwen, dren, j_sel, branch, lui_instr, jump, ex_pc_sel, alu_a_sel,

@@ -48,6 +48,7 @@ interface ooo_decode_execute_if();
   logic stall_loadstore;
   logic ifence;
   logic prediction; //TEMPORARY
+  opcode_t opcode;
 
   // new structs for the interface
   exception_control_signals_t exception_sigs; //
@@ -79,7 +80,8 @@ interface ooo_decode_execute_if();
     immediate,
     ifence,
     prediction,
-    instr
+    instr,
+    opcode
   );
 
   modport execute (
@@ -94,7 +96,8 @@ interface ooo_decode_execute_if();
     immediate,
     pc4,
     prediction,
-    instr
+    instr,
+    opcode
   );
 
 endinterface

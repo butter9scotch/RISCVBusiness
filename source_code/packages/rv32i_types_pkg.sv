@@ -443,8 +443,5 @@ package rv32i_types_pkg;
     logic instr_30;
   } cpu_tracker_signals_t;
 
-
-
-
 endpackage
 `endif //RV32I_TYPES_PKG_SV

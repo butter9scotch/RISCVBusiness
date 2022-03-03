@@ -35,6 +35,27 @@ module ooo_hazard_unit (
   assign hazard_if.pc_en =  ~pc_stall;
 
   //FETCH_DECODE
+  logic structural_hazard;
+  logic rs1_busy, rs2_busy, rd_busy;
+  assign hazard_if.data_hazard = rs1_busy | rs2_busy | rd_busy;
+
+  always_comb begin : RS1_BUSY
+    case (hazard_if.source_a_sel)
+      2'd0, 2'd1: rs1_busy = hazard_if.rs1_busy;
+      2'd3, 2'd2: rs1_busy = 0;
+    endcase
+  end
+
+  always_comb begin : RS2_BUSY
+    case (hazard_if.source_b_sel)
+      2'd0, 2'd1: rs2_busy = hazard_if.rs2_busy;
+      2'd3, 2'd2: rs2_busy = 0;
+    endcase
+  end
+  
+  assign rd_busy = hazard_if.rd_busy & hazard_if.wen;
+
+  assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
   // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
   assign hazard_if.stall_au = 0;
   // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;
@@ -43,13 +64,11 @@ module ooo_hazard_unit (
   assign hazard_if.stall_mu = 0;
   // assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
   assign hazard_if.stall_ls = 0;
-  assign hazard_if.stall_de = 0;
+  //assign hazard_if.stall_de = structural_hazard;
   assign hazard_if.stall_ex = hazard_if.rob_full;
+  assign hazard_if.stall_commit = 0;
 
-  logic structural_hazard;
-  assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
-
-  assign fetch_decode_stall = hazard_if.rob_full | hazard_if.data_hazard | hazard_if.ifence | structural_hazard;
+  assign hazard_if.stall_de = hazard_if.rob_full | hazard_if.data_hazard | 0 | structural_hazard; // 0 represents ifence
 
   
   //Branch jump 

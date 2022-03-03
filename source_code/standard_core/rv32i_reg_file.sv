@@ -51,10 +51,10 @@ module rv32i_reg_file (
     end
   end 
 
-  assign rf_if.rs1_data   = registers[rf_if.rs1];
-  assign rf_if.rs2_data   = registers[rf_if.rs2];
-  assign rf_if.in_use_rs1 = in_use[rf_if.rs1];
-  assign rf_if.in_use_rs2 = in_use[rf_if.rs2];
-  assign rf_if.in_use_rd = in_use[rf_if.rd];
+  assign rf_if.rs1_data = registers[rf_if.rs1];
+  assign rf_if.rs2_data = registers[rf_if.rs2];
+  assign rf_if.rs1_busy = in_use[rf_if.rs1];
+  assign rf_if.rs2_busy = in_use[rf_if.rs2];
+  assign rf_if.rd_busy  = in_use[rf_if.rd];
 
 endmodule

@@ -73,15 +73,24 @@ interface ooo_hazard_unit_if();
   scalar_fu_t fu_type;
   logic rob_full;
   logic ex_comm_flush;
+  logic rd_busy;
+  logic rs1_busy;
+  logic rs2_busy;
+  logic instr_imm;
+  logic [1:0] source_a_sel, source_b_sel;
+  logic wen; // we need this to know if we need to stall for rd
+  logic stall_commit;
+
 
   modport decode (
     input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
            stall_de, intr, 
-    output halt, dflushed, iflushed, ifence_pc, fu_type, ifence
+    output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen
   );
 
   modport execute (
-    input pc_en, ex_mem_flush, d_mem_busy, dmem_access, intr, intr_taken, 
+    input pc_en, ex_comm_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
     output load, stall_ex, jump, branch, mispredict, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
@@ -99,17 +108,19 @@ interface ooo_hazard_unit_if();
     input i_mem_busy, dren, dwen, d_mem_busy, jump, branch, 
            mispredict, load, halt, ifence, illegal_insn, fault_s, 
            fault_l, mal_s, mal_l, breakpoint, env_m, token, 
-           mal_insn, fault_insn, ret, intr_taken, stall_ex, div_e, 
+           mal_insn, fault_insn, ret, intr_taken,  div_e, 
            mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 
-           badaddr_d, badaddr_i, epc,  fu_type, stall_de, busy_div,
+           badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, data_hazard, dflushed, iflushed,
+           rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
     output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
            ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, priv_pc, ex_comm_flush
+           stall_all, priv_pc, ex_comm_flush, stall_commit, stall_ex, stall_de
   );
 
   modport commit (
+    input stall_commit,
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
            epc, badaddr_d, badaddr_i, rob_full, pc_en, ex_comm_flush

@@ -134,7 +134,7 @@ module ooo_execute_stage(
   // data lines
   assign lsif.port_a = decode_execute_if.port_a;
   assign lsif.port_b = decode_execute_if.port_b;
-  assign lsif.store_data = decode_execute_if.port_b; // whis is an issue here because sw needs three operands
+  assign lsif.store_data = decode_execute_if.port_b; // this is an issue here because sw needs three operands
   assign lsif.pc = decode_execute_if.pc;
   
   loadstore_unit LSU(
@@ -142,7 +142,7 @@ module ooo_execute_stage(
     .nRST(nRST),
     .halt(halt), // halt should no longer be resolved here 
     .dgen_bus_if(dgen_bus_if),
-    .hazard_if(hazard_if), //this is probably a bad idea? don't pass hazard if through to functional units and also assign in execute stage
+    .hazard_if(hazard_if), 
     .lsif(lsif)
   );
 
@@ -216,6 +216,26 @@ module ooo_execute_stage(
   //Forwading logic
   assign hazard_if.load   = decode_execute_if.lsu_sigs.dren;
 
+  always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
+    if (~nRST) begin
+      execute_commit_if.mult_sigs <= '0;
+      execute_commit_if.div_sigs <= '0;
+      execute_commit_if.lsu_sigs <= '0;
+      execute_commit_if.arith_sigs <= '0;
+    end else begin
+      if (((hazard_if.ex_comm_flush) & hazard_if.pc_en) | halt) begin
+        execute_commit_if.mult_sigs <= '0;
+        execute_commit_if.div_sigs <= '0;
+        execute_commit_if.lsu_sigs <= '0;
+        execute_commit_if.arith_sigs <= '0;
+      end else if(hazard_if.pc_en) begin
+        execute_commit_if.mult_sigs <= decode_execute_if.mult_sigs;
+        execute_commit_if.div_sigs <= decode_execute_if.div_sigs;
+        execute_commit_if.lsu_sigs <= decode_execute_if.lsu_sigs;
+        execute_commit_if.arith_sigs <= decode_execute_if.arith_sigs;
+      end
+    end
+  end
 
   /*******************************************************
   *** Execute Commit Latch
@@ -283,7 +303,7 @@ module ooo_execute_stage(
       execute_commit_if.CPU_TRACKER <= '0;
     end
     else begin
-      if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
+      if (hazard_if.ex_comm_flush && hazard_if.pc_en || halt ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
         execute_commit_if.wen_au           <= '0;
@@ -343,7 +363,7 @@ module ooo_execute_stage(
         execute_commit_if.halt_instr       <= '0;
         //CPU tracker
         execute_commit_if.CPU_TRACKER <= '0;
-      end else if(hazard_if.pc_en ) begin
+      end else if (~hazard_if.stall_commit) begin
         //WRITEBACK Signals:
         //ARITHMETIC
         execute_commit_if.wen_au                 <= auif.wen_au; 
@@ -364,7 +384,7 @@ module ooo_execute_stage(
         execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;
         execute_commit_if.dren                   <= lsif.dren_ls;
         execute_commit_if.dwen                   <= lsif.dwen_ls;
-        //EXCEPTION
+        //exception
         execute_commit_if.mal_addr               <= lsif.mal_addr;
         execute_commit_if.breakpoint             <= decode_execute_if.exception_sigs.breakpoint;
         execute_commit_if.ecall_insn             <= decode_execute_if.exception_sigs.ecall_insn;
