@@ -15,18 +15,20 @@ class nominal_sequence extends uvm_sequence #(cpu_transaction);
     super.new(name);
   endfunction: new
 
-  // rand int N;  //TODO: RANDOMIZE N
+  rand int N;  // total number of processor side transactions
+
+  constraint even {N%2==0;}
 
   task body();
     cpu_transaction req_item;
-    int N; // total number of processor side transactions
     int write_count; // current number of writes
     word_t writes[word_t]; // queue of write addresses
 
     req_item = cpu_transaction::type_id::create("req_item");
 
-    N = 20; //NOTE: this should be even
     write_count = 0;
+
+    `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%d", N), UVM_LOW)
     
     repeat(N) begin
       start_item(req_item);

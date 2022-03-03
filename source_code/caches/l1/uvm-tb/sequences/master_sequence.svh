@@ -16,6 +16,9 @@ import rv32i_types_pkg::*;
 class master_sequence extends uvm_sequence #(cpu_transaction);
   `uvm_object_utils(master_sequence)
 
+  rand bit order;     // ordering of evict/nominal sequences
+  rand bit iterations;
+
   evict_sequence evt_seq;
   nominal_sequence nom_seq;
 
@@ -28,11 +31,18 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
   //TODO: IMPLEMENT THIS IN MASTER SEQUENCE
   function randomize();
     super.randomize();
-    s.randomize();
+    evt_seq.randomize();
+    nom_seq.randomize();
   endfunction
 
   task body();
+    cpu_transaction req_item;
 
+    repeat(1) begin
+      start_item(req_item);
+
+      finish_item(req_item);
+    end
   endtask: body
 endclass: master_sequence
 
