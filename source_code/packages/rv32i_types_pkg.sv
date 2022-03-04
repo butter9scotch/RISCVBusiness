@@ -252,7 +252,7 @@ package rv32i_types_pkg;
 
   // TODO: needs the remaining signals for CSR and others
   typedef struct packed {
-
+    logic ena;
     aluop_t alu_op;
     w_src_t w_src;
     logic wen;
@@ -283,8 +283,9 @@ package rv32i_types_pkg;
   } div_control_signals_t;
 
   typedef struct packed {
+    logic ena;
     load_t load_type;
-    logic byte_en;
+    //logic byte_en;
     logic dren;
     logic dwen;
     opcode_t opcode;

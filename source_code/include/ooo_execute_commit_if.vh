@@ -16,6 +16,10 @@ interface ooo_execute_commit_if();
   logic busy_mu;
   logic busy_du;
   logic busy_ls;
+  logic done_a;
+  logic done_mu;
+  logic done_du;
+  logic done_ls;
   logic dren;
   logic mal_addr;
   logic dwen;
@@ -91,7 +95,8 @@ interface ooo_execute_commit_if();
            index_a, index_mu, index_du, index_ls,
            pc_a, pc_mu, pc_du, pc_ls,
            exception_a, exception_mu, exception_du, exception_ls, pc4,
-           arith_sigs, mult_sigs, div_sigs, lsu_sigs
+           arith_sigs, mult_sigs, div_sigs, lsu_sigs, done_a, done_mu,
+           done_du, done_ls
   );
 
   modport commit (
@@ -106,7 +111,8 @@ interface ooo_execute_commit_if();
            wdata_mu, wdata_du, wdata_ls, memory_addr, pc, br_resolved_addr, index_a, index_mu, index_du, index_ls, 
            pc_a, pc_mu, pc_du, pc_ls, 
            exception_a, exception_mu, exception_du, exception_ls, pc4, CPU_TRACKER,
-           arith_sigs, mult_sigs, div_sigs, lsu_sigs
+           arith_sigs, mult_sigs, div_sigs, lsu_sigs, done_a, done_mu,
+           done_du, done_ls
   );
 
 endinterface

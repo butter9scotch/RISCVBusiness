@@ -34,13 +34,14 @@ module agu (
   import rv32i_types_pkg::*;
 
   logic [1:0] byte_offset;
+  assign byte_offset = address[1:0];
 
   // Generate address
   assign address = port_a + port_b;
 
   // misaligned address
   always_comb begin
-    unique case(address)
+    unique case(load_type)
       LB : begin
         unique case(byte_offset)
           2'b00   : byte_en_standard = 4'b0001;

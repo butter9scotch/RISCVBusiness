@@ -107,7 +107,7 @@ module completion_buffer # (
     next_tail = tail;
     if (flush_cb) begin
       next_tail = 0;
-    end else if (cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(6'b0))) begin
+    end else if (cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0))) begin
       next_tail = tail + 1;
     end
   end

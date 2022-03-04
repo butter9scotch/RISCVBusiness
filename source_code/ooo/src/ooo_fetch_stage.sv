@@ -66,7 +66,7 @@ module ooo_fetch_stage (
         // halt case
         program_counter_pc <= RESET_PC;
         fetch_decode_if.prediction <= '0;
-      end else if((hazard_if.pc_en && ~hazard_if.stall) || hazard_if.insert_priv_pc) begin
+      end else if((hazard_if.pc_en && ~hazard_if.stall_fetch_decode) || hazard_if.insert_priv_pc) begin
         // normal operations/incrementation
         program_counter_pc <= next_pc;
         fetch_decode_if.prediction <= predict_if.predict_taken;
@@ -111,8 +111,7 @@ module ooo_fetch_stage (
         // fetch_decode_if.prediction          <='h0; 
         fetch_decode_if.mal_insn            <='h0;
         fetch_decode_if.fault_insn          <= 1'b0;
-      end
-      else begin
+      end else begin
         if (halt) begin
           // halt
             fetch_decode_if.token               <='h0; 
@@ -121,16 +120,14 @@ module ooo_fetch_stage (
             // fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
-        end
-        else if (hazard_if.if_id_flush & hazard_if.pc_en) begin
+        end else if (hazard_if.if_id_flush | (~hazard_if.pc_en & ~hazard_if.stall_fetch_decode)) begin
           // hazard flush
             fetch_decode_if.token               <='h0; 
             fetch_decode_if.instr               <='h0; 
             // fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
-        end 
-        else if(hazard_if.pc_en & ~hazard_if.if_id_flush & ~hazard_if.stall) begin
+        end else if(hazard_if.pc_en & ~hazard_if.if_id_flush & ~hazard_if.stall_fetch_decode) begin
           // normal operating conditions
             fetch_decode_if.token               <= 1'b1;
             fetch_decode_if.pc                  <= program_counter_pc;

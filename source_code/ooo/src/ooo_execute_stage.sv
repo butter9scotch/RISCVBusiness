@@ -56,7 +56,7 @@ module ooo_execute_stage(
   logic csr_reg, csr_pulse;
   word_t csr_rdata;
   logic [1:0] byte_offset;
-  logic [3:0] byte_en_standard;
+  //logic [3:0] byte_en_standard;
   word_t w_data, alu_port_b, alu_port_a;
   word_t updated_rs1_data, updated_rs2_data;
   word_t csr_wdata;
@@ -158,7 +158,13 @@ module ooo_execute_stage(
   assign hazard_if.busy_au = auif.busy_au;
   assign hazard_if.busy_mu = mif.busy_mu;
   assign hazard_if.busy_du = dif.busy_du;
-  assign hazard_if.busy_ls = lsif.busy_ls;
+  //assign hazard_if.busy_ls = lsif.busy_ls;
+  assign execute_commit_if.done_ls = lsif.done_ls;
+  assign execute_commit_if.done_mu = lsif.done_ls;
+  assign execute_commit_if.done_du = lsif.done_ls;
+  assign execute_commit_if.done_a = lsif.done_ls;
+
+
   // assign hazard_if.load_stall = lsif.load_stall;
 
   /***** CSR STUFF? *****/
@@ -223,12 +229,12 @@ module ooo_execute_stage(
       execute_commit_if.lsu_sigs <= '0;
       execute_commit_if.arith_sigs <= '0;
     end else begin
-      if (((hazard_if.ex_comm_flush) & hazard_if.pc_en) | halt) begin
+      if (hazard_if.ex_comm_flush | (hazard_if.stall_ex & ~hazard_if.stall_commit) | halt) begin
         execute_commit_if.mult_sigs <= '0;
         execute_commit_if.div_sigs <= '0;
         execute_commit_if.lsu_sigs <= '0;
         execute_commit_if.arith_sigs <= '0;
-      end else if(hazard_if.pc_en) begin
+      end else if(~hazard_if.stall_commit) begin
         execute_commit_if.mult_sigs <= decode_execute_if.mult_sigs;
         execute_commit_if.div_sigs <= decode_execute_if.div_sigs;
         execute_commit_if.lsu_sigs <= decode_execute_if.lsu_sigs;
@@ -277,10 +283,10 @@ module ooo_execute_stage(
       execute_commit_if.intr_seen        <= '0;
       execute_commit_if.jump_instr       <= '0;
       execute_commit_if.jump_addr        <= '0;
-      execute_commit_if.exception_a            <= 0; // TODO
-      execute_commit_if.exception_mu            <= 0; // TODO
-      execute_commit_if.exception_du            <= 0; // TODO
-      execute_commit_if.exception_ls            <= 0; // TODO
+      execute_commit_if.exception_a      <= 0; // TODO
+      execute_commit_if.exception_mu     <= 0; // TODO
+      execute_commit_if.exception_du     <= 0; // TODO
+      execute_commit_if.exception_ls     <= 0; // TODO
 
       execute_commit_if.index_a  = '0;
       execute_commit_if.index_mu = '0;
@@ -303,7 +309,7 @@ module ooo_execute_stage(
       execute_commit_if.CPU_TRACKER <= '0;
     end
     else begin
-      if (hazard_if.ex_comm_flush && hazard_if.pc_en || halt ) begin
+      if (hazard_if.ex_comm_flush | hazard_if.stall_commit & ~hazard_if.stall_ex || halt ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
         execute_commit_if.wen_au           <= '0;

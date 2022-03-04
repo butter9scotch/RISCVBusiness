@@ -141,7 +141,11 @@ module control_unit
         cu_if.sfu_type = MUL_S;
       end
     end else begin
-      cu_if.sfu_type = ARITH_S;
+      if ((cu_if.opcode == LOAD) || (cu_if.opcode == STORE)) begin
+        cu_if.sfu_type = LOADSTORE_S;
+      end else begin
+        cu_if.sfu_type = ARITH_S;
+      end
     end
   end
 
@@ -225,7 +229,7 @@ module control_unit
   
   /***** MULTIPLY CONTROL SIGNALS *****/
   // mult specific signals
-  assign cu_if.mult_sigs.ena = cu_if.sfu_type == MUL_S;
+  //assign cu_if.mult_sigs.ena = cu_if.sfu_type == MUL_S;
   //upper is 1, lower is 0
   assign cu_if.mult_sigs.high_low_sel = (|instr_r.funct3[1:0]); 
   assign cu_if.mult_sigs.is_signed = cu_if.sign_type; // decoded below
@@ -248,7 +252,7 @@ module control_unit
   /***** DIVIDE CONTROL SIGNALS *****/
   // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
   assign cu_if.div_sigs.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
-  assign cu_if.div_sigs.ena = cu_if.sfu_type == DIV_S;
+  //assign cu_if.div_sigs.ena = cu_if.sfu_type == DIV_S;
   assign cu_if.div_sigs.is_signed = cu_if.sign_type;
 
   // comomon signals
@@ -360,5 +364,12 @@ module control_unit
   assign cu_if.mult_sigs.ready_mu = cu_if.wen &  (cu_if.sfu_type == MUL_S);
   assign cu_if.div_sigs.ready_du = cu_if.wen &  (cu_if.sfu_type == DIV_S);
   assign cu_if.lsu_sigs.ready_ls = (cu_if.sfu_type == LOADSTORE_S);
+
+  assign cu_if.arith_sigs.ena = (cu_if.sfu_type == ARITH_S);
+  assign cu_if.mult_sigs.ena = (cu_if.sfu_type == MUL_S);
+  assign cu_if.div_sigs.ena  = (cu_if.sfu_type == DIV_S);
+  assign cu_if.lsu_sigs.ena  = (cu_if.sfu_type == LOADSTORE_S);
+
+
 endmodule
 

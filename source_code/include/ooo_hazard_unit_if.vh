@@ -80,13 +80,14 @@ interface ooo_hazard_unit_if();
   logic [1:0] source_a_sel, source_b_sel;
   logic wen; // we need this to know if we need to stall for rd
   logic stall_commit;
+  logic stall_fetch_decode;
 
 
   modport decode (
     input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_de, intr, 
+           stall_de, intr, stall_fetch_decode,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex
   );
 
   modport execute (
@@ -100,7 +101,7 @@ interface ooo_hazard_unit_if();
   modport fetch (
     input pc_en, npc_sel, stall, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, 
-           priv_pc, if_id_flush, iren, 
+           priv_pc, if_id_flush, iren, stall_fetch_decode,
     output i_mem_busy 
   );
 
@@ -116,7 +117,8 @@ interface ooo_hazard_unit_if();
     output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
            ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, priv_pc, ex_comm_flush, stall_commit, stall_ex, stall_de
+           stall_all, priv_pc, ex_comm_flush, stall_commit, stall_ex, stall_de,
+          stall_fetch_decode
   );
 
   modport commit (
@@ -127,8 +129,8 @@ interface ooo_hazard_unit_if();
   );
 
   modport memory (
-    input ex_mem_flush, pc_en, dmem_access,  
-    output d_mem_busy, dren, dwen
+    input ex_mem_flush, pc_en, dmem_access, stall_ls,
+    output d_mem_busy, dren, dwen, busy_ls
   );
 
   modport cb (

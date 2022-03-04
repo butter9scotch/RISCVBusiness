@@ -53,9 +53,10 @@ module loadstore_unit (
   logic mal_addr_ff0, mal_addr_ff1;
 
   logic [3:0] byte_en_standard;
-  logic stall;
+  logic stall_mem;
+  assign stall_mem = dgen_bus_if.busy & (dren_ff1 | dwen_ff1);
 
-  assign stall = '0;
+  //assign stall = '0;
 
   assign store_data_ff0 = lsif.store_data;
   assign dren_ff0       = lsif.dren;
@@ -65,6 +66,8 @@ module loadstore_unit (
   assign load_type_ff0  = lsif.load_type;
   assign pc_ff0         = lsif.pc;
   assign opcode_ff0     = lsif.opcode;
+  assign hazard_if.dmem_access = dren_ff1 | dwen_ff1;
+  assign hazard_if.busy_ls = stall_mem;
 
   agu AGU (
     .port_a(lsif.port_a), 
@@ -74,6 +77,8 @@ module loadstore_unit (
     .address(address_ff0), 
     .mal_addr(mal_addr_ff0)
   );
+
+  // THIS IS THE MEM LATCH --> STALL_MEM STALLS THIS LATCH
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
@@ -89,7 +94,8 @@ module loadstore_unit (
       pc_ff1         <= '0;
       opcode_ff1     <= opcode_t'('0);
     end else begin
-      if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
+      //if (hazard_if.ex_mem_flush | (hazard_if.stall_ls & ~stall_mem) | halt ) begin
+      if (hazard_if.ex_mem_flush | halt ) begin
         store_data_ff1 <= '0;
         dren_ff1       <= '0;
         dwen_ff1       <= '0;
@@ -104,7 +110,7 @@ module loadstore_unit (
       end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
         dren_ff1 <= '0;
         dwen_ff1 <= '0;
-      end else if(hazard_if.pc_en & ~stall) begin
+      end else if(~stall_mem) begin 
         store_data_ff1 <= store_data_ff0;
         dren_ff1       <= dren_ff0;
         dwen_ff1       <= dwen_ff0;
@@ -121,6 +127,8 @@ module loadstore_unit (
   end
 
   // OUTPUT:
+  logic stall_mem_ff1;
+
   assign lsif.wdata_ls = dgen_bus_if.rdata;
   assign lsif.wen_ls   = wen_ff1;
   assign lsif.reg_rd_ls   = reg_rd_ff1;
@@ -129,7 +137,16 @@ module loadstore_unit (
   assign lsif.opcode_ls  = opcode_ff1;
   assign lsif.mal_addr = mal_addr_ff1;
   assign lsif.memory_addr = address_ff1;
- 
+  assign lsif.done_ls = stall_mem_ff1 & ~stall_mem; 
+
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      stall_mem_ff1 <= 0;
+    end else begin
+      stall_mem_ff1 <= stall_mem;
+    end
+  end 
 
   /*******************************************************
   *** Choose the Endianness Coming into the processor
@@ -160,25 +177,24 @@ module loadstore_unit (
   /*******************************************************
   *** mal_addr  and Associated Logic 
   *******************************************************/
-  assign hazard_if.d_mem_busy = dgen_bus_if.busy & (lsif.dren| lsif.dwen);
+  assign hazard_if.d_mem_busy = dgen_bus_if.busy ;
   assign hazard_if.dren       = lsif.dren;
   assign hazard_if.dwen       = lsif.dwen;
 
   /*******************************************************
   *** data bus  and Associated Logic 
   *******************************************************/
-  // TODO: Fix this 
-  // assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr_ff1;
-  // assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr_ff1;
-  // assign dgen_bus_if.byte_en = byte_en;
-  // assign dgen_bus_if.addr    = address_ff1;
-  // always_comb begin
-    // dgen_bus_if.wdata = '0;
-    // case(load_type_ff1) // load_type can be used for store_type as well
-      // LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
-      // LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
-      // LW: dgen_bus_if.wdata = store_data_ff1; 
-    // endcase
-  // end
+  assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr_ff1;
+  assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr_ff1;
+  assign dgen_bus_if.byte_en = byte_en;
+  assign dgen_bus_if.addr    = address_ff1;
+  always_comb begin
+    dgen_bus_if.wdata = '0;
+    case(load_type_ff1) // load_type can be used for store_type as well
+      LB: dgen_bus_if.wdata = {4{store_data_ff1[7:0]}};
+      LH: dgen_bus_if.wdata = {2{store_data_ff1[15:0]}};
+      LW: dgen_bus_if.wdata = store_data_ff1; 
+    endcase
+  end
 
 endmodule

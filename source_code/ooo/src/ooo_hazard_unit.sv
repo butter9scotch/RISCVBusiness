@@ -31,8 +31,11 @@ module ooo_hazard_unit (
   // Instruction latch enable
   // rob_full -- reorder buffer full
   logic pc_stall;
-  assign pc_stall = wait_for_imem | hazard_if.stall_de ;
+  assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
+  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | 0; //ifence logic where zero
+  assign hazard_if.stall_de = hazard_if.stall_fetch_decode; 
+  assign hazard_if.id_ex_flush  = 0;
 
   //FETCH_DECODE
   logic structural_hazard;
@@ -63,12 +66,11 @@ module ooo_hazard_unit (
   // assign hazard_if.stall_mu = (hazard_if.fu_type == MUL_S) & hazard_if.busy_mul;
   assign hazard_if.stall_mu = 0;
   // assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
-  assign hazard_if.stall_ls = 0;
+  assign hazard_if.stall_ls = hazard_if.busy_ls;
   //assign hazard_if.stall_de = structural_hazard;
   assign hazard_if.stall_ex = hazard_if.rob_full;
   assign hazard_if.stall_commit = 0;
 
-  assign hazard_if.stall_de = hazard_if.rob_full | hazard_if.data_hazard | 0 | structural_hazard; // 0 represents ifence
 
   
   //Branch jump 
@@ -114,8 +116,6 @@ module ooo_hazard_unit (
   assign hazard_if.priv_pc        = prv_pipe_if.priv_pc;
   assign hazard_if.iren           = 1'b1; 
 
-  //Pick up here
-  assign pc_en = 1; //TODO
 
   assign prv_pipe_if.pipe_clear   =   e_execute_stage | e_decode_stage | e_fetch_stage| hazard_if.intr_taken;
 
