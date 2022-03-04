@@ -27,6 +27,7 @@
 `include "control_unit_if.vh"
 `include "component_selection_defines.vh"
 `include "rv32i_reg_file_if.vh"
+`include "rv32f_reg_file_if.vh"
 `include "pipe5_hazard_unit_if.vh"
 
 
@@ -34,11 +35,13 @@ module pipe5_decode_stage (
   input logic CLK, nRST, halt,
   pipe5_fetch2_decode_if.decode fetch_decode_if,
   pipe5_decode_execute_if.decode decode_execute_if,
+  rv32f_reg_file_if.decode frf_if,
   rv32i_reg_file_if.decode rf_if,
   pipe5_hazard_unit_if.decode hazard_if
 );
 
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import alu_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
   logic [2:0] funct3;
@@ -65,6 +68,8 @@ module pipe5_decode_stage (
    assign rf_if.rs1 = cu_if.reg_rs1;
    assign rf_if.rs2 = cu_if.reg_rs2;
 
+   assign frf_if.f_rs1 = cu_if.f_reg_rs1;
+   assign frf_if.f_rs2 = cu_if.f_reg_rs2;
   /*******************************************************
   * MISC RISC-MGMT Logic
   *******************************************************/
@@ -101,7 +106,7 @@ module pipe5_decode_stage (
   /*******************************************************
   *** ALU and Associated Logic 
   *******************************************************/
-  word_t imm_or_shamt, port_a, port_b, w_data;
+  word_t imm_or_shamt, port_a, port_b, w_data, f_wdata;
   assign imm_or_shamt = (cu_if.imm_shamt_sel == 1'b1) ? cu_if.shamt : imm_I_ext;
  
   always_comb begin
@@ -217,6 +222,15 @@ module pipe5_decode_stage (
         decode_execute_if.imm_UJ_ext                <= 'h0;
         decode_execute_if.imm_SB                    <= 'h0;
         decode_execute_if.instr_30                  <= 'h0;
+        decode_execute_if.f_reg_rs1                 <= 'h0;
+        decode_execute_if.f_reg_rs2                 <= 'h0;
+        decode_execute_if.f_reg_rd                  <= 'h0;
+        decode_execute_if.f_wen                     <= 'h0;
+        decode_execute_if.f_wsel                    <= 'h0;
+        decode_execute_if.f_funct7                  <= 'h0;
+        decode_execute_if.f_rs1_data                <= 'h0;
+        decode_execute_if.f_rs2_data                <= 'h0;
+        decode_execute_if.frm_out                   <= 'h0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
@@ -274,6 +288,16 @@ module pipe5_decode_stage (
             decode_execute_if.imm_UJ_ext                <= 'h0;
             decode_execute_if.imm_SB                    <= 'h0;
             decode_execute_if.instr_30                  <= 'h0;
+            decode_execute_if.f_reg_rs1                 <= 'h0;
+            decode_execute_if.f_reg_rs2                 <= 'h0;
+            decode_execute_if.f_reg_rd                  <= 'h0;
+            decode_execute_if.f_wen                     <= 'h0;
+            decode_execute_if.f_wsel                    <= 'h0;
+            decode_execute_if.f_funct7                  <= 'h0;
+            decode_execute_if.f_rs1_data                <= 'h0;
+            decode_execute_if.f_rs2_data                <= 'h0;
+            decode_execute_if.f_wdata                   <= 'h0;
+            decode_execute_if.frm_out                   <= 'h0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
             //FORWARDING
             decode_execute_if.alu_a_sel                 <= cu_if.alu_a_sel;
@@ -284,14 +308,25 @@ module pipe5_decode_stage (
             decode_execute_if.rs1_data                  <= rf_if.rs1_data;
             decode_execute_if.rs2_data                  <= rf_if.rs2_data;
             decode_execute_if.lui_instr                 <= cu_if.lui_instr;
+            decode_execute_if.f_reg_rs1                 <= cu_if.f_reg_rs1;
+            decode_execute_if.f_reg_rs2                 <= cu_if.f_reg_rs2;
+            decode_execute_if.f_reg_rd                  <= cu_if.f_reg_rd;
+            decode_execute_if.f_rs1_data                <= frf_if.f_rs1_data;
+            decode_execute_if.f_rs2_data                <= frf_if.f_rs2_data;
             //ALU
             decode_execute_if.port_a                    <= port_a;
             decode_execute_if.port_b                    <= port_b;
             decode_execute_if.aluop                     <= cu_if.alu_op;
+            //FPU
+            decode_execute_if.f_funct7                  <= cu_if.f_funct7; 
+            decode_execute_if.frm_out                   <= frf_if.f_frm; 
             //REG_FILE/ WRITEBACK
             decode_execute_if.reg_file_wdata            <= w_data;
             decode_execute_if.w_sel                     <= cu_if.w_sel;
             decode_execute_if.wen                       <= cu_if.wen; //Writeback to register file
+            //decode_execute_if.f_wdata                   <= cu_if.f_wdata;
+            decode_execute_if.f_wsel                    <= cu_if.f_wsel;
+            decode_execute_if.f_wen                     <= cu_if.f_wen; //Writeback to register file
             //MEMORY
             decode_execute_if.dwen                      <= cu_if.dwen; 
             decode_execute_if.dren                      <= cu_if.dren; 

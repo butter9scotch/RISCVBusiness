@@ -276,6 +276,14 @@ module pipe5_memory_stage(
           mem_wb_if.rs1                <= 'h0; 
           mem_wb_if.rs2                <= 'h0; 
           mem_wb_if.instr              <= 'h0; 
+          mem_wb_if.f_reg_rs1             <= 'h0;
+          mem_wb_if.f_reg_rs2             <= 'h0;
+          mem_wb_if.f_reg_rd              <= 'h0;
+          mem_wb_if.f_wsel                <= 'h0;
+          mem_wb_if.f_wen                 <= 'h0;
+          mem_wb_if.f_wdata               <= 'h0;
+          mem_wb_if.fpu_out               <= 'h0;
+          mem_wb_if.fpu_flags               <= 'h0;
       end
       else begin
         if (halt) begin
@@ -303,6 +311,14 @@ module pipe5_memory_stage(
             mem_wb_if.rs1                <= 'h0; 
             mem_wb_if.rs2                <= 'h0; 
             mem_wb_if.instr              <= 'h0; 
+            mem_wb_if.f_reg_rs1             <= 'h0;
+            mem_wb_if.f_reg_rs2             <= 'h0;
+            mem_wb_if.f_reg_rd              <= 'h0;
+            mem_wb_if.f_wsel                <= 'h0;
+            mem_wb_if.f_wen                 <= 'h0;
+            mem_wb_if.f_wdata               <= 'h0;
+            mem_wb_if.fpu_out               <= 'h0;
+            mem_wb_if.fpu_flags               <= 'h0;
         end 
         else if (~dgen_bus_if.busy) begin
             //To latch the load instruction data on dcache's busy going low
@@ -337,6 +353,14 @@ module pipe5_memory_stage(
             mem_wb_if.rs1                <= execute_mem_if.rs1;
             mem_wb_if.rs2                <= execute_mem_if.rs2;
             mem_wb_if.instr              <= execute_mem_if.instr;
+            mem_wb_if.f_reg_rs1          <= execute_mem_if.f_reg_rs1;
+            mem_wb_if.f_reg_rs2          <= execute_mem_if.f_reg_rs2;
+            mem_wb_if.f_reg_rd           <= execute_mem_if.f_reg_rd;
+            mem_wb_if.f_wsel             <= execute_mem_if.f_wsel;
+            mem_wb_if.f_wen              <= execute_mem_if.f_wen;
+            mem_wb_if.f_wdata            <= execute_mem_if.f_wdata;
+            mem_wb_if.fpu_out            <= execute_mem_if.fpu_out;
+            mem_wb_if.fpu_flags          <= execute_mem_if.fpu_flags;
         end
      end
   end

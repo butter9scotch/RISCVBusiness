@@ -18,6 +18,7 @@ PKG_FILES :=  packages/rv32i_types_pkg.sv packages/alu_types_pkg.sv packages/mac
 STANDARD_CORE_FILES := $(STD_CORE)/alu.sv $(STD_CORE)/branch_res.sv $(STD_CORE)/control_unit.sv $(STD_CORE)/dmem_extender.sv $(STD_CORE)/endian_swapper.sv $(STD_CORE)/jump_calc.sv $(STD_CORE)/rv32i_reg_file.sv
 TRACKER_FILES := trackers/branch_tracker.sv trackers/cpu_tracker.sv
 EXTRAS := caches/direct_mapped_tpf/direct_mapped_tpf_cache.sv bus_bridges/generic_nonpipeline.sv 
+FPU_FILES:=rv32f/rv32f_reg_file.sv rv32f/FPU_top_level.sv rv32f/clock_counter.sv rv32f/ADD_step1.sv rv32f/ADD_step2.sv rv32f/ADD_step3.sv rv32f/SUB_step1.sv rv32f/SUB_step2.sv rv32f/SUB_step3.sv rv32f/MUL_step1.sv rv32f/MUL_step2.sv rv32f/mul_26b.sv rv32f/determine_frac_status.sv rv32f/int_comparesub.sv rv32f/sign_determine.sv rv32f/int_compare.sv rv32f/right_shift.sv rv32f/u_to_s.sv rv32f/c_to_cp.sv rv32f/sub_26b.sv rv32f/s_to_u.sv rv32f/adder_26b.sv rv32f/adder_8b.sv rv32f/left_shift.sv rv32f/subtract.sv rv32f/rounder_sub.sv rv32f/rounder.sv
 
 ##############################################################################
 # Usage Definition
@@ -83,6 +84,6 @@ print_vars:
 ##############################################################################
 
 source:
-	@irun  -access +rwc -timescale 1ns/100ps -shm  $(PKG_FILES) $(HEADER_FILES) $(STANDARD_CORE_FILES) $(PIPE5FILES) $(PREDICTOR_FILES) $(EXTRAS) $(PRIV_FILES) $(TRACKER_FILES)
+	@irun  -access +rwc -timescale 1ns/100ps -shm  $(PKG_FILES) $(HEADER_FILES) $(FPU_FILES) $(STANDARD_CORE_FILES) $(PIPE5FILES) $(PREDICTOR_FILES) $(EXTRAS) $(PRIV_FILES) $(TRACKER_FILES)
 
 

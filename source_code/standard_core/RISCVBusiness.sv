@@ -36,9 +36,9 @@
 `include "pipe5_forwarding_unit_if.vh"
 `include "pipe5_hazard_unit_if.vh"
 `include "rv32i_reg_file_if.vh"
+`include "rv32f_reg_file_if.vh"
 `include "jump_calc_if.vh"
 `include "branch_res_if.vh"
-`include "rv32i_reg_file_if.vh"
 `include "predictor_pipeline_if.vh"
 `include "generic_bus_if.vh"
 `include "prv_pipeline_if.vh"
@@ -55,6 +55,7 @@ module RISCVBusiness (
 );
 
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
  //  Interface instantiations
 
   generic_bus_if icache_gen_bus_if();
@@ -76,6 +77,7 @@ module RISCVBusiness (
    pipe5_forwarding_unit_if bypass_if();
    pipe5_hazard_unit_if hazard_if();
    rv32i_reg_file_if rf_if();
+   rv32f_reg_file_if frf_if();
    jump_calc_if jump_if();
    branch_res_if branch_if();
 
@@ -158,6 +160,7 @@ module RISCVBusiness (
        ,.fetch_decode_if(fetch_decode_if)
        ,.decode_execute_if(decode_execute_if)
        ,.rf_if(rf_if)
+       ,.frf_if(frf_if)
        ,.hazard_if(hazard_if)
       );
 
@@ -194,9 +197,15 @@ module RISCVBusiness (
        ,.mem_wb_if(mem_wb_if)
        ,.bypass_if(bypass_if)
        ,.rf_if(rf_if)
+       ,.frf_if(frf_if)
       );
    
    rv32i_reg_file reg_file (.*);
+
+   assign frf_if.clk = CLK;
+   assign frf_if.n_rst = nRST;
+
+   rv32f_reg_file f_reg_file (.frf_rf(frf_if));
    branch_res branch_res (.br_if(branch_if));
    jump_calc jump_calc (.jump_if(jump_if));
    pipe5_forwarding_unit forwarding_unit (.bypass_if(bypass_if));

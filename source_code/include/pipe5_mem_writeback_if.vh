@@ -48,6 +48,14 @@ interface pipe5_mem_writeback_if;
   logic  [4:0] rs1, rs2, reg_rd;
   word_t       instr;
 
+  //floating point signals
+  logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd;
+  logic [2:0] f_wsel;
+  logic f_wen;
+
+  logic [4:0] fpu_flags;
+  word_t f_wdata, fpu_out;
+
 
   modport memory(
      output  reg_file_wdata, w_sel, wen, reg_rd, alu_port_out, dload_ext,
@@ -55,7 +63,9 @@ interface pipe5_mem_writeback_if;
              halt_instr, 
              csr_instr, csr_rdata,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, rs1, rs2, instr
+             imm_SB, imm_U, instr_30, rs1, rs2, instr,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_wdata, fpu_out, fpu_flags
   );
 
   modport writeback(
@@ -64,7 +74,9 @@ interface pipe5_mem_writeback_if;
              halt_instr, 
              csr_instr, csr_rdata,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, rs1, rs2, instr
+             imm_SB, imm_U, instr_30, rs1, rs2, instr,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_wdata, fpu_out, fpu_flags
   );
 
 endinterface

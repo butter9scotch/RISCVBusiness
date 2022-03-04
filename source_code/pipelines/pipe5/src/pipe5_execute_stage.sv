@@ -30,6 +30,7 @@
 `include "component_selection_defines.vh"
 `include "alu_if.vh"
 `include "pipe5_hazard_unit_if.vh"
+`include "FPU_if.vh"
 
 
 module pipe5_execute_stage(
@@ -51,7 +52,22 @@ module pipe5_execute_stage(
   alu_if            alu_if();
  
   alu alu (.*);
+  
+  //fpu
 
+  FPU_if            fpu_if(nRST, CLK);
+
+  FPU_top_level     fpu(fpu_if);
+
+  clock_counter     cc(fpu_if);
+
+  //assign fpu signals
+  assign fpu_if.port_a = decode_execute_if.f_rs1_data;
+  assign fpu_if.port_b = decode_execute_if.f_rs1_data;
+  assign fpu_if.f_frm_in = decode_execute_if.frm_out;
+  assign fpu_if.f_funct_7 = decode_execute_if.f_funct7;
+
+  assign hazard_if.f_stall = ~fpu_if.f_ready/* & (decode_execute_if.f_reg_rs1 || decode_execute_if.f_reg_rs2)*/ & decode_execute_if.f_wen;
   logic [1:0] byte_offset;
   logic [3:0] byte_en_standard;
   word_t w_data, alu_port_b, alu_port_a;
@@ -217,15 +233,24 @@ module pipe5_execute_stage(
           execute_mem_if.intr_seen          <= 'h0;
           execute_mem_if.wfi                <= 'h0;
           execute_mem_if.funct3             <= 'h0; 
-          execute_mem_if.funct12            <= 'h0 ;
-          execute_mem_if.imm_S              <= 'h0 ;
-          execute_mem_if.imm_I              <= 'h0 ;
-          execute_mem_if.imm_U              <= 'h0 ;
-          execute_mem_if.imm_UJ_ext         <= 'h0 ;
-          execute_mem_if.imm_SB             <= 'h0 ;
-          execute_mem_if.instr_30           <= 'h0 ;
-          execute_mem_if.rs1                <= 'h0 ;
-          execute_mem_if.rs2                <= 'h0 ;
+          execute_mem_if.funct12            <= 'h0;
+          execute_mem_if.imm_S              <= 'h0;
+          execute_mem_if.imm_I              <= 'h0;
+          execute_mem_if.imm_U              <= 'h0;
+          execute_mem_if.imm_UJ_ext         <= 'h0;
+          execute_mem_if.imm_SB             <= 'h0;
+          execute_mem_if.instr_30           <= 'h0;
+          execute_mem_if.rs1                <= 'h0;
+          execute_mem_if.rs2                <= 'h0;
+          execute_mem_if.f_reg_rs1          <= 'h0;
+          execute_mem_if.f_reg_rs2          <= 'h0;
+          execute_mem_if.f_reg_rd           <= 'h0;
+          execute_mem_if.f_wsel             <= 'h0;
+          execute_mem_if.f_wen              <= 'h0;
+          execute_mem_if.f_wdata            <= 'h0;
+          execute_mem_if.f_store_wdata      <= 'h0;
+          execute_mem_if.fpu_out            <= 'h0;
+          execute_mem_if.fpu_flags            <= 'h0;
     end
     else begin
         if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
@@ -279,6 +304,15 @@ module pipe5_execute_stage(
           execute_mem_if.instr_30           <= 'h0;
           execute_mem_if.rs1                <= 'h0;
           execute_mem_if.rs2                <= 'h0;
+          execute_mem_if.f_reg_rs1          <= 'h0;
+          execute_mem_if.f_reg_rs2          <= 'h0;
+          execute_mem_if.f_reg_rd           <= 'h0;
+          execute_mem_if.f_wsel             <= 'h0;
+          execute_mem_if.f_wen              <= 'h0;
+          execute_mem_if.f_wdata            <= 'h0;
+          execute_mem_if.f_store_wdata      <= 'h0;
+          execute_mem_if.fpu_out            <= 'h0;
+          execute_mem_if.fpu_flags            <= 'h0;
         end
         else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
           execute_mem_if.dwen               <='h0; 
@@ -345,6 +379,15 @@ module pipe5_execute_stage(
           execute_mem_if.instr_30           <= decode_execute_if.instr_30;
           execute_mem_if.rs1                <= decode_execute_if.reg_rs1;
           execute_mem_if.rs2                <= decode_execute_if.reg_rs2;
+          execute_mem_if.f_reg_rs1          <= decode_execute_if.f_reg_rs1;
+          execute_mem_if.f_reg_rs2          <= decode_execute_if.f_reg_rs2;
+          execute_mem_if.f_reg_rd           <= decode_execute_if.f_reg_rd;
+          execute_mem_if.f_wsel             <= decode_execute_if.f_wsel;
+          execute_mem_if.f_wen              <= decode_execute_if.f_wen;
+          execute_mem_if.f_wdata            <= decode_execute_if.f_wdata;
+          execute_mem_if.f_store_wdata      <= decode_execute_if.f_rs2_data;
+          execute_mem_if.fpu_out            <= fpu_if.fpu_out; 
+          execute_mem_if.fpu_flags          <= fpu_if.f_flags;
          end
       end
   end

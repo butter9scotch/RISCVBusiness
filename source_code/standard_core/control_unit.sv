@@ -233,9 +233,9 @@ module control_unit
 
   //floating point register write enable
   always_comb begin
+     cu_if.f_wen = 1'b0;
     case (cu_if.f_opcode)
        FLW, F_RTYPE: cu_if.f_wen = 1'b1; 
-       default: cu_if.f_wen = 1'b0; 
     endcase
   end
 

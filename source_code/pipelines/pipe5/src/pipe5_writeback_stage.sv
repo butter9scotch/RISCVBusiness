@@ -32,7 +32,8 @@ module pipe5_writeback_stage(
   input logic CLK, nRST,
   pipe5_mem_writeback_if.writeback mem_wb_if,
   pipe5_forwarding_unit_if.writeback bypass_if,
-  rv32i_reg_file_if.writeback rf_if
+  rv32i_reg_file_if.writeback rf_if,
+  rv32f_reg_file_if.writeback frf_if
 );
 
   import rv32i_types_pkg::*;
@@ -52,8 +53,10 @@ module pipe5_writeback_stage(
   assign rf_if.w_data          = w_data;     
   assign rf_if.rd              = mem_wb_if.reg_rd;
 
-
-
+  //floating point reg file connections
+  assign frf_if.f_wen             = mem_wb_if.f_wen;
+  assign frf_if.f_wdata           = (mem_wb_if.f_wsel == 'd0) ?  mem_wb_if.fpu_out : (mem_wb_if.f_wsel == 'd1) ? mem_wb_if.dload_ext : mem_wb_if.f_wdata;
+  assign frf_if.f_rd              = mem_wb_if.reg_rd;
 endmodule
 
 

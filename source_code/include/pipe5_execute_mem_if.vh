@@ -71,7 +71,12 @@ interface pipe5_execute_mem_if;
   logic        wfi;
   logic        prediction;
 
+  //floating point signals
+  logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd, fpu_flags;
+  logic [2:0] f_wsel;
+  logic f_wen;
 
+  word_t f_wdata, f_store_wdata, fpu_out;
 
   modport execute(
      output  reg_file_wdata, w_sel, wen, alu_port_out, pc, pc4, reg_rd,
@@ -85,7 +90,9 @@ interface pipe5_execute_mem_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn,token,
              mal_insn, fault_insn, intr_seen,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, rs1, rs2, wfi
+             imm_SB, imm_U, instr_30, rs1, rs2, wfi,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_wdata, f_store_wdata, fpu_out, fpu_flags
   );
 
   modport memory(
@@ -100,7 +107,9 @@ interface pipe5_execute_mem_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn, token,
              mal_insn, fault_insn,intr_seen,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, rs1, rs2, wfi
+             imm_SB, imm_U, instr_30, rs1, rs2, wfi,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_wdata, f_store_wdata, fpu_out, fpu_flags
   );
 
 endinterface

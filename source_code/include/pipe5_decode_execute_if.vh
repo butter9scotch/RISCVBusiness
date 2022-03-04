@@ -27,6 +27,7 @@
 
 interface pipe5_decode_execute_if;
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import alu_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
@@ -78,7 +79,16 @@ interface pipe5_decode_execute_if;
   word_t       imm_UJ_ext;
   word_t       imm_U;
 
+//floating point signals
+  logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd;
+  logic [2:0] f_wsel;
+  logic f_wen;
 
+
+  f_funct7_t f_funct7;
+  word_t f_rs1_data, f_rs2_data;
+  word_t f_wdata;
+  logic [2:0] frm_out;
 
   modport decode(
       output port_a, port_b, aluop, 
@@ -94,7 +104,9 @@ interface pipe5_decode_execute_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn, token,
              mal_insn, fault_insn,
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, wfi
+             imm_SB, imm_U, instr_30, wfi,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out
   );
 
   modport execute(
@@ -112,9 +124,9 @@ interface pipe5_decode_execute_if;
              illegal_insn,ecall_insn, breakpoint, ret_insn, token,
              mal_insn, fault_insn, 
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
-             imm_SB, imm_U, instr_30, wfi
-
-
+             imm_SB, imm_U, instr_30, wfi,
+             f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
+             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out
   );
 
 endinterface
