@@ -42,7 +42,6 @@ interface ooo_hazard_unit_if();
   word_t csr_pc;
   word_t epc;
   logic npc_sel;
-  logic stall;
   logic ifence_flush;
   logic csr_flush;
   logic insert_priv_pc;
@@ -100,7 +99,7 @@ interface ooo_hazard_unit_if();
   );
 
   modport fetch (
-    input pc_en, npc_sel, stall, halt, ifence_flush, csr_flush, 
+    input pc_en, npc_sel, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, 
            priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode,
     output i_mem_busy 
@@ -117,7 +116,7 @@ interface ooo_hazard_unit_if();
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
           busy_decode,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
-           loadstore_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
+           loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
            stall_all, priv_pc, execute_commit_flush, stall_commit, stall_ex, stall_de,
           stall_fetch_decode

@@ -117,7 +117,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = opcode_t'(cu_if.opcode) != 0;
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch;
   
   /*******************************************************
   *** Sign Extensions of the Immediate Value

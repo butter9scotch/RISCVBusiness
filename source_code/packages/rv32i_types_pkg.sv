@@ -441,7 +441,7 @@ package rv32i_types_pkg;
     word_t imm_U;
     word_t imm_UJ_ext;
     logic [12:0] imm_SB;
-    logic instr_30;
+    logic [29:0] instr_30;
   } cpu_tracker_signals_t;
 
 endpackage
