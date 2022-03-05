@@ -55,6 +55,7 @@ module ooo_decode_stage (
   * Input to the Control Unit
   *******************************************************/
   assign cu_if.instr = fetch_decode_if.instr;
+  assign decode_execute_if.instr = fetch_decode_if.instr;
   assign cu_if.pc_en = hazard_if.pc_en;
   
   control_unit cu (
@@ -116,7 +117,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = opcode_t'(cu_if.opcode) != 6'd0;
+  assign rf_if.rden = opcode_t'(cu_if.opcode) != 0;
   
   /*******************************************************
   *** Sign Extensions of the Immediate Value
@@ -129,8 +130,13 @@ module ooo_decode_stage (
 
   // for source selection
   assign imm_S_ext  = {{20{cu_if.imm_S[11]}}, cu_if.imm_S};
-
   
+  // word_t next_immediate;
+  // always_comb begin
+    
+  // end 
+
+
 
   /*******************************************************
   *** Source Select Logic
@@ -169,14 +175,15 @@ module ooo_decode_stage (
   /*******************************************************
   *** Jump Target Calculator and Associated Logic 
   *******************************************************/
-  word_t base, offset;
   jump_control_signals_t jump_signals;
+  word_t base, offset;
+
   always_comb begin
-    if (cu_if.jump_sigs.j_sel) begin
+    if (cu_if.j_sel) begin
       base = fetch_decode_if.pc;
       offset = imm_UJ_ext;
     end else begin
-      base = rf_if.rs1_data;
+      base = fu_source_a;
       offset = imm_I_ext;
     end
   end 
@@ -184,6 +191,7 @@ module ooo_decode_stage (
   assign jump_signals.j_offset = offset;
   assign jump_signals.jump_instr = cu_if.jump;
   assign jump_signals.j_sel = cu_if.j_sel;
+ 
 
   /*******************************************************
   *** Hazard unit connection  
@@ -202,6 +210,8 @@ module ooo_decode_stage (
       MUL_S:       hazard_if.wen = cu_if.mult_sigs.wen;
     endcase
   end
+
+
 
   /*********************************************************
   *** Signals for Bind Tracking - Read-Only, These don't affect execution
@@ -248,7 +258,7 @@ module ooo_decode_stage (
             decode_execute_if.tracker_sigs <= '0;
     end 
     else begin 
-        if ((hazard_if.id_ex_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | halt) begin
+        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | halt) begin
             //FUNC UNIT
           decode_execute_if.sfu_type   <= ARITH_S;
             //CPU tracker
@@ -274,7 +284,7 @@ module ooo_decode_stage (
             decode_execute_if.halt_instr <= '0;
     end 
     else begin 
-        if ((hazard_if.id_ex_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls) begin
+        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls) begin
           decode_execute_if.halt_instr <= '0;
         end else if(~hazard_if.stall_ex & ~(hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls)) begin
           //HALT
@@ -291,7 +301,7 @@ module ooo_decode_stage (
       decode_execute_if.div_sigs <= '0;
       decode_execute_if.lsu_sigs <= '0;
     end else begin
-      if (hazard_if.id_ex_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin : FLUSH
+      if (hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin : FLUSH
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
         decode_execute_if.lsu_sigs <= '0;
@@ -340,6 +350,7 @@ module ooo_decode_stage (
           decode_execute_if.lsu_sigs.reg_rd <= cu_if.lsu_sigs.reg_rd;
           decode_execute_if.lsu_sigs.ready_ls <= cu_if.lsu_sigs.ready_ls;
           decode_execute_if.lsu_sigs.index_ls <= cb_if.cur_tail;
+          decode_execute_if.store_data <= rf_if.rs2_data;
         end
 
       end
@@ -356,7 +367,7 @@ module ooo_decode_stage (
       decode_execute_if.port_b <= '0; 
       decode_execute_if.lsu_sigs.opcode <= '0;    
     end else begin 
-      if(hazard_if.id_ex_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin
+      if(hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin
         decode_execute_if.pc <= '0;
         decode_execute_if.pc4 <= '0;
         decode_execute_if.immediate <= '0;
@@ -366,7 +377,7 @@ module ooo_decode_stage (
       end else if(~hazard_if.stall_ex) begin
         decode_execute_if.pc <= fetch_decode_if.pc;
         decode_execute_if.pc4 <= fetch_decode_if.pc4;
-        decode_execute_if.immediate <= 32'hc0ffee; // TODO figure out how to do this
+        decode_execute_if.immediate <= cu_if.imm_SB; // TODO figure out how to do this
         decode_execute_if.port_a <= fu_source_a; 
         decode_execute_if.port_b <= fu_source_b; 
         decode_execute_if.lsu_sigs.opcode <= cu_if.opcode;
@@ -389,7 +400,7 @@ module ooo_decode_stage (
       decode_execute_if.exception_sigs <= '0;
         
     end else begin
-      if (hazard_if.id_ex_flush | (~hazard_if.stall_au & hazard_if.stall_fetch_decode) | halt) begin
+      if (hazard_if.decode_execute_flush | (~hazard_if.stall_au & hazard_if.stall_fetch_decode) | halt) begin
         decode_execute_if.arith_sigs <= '0;
         decode_execute_if.reg_file_wdata <= '0;
         //JUMP
@@ -434,7 +445,7 @@ module ooo_decode_stage (
         decode_execute_if.jump_sigs <= jump_signals;
         //BRANCH
         // pretty sure this line is unecessary
-        //decode_execute_if.BRANCH_STRUCT.br_imm_sb       <= cu_if.imm_SB;
+        // decode_execute_if.branch_sigs.br_imm_sb       <= cu_if.imm_SB;
         decode_execute_if.branch_sigs.branch_type  <= cu_if.branch_type;
         decode_execute_if.branch_sigs.branch_instr      <= cu_if.branch;
         //BRANCH PREDICTOR UPDATE

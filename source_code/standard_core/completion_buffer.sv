@@ -192,7 +192,7 @@ module completion_buffer # (
       next_cb[cb_if.index_ls].valid = 1;
       next_cb[cb_if.index_ls].exception = cb_if.exception_ls;
       next_cb[cb_if.index_ls].branch_mispredict_mal = cb_if.mal_ls;
-      next_cb[cb_if.index_ls].wen = 1;
+      next_cb[cb_if.index_ls].wen = cb_if.wen_ls; //wrong
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
     end

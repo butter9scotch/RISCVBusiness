@@ -134,7 +134,7 @@ module ooo_execute_stage(
   // data lines
   assign lsif.port_a = decode_execute_if.port_a;
   assign lsif.port_b = decode_execute_if.port_b;
-  assign lsif.store_data = decode_execute_if.port_b; // this is an issue here because sw needs three operands
+  assign lsif.store_data = decode_execute_if.store_data; // this is an issue here because sw needs three operands
   assign lsif.pc = decode_execute_if.pc;
   
   loadstore_unit LSU(
@@ -151,7 +151,7 @@ module ooo_execute_stage(
   *******************************************************/
   assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
                                                 branch_if.branch_addr;
-  assign hazard_if.mispredict = decode_execute_if.prediction ^ branch_if.branch_taken;
+  assign hazard_if.mispredict = decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken;
   assign hazard_if.branch     = decode_execute_if.branch_sigs.branch_instr; 
   assign hazard_if.jump       = decode_execute_if.jump_sigs.jump_instr; 
 
@@ -163,7 +163,6 @@ module ooo_execute_stage(
   assign execute_commit_if.done_mu = mif.done_mu;
   assign execute_commit_if.done_du = dif.done_du;
   assign execute_commit_if.done_a = auif.done_a;
-
 
   // assign hazard_if.load_stall = lsif.load_stall;
 
@@ -229,7 +228,7 @@ module ooo_execute_stage(
       execute_commit_if.lsu_sigs <= '0;
       execute_commit_if.arith_sigs <= '0;
     end else begin
-      if (hazard_if.ex_comm_flush | (hazard_if.stall_ex & ~hazard_if.stall_commit) | halt) begin
+      if (hazard_if.execute_commit_flush | (hazard_if.stall_ex & ~hazard_if.stall_commit) | halt) begin
         execute_commit_if.mult_sigs <= '0;
         execute_commit_if.div_sigs <= '0;
         execute_commit_if.lsu_sigs <= '0;
@@ -242,6 +241,15 @@ module ooo_execute_stage(
       end
     end
   end
+
+  // word_t next_pc;
+  // One pc port for the commit stage, more than one possible for the pc
+  // to come from. we might be able to mux this, or it might need to be 
+  // multiple signals. I think this will be important with exceptions,
+  // right now we can just assign to brj pc
+  // always_comb begin : NEXT_PC
+  //   next_pc = auif.pc_a;
+  // end
 
   /*******************************************************
   *** Execute Commit Latch
@@ -278,7 +286,6 @@ module ooo_execute_stage(
       execute_commit_if.mal_insn         <= '0;
       execute_commit_if.fault_insn       <= '0;
       execute_commit_if.memory_addr      <= '0;
-      execute_commit_if.pc               <= '0;
       execute_commit_if.token            <= '0;
       execute_commit_if.intr_seen        <= '0;
       execute_commit_if.jump_instr       <= '0;
@@ -301,6 +308,7 @@ module ooo_execute_stage(
       execute_commit_if.prediction        <= '0;
       execute_commit_if.br_resolved_addr  <= '0;
       execute_commit_if.pc                <= '0;
+      execute_commit_if.pc_a                <= '0;
       execute_commit_if.pc4               <= '0;
 
       //Halt
@@ -309,7 +317,7 @@ module ooo_execute_stage(
       execute_commit_if.CPU_TRACKER <= '0;
     end
     else begin
-      if (hazard_if.ex_comm_flush | hazard_if.stall_commit & ~hazard_if.stall_ex || halt ) begin
+      if (hazard_if.execute_commit_flush | hazard_if.stall_commit & ~hazard_if.stall_ex || halt ) begin
         //WRITEBACK Signals:
         //ARITHMETIC
         execute_commit_if.wen_au           <= '0;
@@ -341,6 +349,8 @@ module ooo_execute_stage(
         execute_commit_if.fault_insn       <= '0;
         execute_commit_if.memory_addr      <= '0;
         execute_commit_if.pc               <= '0;
+        execute_commit_if.pc_a               <= '0;
+        execute_commit_if.pc4               <= '0;
         execute_commit_if.token            <= '0;
         execute_commit_if.intr_seen        <= '0;
         execute_commit_if.jump_instr       <= '0;
@@ -363,6 +373,7 @@ module ooo_execute_stage(
         execute_commit_if.branch_taken      <= '0;
         execute_commit_if.prediction        <= '0;
         execute_commit_if.br_resolved_addr  <= '0;
+        execute_commit_if.pc_a                <= '0;
         execute_commit_if.pc                <= '0;
         execute_commit_if.pc4               <= '0;
         //Halt
@@ -400,6 +411,7 @@ module ooo_execute_stage(
         execute_commit_if.mal_insn               <= decode_execute_if.exception_sigs.mal_insn;
         execute_commit_if.fault_insn             <= decode_execute_if.exception_sigs.fault_insn;
         execute_commit_if.memory_addr            <= lsif.memory_addr;
+        execute_commit_if.pc_a                   <= decode_execute_if.pc;
         execute_commit_if.pc                     <= decode_execute_if.pc;
         execute_commit_if.token                  <= 0;
         execute_commit_if.intr_seen              <= intr_taken_ex; //TODO

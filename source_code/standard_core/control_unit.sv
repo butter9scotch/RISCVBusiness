@@ -113,7 +113,7 @@ module control_unit
   // Select which operand to use
   always_comb begin
     case(cu_if.opcode)
-      REGREG, IMMED, LOAD : cu_if.source_a_sel = 2'd0;
+      REGREG, IMMED, LOAD, BRANCH : cu_if.source_a_sel = 2'd0;
       STORE               : cu_if.source_a_sel = 2'd1;
       AUIPC               : cu_if.source_a_sel = 2'd2;
       default             : cu_if.source_a_sel = 2'd2;

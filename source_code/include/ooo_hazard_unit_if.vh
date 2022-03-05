@@ -11,7 +11,7 @@ interface ooo_hazard_unit_if();
   logic data_hazard;
 
   logic pc_en;
-  logic id_ex_flush;
+  logic decode_execute_flush;
   logic stall_au;
   logic stall_mu;
   logic stall_du;
@@ -22,7 +22,7 @@ interface ooo_hazard_unit_if();
   logic dflushed;
   logic iflushed;
   word_t ifence_pc;
-  logic ex_mem_flush;
+  logic loadstore_flush;
   logic d_mem_busy;
   logic dmem_access;
   logic intr_taken;
@@ -47,7 +47,7 @@ interface ooo_hazard_unit_if();
   logic csr_flush;
   logic insert_priv_pc;
   word_t priv_pc;
-  logic if_id_flush;
+  logic fetch_decode_flush;
   logic iren;
   logic i_mem_busy;
   logic dren;
@@ -72,7 +72,7 @@ interface ooo_hazard_unit_if();
   logic busy_ls;
   scalar_fu_t fu_type;
   logic rob_full;
-  logic ex_comm_flush;
+  logic execute_commit_flush;
   logic rd_busy;
   logic rs1_busy;
   logic rs2_busy;
@@ -85,14 +85,14 @@ interface ooo_hazard_unit_if();
 
 
   modport decode (
-    input pc_en, id_ex_flush, stall_au, stall_mu, stall_du, stall_ls, 
+    input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
            stall_de, intr, stall_fetch_decode,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
            rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
   );
 
   modport execute (
-    input pc_en, ex_comm_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
+    input pc_en, execute_commit_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
     output load, stall_ex, jump, branch, mispredict, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
@@ -102,7 +102,7 @@ interface ooo_hazard_unit_if();
   modport fetch (
     input pc_en, npc_sel, stall, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, 
-           priv_pc, if_id_flush, iren, stall_fetch_decode, busy_decode,
+           priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode,
     output i_mem_busy 
   );
 
@@ -116,22 +116,22 @@ interface ooo_hazard_unit_if();
            busy_mul, rob_full, data_hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
           busy_decode,
-    output pc_en, if_if_flush, if_id_flush, id_ex_flush, csr, iren, 
-           ex_mem_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
+    output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
+           loadstore_flush, npc_sel, dmem_access, stall, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_all, priv_pc, ex_comm_flush, stall_commit, stall_ex, stall_de,
+           stall_all, priv_pc, execute_commit_flush, stall_commit, stall_ex, stall_de,
           stall_fetch_decode
   );
 
   modport commit (
-    input stall_commit,
+    input stall_commit, mispredict,
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
-           epc, badaddr_d, badaddr_i, rob_full, pc_en, ex_comm_flush
+           epc, badaddr_d, badaddr_i, rob_full, pc_en, execute_commit_flush
   );
 
   modport memory (
-    input ex_mem_flush, pc_en, dmem_access, stall_ls,
+    input loadstore_flush, pc_en, dmem_access, stall_ls,
     output d_mem_busy, dren, dwen, busy_ls
   );
 

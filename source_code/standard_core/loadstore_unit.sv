@@ -98,7 +98,7 @@ module loadstore_unit (
       index_ff1     <= '0;
     end else begin
       //if (hazard_if.ex_mem_flush | (hazard_if.stall_ls & ~stall_mem) | halt ) begin
-      if (hazard_if.ex_mem_flush | halt ) begin
+      if (hazard_if.loadstore_flush | halt ) begin
         store_data_ff1 <= '0;
         dren_ff1       <= '0;
         dwen_ff1       <= '0;

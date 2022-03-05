@@ -49,20 +49,6 @@ module arithmetic_unit (
   end
   // auif.wen = auif.wen_au; 
 
-  /*******************************************************
-  *** Jump Target Calculator and Associated Logic 
-  *******************************************************/
-
-  word_t base, offset;
-  always_comb begin
-    if (auif.j_sel) begin
-      base = auif.pc;
-      offset = auif.imm_UJ_ext;
-    end else begin
-      base = auif.port_a;
-      offset = auif.imm_I_ext;
-    end
-  end 
 
 
 endmodule

@@ -35,7 +35,7 @@ module ooo_hazard_unit (
   assign hazard_if.pc_en =  ~pc_stall;
   assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | 0; //ifence logic where zero
   assign hazard_if.stall_de = hazard_if.stall_fetch_decode; 
-  assign hazard_if.id_ex_flush  = 0;
+  //assign hazard_if.decode_execute_flush  = 0;
 
   //FETCH_DECODE
   logic structural_hazard;
@@ -70,7 +70,8 @@ module ooo_hazard_unit (
   //assign hazard_if.stall_de = structural_hazard;
   assign hazard_if.stall_ex = hazard_if.rob_full;
   assign hazard_if.stall_commit = 0;
-
+  assign hazard_if.fetch_decode_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.ifence_flush | hazard_if.csr_flush;
+  assign hazard_if.decode_execute_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc;
 
   
   //Branch jump 
@@ -123,15 +124,14 @@ module ooo_hazard_unit (
   // assign intr_e_flush = intr_exception;
   // assign hazard_if.csr_flush = hazard_if.csr;
   // assign hazard_if.ifence_flush = hazard_if.ifence && (~hazard_if.dflushed || ~hazard_if.iflushed);
-  // assign hazard_if.if_id_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
-  // assign hazard_if.id_ex_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
+  // assign hazard_if.fetch_decode_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
+  // assign hazard_if.decode_execute_flush  = branch_jump | hazard_if.ifence_flush | hazard_if.csr | intr_e_flush;
 
   assign intr_exception = 0;
   assign intr_e_flush = 0;
   assign hazard_if.csr_flush = 0;
   assign hazard_if.ifence_flush = 0;
-  assign hazard_if.if_id_flush  = 0;
-  assign hazard_if.ex_comm_flush  = 0;
+  assign hazard_if.execute_commit_flush  = 0;
 
 
 

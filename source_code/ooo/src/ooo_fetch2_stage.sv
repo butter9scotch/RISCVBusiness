@@ -73,14 +73,14 @@
             //fetch_decode_if.mal_insn            <='h0;
             //fetch_decode_if.fault_insn          <= 1'b0;
         //end
-        //else if (hazard_if.if_id_flush & hazard_if.pc_en) begin
+        //else if (hazard_if.fetch_decode_flush & hazard_if.pc_en) begin
             //fetch_decode_if.token               <='h0; 
             //fetch_decode_if.instr               <='h0; 
             //fetch_decode_if.prediction          <='h0; 
             //fetch_decode_if.mal_insn            <='h0;
             //fetch_decode_if.fault_insn          <= 1'b0;
         //end 
-        //else if(hazard_if.pc_en & ~ hazard_if.if_id_flush & ~hazard_if.stall) begin
+        //else if(hazard_if.pc_en & ~ hazard_if.fetch_decode_flush & ~hazard_if.stall) begin
             //fetch_decode_if.token               <= 1'b1;
             //fetch_decode_if.pc                  <= pc;
             //fetch_decode_if.pc4                 <= pc4;

@@ -65,6 +65,7 @@ interface completion_buffer_if();
   logic ready_ls;
   logic branch_mispredict;
   logic wen_a;
+  logic wen_ls;
   logic valid_a;
   logic mal_ls;
   cpu_tracker_signals_t CPU_TRACKER;
@@ -74,7 +75,7 @@ interface completion_buffer_if();
   modport cb (
     input alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
            rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, ready_a, 
-           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, valid_a, 
+           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
            wdata_a, wdata_mu, wdata_du, wdata_ls, CPU_TRACKER, opcode,
@@ -85,7 +86,7 @@ interface completion_buffer_if();
   modport commit (
     output alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
            rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, ready_a, 
-           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, valid_a, 
+           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
            wdata_a, wdata_mu, wdata_du, wdata_ls, halt_instr
@@ -97,7 +98,7 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
+    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
   );
 
   modport hu (

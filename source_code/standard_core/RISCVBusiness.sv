@@ -97,6 +97,13 @@ module RISCVBusiness (
 //       ,.hazard_if(hazard_if)
 //      );
 
+
+  always @(posedge hazard_if.pc_en) begin
+    $info ("PC: %8x --- Instr: %8x \n", fetch_stage.program_counter_pc, fetch_decode_if.instr);
+  end
+
+
+
   ooo_fetch_stage fetch_stage (
       .CLK(CLK)
     ,.nRST(nRST)
