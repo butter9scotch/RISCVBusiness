@@ -22,9 +22,11 @@ interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t cont
   logic busy_au;
   logic j_sel;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
+  logic done_a;
 
 
   always_comb begin : CONNECTIONS
+    done_a = control_sigs.ena;
     wen_au = control_sigs.wen;
     aluop = control_sigs.alu_op;
     w_src =  control_sigs.w_src;
@@ -35,7 +37,7 @@ interface arithmetic_unit_if(input rv32i_types_pkg::arith_control_signals_t cont
   modport au (
     input wen, aluop, port_a, port_b, reg_file_wdata, csr_rdata, w_src,
     imm_UJ_ext, imm_I_ext, j_sel, pc,
-    output wdata_au, wen_au, reg_rd_au, busy_au
+    output wdata_au, wen_au, reg_rd_au, busy_au, done_a
   );
 
 endinterface

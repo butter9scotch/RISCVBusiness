@@ -51,7 +51,8 @@ module loadstore_unit (
   load_t load_type_ff1, load_type_ff0;
   opcode_t opcode_ff0, opcode_ff1;
   logic mal_addr_ff0, mal_addr_ff1;
-
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ff0, index_ff1;
+  word_t dload_ext;
   logic [3:0] byte_en_standard;
   logic stall_mem;
   assign stall_mem = dgen_bus_if.busy & (dren_ff1 | dwen_ff1);
@@ -66,6 +67,7 @@ module loadstore_unit (
   assign load_type_ff0  = lsif.load_type;
   assign pc_ff0         = lsif.pc;
   assign opcode_ff0     = lsif.opcode;
+  assign index_ff0      = lsif.index;
   assign hazard_if.dmem_access = dren_ff1 | dwen_ff1;
   assign hazard_if.busy_ls = stall_mem;
 
@@ -93,6 +95,7 @@ module loadstore_unit (
       load_type_ff1  <= load_t'('0);
       pc_ff1         <= '0;
       opcode_ff1     <= opcode_t'('0);
+      index_ff1     <= '0;
     end else begin
       //if (hazard_if.ex_mem_flush | (hazard_if.stall_ls & ~stall_mem) | halt ) begin
       if (hazard_if.ex_mem_flush | halt ) begin
@@ -107,6 +110,7 @@ module loadstore_unit (
         load_type_ff1  <= load_t'('0);
         pc_ff1         <= '0;
         opcode_ff1     <= opcode_t'('0);
+        index_ff1     <= '0;
       end else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
         dren_ff1 <= '0;
         dwen_ff1 <= '0;
@@ -122,6 +126,7 @@ module loadstore_unit (
         load_type_ff1  <= load_type_ff0;
         pc_ff1         <= pc_ff0;
         opcode_ff1     <= opcode_ff0;
+        index_ff1     <= index_ff0;
       end
     end
   end
@@ -129,7 +134,7 @@ module loadstore_unit (
   // OUTPUT:
   logic stall_mem_ff1;
 
-  assign lsif.wdata_ls = dgen_bus_if.rdata;
+  assign lsif.wdata_ls = dload_ext;
   assign lsif.wen_ls   = wen_ff1;
   assign lsif.reg_rd_ls   = reg_rd_ff1;
   assign lsif.dren_ls  = dren_ff1;
@@ -138,6 +143,7 @@ module loadstore_unit (
   assign lsif.mal_addr = mal_addr_ff1;
   assign lsif.memory_addr = address_ff1;
   assign lsif.done_ls = stall_mem_ff1 & ~stall_mem; 
+  assign lsif.index_ls = index_ff1;
 
 
   always_ff @(posedge CLK, negedge nRST) begin
@@ -165,9 +171,8 @@ module loadstore_unit (
     end
   endgenerate 
 
-  word_t dload_ext;
   dmem_extender dmem_ext (
-    .dmem_in(wdata),
+    .dmem_in(dgen_bus_if.rdata),
     .load_type(load_type_ff1),
     .byte_en(byte_en),
     .ext_out(dload_ext)

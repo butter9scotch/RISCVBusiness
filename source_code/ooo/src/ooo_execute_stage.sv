@@ -160,9 +160,9 @@ module ooo_execute_stage(
   assign hazard_if.busy_du = dif.busy_du;
   //assign hazard_if.busy_ls = lsif.busy_ls;
   assign execute_commit_if.done_ls = lsif.done_ls;
-  assign execute_commit_if.done_mu = lsif.done_ls;
-  assign execute_commit_if.done_du = lsif.done_ls;
-  assign execute_commit_if.done_a = lsif.done_ls;
+  assign execute_commit_if.done_mu = mif.done_mu;
+  assign execute_commit_if.done_du = dif.done_du;
+  assign execute_commit_if.done_a = auif.done_a;
 
 
   // assign hazard_if.load_stall = lsif.load_stall;

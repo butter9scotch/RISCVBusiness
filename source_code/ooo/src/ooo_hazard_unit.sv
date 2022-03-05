@@ -33,7 +33,7 @@ module ooo_hazard_unit (
   logic pc_stall;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | 0; //ifence logic where zero
+  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | 0; //ifence logic where zero
   assign hazard_if.stall_de = hazard_if.stall_fetch_decode; 
   assign hazard_if.id_ex_flush  = 0;
 

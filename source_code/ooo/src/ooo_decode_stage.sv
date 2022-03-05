@@ -262,13 +262,19 @@ module ooo_decode_stage (
     end
   end
 
-  // All blocking instructions should go in this block
+  /***** ALL BLOCKING INSTRUCTIONS GO HERE *****/
+  logic is_blocking_instruction;
+  assign is_blocking_instruction = cu_if.halt;
+  assign hazard_if.busy_decode = is_blocking_instruction & (hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls);
+
+
+
   always_ff @(posedge CLK, negedge nRST) begin : BLOCKING_INSTRS
     if (~nRST) begin
             decode_execute_if.halt_instr <= '0;
     end 
     else begin 
-        if ((hazard_if.id_ex_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls | halt) begin
+        if ((hazard_if.id_ex_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls) begin
           decode_execute_if.halt_instr <= '0;
         end else if(~hazard_if.stall_ex & ~(hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls)) begin
           //HALT
@@ -276,7 +282,6 @@ module ooo_decode_stage (
         end
     end
   end
-
 
   // BIG TODO: put in the logic for rs1 and rs2
   /***** OTHER FUNCTIONAL UNITS LATCH *****/
@@ -296,7 +301,7 @@ module ooo_decode_stage (
 //          decode_execute_if.lsu_sigs <= '0;
       end else begin
         //MULTIPLY
-        if(~decode_execute_if.mult_sigs.ena) begin
+        if(~cu_if.mult_sigs.ena) begin
           decode_execute_if.mult_sigs <= '0;
         end else if(~(hazard_if.stall_mu)) begin
           decode_execute_if.mult_sigs.ena <= cu_if.mult_sigs.ena;
@@ -310,7 +315,7 @@ module ooo_decode_stage (
         end
        
         //DIVIDE
-        if(~decode_execute_if.div_sigs.ena) begin
+        if(~cu_if.div_sigs.ena) begin
           decode_execute_if.div_sigs <= '0;
         end else if(~(hazard_if.stall_du)) begin
           decode_execute_if.div_sigs.ena <= cu_if.div_sigs.ena;
@@ -323,7 +328,7 @@ module ooo_decode_stage (
         end
 
         // LOADSTORE
-        if(~decode_execute_if.lsu_sigs.ena) begin
+        if(~cu_if.lsu_sigs.ena) begin
           decode_execute_if.lsu_sigs <= '0;
         end else if(~(hazard_if.stall_ls)) begin
           decode_execute_if.lsu_sigs.load_type <= cu_if.lsu_sigs.load_type;
@@ -396,7 +401,7 @@ module ooo_decode_stage (
         //Exceptions
         decode_execute_if.exception_sigs <= '0;
 
-      end else if(~decode_execute_if.arith_sigs.ena) begin
+      end else if(~cu_if.arith_sigs.ena) begin
         decode_execute_if.arith_sigs <= '0;
         decode_execute_if.reg_file_wdata <= next_reg_file_wdata;
         decode_execute_if.jump_sigs <= '0;
@@ -416,6 +421,7 @@ module ooo_decode_stage (
         decode_execute_if.exception_sigs.wfi          <= cu_if.wfi;
         decode_execute_if.exception_sigs.w_src        <= cu_if.arith_sigs.w_src;
       end else if(~hazard_if.stall_au) begin
+        decode_execute_if.arith_sigs.ena <= cu_if.arith_sigs.ena;
         decode_execute_if.arith_sigs.alu_op <= cu_if.arith_sigs.alu_op;
         decode_execute_if.arith_sigs.w_src <= cu_if.arith_sigs.w_src;
         decode_execute_if.arith_sigs.wen <= cu_if.arith_sigs.wen;

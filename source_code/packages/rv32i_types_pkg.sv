@@ -335,7 +335,7 @@ package rv32i_types_pkg;
     word_t imm_U;
     logic [11:0] imm_UJ_ext;
     logic [12:0] imm_SB;
-    logic instr_30;
+    logic [29:0] instr_30;
     logic [4:0] reg_rs1;
     logic [4:0] reg_rs2;
     logic [4:0] reg_rd; 
