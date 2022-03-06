@@ -62,7 +62,7 @@ module ooo_hazard_unit (
   // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
   assign hazard_if.stall_au = 0;
   // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;
-  assign hazard_if.stall_du = 0;
+  assign hazard_if.stall_du = hazard_if.busy_du;
   // assign hazard_if.stall_mu = (hazard_if.fu_type == MUL_S) & hazard_if.busy_mul;
   assign hazard_if.stall_mu = 0;
   // assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
@@ -83,7 +83,7 @@ module ooo_hazard_unit (
 
  // RAW hazard because of load -> Stall the pipe
   //assign load_stall = (((hazard_if.reg_rd == hazard_if.reg_rs1) || (hazard_if.reg_rd == hazard_if.reg_rs2)) & hazard_if.load) ? 1'b1 : 1'b0;
-  assign hazard_if.stall = hazard_if.d_mem_busy & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush | hazard_if.stall_ex;
+  //assign hazard_if.stall = hazard_if.d_mem_busy & ~hazard_if.csr & ~hazard_if.ifence_flush & ~intr_e_flush | hazard_if.stall_ex;
 
  //Exceptions
   //assign e_fetch_stage       = hazard_if.fault_insn | hazard_if.mal_insn | hazard_if.fault_l | hazard_if.fault_s; REMOVE?

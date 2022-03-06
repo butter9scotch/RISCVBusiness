@@ -31,6 +31,7 @@ module divider
 	input logic nRST, 
   input logic start,
 	input logic is_signed, //new
+	input logic ena,
 	input logic [NUM_BITS-1:0] dividend, 
 	input logic [NUM_BITS-1:0] divisor, 
 	output logic [NUM_BITS-1:0] quotient, 
@@ -43,28 +44,29 @@ module divider
 	logic [NUM_BITS-1:0] DivisorX2, DivisorX3;
 	logic [4:0] count, next_count;
 
-	logic [NUM_BITS-1:0] usign_divisor, usign_dividend;
+	logic [NUM_BITS-1:0] usign_divisor, usign_dividend, dividend_reg, divisor_reg;
 	logic adjustment_possible, adjust_quotient, adjust_remainder;
-	logic div_done;
+	//logic div_done;
 
-	assign usign_divisor        = is_signed & divisor[NUM_BITS-1] ? (~divisor)+1 : divisor;
+	assign usign_divisor        = is_signed & divisor_reg[NUM_BITS-1] ? (~divisor_reg)+1 : divisor_reg;
 	assign usign_dividend       = is_signed & dividend[NUM_BITS-1] ? (~dividend)+1 : dividend;
-	assign adjustment_possible  = is_signed && (divisor[NUM_BITS-1] ^ dividend[NUM_BITS-1]); 
+	assign adjustment_possible  = is_signed && (divisor_reg[NUM_BITS-1] ^ dividend_reg[NUM_BITS-1]); 
 	assign adjust_quotient      = adjustment_possible && ~quotient[NUM_BITS-1];
-	assign adjust_remainder     = is_signed && dividend[NUM_BITS-1];
-	assign div_done             = (count == 0);
+	assign adjust_remainder     = is_signed && dividend_reg[NUM_BITS-1];
+	//assign div_done             = ena & (count == 0);
 	assign quotient = temp_quotient;
-	assign remainder = temp_remainder;					
+	assign remainder = temp_remainder;
+        assign finished = ena & (count == 0) & ~start;	
 
-	always_ff @(posedge CLK, negedge nRST) begin
+	/*always_ff @(posedge CLK, negedge nRST) begin
         if (nRST == 0) begin
 			finished <= 1'b0;
-        end else if(start | finished) begin
+        end else if(finished) begin
             finished <= 1'b0;
         end else if(div_done) begin
             finished <= 1'b1;
         end
-	end
+	end */
 	//initialize d2 d3
 	assign DivisorX2 = usign_divisor << 1; //Divisor*2
 	assign DivisorX3 = (usign_divisor << 1) + usign_divisor; //Divisor*3
@@ -74,12 +76,15 @@ module divider
 			count <= 5'd16;
 			temp_quotient <= '0;
 			temp_remainder <= '0;
+			dividend_reg <= '0;
+			divisor_reg <= '0;
 		end else if (start) begin
 			temp_quotient <= usign_dividend;
 			temp_remainder <= '0;
 			count <= 5'd16;
-	
-		end else if (count >= 0) begin
+			dividend_reg <= dividend;
+			divisor_reg <= divisor;	
+		end else if (ena && count >= 0) begin
 			temp_quotient <= next_quotient;
 			temp_remainder <= next_remainder;
 			count <= next_count;

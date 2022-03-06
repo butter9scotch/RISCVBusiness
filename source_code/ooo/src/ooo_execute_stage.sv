@@ -295,10 +295,10 @@ module ooo_execute_stage(
       execute_commit_if.exception_du     <= 0; // TODO
       execute_commit_if.exception_ls     <= 0; // TODO
 
-      execute_commit_if.index_a  = '0;
-      execute_commit_if.index_mu = '0;
-      execute_commit_if.index_ls = '0;
-      execute_commit_if.index_du = '0;
+      execute_commit_if.index_a  <= '0;
+      execute_commit_if.index_mu <= '0;
+      execute_commit_if.index_ls <= '0;
+      execute_commit_if.index_du <= '0;
 
       //execute_commit_if.branch_instr     <= '0;
       execute_commit_if.br_resolved_addr <= '0;
@@ -360,10 +360,10 @@ module ooo_execute_stage(
         execute_commit_if.exception_du            <= 0; // TODO
         execute_commit_if.exception_ls            <= 0; // TODO
 
-        execute_commit_if.index_a  = '0;
-        execute_commit_if.index_mu = '0;
-        execute_commit_if.index_ls = '0;
-        execute_commit_if.index_du = '0;
+        execute_commit_if.index_a  <= '0;
+        execute_commit_if.index_mu <= '0;
+        execute_commit_if.index_ls <= '0;
+        execute_commit_if.index_du <= '0;
 
 
         //execute_commit_if.branch_instr     <= '0;
@@ -393,7 +393,10 @@ module ooo_execute_stage(
         //DIVIDE
         execute_commit_if.wen_du                 <= dif.done_du; //or finished
         execute_commit_if.wdata_du               <= dif.wdata_du;
-        execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
+        if (dif.start_div) begin
+                execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
+                execute_commit_if.index_du               <= dif.index_du;
+        end
         //LOADSTORE
         execute_commit_if.wen_ls                 <= 0; // TODO- dhit?
         execute_commit_if.wdata_ls               <= lsif.wdata_ls;
@@ -431,10 +434,9 @@ module ooo_execute_stage(
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         execute_commit_if.pc4                    <= decode_execute_if.pc4;
 
-        execute_commit_if.index_a  = auif.index_a;
-        execute_commit_if.index_mu = mif.index_mu;
-        execute_commit_if.index_ls = lsif.index_ls;
-        execute_commit_if.index_du = dif.index_du;
+        execute_commit_if.index_a  <= auif.index_a;
+        execute_commit_if.index_mu <= mif.index_mu;
+        execute_commit_if.index_ls <= lsif.index_ls;
 
         
         //Halt
