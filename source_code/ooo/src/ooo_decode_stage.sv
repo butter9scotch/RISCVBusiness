@@ -202,6 +202,7 @@ module ooo_decode_stage (
   assign hazard_if.rd_busy   = rf_if.rd_busy;
   assign hazard_if.source_a_sel = cu_if.source_a_sel;
   assign hazard_if.source_b_sel = cu_if.source_b_sel;
+  assign hazard_if.fu_type = cu_if.sfu_type;
   always_comb begin
     case (cu_if.sfu_type) 
       LOADSTORE_S: hazard_if.wen = cu_if.lsu_sigs.wen;

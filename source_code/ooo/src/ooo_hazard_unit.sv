@@ -14,6 +14,7 @@ module ooo_hazard_unit (
   logic load_stall;
   logic e_fetch_stage, e_decode_stage, e_execute_stage;
   logic intr_e_flush, intr_exception;
+  logic structural_hazard;
 
   //Incrementing PC only when instruction has been fetched
   assign wait_for_imem = hazard_if.iren & hazard_if.i_mem_busy;
@@ -38,7 +39,6 @@ module ooo_hazard_unit (
   //assign hazard_if.decode_execute_flush  = 0;
 
   //FETCH_DECODE
-  logic structural_hazard;
   logic rs1_busy, rs2_busy, rd_busy;
   assign hazard_if.data_hazard = rs1_busy | rs2_busy | rd_busy;
 
@@ -58,7 +58,8 @@ module ooo_hazard_unit (
   
   assign rd_busy = hazard_if.rd_busy & hazard_if.wen;
 
-  assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
+  //assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
+  assign structural_hazard = (hazard_if.fu_type == DIV_S) & hazard_if.busy_du; // TODO: Need to add load/store condition, check with Owen
   // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
   assign hazard_if.stall_au = 0;
   // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;

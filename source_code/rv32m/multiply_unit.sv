@@ -45,7 +45,7 @@ module multiply_unit (
     .multiplicand(multiplicand),
     .multiplier(multiplier),
     .is_signed(is_signed),
-    .start(ena_ff0),
+    .start(mif.start_mu),
     .finished(done),
     .next_finished(next_done),
     .product(product)

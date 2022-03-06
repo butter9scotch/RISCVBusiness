@@ -62,6 +62,8 @@ module ooo_execute_stage(
   word_t csr_wdata;
   logic intr_taken_ex;
   word_t branch_addr, resolved_addr;
+  logic [4:0] reg_rd_mu_ff0, reg_rd_mu_ff1, reg_rd_mu_ff2;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu_ff0, index_mu_ff1, index_mu_ff2; 
 
   
   /*******************************************************
@@ -111,6 +113,23 @@ module ooo_execute_stage(
   *** Multiply Unit
   *******************************************************/ 
   multiply_unit_if  mif(.control_sigs(decode_execute_if.mult_sigs));
+  always_ff @(posedge CLK or negedge nRST) begin
+    if (~nRST) begin 
+      reg_rd_mu_ff0 <= '0; 
+      reg_rd_mu_ff1 <= '0; 
+      reg_rd_mu_ff2 <= '0; 
+      index_mu_ff0 <= '0;
+      index_mu_ff1 <= '0;
+      index_mu_ff2 <= '0;
+    end else begin
+      reg_rd_mu_ff0 <= mif.reg_rd_mu;
+      reg_rd_mu_ff1 <= reg_rd_mu_ff0;
+      reg_rd_mu_ff2 <= reg_rd_mu_ff1;
+      index_mu_ff0 <= mif.index_mu;
+      index_mu_ff1 <= index_mu_ff0;
+      index_mu_ff2 <= index_mu_ff1;
+    end
+  end
   // data inputs
   assign mif.rs1_data = decode_execute_if.port_a;
   assign mif.rs2_data = decode_execute_if.port_b;
@@ -389,7 +408,8 @@ module ooo_execute_stage(
         //MULTIPLY
         execute_commit_if.wen_mu                 <= mif.done_mu; //done
         execute_commit_if.wdata_mu               <= mif.wdata_mu;
-        execute_commit_if.reg_rd_mu              <= mif.reg_rd_mu;
+        execute_commit_if.reg_rd_mu              <= reg_rd_mu_ff2;
+        execute_commit_if.index_mu               <= index_mu_ff2;
         //DIVIDE
         execute_commit_if.wen_du                 <= dif.done_du; //or finished
         execute_commit_if.wdata_du               <= dif.wdata_du;
@@ -435,7 +455,6 @@ module ooo_execute_stage(
         execute_commit_if.pc4                    <= decode_execute_if.pc4;
 
         execute_commit_if.index_a  <= auif.index_a;
-        execute_commit_if.index_mu <= mif.index_mu;
         execute_commit_if.index_ls <= lsif.index_ls;
 
         
