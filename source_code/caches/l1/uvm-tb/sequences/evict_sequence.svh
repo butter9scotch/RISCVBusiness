@@ -13,6 +13,9 @@ import rv32i_types_pkg::*;
 /** Sequence to test read after writes to the same location */
 class evict_sequence extends uvm_sequence #(cpu_transaction);
   `uvm_object_utils(evict_sequence)
+
+  rand int N; //number of iterations of eviction events
+
   function new(string name = "");
     super.new(name);
   endfunction: new
@@ -24,10 +27,8 @@ class evict_sequence extends uvm_sequence #(cpu_transaction);
     
     req_item = cpu_transaction::type_id::create("req_item");
     
-    repeat(1) begin
-      //TODO: Same index but different tag
-      $display("INDX bits: %d, frame: %d", `L1_INDEX_BITS, `L1_FRAME_INDEX_BITS);
-      for (int i = 0; i < 2*`L1_ASSOC; i++) begin
+    repeat(N) begin
+      for (int i = 0; i < `L1_ASSOC + 1; i++) begin
         start_item(req_item);
         if(!req_item.randomize() with {
           if (i != 0) {
@@ -38,9 +39,6 @@ class evict_sequence extends uvm_sequence #(cpu_transaction);
           `uvm_fatal("Randomize Error", "not able to randomize")
         end
         index = req_item.addr[`L1_INDEX_BITS:0];
-        $display("idx: %h, addr: %h",index,req_item.addr);
-
-        //FIXME: LEFT OFF HERE
 
         `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
 

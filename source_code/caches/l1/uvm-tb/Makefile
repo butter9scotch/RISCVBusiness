@@ -18,7 +18,8 @@ VERBOSITY = LOW
 RAND_SEED = random
 
 #env_config parameters
-MEM_TIMEOUT = 8
+#TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
+MEM_TIMEOUT = 11
 
 all: build run
 

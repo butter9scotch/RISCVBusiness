@@ -16,6 +16,7 @@
     - LOW
       - actual and expected values for scoreboard errors
       - success msg for data matches
+      - master sequence parameters
     - MEDIUM
       - actual and expected values for all scoreboard checks
       - predictor default values for non-initialized memory
