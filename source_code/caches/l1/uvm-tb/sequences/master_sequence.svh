@@ -29,8 +29,7 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
   endfunction: new
 
   //TODO: IMPLEMENT THIS IN MASTER SEQUENCE
-  function randomize();
-    super.randomize();
+  function void post_randomize();
     evt_seq.randomize();
     nom_seq.randomize();
   endfunction
@@ -39,9 +38,13 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
     cpu_transaction req_item;
 
     repeat(1) begin
-      start_item(req_item);
-
-      finish_item(req_item);
+      // evt_seq.start(env.cpu_agt.sqr);
+      // if(!nom_seq.randomize() with {
+      //   N inside {[10:20]};
+      //   }) begin
+      //   `uvm_fatal("Randomize Error", "not able to randomize")
+      // end
+      // nom_seq.start(env.cpu_agt.sqr);
     end
   endtask: body
 endclass: master_sequence

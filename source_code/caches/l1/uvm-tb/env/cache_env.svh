@@ -36,7 +36,6 @@ class cache_env extends uvm_env;
 	endfunction
 
   function void build_phase(uvm_phase phase);
-    // instantiate all the components through factory method
     cpu_agt = cpu_agent::type_id::create("CPU_AGT", this);
     cpu_pred = cpu_predictor::type_id::create("CPU_PRED", this);
     cpu_score = cpu_scoreboard::type_id::create("CPU_SCORE", this);

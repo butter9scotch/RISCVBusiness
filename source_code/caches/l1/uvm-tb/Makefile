@@ -13,9 +13,12 @@ INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 SRC = $(ROOT)/source_code/caches/l1
 
-TESTCASE = nominal_test
+TESTCASE = random_test
 VERBOSITY = LOW
 RAND_SEED = random
+
+#env_config parameters
+MEM_TIMEOUT = 8
 
 all: build run
 
@@ -44,6 +47,7 @@ run_gui:
 	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
+	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
 	-do "do $(WAVES)/wave.do" -do "run -all"
 
 run:
@@ -54,6 +58,7 @@ run:
 	-sv_seed $(RAND_SEED) \
 	+UVM_TESTNAME=$(TESTCASE) \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
+	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
 	-do "run -all"
 
 help:
@@ -62,7 +67,12 @@ help:
 		all: build and run\n\
 		build: compile code\n\
 		run: simuate the code with QuestaSim in command line\n\
-		gui: simulate the code QuestaSim GUI\n"
+		gui: simulate the code QuestaSim GUI\n\
+	Parameters:\n\
+		TESTCASE: name of uvm test\n\
+		VERBOSITY: NONE, LOW, MEDIUM, HIGH, DEBUG\n\
+		RAND_SEED: starter seed for uvm randomization\n\
+		MEM_TIMEOUT: allowed memory latency before timeout error\n"
 
 clean:
 	rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf

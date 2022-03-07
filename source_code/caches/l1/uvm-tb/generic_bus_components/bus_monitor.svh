@@ -18,6 +18,7 @@ class bus_monitor extends uvm_monitor;
   uvm_analysis_port #(cpu_transaction) resp_ap;
 
   int cycle; // number of clock cycles that have elapsed
+  int timeout; //duration to wait before considering a memory request delay and error
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -28,8 +29,16 @@ class bus_monitor extends uvm_monitor;
 
   // Build Phase - Get handle to virtual if from config_db
   virtual function void build_phase(uvm_phase phase);
+    cache_env_config env_config;
     super.build_phase(phase);
     // NOTE: extended classes must get interfaces from db
+    
+    // get config from database
+    if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
+      `uvm_fatal(this.get_name(), "env config not registered to db")
+		end
+
+    timeout = env_config.mem_timeout;
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
@@ -38,6 +47,7 @@ class bus_monitor extends uvm_monitor;
 
     forever begin
       cpu_transaction tx;
+      int timeout_lim;
 
       @(posedge cif.CLK);
       cycle++;
@@ -64,10 +74,13 @@ class bus_monitor extends uvm_monitor;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
-      //TODO: CHECK FOR INFITE BUSY FLAG
+        timeout_lim = cycle + timeout; 
         while (bus_if.busy) begin
           @(posedge cif.CLK);
           cycle++; //wait for memory to return
+          if (cycle > timeout_lim) begin
+            `uvm_fatal(this.get_name(), "memory timeout reached")
+          end
         end
 
         if (bus_if.ren) begin

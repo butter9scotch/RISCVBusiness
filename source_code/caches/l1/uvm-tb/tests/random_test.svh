@@ -15,6 +15,12 @@ class random_test extends basic_test#(master_sequence, "MASTER_SEQ");
 
   task run_phase(uvm_phase phase);
     phase.raise_objection( this, $sformatf("Starting <%s> in main phase", this.get_name()) );
+
+    if(!seq.randomize() with {
+    }) begin
+      `uvm_fatal("Randomize Error", "not able to randomize")
+    end
+  
  		seq.start(null);
 		#100ns;
 		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", this.get_name()) );
