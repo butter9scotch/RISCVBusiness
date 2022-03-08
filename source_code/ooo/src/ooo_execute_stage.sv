@@ -178,10 +178,6 @@ module ooo_execute_stage(
   assign hazard_if.busy_mu = mif.busy_mu;
   assign hazard_if.busy_du = dif.busy_du;
   //assign hazard_if.busy_ls = lsif.busy_ls;
-  assign execute_commit_if.done_ls = lsif.done_ls;
-  assign execute_commit_if.done_mu = mif.done_mu;
-  assign execute_commit_if.done_du = dif.done_du;
-  assign execute_commit_if.done_a = auif.done_a;
 
   // assign hazard_if.load_stall = lsif.load_stall;
 
@@ -400,6 +396,10 @@ module ooo_execute_stage(
         //CPU tracker
         execute_commit_if.CPU_TRACKER <= '0;
       end else if (~hazard_if.stall_commit) begin
+        execute_commit_if.done_ls <= lsif.done_ls;
+        execute_commit_if.done_mu <= mif.done_mu;
+        execute_commit_if.done_du <= dif.done_du;
+        execute_commit_if.done_a  <= decode_execute_if.arith_sigs.ena; //auif.done_a;
         //WRITEBACK Signals:
         //ARITHMETIC
         execute_commit_if.wen_au                 <= auif.wen_au; 

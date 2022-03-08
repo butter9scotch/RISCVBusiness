@@ -44,6 +44,7 @@ module completion_buffer # (
     logic wen;
     logic rv32v;
     logic rv32f;
+    cpu_tracker_signals_t CPU_TRACKER;
   } cb_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
@@ -162,6 +163,7 @@ module completion_buffer # (
       next_cb[cb_if.index_a].wen = cb_if.wen_a; // if branch or exception, wen = 0 : else, wen = 1
       next_cb[cb_if.index_a].rv32v = 0;
       next_cb[cb_if.index_a].rv32f = 0;
+      next_cb[cb_if.index_a].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for multiply unit result
     if (cb_if.ready_mu) begin
@@ -173,6 +175,7 @@ module completion_buffer # (
       next_cb[cb_if.index_mu].wen = 1;
       next_cb[cb_if.index_mu].rv32v = 0;
       next_cb[cb_if.index_mu].rv32f = 0;
+      next_cb[cb_if.index_mu].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for divide unit result
     if (cb_if.ready_du) begin
@@ -184,6 +187,7 @@ module completion_buffer # (
       next_cb[cb_if.index_du].wen = 1;
       next_cb[cb_if.index_du].rv32v = 0;
       next_cb[cb_if.index_du].rv32f = 0;
+      next_cb[cb_if.index_du].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for loadstore unit result
     if (cb_if.ready_ls) begin
@@ -195,6 +199,7 @@ module completion_buffer # (
       next_cb[cb_if.index_ls].wen = cb_if.wen_ls; //wrong
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
+      next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for vector unit result
     if (cb_if.rv32v_wb_scalar_ready) begin
@@ -204,6 +209,7 @@ module completion_buffer # (
       next_cb[cb_if.rv32v_wb_scalar_index].exception = cb_if.rv32v_wb_exception;
       next_cb[cb_if.rv32v_wb_scalar_index].branch_mispredict_mal = 0;
       next_cb[cb_if.rv32v_wb_scalar_index].rv32f = 0;
+      //next_cb[cb_if.index_wb_scalar_index].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // TODO: Add floating point signals when integrating FPU
   end

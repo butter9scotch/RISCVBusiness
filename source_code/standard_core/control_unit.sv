@@ -365,7 +365,7 @@ module control_unit
   assign cu_if.div_sigs.ready_du = cu_if.wen &  (cu_if.sfu_type == DIV_S);
   assign cu_if.lsu_sigs.ready_ls = (cu_if.sfu_type == LOADSTORE_S);
 
-  assign cu_if.arith_sigs.ena = (cu_if.sfu_type == ARITH_S);
+  assign cu_if.arith_sigs.ena = (cu_if.sfu_type == ARITH_S) ;
   assign cu_if.mult_sigs.ena = (cu_if.sfu_type == MUL_S);
   assign cu_if.div_sigs.ena  = (cu_if.sfu_type == DIV_S);
   assign cu_if.lsu_sigs.ena  = (cu_if.sfu_type == LOADSTORE_S);

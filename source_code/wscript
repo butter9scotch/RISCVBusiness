@@ -3,6 +3,14 @@ def configure(ctx):
     ctx.SFFUnits.add('RISCVBusiness_packages',
       src_dir = ['packages']
     )
+    ctx.SFFUnits.add('RISCVBusiness',
+      includes = ['include'],
+      src_dir = rvb_srcs,
+      use = ['RISCVBusiness_packages'],
+      tb_use = ['RISCVBusiness_packages'],
+      tb = 'tb_RISCVBusiness',
+      tb_includes = ['include']
+    )
     ctx.SFFUnits.add('RISCVBusiness_self_test',
       includes = ['include'],
       src_dir = rvb_srcs,

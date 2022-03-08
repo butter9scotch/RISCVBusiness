@@ -31,7 +31,7 @@
 
 `define OUTPUT_FILE_NAME "cpu.hex"
 `define STATS_FILE_NAME "stats.txt"
-`define RVBSELF_CLK_TIMEOUT 500000
+`define RVBSELF_CLK_TIMEOUT 50000
 
 module tb_RISCVBusiness_self_test ();
    
@@ -85,21 +85,21 @@ module tb_RISCVBusiness_self_test ();
 
   bind ooo_commit_stage cpu_tracker cpu_track1 (
     .CLK(CLK),
-    .wb_stall (0),
-    .instr    (DUT.cb_if.CPU_TRACKER.instr),
-    .pc       (DUT.cb_if.CPU_TRACKER.pc),
-    .opcode   (DUT.cb_if.CPU_TRACKER.opcode),
-    .funct3   (DUT.cb_if.CPU_TRACKER.funct3),
-    .funct12  (DUT.cb_if.CPU_TRACKER.funct12),
-    .rs1      (DUT.cb_if.CPU_TRACKER.rs1),
-    .rs2      (DUT.cb_if.CPU_TRACKER.rs2),
-    .rd       (DUT.cb_if.CPU_TRACKER.reg_rd),
-    .imm_S    (DUT.cb_if.CPU_TRACKER.imm_S),
-    .imm_I    (DUT.cb_if.CPU_TRACKER.imm_I),
-    .imm_U    (DUT.cb_if.CPU_TRACKER.imm_U),
-    .imm_UJ   (DUT.cb_if.CPU_TRACKER.imm_UJ_ext),
-    .imm_SB   (DUT.cb_if.CPU_TRACKER.imm_SB),
-    .instr_30 (DUT.cb_if.CPU_TRACKER.instr_30)
+    .wb_stall (cb_if.CPU_TRACKER.instr == 0),
+    .instr    (cb_if.CPU_TRACKER.instr),
+    .pc       (cb_if.CPU_TRACKER.pc),
+    .opcode   (cb_if.CPU_TRACKER.opcode),
+    .funct3   (cb_if.CPU_TRACKER.funct3),
+    .funct12  (cb_if.CPU_TRACKER.funct12),
+    .rs1      (cb_if.CPU_TRACKER.reg_rs1),
+    .rs2      (cb_if.CPU_TRACKER.reg_rs2),
+    .rd       (cb_if.CPU_TRACKER.reg_rd),
+    .imm_S    (cb_if.CPU_TRACKER.imm_S),
+    .imm_I    (cb_if.CPU_TRACKER.imm_I),
+    .imm_U    (cb_if.CPU_TRACKER.imm_U),
+    .imm_UJ   (cb_if.CPU_TRACKER.imm_UJ_ext),
+    .imm_SB   (cb_if.CPU_TRACKER.imm_SB),
+    .instr_30 (cb_if.CPU_TRACKER.instr_30)
     );
 
   bind branch_predictor_wrapper branch_tracker branch_perf(

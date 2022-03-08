@@ -428,20 +428,20 @@ package rv32i_types_pkg;
   } exception_control_signals_t;
 
   typedef struct packed {
-    word_t instr;
-    word_t pc;
-    opcode_t opcode;
     logic [2:0] funct3;
     logic [11:0] funct12;
-    logic [4:0] rs1;
-    logic [4:0] rs2;
-    logic [4:0] reg_rd;
     logic [11:0] imm_S;
     logic [11:0] imm_I;
     word_t imm_U;
-    word_t imm_UJ_ext;
+    logic [11:0] imm_UJ_ext;
     logic [12:0] imm_SB;
     logic [29:0] instr_30;
+    logic [4:0] reg_rs1;
+    logic [4:0] reg_rs2;
+    logic [4:0] reg_rd; 
+    word_t instr;
+    word_t pc;
+    opcode_t opcode;
   } cpu_tracker_signals_t;
 
 endpackage
