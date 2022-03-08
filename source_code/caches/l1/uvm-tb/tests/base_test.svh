@@ -1,5 +1,5 @@
-`ifndef BASIC_TEST_SVH
-`define BASIC_TEST_SVH
+`ifndef BASE_TEST_SVH
+`define BASE_TEST_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
@@ -10,8 +10,8 @@ import uvm_pkg::*;
 `include "l1_cache_wrapper_if.svh"
 
 //TODO: CHANGE NAME TO BASE TEST
-class basic_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
-  `uvm_component_utils(basic_test)
+class base_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
+  `uvm_component_utils(base_test)
 
   sequence_type seq;
 
@@ -39,19 +39,19 @@ class basic_test#(type sequence_type = nominal_sequence, string sequence_name = 
     // send the interface down
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cpu_cif)) begin 
       // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Basic/cif", "No virtual interface specified for this test instance")
+	    `uvm_fatal("Base/cif", "No virtual interface specified for this test instance")
 	  end 
     if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "mem_cif", mem_cif)) begin 
       // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Basic/cif", "No virtual interface specified for this test instance")
+	    `uvm_fatal("Base/cif", "No virtual interface specified for this test instance")
 	  end 
     if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Basic/cpu_bus_if", "No virtual interface specified for this test instance")
+		  `uvm_fatal("Base/cpu_bus_if", "No virtual interface specified for this test instance")
 	  end 
     if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", l1_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Basic/l1_bus_if", "No virtual interface specified for this test instance")
+		  `uvm_fatal("Base/l1_bus_if", "No virtual interface specified for this test instance")
 	  end 
 
   //TODO: SHOULD I NARROW THE SCOPE OF THE ENV_CONFIG?
@@ -77,6 +77,6 @@ class basic_test#(type sequence_type = nominal_sequence, string sequence_name = 
 		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );
   endtask
 
-endclass: basic_test
+endclass: base_test
 
 `endif

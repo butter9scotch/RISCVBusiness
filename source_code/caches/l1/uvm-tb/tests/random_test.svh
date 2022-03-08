@@ -2,11 +2,11 @@
 `define RANDOM_TEST_SVH
 
 import uvm_pkg::*;
-`include "basic_test.svh"
+`include "base_test.svh"
 `include "master_sequence.svh"
 `include "uvm_macros.svh"
 
-class random_test extends basic_test#(master_sequence, "MASTER_SEQ");
+class random_test extends base_test#(master_sequence, "MASTER_SEQ");
   `uvm_component_utils(random_test)
 
   function new(string name = "random_test", uvm_component parent);

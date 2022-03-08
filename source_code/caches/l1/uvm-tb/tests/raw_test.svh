@@ -2,10 +2,10 @@
 `define RAW_TEST_SVH
 
 import uvm_pkg::*;
-`include "basic_test.svh"
+`include "base_test.svh"
 `include "uvm_macros.svh"
 
-class raw_test extends basic_test#(raw_sequence, "RAW_SEQ");
+class raw_test extends base_test#(raw_sequence, "RAW_SEQ");
   `uvm_component_utils(raw_test)
 
   function new(string name = "", uvm_component parent);
