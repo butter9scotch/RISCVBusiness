@@ -1,0 +1,9 @@
+#include "riscv_test.h"
+
+RVTEST_DATA_DUMP_BEGIN
+RVTEST_CODE_BEGIN
+main:
+    fadd.s f30, f20, f0
+RVTEST_CODE_END
+
+RVTEST_DATA_DUMP_END
