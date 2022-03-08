@@ -292,7 +292,7 @@ program test(
 	// Write twice to each word
 	for(integer i = 0; i < 4; i = i + 1) begin
 	    proc_gen_bus_if.addr  = i* 16; #1;
-		proc_gen_bus_if.byte_en = i;
+		proc_gen_bus_if.byte_en = 1'b1 << i; // small edit
 	    wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
 	end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
@@ -303,10 +303,10 @@ program test(
 	test_value 	     = 32'hDDCC_BBAA;
 	proc_gen_bus_if.ren  = 1'b1;
 	// Read back lastest values
-	for(integer i = 0; i < 4 i = i + 1) begin
+       for(integer i = 0; i < 4; i = i + 1) begin
 	    proc_gen_bus_if.addr = i*16; #1;
 	    wait(~proc_gen_bus_if.busy);
-	    assert(proc_gen_bus_if.rdata == {24'd0,test_value[7:0]) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
+	    assert(proc_gen_bus_if.rdata == ({24'd0,test_value[7:0]})) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
 	    test_value = test_value >> 8;
 	    @(posedge CLK);
 	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
