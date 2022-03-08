@@ -22,12 +22,16 @@ class evict_sequence extends uvm_sequence #(cpu_transaction);
 
   task body();
     cpu_transaction req_item;
-    
+    int N_reps; // used to back calculate proper repetitions to used when combined with inner for loop
     logic [`L1_INDEX_BITS-1:0] index;
     
     req_item = cpu_transaction::type_id::create("req_item");
+
+    N_reps = N / (`L1_ASSOC + 1);
+
+    `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d", N, N_reps * (`L1_ASSOC + 1)), UVM_LOW)
     
-    repeat(N) begin
+    repeat(N_reps) begin
       for (int i = 0; i < `L1_ASSOC + 1; i++) begin
         start_item(req_item);
         if(!req_item.randomize() with {

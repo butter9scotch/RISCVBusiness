@@ -16,19 +16,6 @@ class nominal_test extends basic_test#(nominal_sequence, "NOMINAL_SEQ");
 		super.new(name, parent);
 	endfunction: new
 
-  task run_phase(uvm_phase phase);
-    phase.raise_objection( this, $sformatf("Starting <%s> in main phase", sequence_name) );
-    if(!seq.randomize() with {
-      N inside {[10:20]};
-    }) begin
-      `uvm_fatal("Randomize Error", "not able to randomize")
-    end
-
- 		seq.start(env.cpu_agt.sqr);
-		#100ns;
-		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );
-  endtask
-
 endclass: nominal_test
 
 `endif

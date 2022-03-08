@@ -45,6 +45,7 @@ class end2end extends uvm_scoreboard;
     cpu_transaction prev_cpu_tx;
     cpu_transaction cpu_tx;
     cpu_transaction mem_tx;
+    int count; // count number of words read from memory for given txn
 
     prev_cpu_tx = new();
 
@@ -56,9 +57,15 @@ class end2end extends uvm_scoreboard;
       if (!mem_fifo.is_empty()) begin
         // flush all transactions made on mem bus without a processor req (prefetch)
         mem_fifo.peek(mem_tx);
+        count = 0;
         while(mem_tx.cycle > prev_cpu_tx.cycle) begin
           mem_fifo.get(mem_tx);
           handle_mem_tx(mem_tx);
+          count++;
+        end
+
+        if (count != `L1_BLOCK_SIZE) begin
+          `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE))
         end
       end
   
@@ -84,11 +91,18 @@ class end2end extends uvm_scoreboard;
         end else begin
           // data not in cache, need to get data from memory
 
-          // update cache from mem bus transactions
-          while(!mem_fifo.is_empty()) begin
-            //TODO: DO WE WANT TO COUNT THE NUMBER OF TXNS TO ENSURE THE WHOLE WORD IS READ FROM MEM
-            mem_fifo.get(mem_tx);
-            handle_mem_tx(mem_tx);
+          // count = 0;
+          // // update cache from mem bus transactions
+          // while(!mem_fifo.is_empty()) begin
+          //   mem_fifo.get(mem_tx);
+          //   handle_mem_tx(mem_tx);
+          //   count++; // count words to ensure whole block is read
+          // end
+          $display("\n\n\n\n\nhere\n\n\n\n\n");
+          flush_mem_txn(0); //should be same
+
+          if (count != `L1_BLOCK_SIZE) begin
+            `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE))
           end
 
           if (cache.exists(cpu_tx.addr)) begin
@@ -125,6 +139,26 @@ class end2end extends uvm_scoreboard;
       cache.insert(mem_tx.addr, mem_tx.data);
     end
   endfunction: handle_mem_tx
+
+  task flush_mem_txn(int start_cycle);
+    cpu_transaction mem_tx;
+    $display("mem_fifo: %p", mem_fifo);
+    if (!mem_fifo.is_empty()) begin
+      int count = 0;
+      $display("here");
+      // flush all transactions made on mem bus without a processor req (prefetch)
+      mem_fifo.peek(mem_tx);
+      while(mem_tx.cycle > start_cycle) begin
+        mem_fifo.get(mem_tx);
+        handle_mem_tx(mem_tx);
+        count++;
+      end
+
+      if (count != `L1_BLOCK_SIZE) begin
+        `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE));
+      end
+    end
+  endtask: flush_mem_txn
 
 endclass: end2end
 

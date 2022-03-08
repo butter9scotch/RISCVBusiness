@@ -66,6 +66,12 @@ class basic_test#(type sequence_type = nominal_sequence, string sequence_name = 
 
   task run_phase(uvm_phase phase);
     phase.raise_objection( this, $sformatf("Starting <%s> in main phase", sequence_name) );
+    if(!seq.randomize() with {
+        N inside {[10:20]};
+      }) begin
+      `uvm_fatal("Randomize Error", "not able to randomize")
+    end
+
  		seq.start(env.cpu_agt.sqr);
 		#100ns;
 		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );

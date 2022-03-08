@@ -28,7 +28,7 @@ class nominal_sequence extends uvm_sequence #(cpu_transaction);
 
     write_count = 0;
 
-    `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%d", N), UVM_LOW)
+    `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%0d", N), UVM_LOW)
     
     repeat(N) begin
       start_item(req_item);

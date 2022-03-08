@@ -72,7 +72,9 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
     `uvm_info(this.get_name(), $sformatf("running %0d iterations", iterations), UVM_LOW)
 
     repeat(iterations) begin
-      seq_param.randomize();
+      if(!seq_param.randomize()) begin
+        `uvm_fatal("Randomize Error", "not able to randomize")
+      end
       seq_param.show();
 
       sub_randomize();
