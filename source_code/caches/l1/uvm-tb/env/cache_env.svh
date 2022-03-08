@@ -5,6 +5,7 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 `include "cache_env_config.svh" // config
+`include "memory_bfm.svh" // bfm
 
 `include "cpu_agent.svh"
 `include "cpu_scoreboard.svh" // uvm_scoreboard
@@ -21,6 +22,7 @@ class cache_env extends uvm_env;
   `uvm_component_utils(cache_env)
 
   cache_env_config env_config; //environment configuration
+  memory_bfm mem_bfm; //memory bus functional model
   
   cpu_agent cpu_agt; // contains monitor and driver
   cpu_predictor cpu_pred; // a reference model to check the result
@@ -45,6 +47,8 @@ class cache_env extends uvm_env;
     mem_score = mem_scoreboard::type_id::create("MEM_SCORE", this);
 
     e2e = end2end::type_id::create("E2E", this);
+
+    mem_bfm = memory_bfm::type_id::create("MEM_BFM", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);

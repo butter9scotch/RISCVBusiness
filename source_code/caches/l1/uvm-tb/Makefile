@@ -6,6 +6,7 @@ CPU_AGENT = cpu_agent
 MEM_AGENT = mem_agent
 END2END = end2end
 BUS_COMPS = generic_bus_components
+BFM = bfm
 ENV = env
 SEQUENCES = sequences
 TEST = tests
@@ -19,7 +20,19 @@ SEED = random
 
 #env_config parameters
 #TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
-MEM_TIMEOUT = 11
+MEM_TIMEOUT = 50
+MEM_LATENCY = 2
+
+RUN_COMMON = \
+	tb_$(TOP) -L \
+	$$QUESTA_HOME/uvm-1.2 \
+	-voptargs=+acc \
+	-coverage \
+	-sv_seed $(SEED) \
+	+UVM_TESTNAME=$(TESTCASE)_test \
+	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
+	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
+	+uvm_set_config_int=*,mem_latency,$(MEM_LATENCY)
 
 all: build run
 
@@ -33,6 +46,7 @@ build:
 	+incdir+$(MEM_AGENT) \
 	+incdir+$(END2END) \
 	+incdir+$(BUS_COMPS) \
+	+incdir+$(BFM) \
 	+incdir+$(ENV) \
 	+incdir+$(SEQUENCES) \
 	+incdir+$(TEST) \
@@ -41,25 +55,13 @@ build:
 	-L $$QUESTA_HOME/uvm-1.2 tb_$(TOP).sv 
 
 run_gui:
-	vsim -i tb_$(TOP) -L \
-	$$QUESTA_HOME/uvm-1.2 \
-	-voptargs=+acc \
-	-coverage \
-	-sv_seed $(SEED) \
-	+UVM_TESTNAME=$(TESTCASE)_test \
-	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
-	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
+	vsim -i \
+	$(RUN_COMMON) \
 	-do "do $(WAVES)/wave.do" -do "run -all"
 
 run:
-	vsim -c tb_$(TOP) -L \
-	$$QUESTA_HOME/uvm-1.2 \
-	-voptargs=+acc \
-	-coverage \
-	-sv_seed $(SEED) \
-	+UVM_TESTNAME=$(TESTCASE)_test \
-	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
-	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
+	vsim -c \
+	$(RUN_COMMON) \
 	-do "run -all"
 
 help:

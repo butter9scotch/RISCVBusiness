@@ -4,9 +4,6 @@
 // design file
 `include "l1_cache.sv"
 
-// BFM file
-`include "memory_bfm.sv"
-
 // Interface checker file
 `include "interface_checker.svh"
 
@@ -44,11 +41,11 @@ module tb_caches_top ();
   //TODO: HOW DO WE GET THE CIF (FLUSH, CLEAR) SIGNALS FROM THE L1 TO THE L2/MEMORY
   l1_cache_wrapper_if mem_cif(clk);
 
-  // instantiate the memory bus functional model
-  memory_bfm bfm(
-    .cif(cpu_cif.cache),
-    .bus_if(l1_bus_if.generic_bus)
-  );
+  // // instantiate the memory bus functional model
+  // memory_bfm bfm(
+  //   .cif(cpu_cif.cache),
+  //   .bus_if(l1_bus_if.generic_bus)
+  // );
   
   // instantiate the DUT
   // Data Cache Portmap
