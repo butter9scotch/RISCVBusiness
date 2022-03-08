@@ -15,9 +15,9 @@
 `include "l1_cache_wrapper_if.svh"
 
 // UVM test file
-`include "raw_test.svh"
-`include "evict_test.svh"
 `include "nominal_test.svh"
+`include "evict_test.svh"
+`include "mmio_test.svh"
 `include "random_test.svh"
 
 // Device Parameter Build Constants

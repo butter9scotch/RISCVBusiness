@@ -15,7 +15,7 @@ SRC = $(ROOT)/source_code/caches/l1
 
 TESTCASE = random
 VERBOSITY = LOW
-RAND_SEED = random
+SEED = random
 
 #env_config parameters
 #TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
@@ -45,7 +45,7 @@ run_gui:
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
-	-sv_seed $(RAND_SEED) \
+	-sv_seed $(SEED) \
 	+UVM_TESTNAME=$(TESTCASE)_test \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
@@ -56,7 +56,7 @@ run:
 	$$QUESTA_HOME/uvm-1.2 \
 	-voptargs=+acc \
 	-coverage \
-	-sv_seed $(RAND_SEED) \
+	-sv_seed $(SEED) \
 	+UVM_TESTNAME=$(TESTCASE)_test \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
@@ -77,7 +77,7 @@ help:
 		VERBOSITY <str>: selects verbosity of print statments during testing\n\
 			options: NONE, LOW, MEDIUM, HIGH, DEBUG\n\
 				-> see readme.md for details on each level\n\
-		RAND_SEED <int>: starter seed for uvm randomization\n\
+		SEED <int>: starter seed for uvm randomization\n\
 		MEM_TIMEOUT <int>: allowed memory latency before timeout error\n\n"
 
 clean:

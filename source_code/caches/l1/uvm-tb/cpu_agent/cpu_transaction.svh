@@ -33,7 +33,7 @@ class cpu_transaction extends uvm_sequence_item;
       `uvm_field_int(cycle, UVM_NOCOMPARE)
   `uvm_object_utils_end
 
-  constraint usable_addr { addr >= '0; addr < `NONCACHE_START_ADDR; }
+  constraint usable_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; }
 
   constraint usable_byte_en { byte_sel == 4'b1000; } //TODO: We want to actually randomize this
 

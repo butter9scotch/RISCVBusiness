@@ -51,7 +51,11 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
   virtual function word_t read_mem(word_t addr);
     // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)
-    return memory[addr];
+    if (addr < `NONCACHE_START_ADDR) begin
+      return memory[addr];
+    end else begin
+      return 32'hdead_beef; //FIXME: WHAT VALUES SHOULD WE EXPECTED FOR MMIO?
+    end
   endfunction: read_mem
 
 endclass: bus_predictor

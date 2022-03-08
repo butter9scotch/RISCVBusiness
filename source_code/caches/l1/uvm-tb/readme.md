@@ -33,6 +33,7 @@
   - value of `random` will use vsim to randomize test cases automatically
 
 ## TB Hierarchy:
+//TODO: THIS NEEDS TO BE UPDATED
 ```
 tb_caches_top.sv
 |_ tests/raw_test.svh
