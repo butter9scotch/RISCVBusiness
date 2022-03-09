@@ -45,10 +45,13 @@ class memory_bfm extends uvm_component;
 
 
     virtual task run_phase(uvm_phase phase);
+        // initial values on bus
+        bus_if.busy = '0;
+        bus_if.rdata = 32'hbad0_bad0; 
+
         forever begin
             @(posedge cif.CLK);
-            //FIXME: TAKE A CLOSER LOOK AT THESE DELAYS TO ENSURE PROPER HANDING OF TIMINGS
-            #(2); //wait propagation delay
+            #(2); // propagation delay
             if (bus_if.ren) begin
                 bus_read();
             end else if (bus_if.wen) begin
@@ -59,15 +62,15 @@ class memory_bfm extends uvm_component;
 
     task bus_read();
         int count;
-        count = 0;
-        bus_if.busy = '1;
         while(bus_if.ren) begin
             @(negedge cif.CLK); // wait for propigation delay
+            bus_if.busy = '1;
             if (mem.exists(bus_if.addr)) begin
                 bus_if.rdata = mem[bus_if.addr];
             end else begin
                 bus_if.rdata = {tag, bus_if.addr[15:0]}; // return non-initialized data
             end
+            count = 1;
             while(count < latency) begin
                 @(negedge cif.CLK);
                 count++;
@@ -78,11 +81,12 @@ class memory_bfm extends uvm_component;
 
     task bus_write();
         int count;
-        count = 0;
-        bus_if.busy = '1;
         while(bus_if.wen) begin
             @(negedge cif.CLK); // wait for propigation delay
+            bus_if.busy = '1;
             mem[bus_if.addr] = bus_if.wdata;
+            
+            count = 1;
             while(count < latency) begin
                 @(negedge cif.CLK);
                 count++;
