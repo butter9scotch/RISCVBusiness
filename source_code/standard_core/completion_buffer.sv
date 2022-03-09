@@ -67,7 +67,7 @@ module completion_buffer # (
   assign cb_if.wdata_final       = cb[head_sel].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
-  assign cb_if.flush             = cb[head_sel].exception | cb[head_sel].branch_mispredict_mal;
+  assign cb_if.flush             = cb[head_sel].exception | hazard_if.branch;
   assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
   //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
   assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg

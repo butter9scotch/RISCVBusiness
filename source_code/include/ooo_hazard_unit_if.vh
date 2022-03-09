@@ -135,6 +135,7 @@ interface ooo_hazard_unit_if();
   );
 
   modport cb (
+    input npc_sel,
     output rob_full
   );
 

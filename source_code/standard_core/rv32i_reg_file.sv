@@ -45,7 +45,9 @@ module rv32i_reg_file (
         registers[rf_if.rd] <= rf_if.w_data;
         in_use[rf_if.rd] <= 1'b0;
       end
-      if (rf_if.rden && rf_if.rd_decode) begin
+      if (rf_if.clear_status) begin
+        in_use = '0;
+      end else if (rf_if.rden && rf_if.rd_decode) begin
         in_use[rf_if.rd_decode] <= 1'b1;
       end
     end

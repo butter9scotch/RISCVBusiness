@@ -118,6 +118,7 @@ module ooo_decode_stage (
 
   assign rf_if.rd_decode = cu_if.reg_rd;
   assign rf_if.rden = cu_if.wen & ~cu_if.branch;
+  assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
   *** Sign Extensions of the Immediate Value
@@ -202,7 +203,7 @@ module ooo_decode_stage (
   assign hazard_if.rd_busy   = rf_if.rd_busy;
   assign hazard_if.source_a_sel = cu_if.source_a_sel;
   assign hazard_if.source_b_sel = cu_if.source_b_sel;
-  assign hazard_if.fu_type = cu_if.sfu_type;
+  assign hazard_if.fu_type = decode_execute_if.sfu_type;
   always_comb begin
     case (cu_if.sfu_type) 
       LOADSTORE_S: hazard_if.wen = cu_if.lsu_sigs.wen;
@@ -305,7 +306,7 @@ module ooo_decode_stage (
       if (hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin : FLUSH
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
-        decode_execute_if.lsu_sigs <= '0;
+        //decode_execute_if.lsu_sigs <= '0;
 //      end else if (~hazard_if.stall_de & hazard_if.pc_en) begin : BUBBLES
 //          decode_execute_if.mult_sigs <= '0;
 //          decode_execute_if.div_sigs <= '0;
