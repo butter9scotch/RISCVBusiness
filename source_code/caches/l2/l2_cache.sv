@@ -67,7 +67,7 @@ module l2_cache #(
 
     // FSM type
     typedef enum { 
-       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME //NEED TO UPDATE
+       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, /*for debugging*/ERROR                     //NEED TO UPDATE
     } fsm_t;
     
     // Cache address decode type
@@ -160,7 +160,7 @@ module l2_cache #(
                 end // end not cache start addr
             end // output always_comb end
         end // end if (ASSOC == 2)
-        elif(ASSOC == 4)begin
+        else if(ASSOC == 4)begin
             always_comb begin // output always_comb
                 hit = 1'b0;
                 pass_through = 1'b0;
@@ -228,7 +228,17 @@ module l2_cache #(
         IDLE: begin
             nextstate = IDLE;
         end 
-    end // end state machine alqways_comb
+        FETCH: begin
+
+        end
+        WB: begin
+
+
+        end
+        default: begin
+            nextstate = IDLE;
+        end
+    end // end state machine always_comb
 
 
 endmodule // l2_cache

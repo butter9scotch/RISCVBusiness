@@ -3,6 +3,7 @@
 // Do not modify this file
 //
 +nctimescale+1ns/1ns
+<<<<<<< HEAD
 -COVOVERWRITE
 -TCL
 -NOCOPYRIGHT
@@ -10,6 +11,15 @@
 -MESSAGES
 -XLSTIME
 1645063810
+=======
+-gui
+-COVOVERWRITE
+-MESSAGES
++EMGRLOG
+irun.log
+-XLSTIME
+1646265135
+>>>>>>> 986a4c8223b5de0c9c9f2faf080e38152d9dd8bc
 -XLKEEP
 -XLMODE
 ./INCA_libs/irun.lnx8664.15.20.nc
