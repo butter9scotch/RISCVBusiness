@@ -214,78 +214,62 @@ module l2_cache #(
     generate //GENERATE BLOCKS BASED ON PARAMETERS
         if(ASSOC == 2)begin
             always_comb begin // output always_comb
-                pass_through = 1'b0;
                 nextlru = lru;
-                ridx= 2'b0;
-
-                if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin //Passthrough
-                    pass_through = 1'b1;
-                end 
-                else begin 
-                    for(int i = 0; i < ASSOC; i++) begin
-                        if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
-                            if(i == lru[decoded_addr.set_bits].v) begin // hit set was in v
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v;
-                            end
-                            else if(i == lru[decoded_addr.set_bits].nv) begin // hit set was in nv
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
-                            end
-                        end // end hit
-                        else begin // if miss 
-                            ridx                                = lru[decoded_addr.set_bits].v; // set replacement index
-                            nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv; // set new victim
-                            nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v; // set new nextvictim
-                        end // end miss
-                    end //end for loop iterating through sets
+                ridx = lru[decoded_addr.set_bits].v; // set replacement index
+                if(!(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)) begin : two_way_replacement
+                    if((hit)begin //hit
+                        if(hit_idx == lru[decoded_addr.set_bits].v) begin // hit set was in v
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v;
+                        end
+                        else if(hit_idx == lru[decoded_addr.set_bits].nv) begin // hit set was in nv
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
+                        end
+                    end // end hit
+                    else begin // if miss 
+                        nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv; // set new victim
+                        nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v; // set new nextvictim
+                    end // end miss
                 end // end not cache start addr
             end // output always_comb end
         end // end if (ASSOC == 2)
         else if(ASSOC == 4)begin
             always_comb begin // output always_comb
-                pass_through = 1'b0;
                 nextlru = lru;
-                ridx= 2'b0;
-
-                if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin //Passthrough
-                    pass_through = 1'b1;
-                end 
-                else begin 
-                    for(int i = 0; i < ASSOC; i++)begin
-                        if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
-                            if(i == lru[decoded_addr.set_bits].v)begin // hit set was in v
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
-                                    nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
-                                    nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].v;
-                            end
-                            else if(i == lru[decoded_addr.set_bits].nv)begin // hit set was in nv
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
-                                    nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
-                                    nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].nv;
-                            end
-                            else if(i == lru[decoded_addr.set_bits].o[0])begin //hit set was in o[0]
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
-                                    nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
-                                    nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].o[0];
-                            end
-                            else if(i == lru[decoded_addr.set_bits].o[1])begin //hit set was in o[1]
-                                    nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
-                                    nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
-                                    nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[0];
-                                    nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].o[1];
-                            end
+                ridx = lru[decoded_addr.set_bits].v;
+                if(!(proc_gen_bus_if.addr >= NONCACHE_START_ADDR))  begin : four_way_replacement
+                    if(hit)begin //hit
+                        if(hit_idx == lru[decoded_addr.set_bits].v)begin // hit set was in v
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
+                                nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
+                                nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].v;
                         end
-                        else begin // if miss 
-                            ridx                                = lru[decoded_addr.set_bits].v; //Set replacement index
-                            nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv; 
-                            nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
-                            nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
-                            nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].v;
+                        else if(hit_idx == lru[decoded_addr.set_bits].nv)begin // hit set was in nv
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
+                                nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
+                                nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].nv;
                         end
+                        else if(hit_idx == lru[decoded_addr.set_bits].o[0])begin //hit set was in o[0]
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
+                                nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
+                                nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].o[0];
+                        end
+                        else if(hit_idx == lru[decoded_addr.set_bits].o[1])begin //hit set was in o[1]
+                                nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].v;
+                                nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].nv;
+                                nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[0];
+                                nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].o[1];
+                        end
+                    end
+                    else begin // if miss 
+                        nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv; 
+                        nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
+                        nextlru[decoded_addr.set_bits].o[0] = lru[decoded_addr.set_bits].o[1];
+                        nextlru[decoded_addr.set_bits].o[1] = lru[decoded_addr.set_bits].v;
                     end
                 end
             end // output always_comb end
