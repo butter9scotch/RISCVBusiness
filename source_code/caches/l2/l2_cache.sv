@@ -214,7 +214,6 @@ module l2_cache #(
     generate //GENERATE BLOCKS BASED ON PARAMETERS
         if(ASSOC == 2)begin
             always_comb begin // output always_comb
-                hit = 1'b0;
                 pass_through = 1'b0;
                 nextlru = lru;
                 ridx= 2'b0;
@@ -225,8 +224,6 @@ module l2_cache #(
                 else begin 
                     for(int i = 0; i < ASSOC; i++) begin
                         if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
-                            hit = 1'b1;
-                            
                             if(i == lru[decoded_addr.set_bits].v) begin // hit set was in v
                                     nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
                                     nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].v;
@@ -247,7 +244,6 @@ module l2_cache #(
         end // end if (ASSOC == 2)
         else if(ASSOC == 4)begin
             always_comb begin // output always_comb
-                hit = 1'b0;
                 pass_through = 1'b0;
                 nextlru = lru;
                 ridx= 2'b0;
@@ -258,8 +254,6 @@ module l2_cache #(
                 else begin 
                     for(int i = 0; i < ASSOC; i++)begin
                         if((cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits) && cache[decoded_addr.set_bits].valid)begin //hit
-                            hit = 1'b1;
-                            
                             if(i == lru[decoded_addr.set_bits].v)begin // hit set was in v
                                     nextlru[decoded_addr.set_bits].v    = lru[decoded_addr.set_bits].nv;
                                     nextlru[decoded_addr.set_bits].nv   = lru[decoded_addr.set_bits].o[0];
@@ -378,12 +372,12 @@ module l2_cache #(
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
-		            next_last_used[decoded_addr.set_bits]  = hit_idx;
+		            //next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy                                    = 1'b0;
                     next_cache[decoded_addr.set_bits].frames[hit_idx].dirty = 1'b1;
-		            next_last_used[decoded_addr.set_bits] 				    = hit_idx;
+		            //next_last_used[decoded_addr.set_bits] 				    = hit_idx;
                 end
             end
             FETCH: begin
