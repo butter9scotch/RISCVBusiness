@@ -20,8 +20,8 @@ SEED = random
 
 #env_config parameters
 #TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
-MEM_TIMEOUT = 50
-MEM_LATENCY = 2
+MEM_TIMEOUT = 11
+MEM_LATENCY = 1
 
 RUN_COMMON = \
 	tb_$(TOP) -L \

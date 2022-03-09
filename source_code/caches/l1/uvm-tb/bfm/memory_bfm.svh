@@ -5,6 +5,8 @@
 
 `include "uvm_macros.svh"
 
+`include "dut_params.svh"
+
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
@@ -51,12 +53,14 @@ class memory_bfm extends uvm_component;
 
         forever begin
             @(posedge cif.CLK);
-            #(2); // propagation delay
-            if (bus_if.ren) begin
-                bus_read();
-            end else if (bus_if.wen) begin
-                bus_write();
-            end
+            #(1); // propagation delay
+            if (bus_if.addr < `NONCACHE_START_ADDR) begin //TODO: NEED A WAY TO HANDLE/SIMULATE RESPONSES FROM MMIO, MAYBE ANOTHER BFM (MMIO_BFM)
+                if (bus_if.ren) begin
+                    bus_read();
+                end else if (bus_if.wen) begin
+                    bus_write();
+                end
+            end // else ignore and let mmio respond
         end
     endtask: run_phase
 
@@ -77,7 +81,7 @@ class memory_bfm extends uvm_component;
             end
             bus_if.busy = '0;
         end
-    endtask
+    endtask: bus_read
 
     task bus_write();
         int count;
@@ -93,8 +97,7 @@ class memory_bfm extends uvm_component;
             end
             bus_if.busy = '0;
         end
-    endtask
-
+    endtask: bus_write
 
 endclass: memory_bfm
 
