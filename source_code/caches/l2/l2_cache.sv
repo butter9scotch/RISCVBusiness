@@ -85,14 +85,29 @@ module l2_cache #(
     } victim_t;
 
     //Declarations
-    decoded_addr_t decoded_addr;
-    assign decoded_addr = proc_gen_bus_if.addr;
+    
 
+    // Set Counter
+    logic [12:0] set_num, next_set_num;
+    logic en_set_ctr, clr_set_ctr;
+
+    // Word Counter
+    logic [3:0] word_num, next_word_num;
+    logic en_word_ctr, clr_word_ctr;
+
+    // Counter Finish flags
+    logic finish_word, finish_frame, finish_set;
+
+    //State Machines
     fsm_t state, nextstate;
 
     // cache blocks, indexing cache chooses a set
     cache_sets cache [N_SETS - 1:0];
     cache_sets nextcache [N_SETS - 1:0];
+
+    //Decode incoming addr
+    decoded_addr_t decoded_addr;
+    assign decoded_addr = proc_gen_bus_if.addr;
 
     // Cache Hit signals
     logic hit, pass_through;
@@ -105,28 +120,98 @@ module l2_cache #(
     victim_t nextlru [NSETS-1:0];
     logic [1:0] ridx;
 
-    //Sequential Logic
-    always_ff @(posedge CLK, negedge nRST)begin
-        if(~nRST)begin
-            state <= IDLE; //Cache state machine reset state
-            cache <= '0; // Cache frame reset
 
+    //LOGIC
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Hit and Passthrough Logic
+    ///////////////////////////////////////////////////////////////////////////////
+    always_comb begin : Hit_Pass_comb
+        hit 	      = 1'b0;
+        pass_through  = 1'b0;
+
+        if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin
+            pass_through = 1'b1;
+        end
+        else begin
+            for(int i = 0; i < ASSOC; i++) begin
+                if(cache[decoded_addr.set_bits].frames[i].tag == decoded_addr.tag_bits && cache[decoded_addr.set_bits].frames[i].valid) begin
+                    hit       = 1'b1;
+                    hit_data  = cache[decoded_addr.set_bits].frames[i].data;
+                    hit_idx   = i;
+                end
+            end
+        end // else: !if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)
+    end // always_comb
+    ///////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Counter Logic
+    ///////////////////////////////////////////////////////////////////////////////
+    always_ff @ (posedge CLK, negedge nRST) begin : Counter_ff
+            if(~nRST) begin
+                set_num   <= '0;
+                frame_num <= '0;
+                word_num  <= '0;
+            end
+            else begin
+                set_num   <= next_set_num;
+                frame_num <= next_frame_num;
+                word_num  <= next_word_num;
+            end
+    end //  counter always_ff 
+
+    always_comb begin : Counter_comb
+        next_set_num 	= set_num;
+        next_frame_num 	= frame_num;
+        next_word_num 	= word_num;
+
+        if(clr_set_ctr) begin
+            next_set_num = '0;
+        end
+        else if(en_set_ctr) begin
+            next_set_num = set_num + 1'b1;
+        end
+
+        if(clr_frame_ctr) begin
+            next_frame_num = '0;
+        end
+        else if(en_frame_ctr) begin
+            next_frame_num = frame_num + 1'b1;
+        end
+
+        if(clr_word_ctr) begin
+            next_word_num = '0;
+        end
+        else if(en_word_ctr) begin
+            next_word_num = word_num + 1'b1;
+        end
+    end // always_comb
+
+    // Comb. output logic for counter finish flags
+    assign finish_set = (set_num == N_SETS) ? 1'b1 : 1'b0;
+    assign finish_frame  = (frame_num == ASSOC) ? 1'b1 : 1'b0;
+    assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
+    ///////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // LRU Logic
+    ///////////////////////////////////////////////////////////////////////////////
+    always_ff @(posedge CLK, negedge nRST ) begin :  LRU_FF
+        if(~nRST)begin
             for(int i = 0; i < ASSOC)begin
-                lru[i].v <= 2'b00; // Victim init
-                lru[i].nv <= 2'b01; // Next Victim init
-                lru[i].o[0] <= 2'b10; // Ordinary init [0]
-                lru[i].o[1] <= 2'b11; // Ordinary init [1]
+                    lru[i].v <= 2'b00; // Victim init
+                    lru[i].nv <= 2'b01; // Next Victim init
+                    lru[i].o[0] <= 2'b10; // Ordinary init [0]
+                    lru[i].o[1] <= 2'b11; // Ordinary init [1]
             end
         end
         else begin
-            state <= nextstate; //update FSM
-            cache <= nextcache; // update cache frames
             lru <= nextlru; //update LRU
         end
-    end// always_ff
+    end
 
-
-    generate
+    generate //GENERATE BLOCKS BASED ON PARAMETERS
         if(ASSOC == 2)begin
             always_comb begin // output always_comb
                 hit = 1'b0;
@@ -212,34 +297,133 @@ module l2_cache #(
             end // output always_comb end
         end
     endgenerate // hit logic and replacement policy logic for different associativities.
-    
+    ///////////////////////////////////////////////////////////////////////////////
    
 
-
-
-
-    always_comb begin // Cache update logic
-        nextcache = cache;
-    end //end cache update logic
+    ///////////////////////////////////////////////////////////////////////////////
+    // State Machine Logic
+    ///////////////////////////////////////////////////////////////////////////////
+    always_ff @(posedge CLK, negedge nRST)begin : State_Logic_FF
+        if(~nRST)begin
+            state <= IDLE; //Cache state machine reset state
+        end
+        else begin
+            state <= nextstate; //update FSM
+        end
+    end// State_Logic_FF
 
     always_comb begin // state machine comb
-    nextstate = state;
-    casez(state)
-        IDLE: begin
-            nextstate = IDLE;
-        end 
-        FETCH: begin
-
-        end
-        WB: begin
-
-
-        end
-        default: begin
-            nextstate = IDLE;
-        end
+        nextstate = state;
+        casez(state)
+            IDLE: begin
+                if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                    next_state 	= WB;
+                end
+                else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                    next_state 	= FETCH;
+                end
+                else if(flush) begin
+                    next_state 	= FLUSH_CACHE;
+                end
+            end 
+            FETCH: begin
+                if(finish_word) begin
+                    next_state 	= IDLE;
+                end
+            end
+            WB: begin
+                if(finish_word) begin
+                    next_state 	= FETCH;
+                end
+            end
+            ERROR: begin
+                nextstate = ERROR;
+            end
+            default: begin
+                nextstate = ERROR;
+            end
+        endcase //casez (state) 
     end // end state machine always_comb
+    ///////////////////////////////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // Cache Update Logic
+    ///////////////////////////////////////////////////////////////////////////////
+    always_ff @ (posedge CLK, negedge nRST) begin : Next_Cache_FF
+        if(~nRST)begin
+            cache <= '0; // Cache frame reset
+        end
+        else begin
+            cache <= nextcache; // update cache frames
+        end
+    end // end next cache always_ff
+
+
+    always_comb begin : output_comb
+        proc_gen_bus_if.busy    = 1'b1;
+        mem_gen_bus_if.ren      = 1'b0;
+        mem_gen_bus_if.wen      = 1'b0;
+        en_set_ctr 	            = 1'b0;
+        en_word_ctr 	        = 1'b0;
+        en_frame_ctr 	        = 1'b0;
+        clr_set_ctr 	        = 1'b0;
+        clr_word_ctr 	        = 1'b0;
+        clr_frame_ctr 	        = 1'b0;
+        flush_done 	            = 1'b0;
+
+        nextcache = cache;
+
+        casez(state)
+            IDLE: begin
+                if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
+                    proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
+                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
+		            next_last_used[decoded_addr.set_bits]  = hit_idx;
+                end
+                else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
+                    proc_gen_bus_if.busy                                    = 1'b0;
+                    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty = 1'b1;
+		            next_last_used[decoded_addr.set_bits] 				    = hit_idx;
+                end
+            end
+            FETCH: begin
+                mem_gen_bus_if.ren   = 1'b1;
+                mem_gen_bus_if.addr  = read_addr;
+                
+                if(finish_word) begin
+                    clr_word_ctr 					  = 1'b1;
+                    next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
+                    next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
+                    mem_gen_bus_if.ren 					  = 1'b0;
+                end
+                else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                    en_word_ctr 						   = 1'b1;
+                    next_read_addr 						   = read_addr + 4;
+                    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
+                end
+            end
+            WB: begin
+                mem_gen_bus_if.wen    = 1'b1;
+		        //next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
+                mem_gen_bus_if.addr   = read_addr; 
+                mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+               
+ 
+                if(finish_word) begin
+                    clr_word_ctr 					  = 1'b1;
+                    next_read_addr 					  = decoded_addr;
+                    next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
+                    mem_gen_bus_if.wen 					  = 1'b0;
+                end
+                else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                    en_word_ctr     = 1'b1;
+                    next_read_addr  = read_addr + 4;
+                end
+            end
+        endcase
+
+    end // end output combinational logic
+    ///////////////////////////////////////////////////////////////////////////////
 
 endmodule // l2_cache
 
