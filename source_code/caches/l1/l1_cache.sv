@@ -261,6 +261,7 @@ module l1_cache #(
         clr_frame_ctr 	      = 1'b0;
         cif.flush_done 	      = 1'b0;
         cif.flush_done 	      = 1'b0;
+        next_read_addr = read_addr;  //FIXME: THIS WAS AN ERROR IN DESIGN FOUND
 	
         for(int i = 0; i < N_SETS; i++) begin
             for(int j = 0; j < ASSOC; j++) begin

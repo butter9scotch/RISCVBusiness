@@ -71,6 +71,7 @@ help:
 		build: compile code\n\
 		run: simuate the code with QuestaSim in command line\n\
 		gui: simulate the code QuestaSim GUI\n\
+		clean: remove build files
 	Parameters:\n\
 		TESTCASE <str>: name of uvm test\n\
 			nominal: read values previously written to caches\n\
