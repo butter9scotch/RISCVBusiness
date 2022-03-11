@@ -77,7 +77,8 @@ module ooo_hazard_unit (
   
   //Branch jump 
   assign branch_jump = hazard_if.jump || (hazard_if.branch && hazard_if.mispredict);
-  assign hazard_if.npc_sel = branch_jump & ~intr_exception;
+  assign hazard_if.npc_sel = hazard_if.mispredict & ~intr_exception;
+
 
   //Pipe flush logic 
 

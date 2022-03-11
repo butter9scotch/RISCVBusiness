@@ -77,6 +77,9 @@ module completion_buffer # (
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
+  assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;
+
+
   //assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
   //assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
   assign cb_if.branch_mispredict_ena = 0;
