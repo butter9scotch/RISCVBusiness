@@ -77,8 +77,8 @@ module ooo_commit_stage(
   assign illegal_braddr         = (execute_commit_if.branch_instr & (execute_commit_if.br_resolved_addr[1:0] != 2'b00));
 
   assign valid_pc = (execute_commit_if.opcode != opcode_t'('h0));
-  assign branch_mispredict = hazard_if.mispredict;
-  //assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
+  //assign branch_mispredict = hazard_if.mispredict;
+  assign branch_mispredict = execute_commit_if.prediction ^ execute_commit_if.branch_taken;
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) 
@@ -115,7 +115,7 @@ module ooo_commit_stage(
   assign cb_if.valid_a     = execute_commit_if.branch_instr ? ~branch_mispredict : 
                              execute_commit_if.jump_instr ? 1'b0 :
                              1'b1; 
-  assign cb_if.branch_mispredict  = branch_mispredict;
+  assign cb_if.branch_mispredict  = branch_mispredict | execute_commit_if.jump_instr;
 
   assign cb_if.index_mu     = execute_commit_if.index_mu; 
   assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_commit_if.wdata_mu;  
