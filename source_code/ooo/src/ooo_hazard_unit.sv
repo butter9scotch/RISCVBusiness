@@ -91,6 +91,10 @@ module ooo_hazard_unit (
   //assign e_fetch_stage       = hazard_if.fault_insn | hazard_if.mal_insn | hazard_if.fault_l | hazard_if.fault_s; REMOVE?
   //assign e_decode_stage      = hazard_if.illegal_insn | hazard_if.breakpoint | hazard_if.env_m;                   REMOVE?
   //assign e_execute_stage     = hazard_if.mal_l | hazard_if.mal_s;                                                 REMOVE?
+  assign e_fetch_stage       = 0;
+  assign e_decode_stage      = 0;
+  assign e_execute_stage     = 0;
+
   assign e_commit_stage     = hazard_if.fault_insn | hazard_if.mal_insn | hazard_if.fault_l | 
                               hazard_if.fault_s | hazard_if.illegal_insn | hazard_if.breakpoint | 
                               hazard_if.env_m | hazard_if.mal_l | hazard_if.mal_s;
