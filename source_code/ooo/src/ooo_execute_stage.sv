@@ -168,8 +168,8 @@ module ooo_execute_stage(
   /*******************************************************
   *** Hazard Unit Signal Connections
   *******************************************************/
-  assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
-                                                branch_if.branch_addr;
+  //assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
+  //                                              branch_if.branch_addr;
   assign hazard_if.mispredict = decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken;
   assign hazard_if.branch     = decode_execute_if.branch_sigs.branch_instr; 
   assign hazard_if.jump       = decode_execute_if.jump_sigs.jump_instr; 

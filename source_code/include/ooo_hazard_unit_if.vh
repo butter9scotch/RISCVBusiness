@@ -126,7 +126,8 @@ interface ooo_hazard_unit_if();
     input stall_commit, mispredict,
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
-           epc, badaddr_d, badaddr_i, rob_full, pc_en, execute_commit_flush
+           epc, badaddr_d, badaddr_i, rob_full, pc_en, execute_commit_flush,
+           brj_addr
   );
 
   modport memory (
@@ -135,7 +136,7 @@ interface ooo_hazard_unit_if();
   );
 
   modport cb (
-    input npc_sel,
+    input npc_sel, brj_addr,
     output rob_full
   );
 
