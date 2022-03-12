@@ -40,12 +40,6 @@ module tb_caches_top ();
 
   //TODO: HOW DO WE GET THE CIF (FLUSH, CLEAR) SIGNALS FROM THE L1 TO THE L2/MEMORY
   l1_cache_wrapper_if mem_cif(clk);
-
-  // // instantiate the memory bus functional model
-  // memory_bfm bfm(
-  //   .cif(cpu_cif.cache),
-  //   .bus_if(l1_bus_if.generic_bus)
-  // );
   
   // instantiate the DUT
   // Data Cache Portmap
@@ -54,7 +48,12 @@ module tb_caches_top ();
 	.ASSOC(`L1_ASSOC),
 	.NONCACHE_START_ADDR(`NONCACHE_START_ADDR))
 	l1 (
-  .cif(cpu_cif.cache),
+  .CLK(clk),
+  .nRST(cpu_cif.nRST),
+  .clear(cpu_cif.clear),
+  .flush(cpu_cif.flush),
+  .clear_done(cpu_cif.clear_done),
+  .flush_done(cpu_cif.flush_done),
 	.mem_gen_bus_if(l1_bus_if.cpu),
 	.proc_gen_bus_if(cpu_bus_if.generic_bus));
 
