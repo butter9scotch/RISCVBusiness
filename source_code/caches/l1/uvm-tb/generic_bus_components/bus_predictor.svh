@@ -39,7 +39,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
       memory[pred_tx.addr] = pred_tx.data;
     end else begin
       // 0 -> read
-      pred_tx.data = read_mem(pred_tx.addr);
+      pred_tx.data = byte_mask(read_mem(pred_tx.addr), pred_tx.byte_sel);
     end
 
     $swriteh(str,"memory after:\n%p",memory);
@@ -48,6 +48,21 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
     // after prediction, the expected output send to the scoreboard 
     pred_ap.write(pred_tx);
   endfunction: write
+
+  function word_t byte_mask(word_t data, logic [3:0] byte_sel);
+    word_t mask;
+    word_t ret;
+
+    mask = 32'hff;
+    ret = '0;
+    for (int i = 0; i < 4; i++) begin
+      if (byte_sel[i]) begin
+        ret |= data & mask;
+      end
+      mask = mask << 8;
+    end
+    return ret;
+  endfunction: byte_mask
 
   virtual function word_t read_mem(word_t addr);
     // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)

@@ -110,6 +110,8 @@ module l1_cache #(
     cache_sets cache [N_SETS - 1:0];
     cache_sets next_cache [N_SETS - 1:0];
 
+    assign mem_gen_bus_if.byte_en = proc_gen_bus_if.byte_en; //FIXME: THIS WAS AN ERROR IN DESIGN FOUND
+
     // FF for counters
     always_ff @ (posedge cif.CLK, negedge cif.nRST) begin
         if(~cif.nRST) begin
