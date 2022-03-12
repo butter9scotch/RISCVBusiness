@@ -8,6 +8,8 @@ module interface_checker(
 );
 
     //FIXME: L1 RESPONSE WITHOUT REQUEST
+    //FIXME: we have busy low when wen/ren are asserted for first cycle (request cycle)
+    // this doesn't seem like an issue we need to check (or that is even an issue)
     // assert property (@(posedge cif.CLK) !(cpu_if.ren || cpu_if.wen) && !cpu_if.busy);
 
 endmodule: interface_checker
