@@ -406,19 +406,19 @@ module ooo_execute_stage(
         execute_commit_if.wdata_au               <= auif.wdata_au;
         execute_commit_if.reg_rd_au              <= auif.reg_rd_au;
         //MULTIPLY
-        execute_commit_if.wen_mu                 <= mif.done_mu; //done
+        //execute_commit_if.wen_mu                 <= mif.done_mu; //done
         execute_commit_if.wdata_mu               <= mif.wdata_mu;
         execute_commit_if.reg_rd_mu              <= reg_rd_mu_ff2;
         execute_commit_if.index_mu               <= index_mu_ff2;
         //DIVIDE
-        execute_commit_if.wen_du                 <= dif.done_du; //or finished
+        //execute_commit_if.wen_du                 <= dif.done_du; //or finished
         execute_commit_if.wdata_du               <= dif.wdata_du;
         if (dif.start_div) begin
                 execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
                 execute_commit_if.index_du               <= dif.index_du;
         end
         //LOADSTORE
-        execute_commit_if.wen_ls                 <= 0; // TODO- dhit?
+        execute_commit_if.wen_ls                 <= lsif.wen_ls; // TODO- dhit?
         execute_commit_if.wdata_ls               <= lsif.wdata_ls;
         execute_commit_if.reg_rd_ls              <= lsif.reg_rd_ls;
         execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;
