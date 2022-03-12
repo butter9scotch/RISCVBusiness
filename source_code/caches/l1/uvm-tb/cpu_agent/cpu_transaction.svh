@@ -35,7 +35,7 @@ class cpu_transaction extends uvm_sequence_item;
 
   constraint usable_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; }
 
-  constraint usable_byte_en { byte_sel == 4'b1000; } //TODO: We want to actually randomize this
+  constraint usable_byte_en { byte_sel == 4'b1111; } //TODO: We want to actually randomize this
 
   function new(string name = "cpu_transaction");
     super.new(name);

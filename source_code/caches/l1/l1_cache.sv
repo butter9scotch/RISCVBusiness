@@ -117,6 +117,8 @@ module l1_cache #(
     // Read Address
     word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
 
+    assign mem_gen_bus_if.byte_en = proc_gen_bus_if.byte_en; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
+
     // Counter always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
             if(~nRST) begin
