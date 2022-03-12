@@ -59,7 +59,7 @@ module ooo_hazard_unit (
   assign rd_busy = hazard_if.rd_busy & hazard_if.wen;
 
   //assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
-  assign structural_hazard = (hazard_if.fu_type == DIV_S) & hazard_if.busy_du; // TODO: Need to add load/store condition, check with Owen
+  assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls); 
   // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
   assign hazard_if.stall_au = 0;
   // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;

@@ -37,6 +37,7 @@ module completion_buffer # (
 
   typedef struct packed {
     word_t data;
+    word_t address;
     logic [4:0] vd;
     logic valid;
     logic exception;
@@ -55,14 +56,15 @@ module completion_buffer # (
   integer i;
 
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
-  assign hazard_if.brj_addr = cb[head_sel].data;
+  assign hazard_if.brj_addr = cb[head_sel].address;
   // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
 
   assign cb_if.cur_tail          = tail[$clog2(NUM_ENTRY)-1:0]; 
   //Register file signals here... this is just to stay consistent with the vector unit
   assign rf_if.w_data            = cb[head_sel].data; 
   assign rf_if.rd                = cb[head_sel].vd; 
-  assign rf_if.wen               = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen; 
+  //assign rf_if.wen               = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen; 
+  assign rf_if.wen               = cb[head_sel].valid & cb[head_sel].wen; 
   // assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen;
   assign cb_if.vd_final          = cb[head_sel].vd; 
   assign cb_if.wdata_final       = cb[head_sel].data; 
@@ -159,7 +161,8 @@ module completion_buffer # (
     end
     // Next state for arithemtic unit result
     if (cb_if.ready_a) begin
-      next_cb[cb_if.index_a].data = cb_if.wdata_a; // if branch mispredict, wdat = pc : if exception, wdat = epc : else, wdat = aluresult
+      next_cb[cb_if.index_a].data = cb_if.wdata_a; // if jump, wdat = pc + 4 : else, wdat = aluresult
+      next_cb[cb_if.index_a].address = cb_if.address_a; // if branch mispredict, wdat = target address : if exception, wdat = epc 
       next_cb[cb_if.index_a].vd = cb_if.vd_a;
       next_cb[cb_if.index_a].valid = cb_if.valid_a; // valid if ALU result is valid AND branch is not mispredicted
       next_cb[cb_if.index_a].exception = cb_if.exception_a;
@@ -173,7 +176,7 @@ module completion_buffer # (
     if (cb_if.ready_mu) begin
       next_cb[cb_if.index_mu].data = cb_if.wdata_mu;
       next_cb[cb_if.index_mu].vd = cb_if.vd_mu;
-      next_cb[cb_if.index_mu].valid = 1;
+      next_cb[cb_if.index_mu].valid = ~cb_if.exception_mu;
       next_cb[cb_if.index_mu].exception = cb_if.exception_mu;
       next_cb[cb_if.index_mu].branch_mispredict_mal = 0;
       next_cb[cb_if.index_mu].wen = 1;
@@ -185,7 +188,7 @@ module completion_buffer # (
     if (cb_if.ready_du) begin
       next_cb[cb_if.index_du].data = cb_if.wdata_du;
       next_cb[cb_if.index_du].vd = cb_if.vd_du;
-      next_cb[cb_if.index_du].valid = 1;
+      next_cb[cb_if.index_du].valid = ~cb_if.exception_du;
       next_cb[cb_if.index_du].exception = cb_if.exception_du;
       next_cb[cb_if.index_du].branch_mispredict_mal = 0;
       next_cb[cb_if.index_du].wen = 1;
@@ -197,10 +200,10 @@ module completion_buffer # (
     if (cb_if.ready_ls) begin
       next_cb[cb_if.index_ls].data = cb_if.wdata_ls;
       next_cb[cb_if.index_ls].vd = cb_if.vd_ls;
-      next_cb[cb_if.index_ls].valid = 1;
+      next_cb[cb_if.index_ls].valid = ~cb_if.exception_ls;
       next_cb[cb_if.index_ls].exception = cb_if.exception_ls;
       next_cb[cb_if.index_ls].branch_mispredict_mal = cb_if.mal_ls;
-      next_cb[cb_if.index_ls].wen = cb_if.wen_ls; //wrong
+      next_cb[cb_if.index_ls].wen = cb_if.wen_ls; 
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
       next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;

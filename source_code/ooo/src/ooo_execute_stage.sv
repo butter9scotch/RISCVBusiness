@@ -418,7 +418,7 @@ module ooo_execute_stage(
                 execute_commit_if.index_du               <= dif.index_du;
         end
         //LOADSTORE
-        execute_commit_if.wen_ls                 <= lsif.wen_ls; // TODO- dhit?
+        execute_commit_if.wen_ls                 <= lsif.wen_ls; 
         execute_commit_if.wdata_ls               <= lsif.wdata_ls;
         execute_commit_if.reg_rd_ls              <= lsif.reg_rd_ls;
         execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;

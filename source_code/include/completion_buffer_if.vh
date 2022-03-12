@@ -51,6 +51,8 @@ interface completion_buffer_if();
   word_t wdata_mu;
   word_t wdata_du;
   word_t wdata_ls;
+  word_t address_a;
+  word_t address_ls;
   logic [4:0] vd_a;
   logic [4:0] vd_mu;
   logic [4:0] vd_du;
@@ -78,7 +80,7 @@ interface completion_buffer_if();
            ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, CPU_TRACKER, opcode,
+           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, CPU_TRACKER, opcode,
     output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
            wdata_final, halt_instr
@@ -89,7 +91,7 @@ interface completion_buffer_if();
            ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, halt_instr
+           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, halt_instr
   );
 
   modport decode (
@@ -98,7 +100,7 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
+    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr
   );
 
   modport hu (

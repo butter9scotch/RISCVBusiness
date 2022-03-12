@@ -247,7 +247,7 @@ module ooo_decode_stage (
   *** Completion buffer signals
   *********************************************************/
   logic TODO = 0;
-  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode; 
+  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && cu_if.opcode != MISCMEM; // TODO: Editted by Jing to avoid allocating entry during fence (double check with Owen and Nick)
   assign cb_if.rv32v_wb_scalar_ena  = TODO;
   assign cb_if.rv32v_instr  = TODO;
   assign cb_if.opcode = cu_if.opcode;
