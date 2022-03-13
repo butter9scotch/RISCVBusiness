@@ -89,6 +89,7 @@ module completion_buffer # (
  
   //Hazard unit logic
   assign hazard_if.rob_full = cb_if.full;
+  assign hazard_if.rob_empty = cb_if.empty;
 
   // HEAD AND TAIL POINTER LOGIC
   always_ff @ (posedge CLK, negedge nRST) begin

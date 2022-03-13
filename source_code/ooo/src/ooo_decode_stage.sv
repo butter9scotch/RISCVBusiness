@@ -117,7 +117,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.data_hazard; //TODO: Add structural hazard
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard; 
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -203,7 +203,7 @@ module ooo_decode_stage (
   assign hazard_if.rd_busy   = rf_if.rd_busy;
   assign hazard_if.source_a_sel = cu_if.source_a_sel;
   assign hazard_if.source_b_sel = cu_if.source_b_sel;
-  assign hazard_if.fu_type = decode_execute_if.sfu_type;
+  assign hazard_if.fu_type = cu_if.sfu_type;
   always_comb begin
     case (cu_if.sfu_type) 
       LOADSTORE_S: hazard_if.wen = cu_if.lsu_sigs.wen;

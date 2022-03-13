@@ -81,11 +81,13 @@ interface ooo_hazard_unit_if();
   logic stall_commit;
   logic stall_fetch_decode;
   logic busy_decode;
+  logic rob_empty;
+  logic hazard;
 
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_de, intr, stall_fetch_decode, data_hazard,
+           stall_de, intr, stall_fetch_decode, data_hazard, hazard,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
            rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
   );
@@ -112,9 +114,9 @@ interface ooo_hazard_unit_if();
            mal_insn, fault_insn, ret, intr_taken,  div_e, 
            mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
-           busy_mul, rob_full, data_hazard, dflushed, iflushed,
+           busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode,
+          busy_decode, 
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
            loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
@@ -137,7 +139,7 @@ interface ooo_hazard_unit_if();
 
   modport cb (
     input npc_sel, brj_addr,
-    output rob_full
+    output rob_full, rob_empty
   );
 
 endinterface

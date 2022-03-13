@@ -31,11 +31,14 @@ module ooo_hazard_unit (
   // input data_hazard- comes from rfif bit vector bc of RAW/WAW
   // Instruction latch enable
   // rob_full -- reorder buffer full
-  logic pc_stall;
+  logic pc_stall, store;
+  assign store = hazard_if.fu_type == LOADSTORE_S && hazard_if.source_a_sel == 2'd1;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | hazard_if.stall_ls | 0; //ifence logic where zero
+  //assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | hazard_if.stall_ls | 0; //ifence logic where zero
+  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | 0; //ifence logic where zero
   assign hazard_if.stall_de = hazard_if.stall_fetch_decode; 
+  assign hazard_if.hazard = hazard_if.data_hazard | structural_hazard;
   //assign hazard_if.decode_execute_flush  = 0;
 
   //FETCH_DECODE
