@@ -57,7 +57,7 @@ module multiplier
 	logic ff1, ff2; 
 	//logic [63:0] sum13_pip, cout13_pip;
 	logic [63:0] sum5_pip, cout5_pip, sum6_pip, cout6_pip, sum7_pip, cout7_pip;
-	sign_type_t [1:0] is_signed_reg, is_signed_reg1, is_signed_reg2;
+	sign_type_t is_signed_reg, is_signed_reg1, is_signed_reg2;
 	logic done;
 	logic count_ena;	
 	integer i, j;

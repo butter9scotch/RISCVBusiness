@@ -31,7 +31,7 @@ module divide_unit (
 
   import rv32i_types_pkg::*;
 
-  logic start_reg, done_reg, done, div_type_reg, overflow, div_zero;
+  logic start_reg, done_reg, done, div_type_reg, overflow, div_zero, is_signed_reg;
   logic [31:0] quotient, remainder;
   logic [31:0] q;
   logic [4:0] reg_rd_du; 
@@ -45,8 +45,8 @@ module divide_unit (
     .dividend(dif.rs1_data),
     .divisor(dif.rs2_data),
     .ena(dif.busy_du & ~overflow & ~div_zero),
-    .is_signed(dif.is_signed_div),
-    .start(dif.start_div & ~start_reg & ~overflow & ~div_zero),
+    .is_signed(dif.start_div ? dif.is_signed_div : is_signed_reg),
+    .start(dif.start_div & ~overflow & ~div_zero),
     .finished(done),
     .quotient(quotient),
     .remainder(remainder)
@@ -97,11 +97,13 @@ module divide_unit (
     if (nRST == 0) begin
       start_reg <= '0;
       div_type_reg <= '0;
+      is_signed_reg <= 0;
     end else if (done) begin
       start_reg <= 0;
-    end else if (dif.start_div) begin
+    end else if (dif.start_div & ~overflow & ~div_zero) begin
       start_reg <= 1;
       div_type_reg <= dif.div_type;
+      is_signed_reg <= dif.is_signed_div;
     end
   end
 

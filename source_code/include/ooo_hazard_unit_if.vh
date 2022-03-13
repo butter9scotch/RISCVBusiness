@@ -85,7 +85,7 @@ interface ooo_hazard_unit_if();
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_de, intr, stall_fetch_decode,
+           stall_de, intr, stall_fetch_decode, data_hazard,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
            rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
   );

@@ -117,7 +117,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch;
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.data_hazard; //TODO: Add structural hazard
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -330,6 +330,7 @@ module ooo_decode_stage (
         if(~cu_if.div_sigs.ena) begin
           decode_execute_if.div_sigs <= '0;
         end else if(~(hazard_if.stall_du)) begin
+        //if(~(hazard_if.stall_du)) begin
           decode_execute_if.div_sigs.ena <= cu_if.div_sigs.ena;
           decode_execute_if.div_sigs.div_type <= cu_if.div_sigs.div_type;
           decode_execute_if.div_sigs.is_signed <= cu_if.div_sigs.is_signed;
