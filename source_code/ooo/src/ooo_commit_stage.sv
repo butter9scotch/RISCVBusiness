@@ -104,18 +104,11 @@ module ooo_commit_stage(
   *** Write to Completion Buffer logic 
   *******************************************************/
   assign cb_if.index_a     = execute_commit_if.index_a; 
-  assign cb_if.wdata_a     = execute_commit_if.jump_instr ? execute_commit_if.pc_a + 4 : execute_commit_if.wdata_au; 
-  assign cb_if.address_a   = (execute_commit_if.branch_instr & branch_mispredict) ?  execute_commit_if.br_resolved_addr : 
-                             execute_commit_if.jump_instr ?  execute_commit_if.jump_addr : 
-                             execute_commit_if.pc_a;
+  assign cb_if.wdata_a     = execute_commit_if.exception_a ? execute_commit_if.pc_a : execute_commit_if.jump_instr ? execute_commit_if.pc_a + 4 : execute_commit_if.wdata_au; 
   assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
   assign cb_if.exception_a = execute_commit_if.exception_a; 
   assign cb_if.ready_a     = (execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr & valid_pc) & execute_commit_if.done_a; 
   assign cb_if.wen_a       = (cb_if.exception_a | execute_commit_if.branch_instr) ? 1'b0 : 1'b1; 
-  assign cb_if.valid_a     = execute_commit_if.branch_instr ? ~branch_mispredict : 
-                             //execute_commit_if.jump_instr ? 1'b0 :
-                             1'b1; 
-  assign cb_if.branch_mispredict  = execute_commit_if.branch_instr ? branch_mispredict : execute_commit_if.jump_instr;
 
   assign cb_if.index_mu     = execute_commit_if.index_mu; 
   assign cb_if.wdata_mu     = execute_commit_if.exception_mu ? execute_commit_if.pc_mu : execute_commit_if.wdata_mu;  

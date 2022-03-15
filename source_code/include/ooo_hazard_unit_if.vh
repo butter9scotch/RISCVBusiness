@@ -87,7 +87,7 @@ interface ooo_hazard_unit_if();
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_de, intr, stall_fetch_decode, data_hazard, hazard,
+           stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
            rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
   );
@@ -125,11 +125,10 @@ interface ooo_hazard_unit_if();
   );
 
   modport commit (
-    input stall_commit, mispredict,
+    input stall_commit,
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
-           epc, badaddr_d, badaddr_i, rob_full, pc_en, execute_commit_flush,
-           brj_addr
+           epc, badaddr_d, badaddr_i, rob_full, rob_empty, pc_en, execute_commit_flush
   );
 
   modport memory (
@@ -138,7 +137,7 @@ interface ooo_hazard_unit_if();
   );
 
   modport cb (
-    input npc_sel, brj_addr,
+    input npc_sel,
     output rob_full, rob_empty
   );
 

@@ -64,6 +64,7 @@ module ooo_execute_stage(
   word_t branch_addr, resolved_addr;
   logic [4:0] reg_rd_mu_ff0, reg_rd_mu_ff1, reg_rd_mu_ff2;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu_ff0, index_mu_ff1, index_mu_ff2; 
+  logic branch_mispredict;
 
   
   /*******************************************************
@@ -107,6 +108,12 @@ module ooo_execute_stage(
   // extra signals used in execute stage
   assign branch_addr  = branch_if.branch_addr;
   assign resolved_addr = branch_if.branch_taken ? branch_addr : decode_execute_if.pc4;
+
+  assign branch_mispredict = decode_execute_if.branch_sigs.branch_instr & (decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken);
+  assign hazard_if.brj_addr = decode_execute_if.jump_sigs.jump_instr ? jump_if.jump_addr :
+                              branch_mispredict ? branch_if.branch_addr : 
+                              decode_execute_if.pc4;
+  assign hazard_if.mispredict = decode_execute_if.jump_sigs.jump_instr || branch_mispredict;
 
 
   /*******************************************************
