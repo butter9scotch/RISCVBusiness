@@ -10,7 +10,7 @@
 #include "riscv_test.h"
 #include "test_macros.h"
 
-RVTEST_RV64UF
+RVTEST_RV32UF
 RVTEST_CODE_BEGIN
 
   #-------------------------------------------------------------
