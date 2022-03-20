@@ -13,6 +13,7 @@
 
 // UVM test file
 `include "nominal_test.svh"
+`include "index_test.svh"
 `include "evict_test.svh"
 `include "mmio_test.svh"
 `include "random_test.svh"

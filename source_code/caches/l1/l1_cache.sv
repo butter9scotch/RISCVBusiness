@@ -49,6 +49,11 @@ module l1_cache #(
     // 4. Counter for frame size is not necessary, one if(ASSOC == 1) else should be enough
     // 5. Make it work for icache and dcache
     // 6. Test for ASSOC = 1
+
+    // FIXME:
+    // 1. see all FIXME notes through file
+    // 2. there is a difference between the 4 addr for read miss and block WB
+    //      check that you start incrementing your next_read_addr + 4 from the proper base offset
     
     import rv32i_types_pkg::*;
     

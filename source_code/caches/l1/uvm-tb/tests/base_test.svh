@@ -9,7 +9,6 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-//TODO: CHANGE NAME TO BASE TEST
 class base_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
   `uvm_component_utils(base_test)
 
@@ -30,6 +29,9 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
     super.build_phase(phase);
 
     env_config = cache_env_config::type_id::create("ENV_CONFIG", this);
+    if ( !env_config.randomize()) begin
+      `uvm_fatal("Randomize Error", "not able to randomize")
+    end
     
 	  env = cache_env::type_id::create("ENV",this);
     env.env_config = env_config;

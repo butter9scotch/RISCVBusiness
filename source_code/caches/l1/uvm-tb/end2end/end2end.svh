@@ -19,7 +19,7 @@ class end2end extends uvm_scoreboard;
 
   cache_model cache; // holds values currently stored in cache
 
-  int m_matches, m_mismatches; // records number of matches and mismatches
+  int successes, errors; // records number of matches and mismatches
 
  
   function new(string name, uvm_component parent = null);
@@ -49,36 +49,25 @@ class end2end extends uvm_scoreboard;
 
     prev_cpu_tx = new();
 
+    prev_cpu_tx.cycle = 2147483647; // max integer value (infinity)
+
     forever begin
       cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
 
       //TODO: THIS HASN'T BEEN TESTED FOR CORRECTNESS BECAUSE WE DON'T YET HAVE PREFETCHING
-      if (!mem_fifo.is_empty()) begin
-        // flush all transactions made on mem bus without a processor req (prefetch)
-        mem_fifo.peek(mem_tx);
-        count = 0;
-        while(mem_tx.cycle > prev_cpu_tx.cycle) begin
-          mem_fifo.get(mem_tx);
-          handle_mem_tx(mem_tx);
-          count++;
-        end
+      flush_mem_txn(prev_cpu_tx.cycle); // flush all transactions made on mem bus without a processor req (prefetch)
 
-        if (count != `L1_BLOCK_SIZE) begin
-          `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE))
-        end
-      end
-  
       if (mem_fifo.is_empty()) begin
         // quiet memory bus
 
         if (cache.exists(cpu_tx.addr)) begin
           // data is cached
-          m_matches++;
+          successes++;
           `uvm_info(this.get_name(), "Success: Cache Hit -> Quiet Mem Bus", UVM_LOW);
         end else begin
           // data not in cache
-          m_mismatches++;
+          errors++;
           `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
         end
       end else begin
@@ -86,30 +75,18 @@ class end2end extends uvm_scoreboard;
 
         if (cache.exists(cpu_tx.addr)) begin
           // data is already cached
-          m_mismatches++;
+          errors++;
           `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
         end else begin
           // data not in cache, need to get data from memory
 
-          // count = 0;
-          // // update cache from mem bus transactions
-          // while(!mem_fifo.is_empty()) begin
-          //   mem_fifo.get(mem_tx);
-          //   handle_mem_tx(mem_tx);
-          //   count++; // count words to ensure whole block is read
-          // end
-          $display("\n\n\n\n\nhere\n\n\n\n\n");
-          flush_mem_txn(0); //should be same
-
-          if (count != `L1_BLOCK_SIZE) begin
-            `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE))
-          end
+          flush_mem_txn(0);
 
           if (cache.exists(cpu_tx.addr)) begin
-            m_matches++;
+            successes++;
             `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
           end else begin
-            m_mismatches++;
+            errors++;
             `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
           end
         end   
@@ -125,8 +102,8 @@ class end2end extends uvm_scoreboard;
   endtask
 
   function void report_phase(uvm_phase phase);
-    `uvm_info(this.get_name(), $sformatf("Matches:    %0d", m_matches), UVM_LOW);
-    `uvm_info(this.get_name(), $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
+    `uvm_info(this.get_name(), $sformatf("Successes:    %0d", successes), UVM_LOW);
+    `uvm_info(this.get_name(), $sformatf("Errors: %0d", errors), UVM_LOW);
   endfunction
 
   function void handle_mem_tx(cpu_transaction mem_tx);
@@ -142,20 +119,25 @@ class end2end extends uvm_scoreboard;
 
   task flush_mem_txn(int start_cycle);
     cpu_transaction mem_tx;
-    $display("mem_fifo: %p", mem_fifo);
     if (!mem_fifo.is_empty()) begin
       int count = 0;
-      $display("here");
       // flush all transactions made on mem bus without a processor req (prefetch)
       mem_fifo.peek(mem_tx);
+      // $display("start: %d, cur: %d", start_cycle, mem_tx.cycle);
       while(mem_tx.cycle > start_cycle) begin
+        // $display("here");
         mem_fifo.get(mem_tx);
+        // $display("start: %d, cur: %d", start_cycle, mem_tx.cycle);
         handle_mem_tx(mem_tx);
         count++;
+        if (mem_fifo.is_empty()) begin
+          break;
+        end
       end
 
-      if (count != `L1_BLOCK_SIZE) begin
-        `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, expected: %0d", count, `L1_BLOCK_SIZE));
+      if (count % `L1_BLOCK_SIZE != 0) begin
+        errors++;
+        `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", count, `L1_BLOCK_SIZE));
       end
     end
   endtask: flush_mem_txn

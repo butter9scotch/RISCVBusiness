@@ -8,21 +8,24 @@ import rv32i_types_pkg::*;
 
 `include "dut_params.svh"
 
-`include "evict_sequence.svh"
 `include "nominal_sequence.svh"
+`include "index_sequence.svh"
+`include "evict_sequence.svh"
 `include "mmio_sequence.svh"
 
 `include "cpu_transaction.svh"
 
 class sub_master_sequence;
-  rand int evt_max_n;
   rand int nom_max_n;
+  rand int evt_max_n;
+  rand int idx_max_n;
   rand int mmio_max_n;
 
   //TODO: CHANGE THESE TO MORE CONFIGURABLE PARAMS
   constraint max {
-    evt_max_n > 0; evt_max_n < 10; 
     nom_max_n > 0; nom_max_n < 10;
+    idx_max_n > 0; idx_max_n < 10; 
+    evt_max_n > 0; evt_max_n < 10; 
     mmio_max_n > 0; mmio_max_n < 10;
   }
 
@@ -43,27 +46,35 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
 
   sub_master_sequence seq_param;
 
-  evict_sequence evt_seq;
   nominal_sequence nom_seq;
+  index_sequence idx_seq;
+  evict_sequence evt_seq;
   mmio_sequence mmio_seq;
 
   function new(string name = "");
     super.new(name);
-    evt_seq = evict_sequence::type_id::create("evt_seq");
     nom_seq = nominal_sequence::type_id::create("nom_seq");
+    idx_seq = index_sequence::type_id::create("idx_seq");
+    evt_seq = evict_sequence::type_id::create("evt_seq");
     mmio_seq = mmio_sequence::type_id::create("mmio_seq");
     seq_param = new();
   endfunction: new
 
   function void sub_randomize();
     //randomize sub-sequences
-    if(!evt_seq.randomize() with {
+    if(!nom_seq.randomize() with {
       N inside {[0:seq_param.nom_max_n]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
-    if(!nom_seq.randomize() with {
+    if(!idx_seq.randomize() with {
+      N inside {[0:seq_param.idx_max_n]};
+      }) begin
+      `uvm_fatal("Randomize Error", "not able to randomize")
+    end
+
+    if(!evt_seq.randomize() with {
       N inside {[0:seq_param.nom_max_n]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
@@ -79,8 +90,9 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
   task body();
     cpu_transaction req_item;
     uvm_sequence #(cpu_transaction) seq_list [$];
-    seq_list.push_back(evt_seq);
     seq_list.push_back(nom_seq);
+    seq_list.push_back(idx_seq);
+    seq_list.push_back(evt_seq);
     seq_list.push_back(mmio_seq);
 
     `uvm_info(this.get_name(), $sformatf("running %0d iterations", iterations), UVM_LOW)

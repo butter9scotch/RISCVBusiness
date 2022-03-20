@@ -13,6 +13,8 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
   uvm_analysis_port #(cpu_transaction) pred_ap;
   cpu_transaction pred_tx;
 
+  cache_env_config env_config;
+
   word_t memory [word_t]; //software cache
 
   function new(string name, uvm_component parent = null);
@@ -20,7 +22,14 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
   endfunction: new
 
   function void build_phase(uvm_phase phase);
+    
     pred_ap = new("pred_ap", this);
+    
+    // get config from database
+    if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
+      `uvm_fatal(this.get_name(), "env config not registered to db")
+		end
+
   endfunction
 
   function void write(cpu_transaction t);
@@ -67,8 +76,17 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
   virtual function word_t read_mem(word_t addr);
     // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)
     if (addr < `NONCACHE_START_ADDR) begin
-      return memory[addr];
+      // expect memory to return
+      if (this.memory.exists(addr)) begin
+        // block[addr] is already cached
+        return this.memory[addr];
+      end else begin
+        word_t default_val = {env_config.mem_tag, addr[15:0]};
+        `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Memory, Defaulting to value <%h>", default_val), UVM_MEDIUM)
+        return default_val; 
+      end
     end else begin
+      // expect mmio to respond
       return 32'hdead_beef; //FIXME: WHAT VALUES SHOULD WE EXPECTED FOR MMIO?
     end
   endfunction: read_mem

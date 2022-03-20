@@ -16,24 +16,21 @@ class memory_bfm extends uvm_component;
     virtual l1_cache_wrapper_if cif;
     virtual generic_bus_if bus_if;
 
+    cache_env_config env_config;
+
     word_t mem[word_t]; // initialized memory array
-    logic [15:0] tag;   // non-initialized data tag
-    int latency;            // memory latency
 
     function new(string name = "memory_bfm", uvm_component parent);
         super.new(name, parent);
-        tag = 16'hdada;
     endfunction
 
     virtual function void build_phase(uvm_phase phase);
-        cache_env_config env_config;
         super.build_phase(phase);
         
         // get config from database
         if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
             `uvm_fatal(this.get_name(), "env config not registered to db")
         end
-        latency = env_config.mem_latency;
 
         // get interface from database
         if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
@@ -72,10 +69,10 @@ class memory_bfm extends uvm_component;
             if (mem.exists(bus_if.addr)) begin
                 bus_if.rdata = mem[bus_if.addr];
             end else begin
-                bus_if.rdata = {tag, bus_if.addr[15:0]}; // return non-initialized data
+                bus_if.rdata = {env_config.mem_tag, bus_if.addr[15:0]}; // return non-initialized data
             end
             count = 1;
-            while(count < latency) begin
+            while(count < env_config.mem_latency) begin
                 @(negedge cif.CLK);
                 count++;
             end
@@ -91,7 +88,7 @@ class memory_bfm extends uvm_component;
             mem[bus_if.addr] = bus_if.wdata;
             
             count = 1;
-            while(count < latency) begin
+            while(count < env_config.mem_latency) begin
                 @(negedge cif.CLK);
                 count++;
             end
