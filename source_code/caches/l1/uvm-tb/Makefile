@@ -71,17 +71,20 @@ help:
 		build: compile code\n\
 		run: simuate the code with QuestaSim in command line\n\
 		gui: simulate the code QuestaSim GUI\n\
-		clean: remove build files
+		clean: remove build files\n\
 	Parameters:\n\
 		TESTCASE <str>: name of uvm test\n\
 			nominal: read values previously written to caches\n\
 			evict: write to same index with different tag bits to force cache eviction\n\
+			index: read/write to same block of data to ensure proper block indexing\n\
+			mmio: read/write to memory mapped address space\n\
 			random: random interleaving of previous test cases\n\
 		VERBOSITY <str>: selects verbosity of print statments during testing\n\
 			options: NONE, LOW, MEDIUM, HIGH, DEBUG\n\
 				-> see readme.md for details on each level\n\
 		SEED <int>: starter seed for uvm randomization\n\
-		MEM_TIMEOUT <int>: allowed memory latency before timeout error\n\n"
+		MEM_TIMEOUT <int>: allowed memory latency before timeout error\n\
+		MEM_LATENCY <int>: cycles to wait before memory returns\n" | less
 
 clean:
 	rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf
