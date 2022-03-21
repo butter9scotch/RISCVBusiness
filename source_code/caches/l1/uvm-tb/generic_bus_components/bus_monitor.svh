@@ -61,9 +61,6 @@ class bus_monitor extends uvm_monitor;
           tx.rw = '0; // 0 -> read; 1 -> write
           tx.data = 'x; //fill with garbage data
         end else if (bus_if.wen) begin
-          if (bus_if.addr >= `NONCACHE_START_ADDR) begin
-            `uvm_fatal(this.get_name(), "Invalid write to non-cache address")
-          end
           tx.rw = '1; // 0 -> read; 1 -> write
           tx.data = bus_if.wdata;
         end

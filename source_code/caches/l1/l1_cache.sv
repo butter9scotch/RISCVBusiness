@@ -54,6 +54,8 @@ module l1_cache #(
     // 1. see all FIXME notes through file
     // 2. there is a difference between the 4 addr for read miss and block WB
     //      check that you start incrementing your next_read_addr + 4 from the proper base offset
+    // 3. pass through doesn't pass through the ren/wen, addr, or data signals to bus
+    // 4. pass through doesn't relay back the busy signal from the bus after mmio completion
     
     import rv32i_types_pkg::*;
     

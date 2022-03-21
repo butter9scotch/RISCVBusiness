@@ -22,6 +22,7 @@ SEED = random
 #TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
 MEM_TIMEOUT = 11
 MEM_LATENCY = 1
+MMIO_LATENCY = 1
 
 RUN_COMMON = \
 	tb_$(TOP) -L \
@@ -32,7 +33,8 @@ RUN_COMMON = \
 	+UVM_TESTNAME=$(TESTCASE)_test \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
-	+uvm_set_config_int=*,mem_latency,$(MEM_LATENCY)
+	+uvm_set_config_int=*,mem_latency,$(MEM_LATENCY) \
+	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY)
 
 all: build run
 

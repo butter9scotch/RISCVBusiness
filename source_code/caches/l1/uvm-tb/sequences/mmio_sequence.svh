@@ -29,8 +29,9 @@ class mmio_sequence extends uvm_sequence #(cpu_transaction);
     repeat(N) begin
       start_item(req_item);
 
-      // writes.shuffle();
-      if(!req_item.randomize()) begin
+      if(!req_item.randomize() with {
+        addr >= `NONCACHE_START_ADDR;
+      }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
