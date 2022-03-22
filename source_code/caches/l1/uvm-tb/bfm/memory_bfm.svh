@@ -108,7 +108,8 @@ class memory_bfm extends uvm_component;
         while(bus_if.ren || '1) begin //FIXME: REMOVE THE || '1 ONCE DESIGN TEAM FIXES BUG
             @(negedge cif.CLK); // wait for propigation delay
             bus_if.busy = '1;
-            bus_if.rdata = 32'hdada_1234; //TODO: COME UP WITH SOME MEANINGFUL DATA TO PUT FOR MMIO, MAYBE SIMULATE A PERIFERAL REGISTER
+            //TODO: COME UP WITH SOME MEANINGFUL DATA TO PUT FOR MMIO, MAYBE SIMULATE A PERIFERAL REGISTER
+            bus_if.rdata = {env_config.mmio_tag, bus_if.addr[15:0]};
             // if (mmio.exists(bus_if.addr)) begin
             //     bus_if.rdata = mmio[bus_if.addr];
             // end else begin

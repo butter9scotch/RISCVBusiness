@@ -12,12 +12,14 @@ class cache_env_config extends uvm_object;
     int mmio_latency;
 
     rand logic[15:0] mem_tag; // used by mem bfm and bus predictors for non-initialized memory
+    rand logic[15:0] mmio_tag; // used by mem bfm and bus predictors for memory mapped io response to reads
 
     `uvm_object_utils_begin(cache_env_config)
        `uvm_field_int(mem_timeout, UVM_ALL_ON)
        `uvm_field_int(mem_latency, UVM_ALL_ON)
        `uvm_field_int(mmio_latency, UVM_ALL_ON)
        `uvm_field_int(mem_tag, UVM_ALL_ON)
+       `uvm_field_int(mmio_tag, UVM_ALL_ON)
     `uvm_object_utils_end
 
     function new(string name = "cache_env_config");

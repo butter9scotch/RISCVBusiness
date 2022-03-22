@@ -87,7 +87,9 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
       end
     end else begin
       // expect mmio to respond
-      return 32'hdead_beef; //FIXME: WHAT VALUES SHOULD WE EXPECTED FOR MMIO?
+      word_t default_val = {env_config.mmio_tag, addr[15:0]};
+      `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", default_val), UVM_MEDIUM)
+      return default_val;
     end
   endfunction: read_mem
 

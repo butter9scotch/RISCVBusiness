@@ -11,6 +11,10 @@ module interface_checker(
     //FIXME: we have busy low when wen/ren are asserted for first cycle (request cycle)
     // this doesn't seem like an issue we need to check (or that is even an issue)
     // assert property (@(posedge cif.CLK) !(cpu_if.ren || cpu_if.wen) && !cpu_if.busy);
+    // assert 
+    //     property (@(posedge cif.CLK) cpu_if.busy |-> ##2 (cpu_if.ren || cpu_if.wen))
+    //     else $fatal(1, "fatal error");
+    // assert property (@(posedge mem_if.busy) mem_if.ren || mem_if.wen);
 
 endmodule: interface_checker
 

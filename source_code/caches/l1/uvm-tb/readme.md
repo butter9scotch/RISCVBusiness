@@ -66,16 +66,6 @@ tb_caches_top.sv
 - Need to drive byte_en to memory, at least full word (4'b1000)
 - evicting the right data but wrong address
 
-## TODO
-- [ ] figure out how to deal with compulsory miss to Memory BFM. What value should we predict?
-  - [ ] how to randomize what values we have in default memory and still predict
-- [ ] add a random seed option for random generator
-- [ ] env - config
-  - [ ] shared variables between objects
-- [ ] figure out how to deal with writes/reads to words brought in from separate word in block r/w miss
-  - [ ] global memory?
-- [ ] test a byte address (lower bits non-zero) with the byte enable not matching
-
 
 ## Responsibilities:
 - CPU Agent
@@ -112,9 +102,6 @@ tb_caches_top.sv
 - Timing Agent
   - responsible for monitoring both buses like end2end and checking if the correct number of cycles for hits/misses
 - Update Nominal Sequence to have better distribution of reads/writes
-
-
-
 
 ## Sequences:
 A = [A1, A2, A3, A4]
