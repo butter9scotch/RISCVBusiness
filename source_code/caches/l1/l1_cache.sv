@@ -320,12 +320,16 @@ module l1_cache #(
 		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
 		            next_last_used[decoded_addr.set_bits] 					     = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
-                else if(pass_through)begin
+                else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
-                        proc_gen_bus_if.rdata = mem_gen_bus_if.rdata ;
+                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
+                        mem_gen_bus_if.ren      = 1'b1;
+                        proc_gen_bus_if.addr    =  mem_gen_bus_if.addr ;
                     end
                     else if(proc_gen_bus_if.wen)begin
-                        proc_gen_bus_if.wdata = mem_gen_bus_if.wdata ;
+                        mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
+                        mem_gen_bus_if.wen      = 1'b1;
+                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
                     end 
                 end
 		        next_read_addr = decoded_addr;
