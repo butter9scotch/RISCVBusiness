@@ -314,7 +314,7 @@ program test(
 	// Test case: 9, Pass Through Functionality
 	#CLK_PERIOD;
 	test_num++;
-	test_case  = "Continous write/read";
+	test_case  = "Continous write/read to non-cache addresses";
 	@(posedge CLK);
 	nRST 		     = 1'b0;
 	proc_gen_bus_if.wen  = 1'b0;
