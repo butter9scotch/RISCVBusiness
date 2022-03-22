@@ -324,13 +324,13 @@ module l1_cache #(
                     if(proc_gen_bus_if.ren)begin
                         proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
                         mem_gen_bus_if.ren      = 1'b1;
-                        proc_gen_bus_if.addr    =  mem_gen_bus_if.addr ;
+                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
                     end
                     else if(proc_gen_bus_if.wen)begin
                         mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
                         mem_gen_bus_if.wen      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        
+
                     end 
                 end
 		        next_read_addr = decoded_addr;
