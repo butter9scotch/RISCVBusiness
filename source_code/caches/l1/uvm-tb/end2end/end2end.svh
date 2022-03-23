@@ -5,6 +5,7 @@ import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
 `include "uvm_macros.svh"
+`include "dut_params.svh"
 `include "cpu_transaction.svh"
 `include "cache_model.svh"
 
@@ -55,49 +56,66 @@ class end2end extends uvm_scoreboard;
       cpu_fifo.get(cpu_tx);
       `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
 
-      //TODO: THIS HASN'T BEEN TESTED FOR CORRECTNESS BECAUSE WE DON'T YET HAVE PREFETCHING
-      flush_mem_txn(prev_cpu_tx.cycle); // flush all transactions made on mem bus without a processor req (prefetch)
+      if (cpu_tx.addr < `NONCACHE_START_ADDR) begin
+        // memory request
 
-      if (mem_fifo.is_empty()) begin
-        // quiet memory bus
+        //TODO: THIS HASN'T BEEN TESTED FOR CORRECTNESS BECAUSE WE DON'T YET HAVE PREFETCHING
+        flush_mem_txn(prev_cpu_tx.cycle); // flush all transactions made on mem bus without a processor req (prefetch)
 
-        if (cache.exists(cpu_tx.addr)) begin
-          // data is cached
-          successes++;
-          `uvm_info(this.get_name(), "Success: Cache Hit -> Quiet Mem Bus", UVM_LOW);
-        end else begin
-          // data not in cache
-          errors++;
-          `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
-        end
-      end else begin
-        // active memory bus
-
-        if (cache.exists(cpu_tx.addr)) begin
-          // data is already cached
-          errors++;
-          `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
-        end else begin
-          // data not in cache, need to get data from memory
-
-          flush_mem_txn(0);
+        if (mem_fifo.is_empty()) begin
+          // quiet memory bus
 
           if (cache.exists(cpu_tx.addr)) begin
+            // data is cached
             successes++;
-            `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
+            `uvm_info(this.get_name(), "Success: Cache Hit -> Quiet Mem Bus", UVM_LOW);
           end else begin
+            // data not in cache
             errors++;
-            `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+            `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
           end
-        end   
-      end
+        end else begin
+          // active memory bus
 
-      if (cpu_tx.rw) begin
-        // update cache on PrWr
-        cache.update(cpu_tx.addr, cpu_tx.data);
-      end
+          if (cache.exists(cpu_tx.addr)) begin
+            // data is already cached
+            errors++;
+            `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
+          end else begin
+            // data not in cache, need to get data from memory
 
-      prev_cpu_tx.copy(cpu_tx);
+            flush_mem_txn(0);
+
+            if (cache.exists(cpu_tx.addr)) begin
+              successes++;
+              `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
+            end else begin
+              errors++;
+              `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+            end
+          end   
+        end
+
+        if (cpu_tx.rw) begin
+          // update cache on PrWr
+          cache.update(cpu_tx.addr, cpu_tx.data);
+        end
+
+        prev_cpu_tx.copy(cpu_tx);
+      end else begin
+        // memory mapped io request
+
+        mem_fifo.get(mem_tx);
+
+        if(mem_tx.compare(cpu_tx)) begin
+          successes++;
+          `uvm_info(this.get_name(), "Success: Mem Mapped I/O Pass Through Match", UVM_LOW);
+        end else begin
+          errors++;
+          `uvm_error(this.get_name(), "Error: Mem Mapped I/O Pass Through Mismatch");
+          `uvm_info(this.get_name(), $sformatf("\ncpu req:\n%s\nmem bus:\n%s",cpu_tx.sprint(), mem_tx.sprint()), UVM_LOW)
+        end
+      end
     end
   endtask
 

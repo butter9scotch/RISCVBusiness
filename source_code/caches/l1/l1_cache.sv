@@ -49,6 +49,13 @@ module l1_cache #(
     // 4. Counter for frame size is not necessary, one if(ASSOC == 1) else should be enough
     // 5. Make it work for icache and dcache
     // 6. Test for ASSOC = 1
+
+    // FIXME:
+    // 1. see all FIXME notes through file
+    // 2. there is a difference between the 4 addr for read miss and block WB
+    //      check that you start incrementing your next_read_addr + 4 from the proper base offset
+    // 3. pass through doesn't pass through the ren/wen, addr, or data signals to bus
+    // 4. pass through doesn't relay back the busy signal from the bus after mmio completion
     
     import rv32i_types_pkg::*;
     
@@ -274,6 +281,7 @@ module l1_cache #(
         proc_gen_bus_if.busy    = 1'b1;
         mem_gen_bus_if.ren      = 1'b0;
         mem_gen_bus_if.wen      = 1'b0;
+        mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
@@ -321,17 +329,28 @@ module l1_cache #(
 		            next_last_used[decoded_addr.set_bits] 					     = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
                 else if(pass_through)begin // Passthrough data logic
-                    if(proc_gen_bus_if.ren)begin
-                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
-                        mem_gen_bus_if.ren      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                    end
-                    else if(proc_gen_bus_if.wen)begin
-                        mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
-                        mem_gen_bus_if.wen      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
 
-                    end 
+                    //FIXME: CHECK THIS, START OF ADDED BY VERIFICATION
+                    proc_gen_bus_if.busy        = mem_gen_bus_if.busy;      
+                    proc_gen_bus_if.rdata       = mem_gen_bus_if.rdata;
+                    mem_gen_bus_if.byte_en      = proc_gen_bus_if.byte_en;  
+                    mem_gen_bus_if.wdata        = proc_gen_bus_if.wdata;
+                    mem_gen_bus_if.ren          = proc_gen_bus_if.ren;
+                    mem_gen_bus_if.wen          = proc_gen_bus_if.wen;
+                    mem_gen_bus_if.addr         = proc_gen_bus_if.addr;
+                    //FIXME: CHECK THIS, END OF ADDED BY VERIFICATION
+
+                    // if(proc_gen_bus_if.ren)begin
+                    //     proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
+                    //     mem_gen_bus_if.ren      = 1'b1;
+                    //     mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
+                    // end
+                    // else if(proc_gen_bus_if.wen)begin
+                    //     mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
+                    //     mem_gen_bus_if.wen      = 1'b1;
+                    //     mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
+
+                    // end 
                 end
 		        next_read_addr = decoded_addr;
 		        if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin

@@ -31,7 +31,7 @@ module tb_caches_top ();
   // generate clock
   initial begin
 		clk = 0;
-		forever #10 clk = !clk;
+		forever #(`CLK_PERIOD) clk = !clk;
 	end
 
   // instantiate the interface

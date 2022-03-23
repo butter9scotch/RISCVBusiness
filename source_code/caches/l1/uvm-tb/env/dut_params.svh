@@ -1,6 +1,11 @@
 `ifndef DUT_PARAMS_SVH
 `define DUT_PARAMS_SVH
 
+// time in ns
+`define CLK_PERIOD 10
+// time in ps
+`define PROPAGATION_DELAY #(2000);
+
 `define NONCACHE_START_ADDR 32'h8000_0000
 
 `define L1_BLOCK_SIZE 4
