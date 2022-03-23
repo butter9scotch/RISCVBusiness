@@ -46,17 +46,12 @@ class memory_bfm extends uvm_component;
 
     virtual task run_phase(uvm_phase phase);
         forever begin
-            `uvm_info(this.get_name(), $sformatf("\nbefore: %h\n", bus_if.addr), UVM_LOW);
-
             @(posedge cif.CLK);
             `PROPAGATION_DELAY
 
             // default values on bus
             bus_if.busy = '0;
-            bus_if.rdata = 32'hbad0_bad0;
-
-            `uvm_info(this.get_name(), $sformatf("\nafter: addr: %h, ren: %b, wen: %b\n", bus_if.addr, bus_if.ren, bus_if.wen), UVM_LOW);
-            
+            bus_if.rdata = 32'hbad0_bad0;            
 
             if (bus_if.addr < `NONCACHE_START_ADDR) begin
                 if (bus_if.ren) begin
@@ -66,12 +61,9 @@ class memory_bfm extends uvm_component;
                 end
             end else if (bus_if.addr >= `NONCACHE_START_ADDR) begin
                 if (bus_if.ren) begin
-                    $display("inside read");
                     mmio_read();
                 end else if (bus_if.wen) begin
-                    `uvm_info(this.get_name(), "start write", UVM_LOW);
                     mmio_write();
-                    `uvm_info(this.get_name(), "end write", UVM_LOW);
                 end
             end
         end
@@ -79,39 +71,36 @@ class memory_bfm extends uvm_component;
 
     task mem_read();
         int count;
-        while(bus_if.ren) begin
-            @(negedge cif.CLK); // wait for propigation delay
-            bus_if.busy = '1;
-            if (mem.exists(bus_if.addr)) begin
-                bus_if.rdata = mem[bus_if.addr];
-            end else begin
-                bus_if.rdata = {env_config.mem_tag, bus_if.addr[15:0]}; // return non-initialized data
-            end
-            count = 1;
-            while(count < env_config.mem_latency) begin
-                @(negedge cif.CLK);
-                count++;
-            end
-            bus_if.busy = '0;
+       
+        bus_if.busy = '1;
+        count = 1;
+        while(count < env_config.mem_latency && bus_if.ren) begin
+            @(posedge cif.CLK);
+            `PROPAGATION_DELAY
+            count++;
         end
+
+        if (mem.exists(bus_if.addr)) begin
+            bus_if.rdata = mem[bus_if.addr];
+        end else begin
+            bus_if.rdata = {env_config.mem_tag, bus_if.addr[15:0]}; // return non-initialized data
+        end
+        bus_if.busy = '0;
     endtask: mem_read
 
     task mem_write();
         int count;
-        while(bus_if.wen) begin
-            @(negedge cif.CLK); // wait for propigation delay
-            bus_if.busy = '1;
-            mem[bus_if.addr] = bus_if.wdata;
-
-            `uvm_info(this.get_name(), $sformatf("\nwrite: %h\n", bus_if.rdata), UVM_LOW);
-            
-            count = 1;
-            while(count < env_config.mem_latency) begin
-                @(negedge cif.CLK);
-                count++;
-            end
-            bus_if.busy = '0;
+           
+        bus_if.busy = '1;
+        count = 1;
+        while(count < env_config.mem_latency) begin
+            @(posedge cif.CLK);
+            `PROPAGATION_DELAY
+            count++;
         end
+
+        mem[bus_if.addr] = bus_if.wdata;
+        bus_if.busy = '0;
     endtask: mem_write
 
     task mmio_read();
@@ -128,8 +117,6 @@ class memory_bfm extends uvm_component;
 
         bus_if.rdata = {env_config.mmio_tag, bus_if.addr[15:0]};
         bus_if.busy = '0;
-
-        `uvm_info(this.get_name(), $sformatf("\nmmio_read: %h\n", bus_if.rdata), UVM_LOW);
     endtask: mmio_read
 
     task mmio_write();
@@ -145,8 +132,6 @@ class memory_bfm extends uvm_component;
 
         // mmio[bus_if.addr] = bus_if.wdata; //TODO: DO SOMETHING MORE MEANINGFUL FOR WRITING TO MMIO, REGISTER MODEL?
         bus_if.busy = '0;
-
-        `uvm_info(this.get_name(), $sformatf("\nmmio_write: %h\n", bus_if.rdata), UVM_LOW);
     endtask: mmio_write
 
 endclass: memory_bfm

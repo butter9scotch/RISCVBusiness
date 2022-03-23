@@ -282,6 +282,7 @@ module l1_cache #(
         mem_gen_bus_if.ren      = 1'b0;
         mem_gen_bus_if.wen      = 1'b0;
         mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
+        next_read_addr          = read_addr;               //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
