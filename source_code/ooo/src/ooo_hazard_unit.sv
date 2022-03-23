@@ -26,7 +26,6 @@ module ooo_hazard_unit (
   // input hazard_if.busy_mul 
   // input hazard_if.busy_div
   // output hazard_if.stall_fetch
-  // output hazard_if.stall_de 
   // output stall_ex -- stall all functional unit latches
   // input data_hazard- comes from rfif bit vector bc of RAW/WAW
   // Instruction latch enable
@@ -35,9 +34,7 @@ module ooo_hazard_unit (
   assign store = hazard_if.fu_type == LOADSTORE_S && hazard_if.source_a_sel == 2'd1;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  //assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | hazard_if.stall_ls | 0; //ifence logic where zero
-  assign hazard_if.stall_fetch_decode = hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | 0; //ifence logic where zero
-  assign hazard_if.stall_de = hazard_if.stall_fetch_decode; 
+  assign hazard_if.stall_fetch_decode = hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | 0; //ifence logic where zero
   assign hazard_if.hazard = hazard_if.data_hazard | structural_hazard;
   //assign hazard_if.decode_execute_flush  = 0;
 
@@ -63,15 +60,12 @@ module ooo_hazard_unit (
 
   //assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
   assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls); 
-  // assign hazard_if.stall_au = (hazard_if.fu_type == ARITH_S) & hazard_if.busy_au;
-  assign hazard_if.stall_au = 0;
-  // assign hazard_if.stall_du = (hazard_if.fu_type == DIV_S) & hazard_if.busy_div;
+
+  assign hazard_if.stall_au = hazard_if.csr;
   assign hazard_if.stall_du = hazard_if.busy_du;
-  // assign hazard_if.stall_mu = (hazard_if.fu_type == MUL_S) & hazard_if.busy_mul;
   assign hazard_if.stall_mu = 0;
-  // assign hazard_if.stall_ls = (hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls;
   assign hazard_if.stall_ls = hazard_if.busy_ls;
-  //assign hazard_if.stall_de = structural_hazard;
+
   assign hazard_if.stall_ex = hazard_if.rob_full;
   assign hazard_if.stall_commit = 0;
   assign hazard_if.fetch_decode_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.ifence_flush | hazard_if.csr_flush;
@@ -138,6 +132,7 @@ module ooo_hazard_unit (
 
   assign intr_exception = 0;
   assign intr_e_flush = 0;
+  //assign hazard_if.csr_flush = hazard_if.csr;
   assign hazard_if.csr_flush = 0;
   assign hazard_if.ifence_flush = 0;
   assign hazard_if.execute_commit_flush  = 0;

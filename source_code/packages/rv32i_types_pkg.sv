@@ -304,6 +304,8 @@ package rv32i_types_pkg;
     logic csr_imm;
     logic [31:0] csr_imm_value;
     logic instr_null;
+    logic [31:0] csr_wdata;
+    logic [31:0] instr;
   } csr_control_signals_t;
 
   typedef struct packed {

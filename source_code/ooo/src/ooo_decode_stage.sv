@@ -252,36 +252,50 @@ module ooo_decode_stage (
   assign cb_if.rv32v_instr  = TODO;
   assign cb_if.opcode = cu_if.opcode;
 
+
+  /***** CPU_TRACKER, FUNCTIONAL UNIT TYPE LATCH *****/
   always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
     if (~nRST) begin
-            //FUNC UNIT
-            decode_execute_if.sfu_type   <= ARITH_S;
-            //CPU tracker
-            decode_execute_if.tracker_sigs <= '0;
-    end 
-    else begin 
+      decode_execute_if.sfu_type   <= ARITH_S;
+      decode_execute_if.tracker_sigs <= '0;
+    end else begin 
         if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | halt) begin
-            //FUNC UNIT
           decode_execute_if.sfu_type   <= ARITH_S;
-            //CPU tracker
           decode_execute_if.tracker_sigs <= '0;
         end else if(~hazard_if.stall_ex) begin
-          //FUNC UNIT
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
-          //CPU tracker
           decode_execute_if.tracker_sigs <= CPU_TRACKER;
         end
     end
   end
 
-  /***** ALL BLOCKING INSTRUCTIONS GO HERE *****/
-  logic is_blocking_instruction;
-  assign is_blocking_instruction = cu_if.halt;
-  assign hazard_if.busy_decode = is_blocking_instruction & (hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls);
 
+  /***** CSR INSTRUCTION LATCH *****/
+  logic stall_csr;
+  assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty) | hazard_if.stall_du | hazard_if.stall_ls;
 
+  always_ff @(posedge CLK, negedge nRST) begin : CSR_INSTRS
+    if (~nRST) begin
+      decode_execute_if.csr_sigs <= '0;
+    end else begin
+      if (hazard_if.decode_execute_flush | stall_csr) begin 
+        decode_execute_if.csr_sigs <= '0;
+      end else if (hazard_if.rob_empty & ~hazard_if.stall_au) begin
+        decode_execute_if.csr_sigs.csr_swap      <= cu_if.csr_sigs.csr_swap;
+        decode_execute_if.csr_sigs.csr_clr       <= cu_if.csr_sigs.csr_clr;
+        decode_execute_if.csr_sigs.csr_set       <= cu_if.csr_sigs.csr_set;
+        decode_execute_if.csr_sigs.csr_addr      <= cu_if.csr_sigs.csr_addr;
+        decode_execute_if.csr_sigs.csr_imm       <= cu_if.csr_sigs.csr_imm;
+        decode_execute_if.csr_sigs.csr_imm_value <= cu_if.csr_sigs.csr_imm_value;
+        decode_execute_if.csr_sigs.csr_instr     <= cu_if.csr_sigs.csr_instr;
+        decode_execute_if.csr_sigs.csr_wdata     <= fu_source_a;
+        decode_execute_if.csr_sigs.instr         <= fetch_decode_if.instr;
+      end
+    end
+  end
 
-  always_ff @(posedge CLK, negedge nRST) begin : BLOCKING_INSTRS
+  /***** HALT INSTRUCTION LATCH *****/
+  always_ff @(posedge CLK, negedge nRST) begin : HALT_INSTR
     if (~nRST) begin
             decode_execute_if.halt_instr <= '0;
     end 
@@ -289,14 +303,15 @@ module ooo_decode_stage (
         if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls) begin
           decode_execute_if.halt_instr <= '0;
         end else if(~hazard_if.stall_ex & ~(hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls)) begin
-          //HALT
           decode_execute_if.halt_instr <= cu_if.halt;
         end
     end
   end
 
-  // BIG TODO: put in the logic for rs1 and rs2
-  /***** OTHER FUNCTIONAL UNITS LATCH *****/
+  // Busy signal for decode stage
+  assign hazard_if.busy_decode = stall_csr | cu_if.halt & (hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls);
+
+  /***** MULT, DIV, LSU INSTRUCTION LATCH *****/
   always_ff @(posedge CLK, negedge nRST) begin : FUNCTIONAL_UNITS
     if (~nRST) begin
       decode_execute_if.mult_sigs <= '0;
@@ -306,11 +321,6 @@ module ooo_decode_stage (
       if (hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin : FLUSH
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
-        //decode_execute_if.lsu_sigs <= '0;
-//      end else if (~hazard_if.stall_de & hazard_if.pc_en) begin : BUBBLES
-//          decode_execute_if.mult_sigs <= '0;
-//          decode_execute_if.div_sigs <= '0;
-//          decode_execute_if.lsu_sigs <= '0;
       end else begin
         //MULTIPLY
         if(~cu_if.mult_sigs.ena) begin
@@ -397,8 +407,6 @@ module ooo_decode_stage (
       decode_execute_if.jump_sigs        <= '0;
       //BRANCH
       decode_execute_if.branch_sigs <= '0;
-      //csr
-      decode_execute_if.csr_sigs <= '0;
       //Exceptions
       decode_execute_if.exception_sigs <= '0;
         
@@ -410,8 +418,6 @@ module ooo_decode_stage (
         decode_execute_if.jump_sigs <= '0;
         //BRANCH
         decode_execute_if.branch_sigs <= '0;
-        //csr
-        decode_execute_if.csr_sigs <= '0;
         //Exceptions
         decode_execute_if.exception_sigs <= '0;
 
@@ -420,7 +426,6 @@ module ooo_decode_stage (
         decode_execute_if.reg_file_wdata <= next_reg_file_wdata;
         decode_execute_if.jump_sigs <= '0;
         decode_execute_if.branch_sigs <= 0;
-        decode_execute_if.csr_sigs <= '0;
 
         //Exceptions
         // elaborateed because half of the signals are form cu_if and 
@@ -453,8 +458,6 @@ module ooo_decode_stage (
         decode_execute_if.branch_sigs.branch_instr      <= cu_if.branch;
         //BRANCH PREDICTOR UPDATE
         decode_execute_if.branch_sigs.prediction <= fetch_decode_if.prediction;
-        //CSR
-        decode_execute_if.csr_sigs <= cu_if.csr_sigs;
 
         //Exceptions
         // elaborateed because half of the signals are form cu_if and 

@@ -80,6 +80,7 @@ interface ooo_execute_commit_if();
   mult_control_signals_t mult_sigs;
   div_control_signals_t div_sigs;
   lsu_control_signals_t lsu_sigs;
+  logic mispredict;
 
 
   modport execute (
@@ -96,7 +97,7 @@ interface ooo_execute_commit_if();
            pc_a, pc_mu, pc_du, pc_ls,
            exception_a, exception_mu, exception_du, exception_ls, pc4,
            arith_sigs, mult_sigs, div_sigs, lsu_sigs, done_a, done_mu,
-           done_du, done_ls
+           done_du, done_ls, mispredict
   );
 
   modport commit (
@@ -112,7 +113,7 @@ interface ooo_execute_commit_if();
            pc_a, pc_mu, pc_du, pc_ls, 
            exception_a, exception_mu, exception_du, exception_ls, pc4, CPU_TRACKER,
            arith_sigs, mult_sigs, div_sigs, lsu_sigs, done_a, done_mu,
-           done_du, done_ls
+           done_du, done_ls, mispredict
   );
 
 endinterface

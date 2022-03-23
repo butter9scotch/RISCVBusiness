@@ -190,7 +190,7 @@ module ooo_execute_stage(
 
   /***** CSR STUFF? *****/
   //NEED CSR ENA SIGNAL
-  assign csr_wdata = (decode_execute_if.csr_sigs.csr_imm) ? decode_execute_if.csr_sigs.csr_imm_value : decode_execute_if.port_a;
+  assign csr_wdata = (decode_execute_if.csr_sigs.csr_imm) ? decode_execute_if.csr_sigs.csr_imm_value : decode_execute_if.csr_sigs.csr_wdata;
 
   //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
   always_ff @(posedge CLK, negedge nRST) begin :INTERRUPT
@@ -213,7 +213,7 @@ module ooo_execute_stage(
   /*******************************************************
   *** CSR / Priv Interface Logic 
   *******************************************************/ 
-  assign hazard_if.csr     = decode_execute_if.csr_sigs.csr_instr;
+  assign hazard_if.csr     = csr_pulse;
   assign prv_pipe_if.swap  = decode_execute_if.csr_sigs.csr_swap;
   assign prv_pipe_if.clr   = decode_execute_if.csr_sigs.csr_clr;
   assign prv_pipe_if.set   = decode_execute_if.csr_sigs.csr_set;
@@ -449,10 +449,10 @@ module ooo_execute_stage(
         execute_commit_if.jump_addr              <= jump_if.jump_addr;
 
         execute_commit_if.exception_a            <= 0; // TODO
-        execute_commit_if.exception_mu            <= 0; // TODO
-        execute_commit_if.exception_du            <= 0; // TODO
-        execute_commit_if.exception_ls            <= 0; // TODO
-        //execute_commit_if.branch_instr           <= branch_addr;
+        execute_commit_if.exception_mu           <= 0; // TODO
+        execute_commit_if.exception_du           <= 0; // TODO
+        execute_commit_if.exception_ls           <= 0; // TODO
+        //execute_commit_if.branch_instr         <= branch_addr;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
         execute_commit_if.branch_instr           <= decode_execute_if.branch_sigs.branch_instr;

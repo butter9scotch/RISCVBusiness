@@ -169,7 +169,7 @@ module tb_RISCVBusiness_self_test ();
 
     #(1);
 
-   // dump_stats();
+    dump_stats();
     dump_ram();
 
     // Check Register 28 to see if test passed or failed
