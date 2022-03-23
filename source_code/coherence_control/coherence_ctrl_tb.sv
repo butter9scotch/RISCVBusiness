@@ -28,7 +28,7 @@
 //`include "rv32i_types_pkg.sv"
 
 parameter CLK_PERIOD = 10; 
-parameter BLOCK_SIZE = 2; 
+parameter BLOCK_SIZE = 4; 
 parameter L2_LATENCY = 0; 
 
 module cocherence_ctrl_tb(); 
@@ -168,7 +168,7 @@ module cocherence_ctrl_tb();
         * LOADEX: this core has a write request. load from L2, invalidate other copies.
         ****************************************************************************/
 
-		test_case_num ++; 	//test case 5
+		test_case_num ++; 	//test case 4
 		test_case_info = "I->M, S/E->I";
 		ccif.cctrans = 2'b11; 
 		ccif.ccwrite[0] = 1'b1; 
@@ -209,7 +209,7 @@ module cocherence_ctrl_tb();
         * FWDEX: cache-to-cache transfer, not update the L2 copy, invalidate other 
         *        copies. happens when I->M, M->I
         ****************************************************************************/
-		test_case_num ++; 	//test case 5
+		test_case_num ++; 	//test case 6
 		test_case_info = "I->M, M->I";
 		ccif.cctrans = 2'b11; 
 		ccif.ccwrite[0] = 1'b1; 
@@ -224,6 +224,19 @@ module cocherence_ctrl_tb();
 			else $error("E: Test Case %2d %s failed.", test_case_num, test_case_info);
 		reset_inputs(); 
 		#(5*CLK_PERIOD); 
+
+        /***************************************************************************
+        * INV: write hit from S->M, invalidate other copy, no bus read. 
+        ****************************************************************************/
+		test_case_num ++; 	//test case 7
+		test_case_info = "S->M, S->I";
+		ccif.cctrans = 2'b11; 
+		ccif.ccwrite[0] = 1'b1; 
+		ccif.cchit[1] = 1'b1; 
+		ccif.ccdirty[1] = 1'b0; 
+		wait(ccif.ccinv[1]); 
+		assert (~tb_err) $display("I: Test Case %2d %s passed.", test_case_num, test_case_info); 
+			else $error("E: Test Case %2d %s failed.", test_case_num, test_case_info);
 		$finish; 
 	end
 endmodule
