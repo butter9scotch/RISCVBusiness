@@ -26,14 +26,24 @@
 `define COHERENCE_CTRL_IF_VH
 //`include "rv32i_types_pkg.sv" // testbench purpose. 
 
+typedef enum logic[4:0] {  
+    IDLE, EIDLE, WB, INV, 
+    SNP1, SNP2, 
+    LOAD1, LOAD2,  
+    LOADEX1, LOADEX2, LOADEX3,  
+    FWDWB1, FWDWB2, FWDWB3,
+    FWDEX1, FWDEX2, FWDEX3
+} cc_state_t;
+
 typedef enum logic[1:0] {
     L2_FREE, L2_BUSY, L2_ACCESS, L2_ERROR
 } l2_state_t;
 
 typedef logic [31:0] word_t;
 
+parameter CPUS = 2;  // current only 2 supported. 
+
 interface coherence_ctrl_if;
-    parameter CPUS = 2;  // current only 2 supported. 
 
     logic   [CPUS-1 : 0] dREN, dWEN, dwait; 
     word_t  [CPUS-1 : 0] daddr, dload, dstore; 
