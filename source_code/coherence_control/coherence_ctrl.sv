@@ -22,18 +22,9 @@
 *	Description:  A coherennce controler implentation based on MESI Protocol.
 */
 
-`include "generic_bus_if.vh"
+//`include "generic_bus_if.vh"
 `include "coherence_ctrl_if.vh"
 //`include "rv32i_types_pkg.sv"
-
-typedef enum logic[4:0] {  
-    IDLE, EIDLE, WB, INV, 
-    SNP1, SNP2, 
-    LOAD1, LOAD2,  
-    LOADEX1, LOADEX2, LOADEX3,  
-    FWDWB1, FWDWB2, FWDWB3,
-    FWDEX1, FWDEX2, FWDEX3
-} cc_state_t;
 
 module coherence_ctrl #( 
     parameter BLOCK_SIZE = 2    // set how many words are there in a block. 
@@ -50,7 +41,7 @@ module coherence_ctrl #(
     assign ccif.ccsnpaddr[0] = ccif.daddr[1]; 
     assign ccif.ccsnpaddr[1] = ccif.daddr[0]; 
 
-    always_ff @(posedge CLK or negedge nRST) begin 
+    always_ff @(posedge CLK, negedge nRST) begin 
         if (~nRST) begin
             prid <= 0; 
             s <= IDLE; 
@@ -75,6 +66,7 @@ module coherence_ctrl #(
         ccif.l2store = '0; 
         ccif.l2REN = '0; 
         ccif.l2WEN = '0; 
+        ccif.ccexclusive = '0; 
         casez (s)
             IDLE, EIDLE: begin
                 nprid = ccif.cctrans[~prid] ? ~prid : prid;
@@ -129,8 +121,8 @@ module coherence_ctrl #(
                 ns = FWDWB2; 
             end
             FWDWB2: begin // write the word to L2. 
-                ccif.l2store = ccif.dstore[prid]; 
-                ccif.l2addr = ccif.daddr[prid]; 
+                ccif.l2store = ccif.dstore[~prid]; 
+                ccif.l2addr = ccif.daddr[~prid]; 
                 ccif.l2WEN = 1'b1; 
                 ccif.dwait[~prid] = ~(ccif.l2state == L2_ACCESS); 
                 ns = (ccif.l2state == L2_ACCESS) ? FWDWB3 : FWDWB2;   
@@ -174,8 +166,8 @@ module coherence_ctrl #(
             LOADEX2: begin  // increment word counter, determine if it meets the block size.
                 ccif.ccexclusive[prid] = 1'b1; 
                 ccif.ccwait[~prid] = 1'b1; 
-                ns = ($unsigned(word_counter + 1) < $unsigned(BLOCK_SIZE)) ? FWDEX1 : FWDEX3; 
-                next_word_counter = (ns == FWDEX1) ? word_counter+1 : 0; 
+                ns = ($unsigned(word_counter + 1) < $unsigned(BLOCK_SIZE)) ? LOADEX1 : LOADEX3; 
+                next_word_counter = (ns == LOADEX1) ? word_counter+1 : 0; 
             end
             LOADEX3: begin  // invalidate other copies.
                 ccif.ccinv[~prid] = 1'b1; 
