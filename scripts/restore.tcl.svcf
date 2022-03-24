@@ -1,0 +1,879 @@
+# SimVision Command Script (Wed Mar 23 08:07:52 PM EDT 2022)
+#
+# Version 15.20.s030
+#
+# You can restore this configuration with:
+#
+#      ncsim tb_RISCVBusiness_self_test -input /home/ecegridfs/a/socet90/AFTx06/RISCVBusiness/scripts/restore.tcl
+#
+
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set cursorctl-dont-show-sync-warning 1
+preferences set toolbar-sendToIndago-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+
+#
+# Simulator
+#
+database require simulator -hints {
+	simulator "ncsim -gui tb_RISCVBusiness_self_test -input restore.tcl"
+}
+
+#
+# Conditions
+#
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs2_data[31:0]}
+if {[catch {condition new -name  {\ex_f_rs2_data} -expr $expression}] != ""} {
+    condition set -using {\ex_f_rs2_data} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_rs2_data[31:0]}
+if {[catch {condition new -name  condition -expr $expression}] != ""} {
+    condition set -using condition -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_a_sel[1:0]}
+if {[catch {condition new -name  de_alu_a_sel -expr $expression}] != ""} {
+    condition set -using de_alu_a_sel -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_b_sel[1:0]}
+if {[catch {condition new -name  de_alu_b_sel -expr $expression}] != ""} {
+    condition set -using de_alu_b_sel -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_op[3:0]}
+if {[catch {condition new -name  de_alu_op -expr $expression}] != ""} {
+    condition set -using de_alu_op -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_funct7[6:0]}
+if {[catch {condition new -name  {de_f_funct7[6:0]} -expr $expression}] != ""} {
+    condition set -using {de_f_funct7[6:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rd[4:0]}
+if {[catch {condition new -name  de_f_reg_rd -expr $expression}] != ""} {
+    condition set -using de_f_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rd[4:0]}
+if {[catch {condition new -name  {de_f_reg_rd[4:0]} -expr $expression}] != ""} {
+    condition set -using {de_f_reg_rd[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs1[4:0]}
+if {[catch {condition new -name  de_f_reg_rs1 -expr $expression}] != ""} {
+    condition set -using de_f_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs1[4:0]}
+if {[catch {condition new -name  {de_f_reg_rs1[4:0]} -expr $expression}] != ""} {
+    condition set -using {de_f_reg_rs1[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs2[4:0]}
+if {[catch {condition new -name  de_f_reg_rs2 -expr $expression}] != ""} {
+    condition set -using de_f_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs2[4:0]}
+if {[catch {condition new -name  {de_f_reg_rs2[4:0]} -expr $expression}] != ""} {
+    condition set -using {de_f_reg_rs2[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs1_data[31:0]}
+if {[catch {condition new -name  de_f_rs1_data -expr $expression}] != ""} {
+    condition set -using de_f_rs1_data -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs2_data[31:0]}
+if {[catch {condition new -name  de_f_rs2_data -expr $expression}] != ""} {
+    condition set -using de_f_rs2_data -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wen
+if {[catch {condition new -name  de_f_wen -expr $expression}] != ""} {
+    condition set -using de_f_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wsel[2:0]}
+if {[catch {condition new -name  {de_f_wsel[2:0]} -expr $expression}] != ""} {
+    condition set -using {de_f_wsel[2:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rd[4:0]}
+if {[catch {condition new -name  de_reg_rd -expr $expression}] != ""} {
+    condition set -using de_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rs1[4:0]}
+if {[catch {condition new -name  de_reg_rs1 -expr $expression}] != ""} {
+    condition set -using de_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rs2[4:0]}
+if {[catch {condition new -name  de_reg_rs2 -expr $expression}] != ""} {
+    condition set -using de_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.rf_if.decode.rs1_data[31:0]}
+if {[catch {condition new -name  de_rs1_data -expr $expression}] != ""} {
+    condition set -using de_rs1_data -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.rf_if.decode.rs2_data[31:0]}
+if {[catch {condition new -name  de_rs2_data -expr $expression}] != ""} {
+    condition set -using de_rs2_data -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.wen
+if {[catch {condition new -name  de_wen -expr $expression}] != ""} {
+    condition set -using de_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_rs2_data[31:0]}
+if {[catch {condition new -name  ex_ -expr $expression}] != ""} {
+    condition set -using ex_ -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.alu_a_sel[1:0]}
+if {[catch {condition new -name  ex_alu_a_sel -expr $expression}] != ""} {
+    condition set -using ex_alu_a_sel -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.alu_b_sel[1:0]}
+if {[catch {condition new -name  ex_alu_b_sel -expr $expression}] != ""} {
+    condition set -using ex_alu_b_sel -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.dren
+if {[catch {condition new -name  ex_dren -expr $expression}] != ""} {
+    condition set -using ex_dren -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.dwen
+if {[catch {condition new -name  ex_dwen -expr $expression}] != ""} {
+    condition set -using ex_dwen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_funct7[6:0]}
+if {[catch {condition new -name  {ex_f_funct7[6:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_funct7[6:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rd[4:0]}
+if {[catch {condition new -name  ex_f_reg_rd -expr $expression}] != ""} {
+    condition set -using ex_f_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_reg_rd[4:0]}
+if {[catch {condition new -name  {ex_f_reg_rd[4:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_reg_rd[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rs1[4:0]}
+if {[catch {condition new -name  ex_f_reg_rs1 -expr $expression}] != ""} {
+    condition set -using ex_f_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_reg_rs1[4:0]}
+if {[catch {condition new -name  {ex_f_reg_rs1[4:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_reg_rs1[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rs2[4:0]}
+if {[catch {condition new -name  ex_f_reg_rs2 -expr $expression}] != ""} {
+    condition set -using ex_f_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_reg_rs2[4:0]}
+if {[catch {condition new -name  {ex_f_reg_rs2[4:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_reg_rs2[4:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs1_data[31:0]}
+if {[catch {condition new -name  {ex_f_rs1_data[31:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_rs1_data[31:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs2_data[31:0]}
+if {[catch {condition new -name  ex_f_rs2_data -expr $expression}] != ""} {
+    condition set -using ex_f_rs2_data -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs2_data[31:0]}
+if {[catch {condition new -name  {ex_f_rs2_data[31:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_rs2_data[31:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_rs2_data[31:0]}
+if {[catch {condition new -name  {ex_f_rs2_data[31:0][31:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_rs2_data[31:0][31:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_wdata[31:0]}
+if {[catch {condition new -name  {ex_f_wdata[31:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_wdata[31:0]} -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_wen
+if {[catch {condition new -name  ex_f_wen -expr $expression}] != ""} {
+    condition set -using ex_f_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_wsel[2:0]}
+if {[catch {condition new -name  {ex_f_wsel[2:0]} -expr $expression}] != ""} {
+    condition set -using {ex_f_wsel[2:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs1_data[31:0]}
+if {[catch {condition new -name  ex_fs1_data -expr $expression}] != ""} {
+    condition set -using ex_fs1_data -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_file_wdata[31:0]}
+if {[catch {condition new -name  {ex_reg_file_wdata[31:0]} -expr $expression}] != ""} {
+    condition set -using {ex_reg_file_wdata[31:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rd[4:0]}
+if {[catch {condition new -name  ex_reg_rd -expr $expression}] != ""} {
+    condition set -using ex_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rs1[4:0]}
+if {[catch {condition new -name  ex_reg_rs1 -expr $expression}] != ""} {
+    condition set -using ex_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rs2[4:0]}
+if {[catch {condition new -name  ex_reg_rs2 -expr $expression}] != ""} {
+    condition set -using ex_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.rs1_data[31:0]}
+if {[catch {condition new -name  ex_rs1_data -expr $expression}] != ""} {
+    condition set -using ex_rs1_data -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.rs2_data[31:0]}
+if {[catch {condition new -name  ex_rs2_data -expr $expression}] != ""} {
+    condition set -using ex_rs2_data -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.wen
+if {[catch {condition new -name  ex_wen -expr $expression}] != ""} {
+    condition set -using ex_wen -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.dren
+if {[catch {condition new -name  mem_dren -expr $expression}] != ""} {
+    condition set -using mem_dren -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.dwen
+if {[catch {condition new -name  mem_dwen -expr $expression}] != ""} {
+    condition set -using mem_dwen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rd[4:0]}
+if {[catch {condition new -name  mem_f_reg_rd -expr $expression}] != ""} {
+    condition set -using mem_f_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rs1[4:0]}
+if {[catch {condition new -name  mem_f_reg_rs1 -expr $expression}] != ""} {
+    condition set -using mem_f_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rs2[4:0]}
+if {[catch {condition new -name  mem_f_reg_rs2 -expr $expression}] != ""} {
+    condition set -using mem_f_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_store_wdata[31:0]}
+if {[catch {condition new -name  mem_f_store_wdata -expr $expression}] != ""} {
+    condition set -using mem_f_store_wdata -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_wdata[31:0]}
+if {[catch {condition new -name  mem_f_wdata -expr $expression}] != ""} {
+    condition set -using mem_f_wdata -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_wen
+if {[catch {condition new -name  mem_f_wen -expr $expression}] != ""} {
+    condition set -using mem_f_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_wsel[2:0]}
+if {[catch {condition new -name  {mem_f_wsel[2:0]} -expr $expression}] != ""} {
+    condition set -using {mem_f_wsel[2:0]} -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.fpu_flags[4:0]}
+if {[catch {condition new -name  mem_fpu_flags -expr $expression}] != ""} {
+    condition set -using mem_fpu_flags -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.fpu_out[31:0]}
+if {[catch {condition new -name  mem_fpu_out -expr $expression}] != ""} {
+    condition set -using mem_fpu_out -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.reg_rd[4:0]}
+if {[catch {condition new -name  mem_reg_rd -expr $expression}] != ""} {
+    condition set -using mem_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.rs1[4:0]}
+if {[catch {condition new -name  mem_reg_rs1 -expr $expression}] != ""} {
+    condition set -using mem_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.rs2[4:0]}
+if {[catch {condition new -name  mem_reg_rs2 -expr $expression}] != ""} {
+    condition set -using mem_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.rs1[4:0]}
+if {[catch {condition new -name  {mem_rs1[4:0]} -expr $expression}] != ""} {
+    condition set -using {mem_rs1[4:0]} -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.wen
+if {[catch {condition new -name  mem_wen -expr $expression}] != ""} {
+    condition set -using mem_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rd[4:0]}
+if {[catch {condition new -name  wb_f_reg_rd -expr $expression}] != ""} {
+    condition set -using wb_f_reg_rd -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rs1[4:0]}
+if {[catch {condition new -name  wb_f_reg_rs1 -expr $expression}] != ""} {
+    condition set -using wb_f_reg_rs1 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rs2[4:0]}
+if {[catch {condition new -name  wb_f_reg_rs2 -expr $expression}] != ""} {
+    condition set -using wb_f_reg_rs2 -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wdata[31:0]}
+if {[catch {condition new -name  wb_f_wdata -expr $expression}] != ""} {
+    condition set -using wb_f_wdata -expr $expression
+}
+set expression tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wen
+if {[catch {condition new -name  wb_f_wen -expr $expression}] != ""} {
+    condition set -using wb_f_wen -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wsel[2:0]}
+if {[catch {condition new -name  wb_f_wsel -expr $expression}] != ""} {
+    condition set -using wb_f_wsel -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.fpu_flags[4:0]}
+if {[catch {condition new -name  wb_fpu_flags -expr $expression}] != ""} {
+    condition set -using wb_fpu_flags -expr $expression
+}
+set expression {tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.fpu_out[31:0]}
+if {[catch {condition new -name  wb_fpu_out -expr $expression}] != ""} {
+    condition set -using wb_fpu_out -expr $expression
+}
+#
+# Groups
+#
+catch {group new -name frfif -overlay 0}
+catch {group new -name rfif -overlay 0}
+catch {group new -name cuif -overlay 0}
+catch {group new -name {floating point pipeline signals} -overlay 0}
+group using frfif
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.clk}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_flags[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_frm[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_frm_in[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_rd[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs1[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs1_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs2[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_rs2_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_wdata[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.f_wen}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.frf_if.n_rst}]} ]
+group using rfif
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.rd[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.rs1[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.rs1_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.rs2[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.rs2_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.w_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.rf_if.wen}]} ]
+group using cuif
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_a_sel[1:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_b_sel[1:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_op[3:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch_type[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.breakpoint}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_addr[11:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_clr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_imm}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_rw_valid}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_set}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_swap}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dren}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dwen}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ecall_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ex_pc_sel}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_funct7[6:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_opcode[6:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rd[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs1[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs2[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wen}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wsel[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.fault_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.frm_in[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.halt}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ifence}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.illegal_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_I[11:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_S[11:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_SB[12:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_U[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_UJ[20:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_shamt_sel}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.instr[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.j_sel}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.jump}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.load_type[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.lui_instr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.opcode[6:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rd[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs1[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs2[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ret_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.shamt[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.w_sel[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wen}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wfi}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.zimm[4:0]}]} ] \
+    [subst  {[format {de_alu_a_sel[1:0]}]} ] \
+    [subst  {[format {ex_alu_a_sel[1:0]}]} ] \
+    [subst  {[format {de_alu_b_sel[1:0]}]} ] \
+    [subst  {[format {ex_alu_b_sel[1:0]}]} ] \
+    [subst  {[format {de_reg_rs1[4:0]}]} ] \
+    [subst  {[format {ex_reg_rs1[4:0]}]} ] \
+    [subst  {[format {mem_reg_rs1[4:0]}]} ] \
+    [subst  {[format {de_rs1_data[31:0]}]} ] \
+    [subst  {[format {ex_rs1_data[31:0]}]} ] \
+    [subst  {[format {de_reg_rs2[4:0]}]} ] \
+    [subst  {[format {ex_reg_rs2[4:0]}]} ] \
+    [subst  {[format {mem_reg_rs2[4:0]}]} ] \
+    [subst  {[format {de_rs2_data[31:0]}]} ] \
+    [subst  {[format {ex_rs2_data[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.store_wdata[31:0]}]} ] \
+    [subst  {[format {de_reg_rd[4:0]}]} ] \
+    [subst  {[format {ex_reg_rd[4:0]}]} ] \
+    [subst  {[format {mem_reg_rd[4:0]}]} ] \
+    [subst  {[format {de_wen}]} ] \
+    [subst  {[format {ex_wen}]} ] \
+    [subst  {[format {mem_wen}]} ] \
+    [subst  {[format {de_alu_op[3:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.aluop[3:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_a[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_b[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_out[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.memory_addr[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dren}]} ] \
+    [subst  {[format {ex_dren}]} ] \
+    [subst  {[format {mem_dren}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.ext_out[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dwen}]} ] \
+    [subst  {[format {ex_dwen}]} ] \
+    [subst  {[format {mem_dwen}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.dmem_in[31:0]}]} ]
+group using {floating point pipeline signals}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    [subst  {[format {wb_f_wsel[2:0]}]} ] \
+    [subst  {[format {de_f_wen}]} ] \
+    [subst  {[format {ex_f_wen}]} ] \
+    [subst  {[format {mem_f_wen}]} ] \
+    [subst  {[format {wb_f_wen}]} ] \
+    [subst  {[format {mem_f_wdata[31:0]}]} ] \
+    [subst  {[format {wb_f_wdata[31:0]}]} ] \
+    [subst  {[format {de_f_rs1_data[31:0]}]} ] \
+    [subst  {[format {ex_fs1_data[31:0]}]} ] \
+    [subst  {[format {de_f_rs2_data[31:0]}]} ] \
+    [subst  {[format {ex_f_rs2_data[31:0]}]} ] \
+    [subst  {[format {mem_f_store_wdata[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.clk}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.n_rst}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_frm_in[2:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_funct_7[7:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_a[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_b[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.fpu_out[31:0]}]} ] \
+    [subst  {[format {mem_fpu_out[31:0]}]} ] \
+    [subst  {[format {wb_fpu_out[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_flags[4:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_ready}]} ] \
+    [subst  {[format {mem_fpu_flags[4:0]}]} ] \
+    [subst  {[format {wb_fpu_flags[4:0]}]} ] \
+    [subst  {[format {de_f_reg_rd[4:0]}]} ] \
+    [subst  {[format {ex_f_reg_rd[4:0]}]} ] \
+    [subst  {[format {mem_f_reg_rd[4:0]}]} ] \
+    [subst  {[format {wb_f_reg_rd[4:0]}]} ] \
+    [subst  {[format {de_f_reg_rs1[4:0]}]} ] \
+    [subst  {[format {ex_f_reg_rs1[4:0]}]} ] \
+    [subst  {[format {mem_f_reg_rs1[4:0]}]} ] \
+    [subst  {[format {wb_f_reg_rs1[4:0]}]} ] \
+    [subst  {[format {de_f_reg_rs2[4:0]}]} ] \
+    [subst  {[format {ex_f_reg_rs2[4:0]}]} ] \
+    [subst  {[format {mem_f_reg_rs2[4:0]}]} ] \
+    [subst  {[format {wb_f_reg_rs2[4:0]}]} ]
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 1680x867+2100+64}] != ""} {
+    window geometry "Design Browser 1" 1680x867+2100+64
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage}]} ]
+browser set \
+    -signalsort name
+browser yview see [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage}]} ]
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1920x977+0+0}] != ""} {
+    window geometry "Waveform 1" 1920x977+0+0
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ps \
+    -valuewidth 75
+waveform baseline set -time 1,233,030ps
+
+
+set groupId0 [waveform add -groups frfif]
+waveform hierarchy collapse $groupId0
+
+
+set groupId0 [waveform add -groups rfif]
+waveform hierarchy collapse $groupId0
+
+
+set groupId0 [waveform add -groups cuif]
+waveform hierarchy collapse $groupId0
+
+
+set groupId0 [waveform add -groups {{floating point pipeline signals}}]
+waveform hierarchy collapse $groupId0
+
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.fetch_decode_if.pc[31:0]}]}
+	} ]]
+
+set groupId0 [waveform add -groups frfif]
+
+
+set groupId0 [waveform add -groups rfif]
+
+
+set groupId0 [waveform add -groups cuif]
+set gpGlist0 [waveform hierarchy contents $groupId0]
+set gpID0 [lindex $gpGlist0 0]
+foreach {name attrs} [subst  {
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_a_sel[1:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_b_sel[1:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_op[3:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch_type[2:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.breakpoint}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_addr[11:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_clr}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_imm}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_rw_valid}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_set}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_swap}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dren}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dwen}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ecall_insn}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ex_pc_sel}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_funct7[6:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_opcode[6:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rd[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs1[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs2[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wen}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wsel[2:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.fault_insn}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.frm_in[2:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.halt}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ifence}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.illegal_insn}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_I[11:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_S[11:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_SB[12:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_U[31:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_UJ[20:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_shamt_sel}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.instr[31:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.j_sel}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.jump}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.load_type[2:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.lui_instr}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.opcode[6:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rd[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs1[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs2[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ret_insn}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.shamt[4:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.w_sel[2:0]}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wen}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wfi}]} {}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.zimm[4:0]}]} {}
+    {[format {de_alu_a_sel[1:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_alu_a_sel[1:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {de_alu_b_sel[1:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_alu_b_sel[1:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {de_reg_rs1[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_reg_rs1[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_reg_rs1[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {de_rs1_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_rs1_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {de_reg_rs2[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_reg_rs2[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_reg_rs2[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {de_rs2_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_rs2_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.store_wdata[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {de_reg_rd[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_reg_rd[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_reg_rd[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {de_wen}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_wen}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_wen}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {de_alu_op[3:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.aluop[3:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_a[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_b[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_out[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.memory_addr[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dren}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_dren}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_dren}]} {-color #ffff00 -namecolor #ffff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.ext_out[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dwen}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_dwen}]} {-namecolor #ff9900}
+    {[format {mem_dwen}]} {-color #ffff00 -namecolor #ffff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.dmem_in[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+}] childcmds {
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+} {
+    set expected [ join [waveform signals -format fullpath $gpID0] ]
+    if {[string equal $name $expected] || $name == "cdivider"} {
+        if {$attrs != ""} {
+            eval waveform format $gpID0 $attrs
+        }
+        if { $childcmds != ""} {
+            eval $childcmds
+        }
+    }
+    set gpGlist0 [lrange $gpGlist0 1 end]
+    set gpID0 [lindex $gpGlist0 0]
+}
+
+
+set groupId0 [waveform add -groups {{floating point pipeline signals}}]
+set gpGlist0 [waveform hierarchy contents $groupId0]
+set gpID0 [lindex $gpGlist0 0]
+foreach {name attrs} [subst  {
+    {[format {wb_f_wsel[2:0]}]} {-namecolor #99ff00}
+    {[format {de_f_wen}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_f_wen}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_f_wen}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_f_wen}]} {-namecolor #99ff00}
+    {[format {mem_f_wdata[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_f_wdata[31:0]}]} {-namecolor #99ff00}
+    {[format {de_f_rs1_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_fs1_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {de_f_rs2_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_f_rs2_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_f_store_wdata[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.clk}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.n_rst}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_frm_in[2:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_funct_7[7:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_a[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_b[31:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.fpu_out[31:0]}]} {-namecolor #ff9900}
+    {[format {mem_fpu_out[31:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_fpu_out[31:0]}]} {-namecolor #99ff00}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_flags[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_ready}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_fpu_flags[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_fpu_flags[4:0]}]} {-namecolor #99ff00}
+    {[format {de_f_reg_rd[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_f_reg_rd[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_f_reg_rd[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_f_reg_rd[4:0]}]} {-namecolor #99ff00}
+    {[format {de_f_reg_rs1[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_f_reg_rs1[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_f_reg_rs1[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_f_reg_rs1[4:0]}]} {-namecolor #99ff00}
+    {[format {de_f_reg_rs2[4:0]}]} {-color #ff0000 -namecolor #ff0000}
+    {[format {ex_f_reg_rs2[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {mem_f_reg_rs2[4:0]}]} {-color #ffff00 -namecolor #ffff00}
+    {[format {wb_f_reg_rs2[4:0]}]} {-namecolor #99ff00}
+}] childcmds {
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {
+        set id $gpID0
+        waveform hierarchy collapse $id
+    }
+    {
+        set id $gpID0
+        waveform hierarchy collapse $id
+    }
+    {}
+    {}
+    {}
+    {}
+} {
+    set expected [ join [waveform signals -format fullpath $gpID0] ]
+    if {[string equal $name $expected] || $name == "cdivider"} {
+        if {$attrs != ""} {
+            eval waveform format $gpID0 $attrs
+        }
+        if { $childcmds != ""} {
+            eval $childcmds
+        }
+    }
+    set gpGlist0 [lrange $gpGlist0 1 end]
+    set gpID0 [lindex $gpGlist0 0]
+}
+
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.fetch_decode_if.pc[31:0]}]}
+	} ]]
+
+waveform xview limits 599800ps 2099320ps
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 730x250+548+86
+
+#
+# Layout selection
+#
+

@@ -1,0 +1,550 @@
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted:  0
+Conditional branches predicted incorrectly:  0
+Conditional branches predicted correctly:  0
+Branch prediction accuracy:  -nan
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken:  0
+Branches predicted as not taken, incorrect:  0
+Branches predicted as not taken, correct:  0
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208
+Conditional branches predicted: 272
+Conditional branches predicted incorrectly: 64
+Conditional branches predicted correctly: 208
+Branch prediction accuracy: 0.764706
+Branches predicted as taken:  0
+Branches predicted as taken, incorrect:  0
+Branches predicted as taken, correct:  0
+Branches predicted as not taken: 272
+Branches predicted as not taken, incorrect: 64
+Branches predicted as not taken, correct: 208

@@ -50,7 +50,7 @@ interface control_unit_if;
   //register file signals
   logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd;
   logic [2:0] frm_in, f_wsel;
-  logic f_wen;
+  logic f_wen, fsw;
 
   f_funct7_t f_funct7;
   f_opcode_t f_opcode;
@@ -70,7 +70,7 @@ interface control_unit_if;
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
     csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, 
     //floating point signals
-    f_opcode, f_reg_rs1, f_reg_rs2, f_reg_rd, frm_in, f_wsel, f_wen, f_funct7
+    f_opcode, f_reg_rs1, f_reg_rs2, f_reg_rd, frm_in, f_wsel, f_wen, f_funct7, fsw
   );
 
 endinterface

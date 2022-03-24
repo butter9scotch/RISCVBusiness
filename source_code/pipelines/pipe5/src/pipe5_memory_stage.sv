@@ -113,9 +113,9 @@ module pipe5_memory_stage(
   always_comb begin
     dgen_bus_if.wdata = '0;
       case(execute_mem_if.load_type) // load_type can be used for store_type as well
-        LB: dgen_bus_if.wdata = {4{execute_mem_if.store_wdata[7:0]}};
-        LH: dgen_bus_if.wdata = {2{execute_mem_if.store_wdata[15:0]}};
-        LW: dgen_bus_if.wdata = execute_mem_if.store_wdata; 
+        LB: dgen_bus_if.wdata = execute_mem_if.fsw ? {4{execute_mem_if.f_store_wdata[7:0]}} : {4{execute_mem_if.store_wdata[7:0]}};
+        LH: dgen_bus_if.wdata = execute_mem_if.fsw ? {2{execute_mem_if.f_store_wdata[15:0]}} : {2{execute_mem_if.store_wdata[15:0]}};
+        LW: dgen_bus_if.wdata = execute_mem_if.fsw ? execute_mem_if.f_store_wdata : execute_mem_if.store_wdata; 
       endcase
   end
  

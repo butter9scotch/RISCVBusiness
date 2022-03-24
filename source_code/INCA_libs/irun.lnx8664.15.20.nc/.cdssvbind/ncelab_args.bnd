@@ -1,0 +1,1 @@
+-f /home/ecegridfs/a/socet90/AFTx06/RISCVBusiness/source_code/INCA_libs/irun.lnx8664.15.20.nc/ncelab.args -CHECK_VERSION "TOOL:	irun(64)	15.20-s030" -LOG_FD 4 -reinvoke ./INCA_libs/irun.lnx8664.15.20.nc/.cdssvbind/stf_00003b1c_2e808960.txt -symreinvoke extbind_reinvoke -nocopyright -append_log 

@@ -102,7 +102,7 @@ module control_unit
         7'b0000111: begin
             cu_if.f_opcode = FLW; 
         end
-        7'b1000111: begin
+        7'b0100111: begin
             cu_if.f_opcode = FSW;
         end
         7'b1010011: begin
@@ -118,8 +118,8 @@ module control_unit
   //assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
   
   //assign int registers
-  assign cu_if.reg_rs1  = cu_if.opcode ? cu_if.instr[19:15]: 0;
-  assign cu_if.reg_rs2  = cu_if.opcode ? cu_if.instr[24:20]: 0;
+  assign cu_if.reg_rs1  = cu_if.opcode | (cu_if.f_opcode == FLW || cu_if.f_opcode == FSW)  ? cu_if.instr[19:15]: 0;
+  assign cu_if.reg_rs2  = cu_if.opcode | cu_if.f_opcode == FSW ? cu_if.instr[24:20]: 0;
   assign cu_if.reg_rd   = cu_if.opcode ? cu_if.instr[11:7] : 0;
 
   assign cu_if.shamt = cu_if.instr[24:20];
@@ -148,10 +148,11 @@ module control_unit
   // Assign branch and load type
   assign cu_if.load_type    = load_t'(instr_i.funct3);
   assign cu_if.branch_type  = branch_t'(instr_sb.funct3);
+  assign cu_if.fsw = cu_if.f_opcode == FSW;
 
   // Assign memory read/write enables
-  assign cu_if.dwen = (cu_if.opcode == STORE);
-  assign cu_if.dren = (cu_if.opcode == LOAD);
+  assign cu_if.dwen = (cu_if.opcode == STORE) | (cu_if.f_opcode == FSW);
+  assign cu_if.dren = (cu_if.opcode == LOAD) | (cu_if.f_opcode == FLW);
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
 
   // Assign control flow signals
@@ -168,6 +169,10 @@ module control_unit
       AUIPC               : cu_if.alu_a_sel = 2'd2;
       default             : cu_if.alu_a_sel = 2'd2;
     endcase
+    case (cu_if.f_opcode) 
+        FLW: cu_if.alu_a_sel = 2'd0;
+        FSW: cu_if.alu_a_sel = 2'd1;
+    endcase
   end
 
   always_comb begin
@@ -178,7 +183,13 @@ module control_unit
       AUIPC       : cu_if.alu_b_sel = 2'd3;
       default     : cu_if.alu_b_sel = 2'd1;
     endcase
+    case (cu_if.f_opcode) 
+        FSW: cu_if.alu_b_sel = 2'd0;
+        FLW: cu_if.alu_b_sel = 2'd2;
+    endcase
   end
+
+  
 
   //assign fpu funct code
   always_comb begin
@@ -213,8 +224,8 @@ module control_unit
   //floating point write select
   always_comb begin
     case (cu_if.f_opcode)
-        FLW: cu_if.f_wsel = 3'd0;
-        F_RTYPE: cu_if.f_wsel = 3'd2;
+        FLW: cu_if.f_wsel = 3'd1;
+        F_RTYPE: cu_if.f_wsel = 3'd0;
         default: cu_if.f_wsel = 3'd2;
     endcase
    end
@@ -257,7 +268,9 @@ module control_unit
                       (cu_if.opcode == AUIPC) ||
                       (add_sub && ~cu_if.instr[30]) ||
                       (cu_if.opcode == LOAD) ||
-                      (cu_if.opcode == STORE));
+                      (cu_if.opcode == STORE) || 
+                      (cu_if.f_opcode == FSW) || 
+                      (cu_if.f_opcode == FLW));
   assign aluop_sub = (add_sub && cu_if.instr[30]);
   assign aluop_and = ((cu_if.opcode == IMMED && instr_i.funct3 == ANDI) ||
                       (cu_if.opcode == REGREG && instr_r.funct3 == AND));

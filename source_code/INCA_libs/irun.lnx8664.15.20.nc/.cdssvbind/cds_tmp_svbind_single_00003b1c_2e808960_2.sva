@@ -1,0 +1,12 @@
+vunit cds_psl2 (branch_predictor_wrapper) {
+(*cds_generated_bind_instance*)
+`line 105 "./tb/tb_RISCVBusiness_self_test.sv" 0
+branch_tracker branch_perf (
+.CLK(CLK), 
+.nRST(nRST), 
+.update_predictor(predict_if.update_predictor), 
+.prediction(predict_if.prediction), 
+.branch_result(predict_if.branch_result));
+
+}
+

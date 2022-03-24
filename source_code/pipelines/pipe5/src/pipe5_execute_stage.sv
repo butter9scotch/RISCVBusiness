@@ -63,10 +63,20 @@ module pipe5_execute_stage(
 
   //assign fpu signals
   assign fpu_if.port_a = decode_execute_if.f_rs1_data;
-  assign fpu_if.port_b = decode_execute_if.f_rs1_data;
+  assign fpu_if.port_b = decode_execute_if.f_rs2_data;
   assign fpu_if.f_frm_in = decode_execute_if.frm_out;
   assign fpu_if.f_funct_7 = decode_execute_if.f_funct7;
 
+  word_t fpu_out;
+  always_comb begin //assign fpu output 
+  fpu_out = fpu_if.fpu_out;
+  if (fpu_if.port_a[30:23] == 'hff) begin
+     fpu_out = fpu_if.port_a;
+  end
+  if (fpu_if.port_b[30:23] == 'hff) begin
+     fpu_out = fpu_if.port_b;
+  end
+  end
   assign hazard_if.f_stall = ~fpu_if.f_ready/* & (decode_execute_if.f_reg_rs1 || decode_execute_if.f_reg_rs2)*/ & decode_execute_if.f_wen;
   logic [1:0] byte_offset;
   logic [3:0] byte_en_standard;
@@ -250,7 +260,8 @@ module pipe5_execute_stage(
           execute_mem_if.f_wdata            <= 'h0;
           execute_mem_if.f_store_wdata      <= 'h0;
           execute_mem_if.fpu_out            <= 'h0;
-          execute_mem_if.fpu_flags            <= 'h0;
+          execute_mem_if.fpu_flags          <= 'h0;
+          execute_mem_if.fsw                <= 'h0;
     end
     else begin
         if (hazard_if.ex_mem_flush && hazard_if.pc_en || halt ) begin
@@ -313,6 +324,7 @@ module pipe5_execute_stage(
           execute_mem_if.f_store_wdata      <= 'h0;
           execute_mem_if.fpu_out            <= 'h0;
           execute_mem_if.fpu_flags            <= 'h0;
+          execute_mem_if.fsw                <= 'h0;
         end
         else if (hazard_if.dmem_access & ~hazard_if.d_mem_busy) begin //arbitate dren, dwen for iaccess
           execute_mem_if.dwen               <='h0; 
@@ -386,8 +398,9 @@ module pipe5_execute_stage(
           execute_mem_if.f_wen              <= decode_execute_if.f_wen;
           execute_mem_if.f_wdata            <= decode_execute_if.f_wdata;
           execute_mem_if.f_store_wdata      <= decode_execute_if.f_rs2_data;
-          execute_mem_if.fpu_out            <= fpu_if.fpu_out; 
+          execute_mem_if.fpu_out            <= fpu_out; 
           execute_mem_if.fpu_flags          <= fpu_if.f_flags;
+          execute_mem_if.fsw                <= decode_execute_if.fsw;
          end
       end
   end

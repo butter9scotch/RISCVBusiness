@@ -74,7 +74,7 @@ interface pipe5_execute_mem_if;
   //floating point signals
   logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd, fpu_flags;
   logic [2:0] f_wsel;
-  logic f_wen;
+  logic f_wen, fsw;
 
   word_t f_wdata, f_store_wdata, fpu_out;
 
@@ -92,7 +92,7 @@ interface pipe5_execute_mem_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, rs1, rs2, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_wdata, f_store_wdata, fpu_out, fpu_flags
+             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw
   );
 
   modport memory(
@@ -109,7 +109,7 @@ interface pipe5_execute_mem_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, rs1, rs2, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_wdata, f_store_wdata, fpu_out, fpu_flags
+             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw
   );
 
 endinterface

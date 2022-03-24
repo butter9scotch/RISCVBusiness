@@ -19,7 +19,7 @@ interface rv32f_reg_file_if();
 
     logic f_wen;
     modport decode (
-        output f_rs1, f_rs2,
+        output f_rs1, f_rs2, f_frm_in,
         input f_rs1_data, f_rs2_data, f_frm
     );
 

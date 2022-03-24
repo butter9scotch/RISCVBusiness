@@ -5,7 +5,7 @@ package rv32f_types_pkg;
     parameter F_FUNCT_W = 7;
     typedef enum logic [FOP_W-1:0] {
         FLW       = 7'b0000111,
-        FSW       = 7'b1000111,
+        FSW       = 7'b0100111,
         F_RTYPE   = 7'b1010011 //for add sub and mul
     } f_opcode_t;
 

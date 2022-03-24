@@ -70,6 +70,9 @@ module pipe5_decode_stage (
 
    assign frf_if.f_rs1 = cu_if.f_reg_rs1;
    assign frf_if.f_rs2 = cu_if.f_reg_rs2;
+   assign frf_if.f_frm_in = cu_if.frm_in;
+
+
   /*******************************************************
   * MISC RISC-MGMT Logic
   *******************************************************/
@@ -231,6 +234,7 @@ module pipe5_decode_stage (
         decode_execute_if.f_rs1_data                <= 'h0;
         decode_execute_if.f_rs2_data                <= 'h0;
         decode_execute_if.frm_out                   <= 'h0;
+        decode_execute_if.fsw                       <= 'h0;
     end 
     else begin 
         if (((hazard_if.id_ex_flush | hazard_if.stall) & hazard_if.pc_en) | halt) begin
@@ -298,6 +302,7 @@ module pipe5_decode_stage (
             decode_execute_if.f_rs2_data                <= 'h0;
             decode_execute_if.f_wdata                   <= 'h0;
             decode_execute_if.frm_out                   <= 'h0;
+            decode_execute_if.fsw                       <= 'h0;
         end else if(hazard_if.pc_en & ~hazard_if.stall) begin
             //FORWARDING
             decode_execute_if.alu_a_sel                 <= cu_if.alu_a_sel;
@@ -331,6 +336,7 @@ module pipe5_decode_stage (
             decode_execute_if.dwen                      <= cu_if.dwen; 
             decode_execute_if.dren                      <= cu_if.dren; 
             decode_execute_if.load_type                 <= cu_if.load_type;
+            decode_execute_if.fsw                       <= cu_if.fsw;
             //JUMP
             decode_execute_if.jump_instr                <= cu_if.jump;
             decode_execute_if.j_base                    <= base;

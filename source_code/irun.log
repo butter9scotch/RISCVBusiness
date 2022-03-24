@@ -1,0 +1,220 @@
+irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	irun(64)	15.20-s030: Started on Mar 21, 2022 at 19:05:41 EDT
+irun
+	-access +rwc
+	-timescale 1ns/100ps
+	-shm
+	packages/rv32i_types_pkg.sv
+	packages/alu_types_pkg.sv
+	packages/machine_mode_types_1_11_pkg.sv
+	packages/machine_mode_types_pkg.sv
+	packages/pipe5_types_pkg.sv
+	packages/rv32f_types_pkg.sv
+	-incdir ./include
+	rv32f/rv32f_reg_file.sv
+	rv32f/FPU_top_level.sv
+	rv32f/clock_counter.sv
+	rv32f/ADD_step1.sv
+	rv32f/ADD_step2.sv
+	rv32f/ADD_step3.sv
+	rv32f/SUB_step1.sv
+	rv32f/SUB_step2.sv
+	rv32f/SUB_step3.sv
+	rv32f/MUL_step1.sv
+	rv32f/MUL_step2.sv
+	rv32f/mul_26b.sv
+	rv32f/determine_frac_status.sv
+	rv32f/int_comparesub.sv
+	rv32f/sign_determine.sv
+	rv32f/int_compare.sv
+	rv32f/right_shift.sv
+	rv32f/u_to_s.sv
+	rv32f/c_to_cp.sv
+	rv32f/sub_26b.sv
+	rv32f/s_to_u.sv
+	rv32f/adder_26b.sv
+	rv32f/adder_8b.sv
+	rv32f/left_shift.sv
+	rv32f/subtract.sv
+	rv32f/rounder_sub.sv
+	rv32f/rounder.sv
+	standard_core/alu.sv
+	standard_core/branch_res.sv
+	standard_core/control_unit.sv
+	standard_core/dmem_extender.sv
+	standard_core/endian_swapper.sv
+	standard_core/jump_calc.sv
+	standard_core/rv32i_reg_file.sv
+	pipelines/pipe5/src/pipe5_fetch1_stage.sv
+	pipelines/pipe5/src/pipe5_fetch2_stage.sv
+	pipelines/pipe5/src/pipe5_decode_stage.sv
+	pipelines/pipe5/src/pipe5_execute_stage.sv
+	pipelines/pipe5/src/pipe5_memory_stage.sv
+	pipelines/pipe5/src/pipe5_writeback_stage.sv
+	pipelines/pipe5/src/pipe5_forwarding_unit.sv
+	standard_core/RISCVBusiness.sv
+	pipelines/pipe5/src/pipe5_hazard_unit.sv
+	standard_core/memory_controller.sv
+	caches/caches_wrapper.sv
+	caches/pass_through/pass_through_cache.sv
+	caches/separate_caches.sv
+	tb/tb_RISCVBusiness_self_test.sv
+	ram/config_ram_wrapper.sv
+	ram/ram_sim_model.sv
+	ram/ram_wrapper.sv
+	branch_predictors/branch_predictor_wrapper.sv
+	branch_predictors/nottaken_predictor/nottaken_predictor.sv
+	caches/direct_mapped_tpf/direct_mapped_tpf_cache.sv
+	bus_bridges/generic_nonpipeline.sv
+	privs/priv_wrapper.sv
+	privs/priv_1_11/priv_1_11_block.sv
+	privs/priv_1_11/priv_1_11_control.sv
+	privs/priv_1_11/priv_1_11_csr_rfile.sv
+	privs/priv_1_11/priv_1_11_pipeline_control.sv
+	trackers/branch_tracker.sv
+	trackers/cpu_tracker.sv
+Recompiling... reason: file './packages/rv32f_types_pkg.sv' is newer than expected.
+	expected: Sun Feb 20 19:12:19 2022
+	actual:   Fri Mar 18 19:23:05 2022
+file: packages/rv32f_types_pkg.sv
+	package worklib.rv32f_types_pkg:sv
+		errors: 0, warnings: 0
+file: rv32f/rv32f_reg_file.sv
+	interface worklib.rv32f_reg_file_if:vh
+		errors: 0, warnings: 0
+	module worklib.rv32f_reg_file:sv
+		errors: 0, warnings: 0
+file: standard_core/control_unit.sv
+	interface worklib.control_unit_if:vh
+		errors: 0, warnings: 0
+	module worklib.control_unit:sv
+		errors: 0, warnings: 0
+file: pipelines/pipe5/src/pipe5_decode_stage.sv
+	interface worklib.pipe5_decode_execute_if:vh
+		errors: 0, warnings: 0
+	module worklib.pipe5_decode_stage:sv
+		errors: 0, warnings: 0
+file: pipelines/pipe5/src/pipe5_execute_stage.sv
+	interface worklib.pipe5_execute_mem_if:vh
+		errors: 0, warnings: 0
+	module worklib.pipe5_execute_stage:sv
+		errors: 0, warnings: 0
+file: pipelines/pipe5/src/pipe5_memory_stage.sv
+	module worklib.pipe5_memory_stage:sv
+		errors: 0, warnings: 0
+file: pipelines/pipe5/src/pipe5_writeback_stage.sv
+	module worklib.pipe5_writeback_stage:sv
+		errors: 0, warnings: 0
+file: standard_core/RISCVBusiness.sv
+	module worklib.RISCVBusiness:sv
+		errors: 0, warnings: 0
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+		Caching library 'worklib' ....... Done
+  RISCVBusiness DUT (
+                  |
+ncelab: *W,CUVWSP (./tb/tb_RISCVBusiness_self_test.sv,67|18): 1 output port was not connected:
+ncelab: (./standard_core/RISCVBusiness.sv,48): wfi
+
+ 	int_comparesub cmp_exponent (
+ 	                          |
+ncelab: *W,CUVWSP (./rv32f/FPU_top_level.sv,130|28): 1 output port was not connected:
+ncelab: (./rv32f/int_comparesub.sv,16): u_diff
+
+	Top level design units:
+		rv32i_types_pkg
+		machine_mode_types_pkg
+		$unit_0x2fcc3001
+		rv32f_types_pkg
+		machine_mode_types_1_11_pkg
+		alu_types_pkg
+		pipe5_types_pkg
+		risc_mgmt_if
+		decompressor_if
+		ahb_if
+		caches_wrapper
+		tb_RISCVBusiness_self_test
+  RISCVBusiness DUT (
+                  |
+ncelab: *W,CUVWSP (./tb/tb_RISCVBusiness_self_test.sv,67|18): 1 output port was not connected:
+ncelab: (./standard_core/RISCVBusiness.sv,48): wfi
+
+ 	int_comparesub cmp_exponent (
+ 	                          |
+ncelab: *W,CUVWSP (./rv32f/FPU_top_level.sv,130|28): 1 output port was not connected:
+ncelab: (./rv32f/int_comparesub.sv,16): u_diff
+
+ncelab: *W,DSEMEL: This SystemVerilog design will be simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+			   .funct7(fpu_if.f_funct_7),
+			                          |
+ncelab: *W,CUVMPW (./rv32f/FPU_top_level.sv,178|29): port sizes differ in port connection (8/7).
+			   .funct7(fpu_if.f_funct_7),
+			                          |
+ncelab: *W,CUVMPW (./rv32f/FPU_top_level.sv,190|29): port sizes differ in port connection (8/7).
+.imm_UJ(mem_wb_if.imm_UJ_ext), 
+                           |
+ncelab: *W,CUVMPW (./INCA_libs/irun.lnx8664.15.20.nc/.cdssvbind/cds_tmp_svbind_single_00003b1c_2e808960_1.sva,18|27): port sizes differ in port connection (32/21).
+    .addr_in(word_addr),
+                     |
+ncelab: *W,CUVMPW (./ram/ram_wrapper.sv,47|21): port sizes differ in port connection (30/13).
+        decode_execute_if.f_funct7                  <= 'h0;
+                                                         |
+ncelab: *W,ENUMERR (./pipelines/pipe5/src/pipe5_decode_stage.sv,233|57): This assignment is a violation of SystemVerilog strong typing rules for enumeration datatypes.
+            decode_execute_if.f_funct7                  <= 'h0;
+                                                             |
+ncelab: *W,ENUMERR (./pipelines/pipe5/src/pipe5_decode_stage.sv,300|61): This assignment is a violation of SystemVerilog strong typing rules for enumeration datatypes.
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+		worklib.RISCVBusiness:sv <0x7a3d6cce>
+			streams:   5, words:  1787
+		worklib.branch_predictor_wrapper:sv <0x7a81eb10>
+			streams:   3, words:   384
+		worklib.control_unit:sv <0x04661075>
+			streams:  61, words: 37143
+		worklib.pipe5_decode_stage:sv <0x51f7abd2>
+			streams:  24, words: 34719
+		worklib.pipe5_execute_stage:sv <0x050d0b1f>
+			streams:  37, words: 47153
+		worklib.pipe5_memory_stage:sv <0x6fd411dd>
+			streams:  76, words: 45776
+		worklib.pipe5_writeback_stage:sv <0x307515d1>
+			streams:  24, words:  4371
+		worklib.rv32f_reg_file:sv <0x61dca17f>
+			streams:  10, words:  4655
+		worklib.tb_RISCVBusiness_self_test:sv <0x7689bbb5>
+			streams:  25, words: 27467
+	Building instance specific data structures.
+.wb_stall(wb_stall), 
+                 |
+ncelab: *W,CSINFI (./INCA_libs/irun.lnx8664.15.20.nc/.cdssvbind/cds_tmp_svbind_single_00003b1c_2e808960_1.sva,6|17): implicit wire has no fanin (tb_RISCVBusiness_self_test.DUT.writeback_stage.wb_stall).
+`line directed : file : ./tb/tb_RISCVBusiness_self_test.sv, line : 88
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		                   Instances  Unique
+		Modules:                  73      64
+		Interfaces:               32      23
+		Verilog packages:          6       6
+		Registers:               995     964
+		Scalar wires:            402       -
+		Expanded wires:          192      15
+		Vectored wires:          390       -
+		Always blocks:           128     130
+		Initial blocks:            6       6
+		Final blocks:              2       2
+		Cont. assignments:       519     525
+		Pseudo assignments:      178     178
+		Compilation units:         1       1
+		Simulation timescale:  100ps
+	Writing initial simulation snapshot: worklib.risc_mgmt_if:vh
+Loading snapshot worklib.risc_mgmt_if:vh .................... Done
+ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+ncsim> source /package/eda/cadence/INCISIVE152/tools/inca/files/ncsimrc
+ncsim> run
+  assign rdata = (^addr_ram !== 1'bx) && memory.exists(addr_ram) ? memory[addr_ram] : MEM_DEFAULT;
+                                                                        |
+ncsim: *W,RTSVAV (./ram/ram_sim_model.sv,172|72): SystemVerilog associative array index is invalid, it contains X/Z bits.
+SUCCESS
+Simulation complete via $finish(1) at time 120535 NS + 0
+./tb/tb_RISCVBusiness_self_test.sv:183     $finish;
+ncsim> exit
+TOOL:	irun(64)	15.20-s030: Exiting on Mar 21, 2022 at 19:05:45 EDT  (total: 00:00:04)

@@ -47,7 +47,9 @@ module rv32f_reg_file (
   always_ff @ (posedge frf_rf.clk, negedge frf_rf.n_rst) begin
     if (~frf_rf.n_rst) begin
       fcsr_reg <= '0;
-      registers <= '0;
+      for (int i = 0; i < 32; i++) begin
+          registers[i] <= 'h7fc00000;
+      end
       //frf_rf.f_frm <= '0;
     end else if (frf_rf.f_wen) begin 
       registers[frf_rf.f_rd] <= frf_rf.f_wdata; //f_w_data: FPU_out or dload_ext

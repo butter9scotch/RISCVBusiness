@@ -56,7 +56,7 @@ module pipe5_writeback_stage(
   //floating point reg file connections
   assign frf_if.f_wen             = mem_wb_if.f_wen;
   assign frf_if.f_wdata           = (mem_wb_if.f_wsel == 'd0) ?  mem_wb_if.fpu_out : (mem_wb_if.f_wsel == 'd1) ? mem_wb_if.dload_ext : mem_wb_if.f_wdata;
-  assign frf_if.f_rd              = mem_wb_if.reg_rd;
+  assign frf_if.f_rd              = mem_wb_if.f_reg_rd;
 endmodule
 
 

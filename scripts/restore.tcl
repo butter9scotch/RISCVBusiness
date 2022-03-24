@@ -1,0 +1,59 @@
+
+# NC-Sim Command File
+# TOOL:	ncsim(64)	15.20-s030
+#
+#
+# You can restore this configuration with:
+#
+#      ncsim tb_RISCVBusiness_self_test -input /home/ecegridfs/a/socet90/AFTx06/RISCVBusiness/scripts/restore.tcl
+#
+
+set tcl_prompt1 {puts -nonewline "ncsim> "}
+set tcl_prompt2 {puts -nonewline "> "}
+set vlog_format %h
+set vhdl_format %v
+set real_precision 6
+set display_unit auto
+set time_unit module
+set heap_garbage_size -200
+set heap_garbage_time 0
+set assert_report_level note
+set assert_stop_level error
+set autoscope yes
+set assert_1164_warnings yes
+set pack_assert_off {}
+set severity_pack_assert_off {note warning}
+set assert_output_stop_level failed
+set tcl_debug_level 0
+set relax_path_name 1
+set vhdl_vcdmap XX01ZX01X
+set intovf_severity_level ERROR
+set probe_screen_format 0
+set rangecnst_severity_level ERROR
+set textio_severity_level ERROR
+set vital_timing_checks_on 1
+set vlog_code_show_force 0
+set assert_count_attempts 1
+set tcl_all64 false
+set tcl_runerror_exit false
+set assert_report_incompletes 0
+set show_force 1
+set force_reset_by_reinvoke 0
+set tcl_relaxed_literal 0
+set probe_exclude_patterns {}
+set probe_packed_limit 4k
+set probe_unpacked_limit 16k
+set assert_internal_msg no
+set svseed 1
+set assert_reporting_mode 0
+alias iprof profile
+database -open -shm -into waves.shm waves -default
+database -open -shm -into dump.db _dump.db
+probe -create -database waves tb_RISCVBusiness_self_test.DUT.frf_if.clk tb_RISCVBusiness_self_test.DUT.frf_if.f_flags tb_RISCVBusiness_self_test.DUT.frf_if.f_frm tb_RISCVBusiness_self_test.DUT.frf_if.f_frm_in tb_RISCVBusiness_self_test.DUT.frf_if.f_rd tb_RISCVBusiness_self_test.DUT.frf_if.f_rs1 tb_RISCVBusiness_self_test.DUT.frf_if.f_rs1_data tb_RISCVBusiness_self_test.DUT.frf_if.f_rs2 tb_RISCVBusiness_self_test.DUT.frf_if.f_rs2_data tb_RISCVBusiness_self_test.DUT.frf_if.f_wdata tb_RISCVBusiness_self_test.DUT.frf_if.f_wen tb_RISCVBusiness_self_test.DUT.frf_if.n_rst tb_RISCVBusiness_self_test.DUT.rf_if.rd tb_RISCVBusiness_self_test.DUT.rf_if.rs1 tb_RISCVBusiness_self_test.DUT.rf_if.rs1_data tb_RISCVBusiness_self_test.DUT.rf_if.rs2 tb_RISCVBusiness_self_test.DUT.rf_if.rs2_data tb_RISCVBusiness_self_test.DUT.rf_if.w_data tb_RISCVBusiness_self_test.DUT.rf_if.wen tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_a_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_b_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.alu_op tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.branch_type tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.breakpoint tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_addr tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_clr tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_imm tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_rw_valid tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_set tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.csr_swap tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dren tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.dwen tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ecall_insn tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ex_pc_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_funct7 tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_opcode tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rd tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs1 tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_reg_rs2 tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wen tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.f_wsel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.fault_insn tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.frm_in tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.halt tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ifence tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.illegal_insn tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_I tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_S tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_SB tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_U tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_UJ tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.imm_shamt_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.instr tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.j_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.jump tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.load_type tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.lui_instr tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.opcode tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rd tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs1 tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.reg_rs2 tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.ret_insn tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.shamt tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.w_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wen tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.wfi tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.zimm tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.aluop tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_a tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_b tb_RISCVBusiness_self_test.DUT.execute_stage.alu_if.port_out tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.memory_addr tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.ext_out tb_RISCVBusiness_self_test.DUT.memory_stage.dmem_ext.dmem_in tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.clk tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.n_rst tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_frm_in tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_funct_7 tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_a tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.port_b tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.fpu_out tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_flags tb_RISCVBusiness_self_test.DUT.execute_stage.fpu_if.f_ready tb_RISCVBusiness_self_test.DUT.fetch_decode_if.pc tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.alu_a_sel tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.alu_b_sel tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rs1 tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.rs1_data tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rs2 tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.rs2_data tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.reg_rd tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wsel tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_wdata tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wdata tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_store_wdata tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.fpu_out tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.fpu_out tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.fpu_flags tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.fpu_flags tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rd tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rd tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rs1 tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rs1 tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_reg_rs2 tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_reg_rs2 tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.wen tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.dren tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.dren tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.dwen tb_RISCVBusiness_self_test.DUT.execute_mem_if.memory.dwen tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_wen tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.f_wen tb_RISCVBusiness_self_test.DUT.mem_wb_if.memory.f_wen
+probe -create -database waves tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rd tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rs1 tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_reg_rs2
+probe -create -database waves tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs1_data tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs2_data
+probe -create -database waves tb_RISCVBusiness_self_test.DUT.rf_if.decode.rs2_data tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rd tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.wen tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_op tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_a_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.alu_b_sel tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rs1 tb_RISCVBusiness_self_test.DUT.rf_if.decode.rs1_data tb_RISCVBusiness_self_test.DUT.decode_stage.cu_if.control_unit.reg_rs2
+probe -create -database waves tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.rs2 tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.reg_rd tb_RISCVBusiness_self_test.DUT.execute_mem_if.execute.rs1
+probe -create -database waves
+
+simvision -input restore.tcl.svcf

@@ -82,7 +82,7 @@ interface pipe5_decode_execute_if;
 //floating point signals
   logic [4:0] f_reg_rs1, f_reg_rs2, f_reg_rd;
   logic [2:0] f_wsel;
-  logic f_wen;
+  logic f_wen, fsw;
 
 
   f_funct7_t f_funct7;
@@ -106,7 +106,7 @@ interface pipe5_decode_execute_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out
+             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out, fsw
   );
 
   modport execute(
@@ -126,7 +126,7 @@ interface pipe5_decode_execute_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out
+             f_funct7, f_rs1_data, f_rs2_data, f_wdata, frm_out, fsw
   );
 
 endinterface
