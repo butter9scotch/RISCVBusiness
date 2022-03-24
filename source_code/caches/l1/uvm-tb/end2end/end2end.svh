@@ -9,115 +9,116 @@ import rv32i_types_pkg::*;
 `include "cpu_transaction.svh"
 `include "cache_model.svh"
 
-class end2end extends uvm_scoreboard;
+`uvm_analysis_imp_decl(_cpu_req)
+`uvm_analysis_imp_decl(_cpu_resp)
+`uvm_analysis_imp_decl(_mem_resp)
+
+class end2end extends uvm_component;
   `uvm_component_utils(end2end) 
 
-  uvm_analysis_export #(cpu_transaction) cpu_export;
-  uvm_analysis_export #(cpu_transaction) mem_export;
-
-  uvm_tlm_analysis_fifo #(cpu_transaction) cpu_fifo;
-  uvm_tlm_analysis_fifo #(cpu_transaction) mem_fifo;
+  uvm_analysis_imp_cpu_req #(cpu_transaction, end2end) cpu_req_export;
+  uvm_analysis_imp_cpu_resp #(cpu_transaction, end2end) cpu_resp_export;
+  uvm_analysis_imp_mem_resp #(cpu_transaction, end2end) mem_resp_export;
 
   cache_model cache; // holds values currently stored in cache
 
+  cpu_transaction history[$]; // holds recent mem bus transactions
+
   int successes, errors; // records number of matches and mismatches
 
- 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
+    cpu_req_export = new("cpu_req_ap", this);
+    cpu_resp_export = new("cpu_resp_ap", this);
+    mem_resp_export = new("mem_resp_ap", this);
+    cache = new("e2e_cache");
   endfunction: new
 
-  function void build_phase(uvm_phase phase);
-    cpu_export = new("cpu_export", this);
-    mem_export = new("mem_export", this);
+  function void write_cpu_req(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("cpu_req_tx", this);
+    tx.copy(t);
 
-    cpu_fifo = new("cpu_fifo", this);
-    mem_fifo = new("mem_fifo", this);
+    `uvm_info(this.get_name(), $sformatf("Detected CPU Request @%h", tx.addr), UVM_MEDIUM);
 
-    cache = new("e2e_cache");
-  endfunction
+    if (history.size() > 0) begin
+      flush_history();
+    end
+  endfunction: write_cpu_req
 
-  function void connect_phase(uvm_phase phase);
-    cpu_export.connect(cpu_fifo.analysis_export);
-    mem_export.connect(mem_fifo.analysis_export);
-  endfunction
+  function void write_cpu_resp(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("cpu_resp_tx", this);
+    tx.copy(t);
 
-  task run_phase(uvm_phase phase);
-    cpu_transaction prev_cpu_tx;
-    cpu_transaction cpu_tx;
-    cpu_transaction mem_tx;
-    int count; // count number of words read from memory for given txn
+    `uvm_info(this.get_name(), $sformatf("Detected CPU Response @%h", tx.addr), UVM_MEDIUM);
 
-    prev_cpu_tx = new();
+    if (tx.addr < `NONCACHE_START_ADDR) begin
+      // memory request
+      if (history.size() == 0) begin
+        // quiet memory bus
 
-    prev_cpu_tx.cycle = 2147483647; // max integer value (infinity)
-
-    forever begin
-      cpu_fifo.get(cpu_tx);
-      `uvm_info(this.get_name(), $sformatf("Recieved new cpu value:\n%s", cpu_tx.sprint()), UVM_HIGH);
-
-      if (cpu_tx.addr < `NONCACHE_START_ADDR) begin
-        // memory request
-
-        //TODO: THIS HASN'T BEEN TESTED FOR CORRECTNESS BECAUSE WE DON'T YET HAVE PREFETCHING
-        flush_mem_txn(prev_cpu_tx.cycle); // flush all transactions made on mem bus without a processor req (prefetch)
-
-        if (mem_fifo.is_empty()) begin
-          // quiet memory bus
-
-          if (cache.exists(cpu_tx.addr)) begin
-            // data is cached
-            successes++;
-            `uvm_info(this.get_name(), "Success: Cache Hit -> Quiet Mem Bus", UVM_LOW);
-          end else begin
-            // data not in cache
-            errors++;
-            `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
-          end
+        if (cache.exists(tx.addr)) begin
+          // data is cached
+          successes++;
+          `uvm_info(this.get_name(), "Success: Cache Hit -> Quiet Mem Bus", UVM_LOW);
         end else begin
-          // active memory bus
-
-          if (cache.exists(cpu_tx.addr)) begin
-            // data is already cached
-            errors++;
-            `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
-          end else begin
-            // data not in cache, need to get data from memory
-
-            flush_mem_txn(0);
-
-            if (cache.exists(cpu_tx.addr)) begin
-              successes++;
-              `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
-            end else begin
-              errors++;
-              `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
-            end
-          end   
+          // data not in cache
+          errors++;
+          `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
         end
-
-        if (cpu_tx.rw) begin
-          // update cache on PrWr
-          cache.update(cpu_tx.addr, cpu_tx.data);
-        end
-
-        prev_cpu_tx.copy(cpu_tx);
       end else begin
-        // memory mapped io request
+        // active memory bus
+        if (cache.exists(tx.addr)) begin
+          // data is already cached
+          errors++;
+          `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
+        end else begin
+          // data not in cache, need to get data from memory
 
-        mem_fifo.get(mem_tx);
+        flush_history();
 
-        if(mem_tx.compare(cpu_tx)) begin
+        if (cache.exists(tx.addr)) begin
+          successes++;
+          `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
+        end else begin
+          errors++;
+          `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+        end
+      end 
+    end
+  end else begin
+      // memory mapped io request
+
+      if (history.size() == 1) begin
+        cpu_transaction mapped = history.pop_front();
+        if (mapped.compare(tx)) begin
           successes++;
           `uvm_info(this.get_name(), "Success: Mem Mapped I/O Pass Through Match", UVM_LOW);
         end else begin
           errors++;
           `uvm_error(this.get_name(), "Error: Mem Mapped I/O Pass Through Mismatch");
-          `uvm_info(this.get_name(), $sformatf("\ncpu req:\n%s\nmem bus:\n%s",cpu_tx.sprint(), mem_tx.sprint()), UVM_LOW)
+          `uvm_info(this.get_name(), $sformatf("\ncpu req:\n%s\nmem bus:\n%s",tx.sprint(), mapped.sprint()), UVM_LOW)
         end
+      end else begin
+        errors++;
+        `uvm_error(this.get_name(), "Error: Mem Mapped I/O Pass Through Transaction Size Mismatch");
       end
     end
-  endtask
+
+    if (tx.rw) begin
+      // update cache on PrWr
+      cache.update(tx.addr, tx.data);
+    end
+
+  endfunction: write_cpu_resp
+
+  function void write_mem_resp(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("mem_resp_tx", this);
+    tx.copy(t);
+
+    `uvm_info(this.get_name(), $sformatf("Detected Memory Response @%h", tx.addr), UVM_MEDIUM);
+
+    history.push_back(tx);
+  endfunction: write_mem_resp
 
   function void report_phase(uvm_phase phase);
     `uvm_info(this.get_name(), $sformatf("Successes:    %0d", successes), UVM_LOW);
@@ -135,30 +136,18 @@ class end2end extends uvm_scoreboard;
     end
   endfunction: handle_mem_tx
 
-  task flush_mem_txn(int start_cycle);
-    cpu_transaction mem_tx;
-    if (!mem_fifo.is_empty()) begin
-      int count = 0;
-      // flush all transactions made on mem bus without a processor req (prefetch)
-      mem_fifo.peek(mem_tx);
-      // $display("start: %d, cur: %d", start_cycle, mem_tx.cycle);
-      while(mem_tx.cycle > start_cycle) begin
-        // $display("here");
-        mem_fifo.get(mem_tx);
-        // $display("start: %d, cur: %d", start_cycle, mem_tx.cycle);
-        handle_mem_tx(mem_tx);
-        count++;
-        if (mem_fifo.is_empty()) begin
-          break;
-        end
-      end
-
-      if (count % `L1_BLOCK_SIZE != 0) begin
-        errors++;
-        `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", count, `L1_BLOCK_SIZE));
-      end
+  function void flush_history();
+    if (history.size() % `L1_BLOCK_SIZE != 0) begin
+      errors++;
+      `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", history.size(), `L1_BLOCK_SIZE));
     end
-  endtask: flush_mem_txn
+
+    //TODO: check that words match up to blocks
+
+    while (history.size() > 0) begin
+      handle_mem_tx(history.pop_front());
+    end
+  endfunction: flush_history
 
 endclass: end2end
 
