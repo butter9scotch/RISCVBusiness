@@ -50,6 +50,7 @@ interface loadstore_unit_if(input rv32i_types_pkg::lsu_control_signals_t control
   logic done_ls;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls; 
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
+  logic ena;
 
 
   always_comb begin : CONNECTIONS
@@ -60,11 +61,12 @@ interface loadstore_unit_if(input rv32i_types_pkg::lsu_control_signals_t control
     dwen = control_sigs.dwen;
     reg_rd = control_sigs.reg_rd;
     index = control_sigs.index_ls;
+    ena = control_sigs.ready_ls;
   end
 
   modport execute (
     input port_a, port_b, store_data, pc, load_type, dren, 
-           dwen, wen, reg_rd, opcode, index,
+           dwen, wen, reg_rd, opcode, index, ena,
     output wdata_ls, wen_ls, reg_rd_ls, dren_ls, dwen_ls, 
             opcode_ls, mal_addr, memory_addr, busy_ls, done_ls,
           index_ls

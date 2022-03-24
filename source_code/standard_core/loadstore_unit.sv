@@ -55,7 +55,9 @@ module loadstore_unit (
   word_t dload_ext;
   logic [3:0] byte_en_standard;
   logic stall_mem;
-  assign stall_mem = dgen_bus_if.busy & (dren_ff1 | dwen_ff1);
+  logic ena_ff1;
+
+  assign stall_mem = dgen_bus_if.busy & (dren_ff1 | dwen_ff1) ;
 
   //assign stall = '0;
 
@@ -69,7 +71,7 @@ module loadstore_unit (
   assign opcode_ff0     = lsif.opcode;
   assign index_ff0      = lsif.index;
   assign hazard_if.dmem_access = dren_ff1 | dwen_ff1;
-  assign hazard_if.busy_ls = stall_mem;
+  assign hazard_if.busy_ls = stall_mem | lsif.ena & ~ena_ff1 & (dren_ff0 | dwen_ff0);
 
   agu AGU (
     .port_a(lsif.port_a), 
@@ -151,6 +153,14 @@ module loadstore_unit (
       stall_mem_ff1 <= 0;
     end else begin
       stall_mem_ff1 <= stall_mem;
+    end
+  end 
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      ena_ff1 <= 0;
+    end else begin
+      ena_ff1 <= lsif.ena;
     end
   end 
 
