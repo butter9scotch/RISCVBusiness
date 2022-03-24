@@ -91,7 +91,7 @@ module ooo_fetch_stage (
     end else if(hazard_if.intr_taken) begin
       next_pc = program_counter_pc;
     end else if(hazard_if.csr_flush) begin
-      next_pc = hazard_if.csr_flush + 4;
+      next_pc = hazard_if.csr_pc + 4;
     end else if(hazard_if.ifence_flush) begin
       next_pc = hazard_if.ifence_pc + 4;
     end else if(hazard_if.npc_sel) begin

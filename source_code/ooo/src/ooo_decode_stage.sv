@@ -272,7 +272,7 @@ module ooo_decode_stage (
 
   /***** CSR INSTRUCTION LATCH *****/
   logic stall_csr;
-  assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty) | hazard_if.stall_du | hazard_if.stall_ls;
+  assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty);
 
   always_ff @(posedge CLK, negedge nRST) begin : CSR_INSTRS
     if (~nRST) begin

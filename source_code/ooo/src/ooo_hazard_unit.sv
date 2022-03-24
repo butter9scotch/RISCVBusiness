@@ -132,8 +132,8 @@ module ooo_hazard_unit (
 
   assign intr_exception = 0;
   assign intr_e_flush = 0;
-  //assign hazard_if.csr_flush = hazard_if.csr;
-  assign hazard_if.csr_flush = 0;
+  assign hazard_if.csr_flush = hazard_if.csr;
+  //assign hazard_if.csr_flush = 0;
   assign hazard_if.ifence_flush = 0;
   assign hazard_if.execute_commit_flush  = 0;
 
