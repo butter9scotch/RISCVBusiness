@@ -311,9 +311,11 @@ module l1_cache #(
                     proc_gen_bus_if.busy 							     = 1'b0;
                     casez (proc_gen_bus_if.byte_en)
                         4'b0001:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata[7:0];
-                        4'b0010:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata[15:8];
-                        4'b0100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata[23:16];
-                        4'b1000:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata[31:24];
+                        4'b0010:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = {16'd0,proc_gen_bus_if.wdata[15:8],8'd0};
+                        4'b0100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = {8'd0, proc_gen_bus_if.wdata[23:16], 16'd0};
+                        4'b1000:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = {proc_gen_bus_if.wdata[31:24], 24'd0};
+		        4'b0011:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata[15:0];
+		        4'b1100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = {proc_gen_bus_if.wdata[31:16],16'd0};
                         default:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
                     endcase															   				   
                     //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
