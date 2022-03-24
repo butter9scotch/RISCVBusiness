@@ -82,6 +82,7 @@ tb_caches_top.sv
   - ensure miss propogates with correct addr to mem bus
     - need to read data from same address
     - need to write data back to memory on eviction
+  - TODO: ensures that snoops to cache work properly (vague because I still don't really know what this means...)
   - ensure that no mem bus transactions occur without ren/wen
     - //TODO: this will probably change if we do prefetching
       - PrRd A // miss
@@ -102,6 +103,34 @@ tb_caches_top.sv
 - Timing Agent
   - responsible for monitoring both buses like end2end and checking if the correct number of cycles for hits/misses
 - Update Nominal Sequence to have better distribution of reads/writes
+- end to end checker update
+  - all async ap for cpu_tx, mem_tx (req and resp) -> gives us the start and stop time of a transaction
+  - cpu_tx_start()
+    - check words_read to determine if there were prev txns
+      - handle txns if detected
+        - prefecting --> update mem model
+        - coherence --> update mem model, need to check end 2 end for bus -> cache -> bus for snoop resp!
+  - mem_tx() -> no need for start or stop?
+    - words_read++
+    - addr_history.push(new_addr)
+    - update cache model
+      - cache_model.valid_block(base_addr) --> add this to cache model
+  - cpu_tx_end()
+    - check that words_read % block_size == 0 --> valid block size
+    - check that hit/miss --> quiet/loud bus
+    - check addresses map to valid blocks (all four addrs are in same block)
+  - TODO: we can probably get rid of the txn.cycle value if we use this scheme
+  - Summary:
+    - coherence monitor sends snoop transactions out to subscribers
+      - initialially this will be a monitor that never sends out messages (dummy monitor)
+    - memory monitor simply a generic bus monitor
+    - end to end has ap write functions for:
+      - cpu_req -> calls cpu_tx_start()
+      - cpu_resp -> calls cpu_tx_end()
+      - mem_resp -> calls mem_tx()
+      - coherence req? -> for now just have generic coherence ap
+      - coherence resp?
+
 
 ## Sequences:
 A = [A1, A2, A3, A4]
