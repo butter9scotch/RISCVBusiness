@@ -75,7 +75,7 @@ module ooo_execute_stage(
   assign auif.port_a          = decode_execute_if.port_a;
   assign auif.port_b          = decode_execute_if.port_b;
   assign auif.reg_file_wdata  = decode_execute_if.reg_file_wdata;
-  assign auif.csr_rdata       = prv_pipe_if.rdata; // not sure how this will ever 
+  assign auif.csr_rdata       = csr_rdata; // not sure how this will ever 
   assign auif.j_sel       = decode_execute_if.jump_sigs.j_sel; // not sure how this will ever 
   assign auif.pc       = decode_execute_if.pc; // not sure how this will ever 
   arithmetic_unit ARITHU (
