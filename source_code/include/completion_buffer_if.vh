@@ -70,7 +70,7 @@ interface completion_buffer_if();
   logic wen_ls;
   logic valid_a;
   logic mal_ls;
-  cpu_tracker_signals_t CPU_TRACKER;
+  cpu_tracker_signals_t CPU_TRACKER, CPU_TRACKER_decode;
 
   logic tb_read;
 
@@ -80,10 +80,10 @@ interface completion_buffer_if();
            ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, CPU_TRACKER, opcode,
+           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, CPU_TRACKER_decode, opcode,
     output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
-           wdata_final, halt_instr
+           wdata_final, halt_instr, CPU_TRACKER
   );
   modport commit (
     output alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
@@ -96,7 +96,7 @@ interface completion_buffer_if();
 
   modport decode (
     input cur_tail, full, empty,
-    output alloc_ena, rv32v_instr, rv32v_wb_scalar_ena, opcode
+    output alloc_ena, rv32v_instr, rv32v_wb_scalar_ena, opcode, CPU_TRACKER_decode
   );
 
   modport writeback (

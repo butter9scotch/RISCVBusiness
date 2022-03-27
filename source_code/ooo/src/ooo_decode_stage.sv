@@ -220,6 +220,7 @@ module ooo_decode_stage (
   *********************************************************/
   // CPU Tracker binding
   cpu_tracker_t CPU_TRACKER;
+  assign cb_if.CPU_TRACKER_decode = CPU_TRACKER;
   assign CPU_TRACKER.funct3     = cu_if.instr[14:12];
   assign CPU_TRACKER.funct12    = cu_if.instr[31:20];
   assign CPU_TRACKER.instr_30   = cu_if.instr[30];

@@ -135,7 +135,7 @@ module ooo_commit_stage(
   /*******************************************************
   *** CPU tracker  
   *******************************************************/
-  always_ff @(posedge CLK, negedge nRST) begin
+  /*always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
       cb_if.CPU_TRACKER      <= '0;
     end
@@ -146,6 +146,6 @@ module ooo_commit_stage(
         cb_if.CPU_TRACKER    <= execute_commit_if.CPU_TRACKER;
       end
     end
-  end
+  end */
 
 endmodule

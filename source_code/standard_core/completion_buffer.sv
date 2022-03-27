@@ -51,7 +51,7 @@ module completion_buffer # (
   logic [$clog2(NUM_ENTRY) - 1:0] head_sel;
   cb_entry cb [0:NUM_ENTRY-1]; 
   cb_entry next_cb [0:NUM_ENTRY-1]; 
-  logic move_head, flush_cb;
+  logic move_head, move_tail, flush_cb;
   integer i;
 
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
@@ -75,7 +75,9 @@ module completion_buffer # (
   assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
+  assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
+  assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
   //assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;
@@ -114,7 +116,7 @@ module completion_buffer # (
     next_tail = tail;
     if (flush_cb) begin
       next_tail = 0;
-    end else if (cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0))) begin
+    end else if (move_tail) begin
       next_tail = tail + 1;
     end
   end
@@ -143,6 +145,9 @@ module completion_buffer # (
     if (move_head) begin
       next_cb[head_sel] = '0;
     end
+    if (move_tail) begin
+      next_cb[tail].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
+    end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin
       next_cb[tail].epc = cb_if.pc;
@@ -169,7 +174,7 @@ module completion_buffer # (
       next_cb[cb_if.index_a].wen = cb_if.wen_a; // if branch or exception, wen = 0 : else, wen = 1
       next_cb[cb_if.index_a].rv32v = 0;
       next_cb[cb_if.index_a].rv32f = 0;
-      next_cb[cb_if.index_a].CPU_TRACKER = cb_if.CPU_TRACKER;
+      //next_cb[cb_if.index_a].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for multiply unit result
     if (cb_if.ready_mu) begin
@@ -181,7 +186,7 @@ module completion_buffer # (
       next_cb[cb_if.index_mu].wen = ~cb_if.exception_mu;
       next_cb[cb_if.index_mu].rv32v = 0;
       next_cb[cb_if.index_mu].rv32f = 0;
-      next_cb[cb_if.index_mu].CPU_TRACKER = cb_if.CPU_TRACKER;
+      //next_cb[cb_if.index_mu].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for divide unit result
     if (cb_if.ready_du) begin
@@ -193,7 +198,7 @@ module completion_buffer # (
       next_cb[cb_if.index_du].wen = ~cb_if.exception_du;
       next_cb[cb_if.index_du].rv32v = 0;
       next_cb[cb_if.index_du].rv32f = 0;
-      next_cb[cb_if.index_du].CPU_TRACKER = cb_if.CPU_TRACKER;
+      //next_cb[cb_if.index_du].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for loadstore unit result
     if (cb_if.ready_ls) begin
@@ -205,7 +210,7 @@ module completion_buffer # (
       next_cb[cb_if.index_ls].wen = cb_if.wen_ls & ~cb_if.exception_ls; 
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
-      next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
+      //next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for vector unit result
     if (cb_if.rv32v_wb_scalar_ready) begin
