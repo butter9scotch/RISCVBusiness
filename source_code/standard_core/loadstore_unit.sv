@@ -56,6 +56,7 @@ module loadstore_unit (
   logic [3:0] byte_en_standard;
   logic stall_mem;
   logic ena_ff1;
+  logic [3:0] byte_en, byte_en_temp;
 
   assign stall_mem = dgen_bus_if.busy & (dren_ff1 | dwen_ff1) ;
 
@@ -77,6 +78,7 @@ module loadstore_unit (
     .port_a(lsif.port_a), 
     .port_b(lsif.port_b),
     .load_type(lsif.load_type),
+    .byte_en(byte_en),
     .byte_en_standard(byte_en_ff0),
     .address(address_ff0), 
     .mal_addr(mal_addr_ff0)
@@ -151,6 +153,8 @@ module loadstore_unit (
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       stall_mem_ff1 <= 0;
+    end else if (hazard_if.loadstore_flush) begin
+      stall_mem_ff1 <= 0;
     end else begin
       stall_mem_ff1 <= stall_mem;
     end
@@ -167,7 +171,6 @@ module loadstore_unit (
   /*******************************************************
   *** Choose the Endianness Coming into the processor
   *******************************************************/
-  logic [3:0] byte_en, byte_en_temp;
   assign byte_en_temp = byte_en_ff1;
   generate
     if (BUS_ENDIANNESS == "big")
