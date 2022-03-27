@@ -300,9 +300,9 @@ module priv_1_11_csr_rfile (
 
       // Vector Extension CSRs 
       VSTART_ADDR      : prv_intern_if.rdata = vstart;     
-      VXSAT_ADDR       : prv_intern_if.rdata = vxsat;     
-      VXRM_ADDR        : prv_intern_if.rdata = vxrm;   
-      VCSR_ADDR        : prv_intern_if.rdata = vcsr;   
+//      VXSAT_ADDR       : prv_intern_if.rdata = vxsat;     
+//      VXRM_ADDR        : prv_intern_if.rdata = vxrm;   
+//      VCSR_ADDR        : prv_intern_if.rdata = vcsr;   
       VL_ADDR          : prv_intern_if.rdata = vl; 
       VTYPE_ADDR       : prv_intern_if.rdata = vtype;     
       VLENB_ADDR       : prv_intern_if.rdata = vlenb; 

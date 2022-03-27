@@ -81,11 +81,17 @@ interface priv_1_11_internal_if; // also labeled as prv_intern_if in most module
 
   csr_addr_t addr; // 12-bit address for CSR instructions
 
+  vstart_t vstart_next, vstart;
+  vl_t     vl_next, vl;
+  vlenb_t  vlenb_next, vlenb;
+  vtype_t  vtype_next, vtype;
+
   modport csr (
     input mip_rup, mtval_rup, mcause_rup, mepc_rup, mstatus_rup,
       mip_next, mtval_next, mcause_next, mepc_next, mstatus_next,
       swap, clr, set, wdata, addr, valid_write, instr_retired, 
-    output mtvec, mepc, mie, mip, mcause, mstatus,
+      vstart_next, vl_next, vlenb_next, vtype_next,
+    output mtvec, mepc, mie, mip, mcause, mstatus, vstart, vl, vlenb, vtype,
       rdata, invalid_csr
   );
 

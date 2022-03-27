@@ -269,9 +269,9 @@ package machine_mode_types_1_11_pkg;
 
   //Vector
   typedef logic [31:0] vstart_t;
-  typedef struct [31:0] vxsat;  //not used yet
-  typedef struct [31:0] vxrm;  //not used yet
-  typedef struct [31:0] vcsr;  //not used yet
+  typedef logic [31:0] vxsat;  //not used yet
+  typedef logic [31:0] vxrm;  //not used yet
+  typedef logic [31:0] vcsr;  //not used yet
   typedef logic [31:0] vl_t;
   
   typedef struct packed {

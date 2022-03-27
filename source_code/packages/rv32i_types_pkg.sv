@@ -39,6 +39,13 @@ package rv32i_types_pkg;
   parameter REG_W = 3;
   parameter NUM_CB_ENTRY = 16;
 
+  //RVV constants
+  parameter VLEN_WIDTH = 7; // 128 bit registers
+  parameter VL_WIDTH = VLEN_WIDTH; //width of largest vector = VLENB * 8 
+  parameter VLEN = 1 << 7; 
+  parameter VLENB = VLEN / 8; //VLEN in bytes
+  parameter NUM_LANES = 2;
+
   typedef logic [WORD_SIZE-1:0] word_t;
 
   typedef enum logic [OP_W-1:0] {
@@ -50,12 +57,16 @@ package rv32i_types_pkg;
     BRANCH    = 7'b1100011,
     // All load instructions share an opcode
     LOAD      = 7'b0000011,
+    LOAD_FP   = 7'b0000111,
     // All store instructions share an opcode
     STORE     = 7'b0100011,
+    STORE_FP  = 7'b0100111,
     // All immediate ALU instructions share an opcode
     IMMED     = 7'b0010011,
     // All register-register instructions share an opcode
     REGREG    = 7'b0110011,
+    // Vector opcode
+    VECTOR    = 7'b1010111,
     // All system instructions share an opcode
     SYSTEM    = 7'b1110011,
     MISCMEM  = 7'b0001111
@@ -161,7 +172,7 @@ package rv32i_types_pkg;
     logic [4:0] rd;
     opcode_t    opcode;
   } rtype_t;
-
+  
   typedef struct packed {
     logic [11:0]  imm11_00;
     logic [4:0]   rs1;
