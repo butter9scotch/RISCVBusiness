@@ -110,7 +110,7 @@ module ooo_hazard_unit (
   assign prv_pipe_if.ret          = hazard_if.ret;
   assign prv_pipe_if.ex_rmgmt     = 1'b0;
   
-  assign prv_pipe_if.epc     =   cb_if.epc;
+  assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m) ? hazard_if.pc_ex : cb_if.epc;
   assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? hazard_if.badaddr_i : 
                                hazard_if.badaddr_d;  
   
@@ -122,7 +122,7 @@ module ooo_hazard_unit (
   assign hazard_if.loadstore_flush = cb_if.flush;
 
 
-  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken;
+  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken | hazard_if.breakpoint | hazard_if.env_m;
 
   // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
   // assign intr_e_flush = intr_exception;

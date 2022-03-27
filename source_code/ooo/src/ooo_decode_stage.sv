@@ -47,6 +47,9 @@ module ooo_decode_stage (
   //import rv32m_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
+  logic ebreak_ecall;
+  assign ebreak_ecall = cu_if.breakpoint | cu_if.ecall_insn;
+
   // Interface declarations
   control_unit_if   cu_if();
  
@@ -118,7 +121,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard & ~hazard_if.npc_sel & ~stall_csr; 
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard & ~hazard_if.npc_sel & ~stall_csr & ~ebreak_ecall; 
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -258,7 +261,7 @@ module ooo_decode_stage (
   *** Completion buffer signals
   *********************************************************/
   logic TODO = 0;
-  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM; // TODO: Editted by Jing to avoid allocating entry during fence (double check with Owen and Nick)
+  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
   assign cb_if.rv32v_wb_scalar_ena  = TODO;
   assign cb_if.rv32v_instr  = TODO;
   assign cb_if.opcode = cu_if.opcode;

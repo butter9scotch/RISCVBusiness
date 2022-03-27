@@ -66,6 +66,9 @@ module ooo_execute_stage(
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu_ff0, index_mu_ff1, index_mu_ff2; 
   logic branch_mispredict;
 
+  assign hazard_if.breakpoint  = decode_execute_if.exception_sigs.breakpoint;
+  assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
+  assign hazard_if.pc_ex       = decode_execute_if.pc;
   
   /*******************************************************
   *** Arithmetic Unit
