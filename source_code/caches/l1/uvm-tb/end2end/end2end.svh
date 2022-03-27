@@ -137,15 +137,29 @@ class end2end extends uvm_component;
   endfunction: handle_mem_tx
 
   function void flush_history();
+    int block_idx = 0;
+
     if (history.size() % `L1_BLOCK_SIZE != 0) begin
       errors++;
       `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", history.size(), `L1_BLOCK_SIZE));
     end
 
     //TODO: check that words match up to blocks
-
     while (history.size() > 0) begin
-      handle_mem_tx(history.pop_front());
+      cpu_transaction t = history.pop_front();
+      handle_mem_tx(t);
+      block_idx++;
+      if (block_idx % `L1_BLOCK_SIZE == 0) begin
+        // last word of block
+        if (cache.is_valid_block(t.addr)) begin
+          successes++;
+          `uvm_info(this.get_name(), $sformatf("Valid block read from memory: %h", t.addr), UVM_LOW);
+        end else begin
+          errors++;
+          `uvm_error(this.get_name(), $sformatf("Invalid word addresses when fetching block from memory: %h", t.addr));
+          `uvm_info(this.get_name(), $sformatf("%s", cache.sprint()), UVM_LOW);
+        end
+      end 
     end
   endfunction: flush_history
 

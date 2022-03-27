@@ -10,9 +10,6 @@ import rv32i_types_pkg::*;
 
 `include "dut_params.svh"
 
-`define ADDR_IDX_END (`BYTE_INDEX_BITS+`L1_WORD_INDEX_BITS)
-`define ADDR_IDX_SIZE (32 - `ADDR_IDX_END)
-
 /** Sequence to test read after writes to the same location */
 class index_sequence extends uvm_sequence #(cpu_transaction);
   `uvm_object_utils(index_sequence)
