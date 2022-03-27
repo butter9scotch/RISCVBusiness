@@ -69,6 +69,7 @@ module ooo_decode_stage (
   // subsequent ifences will have same effect as a single fence
   logic ifence_reg;
   logic ifence_pulse;
+  logic stall_csr;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
@@ -117,7 +118,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard & ~hazard_if.npc_sel; 
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard & ~hazard_if.npc_sel & ~stall_csr; 
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -147,6 +148,10 @@ module ooo_decode_stage (
 
   word_t fu_source_a;
   word_t fu_source_b;
+  //word_t rs1_data;
+  //word_t rs2_data;
+  //assign rs1_data = bypass_if.rs1_bypass_ena ? bypass_if.rs1_bypass_data : rf_if.rs1_data;
+  //assign rs2_data = bypass_if.rs2_bypass_ena ? bypass_if.rs2_bypass_data : rf_if.rs2_data;
   always_comb begin
     case (cu_if.source_a_sel)
       2'd0: fu_source_a = rf_if.rs1_data;
@@ -213,6 +218,11 @@ module ooo_decode_stage (
     endcase
   end
 
+  /*******************************************************
+  *** Bypass Unit logic 
+  *******************************************************/
+  //assign bypass_if.rs1 = cu_if.reg_rs1; 
+  //assign bypass_if.rs2 = cu_if.reg_rs2; 
 
 
   /*********************************************************
@@ -272,7 +282,6 @@ module ooo_decode_stage (
 
 
   /***** CSR INSTRUCTION LATCH *****/
-  logic stall_csr;
   assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty);
 
   always_ff @(posedge CLK, negedge nRST) begin : CSR_INSTRS

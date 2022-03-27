@@ -53,6 +53,7 @@ interface completion_buffer_if();
   word_t wdata_ls;
   word_t address_a;
   word_t address_ls;
+  word_t epc;
   logic [4:0] vd_a;
   logic [4:0] vd_mu;
   logic [4:0] vd_du;
@@ -83,7 +84,7 @@ interface completion_buffer_if();
            wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, CPU_TRACKER_decode, opcode,
     output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
-           wdata_final, halt_instr, CPU_TRACKER
+           wdata_final, halt_instr, CPU_TRACKER, epc
   );
   modport commit (
     output alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
@@ -100,11 +101,11 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr
+    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr, mal_priv
   );
 
   modport hu (
-    input full, empty, flush, exception, branch_mispredict_ena, mal_priv
+    input full, empty, flush, exception, branch_mispredict_ena, mal_priv, epc
   );
 
   modport rv32v (

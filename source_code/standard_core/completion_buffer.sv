@@ -88,7 +88,8 @@ module completion_buffer # (
   //assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
   //assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
   assign cb_if.branch_mispredict_ena = 0;
-  assign cb_if.mal_priv = 0;
+  assign cb_if.mal_priv = cb[head_sel].mal;
+  assign cb_if.epc = cb[head_sel].data;
  
   //Hazard unit logic
   assign hazard_if.rob_full = cb_if.full;

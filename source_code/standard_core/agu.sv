@@ -26,6 +26,7 @@ module agu (
   input logic [31:0] port_a,
   input logic [31:0] port_b,
   input rv32i_types_pkg::load_t load_type,
+  input logic [3:0] byte_en,
   output logic [3:0] byte_en_standard,
   output logic [31:0] address,
   output logic mal_addr  
@@ -78,12 +79,12 @@ module agu (
       default :     byte_en_standard = 4'b0000;
     endcase
   end
-    logic [3:0] byte_en;
+   // logic [3:0] byte_en;
   // misaligned address
   always_comb begin
-    if(byte_en == 4'hf) 
+    if(byte_en_standard == 4'hf) 
       mal_addr = (address[1:0] != 2'b00);
-    else if (byte_en == 4'h3 || byte_en == 4'hc) begin
+    else if (byte_en_standard == 4'h3 || byte_en_standard == 4'hc) begin
       mal_addr = (address[1:0] == 2'b01 || address[1:0] == 2'b11);
     end
     else 

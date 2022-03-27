@@ -339,6 +339,7 @@ module ooo_execute_stage(
       execute_commit_if.pc                <= '0;
       execute_commit_if.pc_a                <= '0;
       execute_commit_if.pc4               <= '0;
+      execute_commit_if.pc_ls    <= '0;
 
       //Halt
       execute_commit_if.halt_instr       <= '0;
@@ -393,6 +394,7 @@ module ooo_execute_stage(
         execute_commit_if.index_mu <= '0;
         execute_commit_if.index_ls <= '0;
         execute_commit_if.index_du <= '0;
+        execute_commit_if.pc_ls    <= '0;
 
 
         //execute_commit_if.branch_instr     <= '0;
@@ -438,6 +440,9 @@ module ooo_execute_stage(
         execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;
         execute_commit_if.dren                   <= lsif.dren_ls;
         execute_commit_if.dwen                   <= lsif.dwen_ls;
+        if (decode_execute_if.lsu_sigs.dren || decode_execute_if.lsu_sigs.dwen) begin
+                execute_commit_if.pc_ls          <= decode_execute_if.pc;
+        end
         //exception
         execute_commit_if.mal_addr               <= lsif.mal_addr;
         execute_commit_if.breakpoint             <= decode_execute_if.exception_sigs.breakpoint;
@@ -458,7 +463,9 @@ module ooo_execute_stage(
         execute_commit_if.exception_a            <= 0; // TODO
         execute_commit_if.exception_mu           <= 0; // TODO
         execute_commit_if.exception_du           <= 0; // TODO
-        execute_commit_if.exception_ls           <= 0; // TODO
+        //execute_commit_if.exception_ls           <= lsif.mal_addr; // TODO      
+        if (execute_commit_if.exception_ls) execute_commit_if.exception_ls <= 0;
+        else execute_commit_if.exception_ls      <= lsif.mal_addr;
         //execute_commit_if.branch_instr         <= branch_addr;
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
