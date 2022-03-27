@@ -51,11 +51,13 @@ module divider
 	assign usign_divisor        = is_signed & divisor_reg[NUM_BITS-1] ? (~divisor_reg)+1 : divisor_reg;
 	assign usign_dividend       = is_signed & dividend[NUM_BITS-1] ? (~dividend)+1 : dividend;
 	assign adjustment_possible  = is_signed && (divisor_reg[NUM_BITS-1] ^ dividend_reg[NUM_BITS-1]); 
-	assign adjust_quotient      = adjustment_possible && ~quotient[NUM_BITS-1];
+	assign adjust_quotient      = adjustment_possible && ~temp_quotient[NUM_BITS-1];
 	assign adjust_remainder     = is_signed && dividend_reg[NUM_BITS-1];
 	//assign div_done             = ena & (count == 0);
-	assign quotient = temp_quotient;
-	assign remainder = temp_remainder;
+	//assign quotient = temp_quotient;
+        assign quotient = adjust_quotient ? ~temp_quotient+1 : temp_quotient;
+	//assign remainder = temp_remainder;
+	assign remainder = adjust_remainder ? ~temp_remainder+1 : temp_remainder;
         assign finished = ena & (count == 0) & ~start;	
 
 	/*always_ff @(posedge CLK, negedge nRST) begin
@@ -107,36 +109,36 @@ module divider
 			if(Result1[NUM_BITS-1] | Result1[NUM_BITS]) begin 
 				next_remainder = shifted_remainder;
 				next_quotient = shifted_quotient | 0;
-					if (count == 1 && adjust_quotient )
-						next_quotient = ~next_quotient + 1;
+					//if (count == 1 && adjust_quotient )
+					//	next_quotient = ~next_quotient + 1;
 			
-					if(count == 1  && adjust_remainder  )
-						next_remainder = ~next_remainder	+ 1;
+					//if(count == 1  && adjust_remainder  )
+					//	next_remainder = ~next_remainder	+ 1;
 						
 			end else if(Result2[NUM_BITS-1] | Result2[NUM_BITS]) begin 
 				next_remainder = Result1;
 				next_quotient = shifted_quotient | 1;
-					if (count == 1 && adjust_quotient )
-						next_quotient = ~next_quotient + 1;
+					//if (count == 1 && adjust_quotient )
+					//	next_quotient = ~next_quotient + 1;
 			
-					if(count == 1  && adjust_remainder  )
-						next_remainder = ~next_remainder	+ 1;
+					//if(count == 1  && adjust_remainder  )
+					//	next_remainder = ~next_remainder	+ 1;
 			end else if(Result3[NUM_BITS-1] | Result3[NUM_BITS]) begin 
 				next_remainder = Result2;
 				next_quotient = shifted_quotient | 2;
-					if (count == 1 && adjust_quotient )
-						next_quotient = ~next_quotient + 1;
+					//if (count == 1 && adjust_quotient )
+					//	next_quotient = ~next_quotient + 1;
 			
-					if(count == 1  && adjust_remainder  )
-						next_remainder = ~next_remainder	+ 1;
+					//if(count == 1  && adjust_remainder  )
+					//	next_remainder = ~next_remainder	+ 1;
 			end else begin 
 				next_remainder = Result3;
 				next_quotient = shifted_quotient | 3;
-					if (count == 1 && adjust_quotient )
-						next_quotient = ~next_quotient + 1;
+					//if (count == 1 && adjust_quotient )
+					//	next_quotient = ~next_quotient + 1;
 			
-					if(count == 1  && adjust_remainder  )
-						next_remainder = ~next_remainder	+ 1;
+					//if(count == 1  && adjust_remainder  )
+					//	next_remainder = ~next_remainder	+ 1;
 			end
 		end
 							

@@ -83,6 +83,7 @@ interface ooo_hazard_unit_if();
   logic busy_decode;
   logic rob_empty;
   logic hazard;
+  logic mispredict_ff;
 
 
   modport decode (
@@ -94,7 +95,7 @@ interface ooo_hazard_unit_if();
 
   modport execute (
     input pc_en, execute_commit_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
-    output load, stall_ex, jump, branch, mispredict, csr, 
+    output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
            epc
@@ -109,7 +110,7 @@ interface ooo_hazard_unit_if();
 
   modport hazard_unit (
     input i_mem_busy, dren, dwen, d_mem_busy, jump, branch, 
-           mispredict, load, halt, ifence, illegal_insn, fault_s, 
+           mispredict, mispredict_ff, load, halt, ifence, illegal_insn, fault_s, 
            fault_l, mal_s, mal_l, breakpoint, env_m, token, 
            mal_insn, fault_insn, ret, intr_taken,  div_e, 
            mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 

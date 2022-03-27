@@ -114,6 +114,13 @@ module ooo_execute_stage(
                               branch_mispredict ? branch_if.branch_addr : 
                               decode_execute_if.pc4;
   assign hazard_if.mispredict = decode_execute_if.jump_sigs.jump_instr || branch_mispredict;
+  always_ff @(posedge CLK or negedge nRST) begin
+    if (~nRST) begin 
+      hazard_if.mispredict_ff <= '0; 
+    end else begin
+      hazard_if.mispredict_ff <= hazard_if.mispredict; 
+    end
+  end
 
 
   /*******************************************************
