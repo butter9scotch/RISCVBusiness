@@ -23,6 +23,7 @@
 */
 
 `include "completion_buffer_if.vh"
+`include "prv_pipeline_if.vh"
 
 module completion_buffer # (
   parameter NUM_ENTRY = 16
@@ -30,6 +31,7 @@ module completion_buffer # (
 (
   input CLK, nRST,
   completion_buffer_if.cb cb_if,
+  prv_pipeline_if.cb  prv_pipe_if, 
   rv32i_reg_file_if.writeback rf_if
 );
 
@@ -81,7 +83,7 @@ module completion_buffer # (
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
   //assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;
-
+  assign prv_pipe_if.instr = move_head;
 
   //assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
   //assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;

@@ -97,7 +97,7 @@ module ooo_hazard_unit (
                               hazard_if.env_m | hazard_if.mal_l | hazard_if.mal_s;
 
   /* Send Exception notifications to Prv Block */
-  assign prv_pipe_if.wb_enable    = hazard_if.jump |hazard_if.branch; //Because 2 stages
+  assign prv_pipe_if.wb_enable    = ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel; 
   assign prv_pipe_if.fault_insn   = hazard_if.fault_insn;
   assign prv_pipe_if.mal_insn     = hazard_if.mal_insn;//pc address [2:0] != 'b00
   assign prv_pipe_if.illegal_insn = hazard_if.illegal_insn;//opcode illegal

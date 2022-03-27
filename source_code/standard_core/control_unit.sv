@@ -39,6 +39,10 @@ module control_unit
 
   import rv32m_pkg::*;
 
+  
+  // Some vector CSR constants
+  //typedef enum logic [6:0] {7'b1000000} vsetvl_const_t;
+
   // decode funct
   stype_t         instr_s;
   itype_t         instr_i;
@@ -61,6 +65,7 @@ module control_unit
   assign instr_u = utype_t'(cu_if.instr);
   assign instr_uj = ujtype_t'(cu_if.instr);
   assign instr_m = rv32m_insn_t'(cu_if.instr);
+  assign instr_sys = systype_t'(cu_if.instr);
 
   // assign the opcode of the instruction
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
@@ -99,12 +104,19 @@ module control_unit
     endcase
   end
   // Assign register write enable
+
+    //config instructions
+//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
+//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
+//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
   always_comb begin
     case(cu_if.opcode)
       STORE, BRANCH       : cu_if.wen   = 1'b0;
       IMMED, LUI, AUIPC,
       REGREG, JAL, JALR,
       LOAD                : cu_if.wen   = 1'b1;
+      // Opcode is VECTOR, funct3 is 3'b111: vsetvli, vsetivli, vsetvl
+      VECTOR              : cu_if.wen   = instr_i.funct3 == 3'b111;
       SYSTEM              : cu_if.wen   = cu_if.csr_rw_valid;
       default:  cu_if.wen   = 1'b0;
     endcase
@@ -114,6 +126,8 @@ module control_unit
   always_comb begin
     case(cu_if.opcode)
       REGREG, IMMED, LOAD, BRANCH, JALR, SYSTEM : cu_if.source_a_sel = 2'd0;
+      //Opcode is VECTOR, funct3 is 3'b111: vsetvli, vsetivli, vsetvl
+      VECTOR              : cu_if.source_a_sel = 2'd0;
       STORE               : cu_if.source_a_sel = 2'd1;
       AUIPC               : cu_if.source_a_sel = 2'd2;
       default             : cu_if.source_a_sel = 2'd2;
@@ -123,6 +137,7 @@ module control_unit
   always_comb begin
     case(cu_if.opcode)
       STORE       : cu_if.source_b_sel = 2'd0;
+      VECTOR      : cu_if.source_b_sel = 2'd0;
       REGREG      : cu_if.source_b_sel = 2'd1;
       IMMED, LOAD : cu_if.source_b_sel = 2'd2;
       AUIPC       : cu_if.source_b_sel = 2'd3;
@@ -291,6 +306,7 @@ module control_unit
 
   /***** CSR CONTROL SIGNALS *****/
   //CSR Insns
+  
   always_comb begin
     cu_if.csr_swap  = 1'b0;
     cu_if.csr_clr   = 1'b0;
@@ -315,21 +331,62 @@ module control_unit
         cu_if.csr_clr = 1'b1;
         cu_if.csr_imm   = 1'b1;
       end
+    end else if (cu_if.opcode == VECTOR) begin
+      if (~cu_if.instr[31]) begin
+        //vsetvli
+        cu_if.csr_set   = 1'b1;
+        cu_if.csr_imm   = 1'b1;
+        //rd, new vl
+        // rs1, AVL
+        // zimm11 
+      end else if (cu_if.instr[31:30] == 2'b11) begin
+        //vsetivli
+        cu_if.csr_set   = 1'b1;
+        cu_if.csr_imm   = 1'b1;
+        //rd, new vl
+        //uimm5, AVL
+        //zimm10, new vtype
+      end else if (cu_if.instr[31:25] == 7'b1000000) begin
+        //vsetvl
+        cu_if.csr_set   = 1'b1;
+        //rd, rs1, rs2
+      end
     end
   end
   assign cu_if.csr_rw_valid = (cu_if.csr_swap | cu_if.csr_set | cu_if.csr_clr);
 
+  logic [31:0] zimm;
+
+  // Zero-extend immediate value
+  // Scalar CSR instructions have zimm5, vector have zimm10 and zimm11
+  always_comb begin
+    if (cu_if.opcode == SYSTEM) begin
+      zimm = {27'd0, cu_if.instr[19:15]};
+    end else if (cu_if.opcode == VECTOR) begin
+      if (~cu_if.instr[31]) begin
+        zimm = {21'd0, cu_if.instr[30:20]};
+      end else if (cu_if.instr[31:30] == 2'b11) begin
+        zimm = {22'd0, cu_if.instr[29:20]};
+      end
+    end
+  end
+  
+  // TODO: if vector, then vtype CSR
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
-  assign cu_if.zimm     = cu_if.instr[19:15];
+  // assign cu_if.zimm     = cu_if.instr[19:15];
+  
+  logic vector_csr_instr; 
+  assign vector_csr_instr = (cu_if.opcode == VECTOR) & (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
+  
   // new struct refactor
   // TODO: remove intermediaries from part of the interface
-  assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM);
+  assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM) || vector_csr_instr;
   assign cu_if.csr_sigs.csr_swap = cu_if.csr_swap;
   assign cu_if.csr_sigs.csr_clr = cu_if.csr_clr;
   assign cu_if.csr_sigs.csr_set = cu_if.csr_set;
   assign cu_if.csr_sigs.csr_addr = cu_if.csr_addr;
   assign cu_if.csr_sigs.csr_imm = cu_if.csr_imm;
-  assign cu_if.csr_sigs.csr_imm_value = {27'd0, cu_if.zimm};
+  assign cu_if.csr_sigs.csr_imm_value = zimm;
   assign cu_if.csr_sigs.instr_null = (cu_if.instr == '0);
 
   /***** IFENCE CONTROL SIGNALS *****/
@@ -342,7 +399,7 @@ module control_unit
       LUI, AUIPC, JAL, JALR,
       BRANCH, LOAD, STORE,
       IMMED, SYSTEM,
-      MISCMEM, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
+      MISCMEM, VECTOR, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
       default                 : cu_if.illegal_insn = 1'b1;
     endcase
   end

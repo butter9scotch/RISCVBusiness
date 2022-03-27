@@ -155,6 +155,7 @@ module RISCVBusiness (
      .CLK 
      ,.nRST 
      ,.cb_if
+     ,.prv_pipe_if
      ,.rf_if
     );
 

@@ -33,6 +33,8 @@ interface prv_pipeline_if();
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
 
+  parameter NUM_EXTENSIONS = 2;
+
   logic insert_pc;
   logic intr;
   word_t priv_pc;
@@ -49,7 +51,7 @@ interface prv_pipeline_if();
   logic env_m;
   logic wb_enable;
   logic ex_rmgmt;
-  logic [$clog2(`NUM_EXTENSIONS)-1:0] ex_rmgmt_cause;
+  logic [$clog2(NUM_EXTENSIONS)-1:0] ex_rmgmt_cause;
   word_t epc;
   word_t badaddr;
   logic invalid_csr;
@@ -78,7 +80,7 @@ interface prv_pipeline_if();
 
   modport pipe (
     input invalid_csr, rdata, 
-    output addr, swap, clr, set, valid_write, instr, 
+    output addr, swap, clr, set, valid_write,
            wdata
   );
 
@@ -93,6 +95,10 @@ interface prv_pipeline_if();
            ex_rmgmt, ex_rmgmt_cause, epc, badaddr, wdata, 
            vl, vstart, vlenb, vtype,
     output insert_pc, intr, invalid_csr, priv_pc, rdata
+  );
+
+  modport cb (
+    output instr
   );
 
 endinterface

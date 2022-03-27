@@ -227,7 +227,7 @@ module ooo_execute_stage(
   assign prv_pipe_if.wdata = csr_wdata;
   assign prv_pipe_if.addr  = decode_execute_if.csr_sigs.csr_addr;
   assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr | prv_pipe_if.set); //TODO add to latch
-  assign prv_pipe_if.instr = (decode_execute_if.csr_sigs.csr_instr != '0);
+  //assign prv_pipe_if.instr = (decode_execute_if.csr_sigs.csr_instr != '0);
   assign hazard_if.csr_pc = decode_execute_if.pc;
 
   always_ff @ (posedge CLK, negedge nRST) begin
