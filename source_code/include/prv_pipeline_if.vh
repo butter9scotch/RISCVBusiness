@@ -65,6 +65,7 @@ interface prv_pipeline_if();
   word_t wdata;
 
   // vector extension signals
+  logic vector_csr_instr;
   logic [2:0] lmul;
   logic [2:0] sew;
   logic vill;
@@ -81,7 +82,7 @@ interface prv_pipeline_if();
   modport pipe (
     input invalid_csr, rdata, 
     output addr, swap, clr, set, valid_write,
-           wdata
+           wdata, vector_csr_instr
   );
 
   modport vdecode (
@@ -93,7 +94,7 @@ interface prv_pipeline_if();
            fault_l, mal_l, fault_s, mal_s, breakpoint, env_m, 
            swap, clr, set, valid_write, wb_enable, instr, 
            ex_rmgmt, ex_rmgmt_cause, epc, badaddr, wdata, 
-           vl, vstart, vlenb, vtype,
+           vl, vstart, vlenb, vtype, vector_csr_instr,
     output insert_pc, intr, invalid_csr, priv_pc, rdata
   );
 

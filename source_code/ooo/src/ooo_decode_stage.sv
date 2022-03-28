@@ -317,6 +317,7 @@ module ooo_decode_stage (
         decode_execute_if.csr_sigs.csr_instr     <= cu_if.csr_sigs.csr_instr;
         decode_execute_if.csr_sigs.csr_wdata     <= cu_if.csr_sigs.vector_csr_instr ? {8'd0, vcsr} : 
                                                     cu_if.csr_sigs.csr_imm ? cu_if.csr_sigs.csr_imm_value : fu_source_a;
+        decode_execute_if.csr_sigs.vector_csr_instr <= cu_if.csr_sigs.vector_csr_instr;
         decode_execute_if.csr_sigs.instr         <= fetch_decode_if.instr;
       end
     end
