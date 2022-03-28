@@ -55,6 +55,7 @@ module rv32i_reg_file (
 
   assign rf_if.rs1_data = registers[rf_if.rs1];
   assign rf_if.rs2_data = registers[rf_if.rs2];
+
   assign rf_if.rs1_busy = in_use[rf_if.rs1];
   assign rf_if.rs2_busy = in_use[rf_if.rs2];
   assign rf_if.rd_busy  = in_use[rf_if.rd_decode];

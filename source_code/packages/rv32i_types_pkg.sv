@@ -308,9 +308,12 @@ package rv32i_types_pkg;
 
   typedef struct packed {
     logic csr_instr;
+    logic vector_csr_instr;
     logic csr_swap;
     logic csr_clr;
     logic csr_set;
+    logic vtype_imm;
+    logic vl_imm;
     machine_mode_types_1_11_pkg::csr_addr_t csr_addr;
     logic csr_imm;
     logic [31:0] csr_imm_value;

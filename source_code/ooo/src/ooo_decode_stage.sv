@@ -282,7 +282,19 @@ module ooo_decode_stage (
 
 
   /***** CSR INSTRUCTION LATCH *****/
+  typedef struct packed {
+    logic [7:0] vtype;
+    logic [7:0] vl;
+  } vector_csr_t;
+
+  vector_csr_t vcsr;
+
+  assign vcsr.vtype = cu_if.csr_sigs.vtype_imm ? cu_if.csr_sigs.csr_imm_value[7:0] : rf_if.rs2_data;
+  assign vcsr.vl    = cu_if.csr_sigs.vl_imm ? {3'd0, cu_if.reg_rs1} : rf_if.rs1_data[7:0];
+  
   assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty);
+//  assign decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
+//  assign decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
 
   always_ff @(posedge CLK, negedge nRST) begin : CSR_INSTRS
     if (~nRST) begin
@@ -291,14 +303,16 @@ module ooo_decode_stage (
       if (hazard_if.decode_execute_flush | stall_csr) begin 
         decode_execute_if.csr_sigs <= '0;
       end else if (hazard_if.rob_empty & ~hazard_if.stall_au) begin
+        // Control signals 
         decode_execute_if.csr_sigs.csr_swap      <= cu_if.csr_sigs.csr_swap;
         decode_execute_if.csr_sigs.csr_clr       <= cu_if.csr_sigs.csr_clr;
         decode_execute_if.csr_sigs.csr_set       <= cu_if.csr_sigs.csr_set;
         decode_execute_if.csr_sigs.csr_addr      <= cu_if.csr_sigs.csr_addr;
         decode_execute_if.csr_sigs.csr_imm       <= cu_if.csr_sigs.csr_imm;
+        // Data 
         decode_execute_if.csr_sigs.csr_imm_value <= cu_if.csr_sigs.csr_imm_value;
         decode_execute_if.csr_sigs.csr_instr     <= cu_if.csr_sigs.csr_instr;
-        decode_execute_if.csr_sigs.csr_wdata     <= fu_source_a;
+        decode_execute_if.csr_sigs.csr_wdata     <= cu_if.csr_sigs.vector_csr_instr ? {8'd0, vcsr} : fu_source_a;
         decode_execute_if.csr_sigs.instr         <= fetch_decode_if.instr;
       end
     end

@@ -312,6 +312,8 @@ module control_unit
     cu_if.csr_clr   = 1'b0;
     cu_if.csr_set   = 1'b0;
     cu_if.csr_imm   = 1'b0;
+    cu_if.csr_sigs.vtype_imm = 1'b1;
+    cu_if.csr_sigs.vl_imm    = 1'b0;
 
     if (cu_if.opcode == SYSTEM) begin
       if (rv32i_system_t'(instr_r.funct3) == CSRRW) begin
@@ -334,21 +336,30 @@ module control_unit
     end else if (cu_if.opcode == VECTOR) begin
       if (~cu_if.instr[31]) begin
         //vsetvli
-        cu_if.csr_set   = 1'b1;
-        cu_if.csr_imm   = 1'b1;
+        cu_if.csr_set            = 1'b1;
+        cu_if.csr_imm            = 1'b1;
+        cu_if.csr_sigs.vtype_imm = 1'b1;
+        cu_if.csr_sigs.vl_imm    = 1'b0;
+        cu_if.csr_swap  = 1'b1;
         //rd, new vl
         // rs1, AVL
         // zimm11 
       end else if (cu_if.instr[31:30] == 2'b11) begin
         //vsetivli
-        cu_if.csr_set   = 1'b1;
-        cu_if.csr_imm   = 1'b1;
+        cu_if.csr_set            = 1'b1;
+        cu_if.csr_imm            = 1'b1;
+        cu_if.csr_sigs.vtype_imm = 1'b1;
+        cu_if.csr_sigs.vl_imm    = 1'b1;
+        cu_if.csr_swap  = 1'b1;
         //rd, new vl
         //uimm5, AVL
         //zimm10, new vtype
       end else if (cu_if.instr[31:25] == 7'b1000000) begin
         //vsetvl
-        cu_if.csr_set   = 1'b1;
+        cu_if.csr_set            = 1'b1;
+        cu_if.csr_sigs.vtype_imm = 1'b0;
+        cu_if.csr_sigs.vl_imm    = 1'b0;
+        cu_if.csr_swap  = 1'b1;
         //rd, rs1, rs2
       end
     end
@@ -360,6 +371,7 @@ module control_unit
   // Zero-extend immediate value
   // Scalar CSR instructions have zimm5, vector have zimm10 and zimm11
   always_comb begin
+    zimm = '0;
     if (cu_if.opcode == SYSTEM) begin
       zimm = {27'd0, cu_if.instr[19:15]};
     end else if (cu_if.opcode == VECTOR) begin
@@ -384,8 +396,11 @@ module control_unit
   assign cu_if.csr_sigs.csr_swap = cu_if.csr_swap;
   assign cu_if.csr_sigs.csr_clr = cu_if.csr_clr;
   assign cu_if.csr_sigs.csr_set = cu_if.csr_set;
-  assign cu_if.csr_sigs.csr_addr = cu_if.csr_addr;
   assign cu_if.csr_sigs.csr_imm = cu_if.csr_imm;
+
+  assign cu_if.csr_sigs.csr_addr = vector_csr_instr ? VTYPE_ADDR : 
+                                                      cu_if.csr_addr;
+  // TODO: Edit immediate value
   assign cu_if.csr_sigs.csr_imm_value = zimm;
   assign cu_if.csr_sigs.instr_null = (cu_if.instr == '0);
 
