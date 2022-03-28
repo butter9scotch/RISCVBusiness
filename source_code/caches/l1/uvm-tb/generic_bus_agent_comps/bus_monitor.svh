@@ -22,7 +22,7 @@
 *   Description:  UVM Monitor class for monitoring a generic_bus_if
 */
 
-ifndef BUS_MONITOR_SVH
+`ifndef BUS_MONITOR_SVH
 `define BUS_MONITOR_SVH
 
 import uvm_pkg::*;

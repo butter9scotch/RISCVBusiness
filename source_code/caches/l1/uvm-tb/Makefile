@@ -2,6 +2,7 @@
 ROOT = ../../../..
 TOP = caches_top
 WAVES = scripts
+COVERAGE = coverage
 CPU_AGENT = cpu_agent
 MEM_AGENT = mem_agent
 END2END = end2end
@@ -34,7 +35,8 @@ RUN_COMMON = \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
 	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
 	+uvm_set_config_int=*,mem_latency,$(MEM_LATENCY) \
-	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY)
+	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY) \
+	-do "coverage save -onexit -p $(COVERAGE)/$(TESTCASE).ucdb"
 
 all: build run
 
@@ -59,7 +61,8 @@ build:
 run_gui:
 	vsim -i \
 	$(RUN_COMMON) \
-	-do "do $(WAVES)/wave.do" -do "run -all"
+	-do "do $(WAVES)/wave.do" \
+	-do "run -all"
 
 run:
 	vsim -c \
