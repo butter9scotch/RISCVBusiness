@@ -62,8 +62,8 @@ module ooo_commit_stage(
   assign hazard_if.mal_l        = mal_type & cb_if.mal_priv;
   assign hazard_if.fault_s      = 1'b0;
   assign hazard_if.mal_s        = ~mal_type & cb_if.mal_priv;
-  assign hazard_if.breakpoint   = execute_commit_if.breakpoint;
-  assign hazard_if.env_m        = execute_commit_if.ecall_insn;
+  //assign hazard_if.breakpoint   = execute_commit_if.breakpoint;
+  //assign hazard_if.env_m        = execute_commit_if.ecall_insn;
   assign hazard_if.ret          = execute_commit_if.ret_insn;
   assign hazard_if.illegal_insn = execute_commit_if.illegal_insn &  execute_commit_if.invalid_csr; //Illegal Opcode
   assign hazard_if.mal_insn     = execute_commit_if.mal_insn | illegal_jaddr | illegal_braddr; //Instruction not loaded from PC+4
