@@ -200,7 +200,7 @@ module ooo_execute_stage(
 
   /***** CSR STUFF? *****/
   //NEED CSR ENA SIGNAL
-  assign csr_wdata = (decode_execute_if.csr_sigs.csr_imm) ? decode_execute_if.csr_sigs.csr_imm_value : decode_execute_if.csr_sigs.csr_wdata;
+  assign csr_wdata = decode_execute_if.csr_sigs.csr_wdata;
 
   //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
   always_ff @(posedge CLK, negedge nRST) begin :INTERRUPT

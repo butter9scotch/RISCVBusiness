@@ -167,7 +167,6 @@ module control_unit
   /***** LOADSTORE CONTROL SIGNALS *****/
   // Assign memory read/write enables
   assign cu_if.lsu_sigs.load_type = load_t'(instr_i.funct3);
-  //assign cu_if.lsu_sigs.byte_en = TODO
   assign cu_if.lsu_sigs.dren = (cu_if.opcode == LOAD);
   assign cu_if.lsu_sigs.dwen = (cu_if.opcode == STORE);
   assign cu_if.lsu_sigs.opcode = cu_if.opcode;
@@ -387,18 +386,17 @@ module control_unit
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   // assign cu_if.zimm     = cu_if.instr[19:15];
   
-  logic vector_csr_instr; 
-  assign vector_csr_instr = (cu_if.opcode == VECTOR) & (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
+  assign cu_if.csr_sigs.vector_csr_instr = (cu_if.opcode == VECTOR) & (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
   
   // new struct refactor
   // TODO: remove intermediaries from part of the interface
-  assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM) || vector_csr_instr;
+  assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM) || cu_if.csr_sigs.vector_csr_instr;
   assign cu_if.csr_sigs.csr_swap = cu_if.csr_swap;
   assign cu_if.csr_sigs.csr_clr = cu_if.csr_clr;
   assign cu_if.csr_sigs.csr_set = cu_if.csr_set;
   assign cu_if.csr_sigs.csr_imm = cu_if.csr_imm;
 
-  assign cu_if.csr_sigs.csr_addr = vector_csr_instr ? VTYPE_ADDR : 
+  assign cu_if.csr_sigs.csr_addr = cu_if.csr_sigs.vector_csr_instr ? VTYPE_ADDR : 
                                                       cu_if.csr_addr;
   // TODO: Edit immediate value
   assign cu_if.csr_sigs.csr_imm_value = zimm;
