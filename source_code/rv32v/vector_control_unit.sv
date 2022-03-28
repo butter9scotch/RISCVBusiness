@@ -104,14 +104,15 @@ module vector_control_unit
   assign is_vopm   = (vcu_if.opcode == VECTOR)  && ( (vfunct3 == OPMVV) || (vfunct3 == OPMVX));
 
   //config instructions
-  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
-                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
-                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
+//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
+//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
+//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
 
   
   // Assign memory read/write enables
   //enable counter
-  assign vcu_if.de_en = (((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vcu_if.cfgsel == NOT_CFG)) | vcu_if.is_load | vcu_if.is_store;
+  // TODO: update logic
+  assign vcu_if.de_en = (((vcu_if.opcode == VECTOR) &&  ~vcu_if.illegal_insn) && (vfunct3 != OPCFG)) | vcu_if.is_load | vcu_if.is_store;
 
   always_comb begin
     vcu_if.eew = vcu_if.sew;
@@ -320,18 +321,16 @@ module vector_control_unit
   // assign vcu_if.vs1_src = vcu_if.is_store; //stores use vs3 == vd for reading the data that will be stored
 
   logic imm_op;
-  assign imm_op = ((vfunct3 == OPCFG) || (vfunct3 == OPIVI)) && (vcu_if.opcode == VECTOR); 
+  assign imm_op = (vfunct3 == OPIVI) && (vcu_if.opcode == VECTOR); 
   
   //use rs1, rs1, rd. when VMV_X_S, VMV_X_S, VFIRST write to rd
 
   //choose between using vdat1 and xs1_dat
-  assign vcu_if.xs1_scalar_src = vcu_if.is_store || vcu_if.is_load || (vcu_if.cfgsel == VSETVLI) || 
-                                (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVL) || 
-                                (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
+  assign vcu_if.xs1_scalar_src = vcu_if.is_store || vcu_if.is_load || (vcu_if.opcode == OPIVX) || (vcu_if.opcode == OPFVF) || (vcu_if.opcode == OPMVX);
                                 
   //choose between using vdat2 and xs2_dat
   assign vcu_if.xs2_scalar_src = (vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED);
-  assign vcu_if.rd_scalar_src = (vfunct3 == OPCFG) || (op_decoded == OP_VMV_X_S) || (op_decoded == OP_VPOPC) || (op_decoded == OP_VFIRST);
+  assign vcu_if.rd_scalar_src = (op_decoded == OP_VMV_X_S) || (op_decoded == OP_VPOPC) || (op_decoded == OP_VFIRST);
                                   // ((funct6_opi == VWXUNARY0) && 
                                   // ((vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VMV_X_S) || (vcu_if.vs1  == VFIRST)))) && 
                                   // (vcu_if.opcode == VECTOR); 
@@ -383,8 +382,7 @@ module vector_control_unit
 
   // assign vcu_if.loadstore_ena = vcu_if.is_load | vcu_if.is_store; 
 
-  assign vcu_if.rs1_type = vcu_if.is_load || vcu_if.is_store || (vcu_if.opcode == VECTOR) &&  ((vfunct3 == OPIVX) || (vfunct3 == OPMVX)) ||
-                            (vcu_if.opcode == VECTOR) && ((vcu_if.cfgsel == VSETVLI) || (vcu_if.cfgsel == VSETVL)) ? X : 
+  assign vcu_if.rs1_type = vcu_if.is_load || vcu_if.is_store || (vcu_if.opcode == VECTOR) &&  ((vfunct3 == OPIVX) || (vfunct3 == OPMVX)) ? X : 
                             imm_op ? I : V;
 
   
@@ -481,7 +479,7 @@ module vector_control_unit
   //sign_extend uimm           
   assign vcu_if.sign_extend  = ~((funct6_opi == VSLL) || (funct6_opi == VSRL)|| (funct6_opi == VSRA)|| (funct6_opi == VNSRL)|| (funct6_opi == VNSRA)|| 
                               (funct6_opi == VSSRL)|| (funct6_opi == VSSRA)|| (funct6_opi == VNCLIPU)|| (funct6_opi == VNCLIP)|| (funct6_opi == VSLIDEUP)||
-                                 (funct6_opi == VSLIDEDOWN)|| (funct6_opi == VRGATHER) || (vcu_if.cfgsel == VSETIVLI)); //vmv1r includes vmv2, vmv4, vmv8
+                                 (funct6_opi == VSLIDEDOWN)|| (funct6_opi == VRGATHER) ); //vmv1r includes vmv2, vmv4, vmv8
 
   //op in the execution stage is signed
   always_comb begin
