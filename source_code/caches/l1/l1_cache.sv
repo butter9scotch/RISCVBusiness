@@ -56,9 +56,9 @@ module l1_cache #(
     //      check that you start incrementing your next_read_addr + 4 from the proper base offset
     // 3. pass through doesn't pass through the ren/wen, addr, or data signals to bus
     // 4. pass through doesn't relay back the busy signal from the bus after mmio completion
-    
-    import rv32i_types_pkg::*;
 
+    import rv32i_types_pkg::*;
+    
     // local parameters
     localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
     localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;

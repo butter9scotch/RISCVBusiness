@@ -58,9 +58,10 @@ class cpu_transaction extends uvm_sequence_item;
   `uvm_object_utils_end
 
   // constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[1:0] == '0; }
-  constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[3:0] == '0; }
+  constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[3:0] == '0; } //FIXME: CHANGE THIS ONCE INDEX BUG IS FIXED
 
-  // constraint usable_byte_en { byte_sel == 4'b1111; } //TODO: We want to actually randomize this, waiting on design team to implement
+  // constraint usable_byte_en { byte_sel inside {4'b0001, 4'b0010, 4'b0100, 4'b1000, 4'b0011, 4'b1100, 4'b1111}; }
+  constraint usable_byte_en { byte_sel inside {4'b1111}; } //FIXME: CHANGE THIS ONCE BYTE EN BUG IS FIXED
 
   function new(string name = "cpu_transaction");
     super.new(name);
