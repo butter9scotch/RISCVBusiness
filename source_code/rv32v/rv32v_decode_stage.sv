@@ -61,7 +61,6 @@ module rv32v_decode_stage (
   width_t eew_loadstore;
   vlmul_t lmul, emul;
   logic [31:0] vstart, ls_vl, num_ele_each_reg, num_ele_each_reg1, num_ele_each_reg2, num_ele_each_reg3, num_ele_each_reg4, num_ele_each_reg5, num_ele_each_reg6, num_ele_each_reg7, total_vl_for_lsreg, nf_count_reg, next_nf_count_reg, buffered_instr, next_buffered_instr;
-  vop_cfg vop_c;
   logic wen0, wen1, nf_count_ena, nf_count_ena_ff1, nf_count_ena_ff2, segment_type;
   offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
   logic [4:0] new_vd;
@@ -69,8 +68,6 @@ module rv32v_decode_stage (
   logic mask0, mask1;
 
   sew_t next_decode_execute_if_eew;
-
-  assign vop_c = vop_cfg'(fetch_decode_if.instr);
 
   assign sew = vcu_if.sew; 
   // assign eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 

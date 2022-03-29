@@ -232,11 +232,12 @@ package rv32i_types_pkg;
     word_t        prediction;
   } fetch_ex_pipeline_reg_t;
 
-  typedef enum logic[1:0] {
+  typedef enum logic[2:0] {
     ARITH_S,
     MUL_S,
     DIV_S,
-    LOADSTORE_S
+    LOADSTORE_S,
+    VECTOR_S
   } scalar_fu_t;
 
   typedef enum logic [1:0] {
@@ -467,11 +468,11 @@ package rv32i_types_pkg;
 
 
 
-  parameter VLEN_WIDTH = 7; // 128 bit registers
-  parameter VL_WIDTH = VLEN_WIDTH; //width of largest vector = VLENB * 8 
-  parameter VLEN = 1 << 7; 
-  parameter VLENB = VLEN / 8; //VLEN in bytes- TODO change to use csr val
-  parameter NUM_LANES = 2;
+//  parameter VLEN_WIDTH = 7; // 128 bit registers
+//  parameter VL_WIDTH = VLEN_WIDTH; //width of largest vector = VLENB * 8 
+//  parameter VLEN = 1 << 7; 
+//  parameter VLENB = VLEN / 8; //VLEN in bytes- TODO change to use csr val
+//  parameter NUM_LANES = 2;
   // import rv32i_types_pkg::opcode_t;
 
 
@@ -906,19 +907,6 @@ package rv32i_types_pkg;
     VD_SRC_COMPRESS
   } vd_offset_src_t;
 
-  typedef struct packed {
-    logic [3:0] reserved;
-    logic vma;
-    logic vta;
-    sew_t sew;
-    vlmul_t lmul;
-    logic [4:0] rs1;
-    vfunct3_t funct3;
-    logic [4:0] rd;
-    rv32i_types_pkg::opcode_t op;
-    
-  } vop_cfg;
-
   typedef enum logic [2:0] {
     ONE = 0,
     TWO = 1,
@@ -928,13 +916,6 @@ package rv32i_types_pkg;
     S_X,
     NOT_VMV = 7
   } vmv_type_t;
-
-  typedef enum logic [1:0] {
-    SIGNED = 2'b11,
-    SIGNED_UNSIGNED = 2'b01,
-    UNSIGNED_SIGNED = 2'b10,
-    UNSIGNED = 0
-  } sign_type_t;
 
   typedef enum logic [2:0] { 
     NOT_FUSED_MUL,

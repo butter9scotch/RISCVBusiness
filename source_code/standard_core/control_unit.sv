@@ -83,7 +83,6 @@ module control_unit
                             (instr_i.funct3 == SLLI || instr_i.funct3 == SRI));
 
 
-
   /***** REGISTER FILE CONTROL SIGNALS/COMMON SIGNALS ALL FU's NEED *****/
   assign cu_if.reg_rs1  = cu_if.instr[19:15];
   assign cu_if.reg_rs2  = cu_if.instr[24:20];
@@ -106,9 +105,6 @@ module control_unit
   // Assign register write enable
 
     //config instructions
-//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
-//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
-//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
   always_comb begin
     case(cu_if.opcode)
       STORE, BRANCH       : cu_if.wen   = 1'b0;
@@ -147,7 +143,20 @@ module control_unit
 
 
   /***** TOP LEVEL FUNCTIONAL UNIT DECODING *****/
-  // decoding which functional unit the instruction belongs to
+
+  // Intermediate signals to determine if an instruction is a valid vector instruction 
+  width_t eew_loadstore;
+  logic vector_load_ena;
+  logic vector_store_ena;
+  logic vector_regreg_ena;
+
+  assign eew_loadstore = width_t'(instr_i.funct3); 
+
+  assign vector_load_ena = (cu_if.opcode == LOAD_FP) && ((eew_loadstore == WIDTH8) || (eew_loadstore == WIDTH16) || (eew_loadstore == WIDTH32));
+  assign vector_store_ena = (cu_if.opcode == STORE_FP)  && ((eew_loadstore == WIDTH8) || (eew_loadstore == WIDTH16) || (eew_loadstore == WIDTH32));
+  assign vector_regreg_ena = (cu_if.opcode == VECTOR) && (vfunct3_t'(instr_i.funct3) != OPCFG);
+
+  // assign functional unit type based on decoded instruction
   always_comb begin
     if (cu_if.opcode == REGREG && (instr_r.funct7 == 7'b000_0001)) begin
       if (instr_r.funct3[2] == 1) begin
@@ -155,6 +164,8 @@ module control_unit
       end else begin
         cu_if.sfu_type = MUL_S;
       end
+    end else if (vector_regreg_ena || vector_load_ena || vector_store_ena) begin
+      cu_if.sfu_type = VECTOR_S;
     end else begin
       if ((cu_if.opcode == LOAD) || (cu_if.opcode == STORE)) begin
         cu_if.sfu_type = LOADSTORE_S;
@@ -409,10 +420,13 @@ module control_unit
   always_comb begin
     case(cu_if.opcode)
       REGREG: cu_if.illegal_insn = instr_r.funct7[0] && (instr_r.funct7 != 7'b000_0001);
+      VECTOR: cu_if.illegal_insn = vector_regreg_ena | cu_if.csr_sigs.vector_csr_instr;
+      LOAD_FP: cu_if.illegal_insn = vector_load_ena;
+      STORE_FP: cu_if.illegal_insn = vector_store_ena;
       LUI, AUIPC, JAL, JALR,
       BRANCH, LOAD, STORE,
       IMMED, SYSTEM,
-      MISCMEM, VECTOR, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
+      MISCMEM, opcode_t'('0)           : cu_if.illegal_insn = 1'b0;
       default                 : cu_if.illegal_insn = 1'b1;
     endcase
   end

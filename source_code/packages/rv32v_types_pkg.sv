@@ -363,7 +363,7 @@ package rv32v_types_pkg;
     LOAD_UNIT,
     STORE_UNIT,
     MOVE,
-    MADD, //WRONG
+    MADD //WRONG
   } fu_t;
 
   typedef enum logic [3:0] {
@@ -379,7 +379,7 @@ package rv32v_types_pkg;
     VALU_MERGE = 4'b1001,
     // VALU_MOVE  = 4'b1010,
     VALU_MM    = 4'b1011,
-    VALU_EXT   = 4'b1100,
+    VALU_EXT   = 4'b1100
   } valuop_t;
 
   typedef enum logic [2:0] {
@@ -466,18 +466,6 @@ package rv32v_types_pkg;
     VD_SRC_IDX_PLUS_1,
     VD_SRC_COMPRESS
   } vd_offset_src_t;
-
-  typedef struct packed {
-    logic [3:0] reserved;
-    logic vma;
-    logic vta;
-    sew_t sew;
-    vlmul_t lmul;
-    logic [4:0] rs1;
-    vfunct3_t funct3;
-    logic [4:0] rd;
-    // rv32i_types_pkg::opcode_t op;
-  } vop_cfg;
 
   typedef enum logic [2:0] {
     ONE = 0,

@@ -73,13 +73,6 @@ interface prv_pipeline_if();
   logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
   logic [7:0] vtype;
 
-  // vector extension signals
-  vlmul_t lmul;
-  sew_t   sew;
-  logic   vill;
-  logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
-  logic [7:0] vtype;
-
   modport hazard (
     input insert_pc, intr, priv_pc, 
     output pipe_clear, ret, fault_insn, mal_insn, illegal_insn, fault_l, 

@@ -140,8 +140,6 @@ module rv32v_memory_stage (
 
       //TESTBENCH ONLY
       memory_writeback_if.tb_line_num <= execute_memory_if.tb_line_num;
-
-      
     end
   end
 
@@ -165,6 +163,71 @@ module rv32v_memory_stage (
   assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
   assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
 
-  assign hu_if.csr_update =   ~(execute_memory_if.config_type == NOT_CFG);
+  // TODO: Change this to pull the signal from the scalar hazard unit
+  assign hu_if.csr_update =   0;
   
+
+  end
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
 endmodule
