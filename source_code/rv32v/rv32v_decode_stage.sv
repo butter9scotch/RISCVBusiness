@@ -462,8 +462,6 @@ module rv32v_decode_stage (
       decode_execute_if.single_bit_write  <= '0;
 
       decode_execute_if.vstart            <= '0;
-      decode_execute_if.next_vtype_csr    <= '0;
-      decode_execute_if.next_avl_csr      <= '0;
       decode_execute_if.vd_widen          <= '0;
 
       decode_execute_if.vs2_offset0       <= '0;
@@ -554,8 +552,6 @@ module rv32v_decode_stage (
       decode_execute_if.vd                <= '0;
       decode_execute_if.single_bit_write  <= '0;
       decode_execute_if.vstart            <= '0;
-      decode_execute_if.next_vtype_csr    <= '0;
-      decode_execute_if.next_avl_csr      <= '0;
       decode_execute_if.rd_data           <= '0;
       decode_execute_if.vd_widen          <= '0;
 
@@ -684,11 +680,6 @@ module rv32v_decode_stage (
       decode_execute_if.woutu             <= vcu_if.woutu;
       decode_execute_if.win               <= vcu_if.win;
       decode_execute_if.zext_w            <= vcu_if.zext_w;
-
-
-
-      decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
-      decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
 
       decode_execute_if.vs2_offset0       <= vs2_offset0;
       decode_execute_if.vs2_offset1       <= vs2_offset1;

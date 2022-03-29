@@ -455,8 +455,6 @@ module rv32v_execute_stage (
       execute_memory_if.vd          <= '0;
       execute_memory_if.eew         <= '0;
       execute_memory_if.single_bit_write  <= '0;
-      execute_memory_if.next_vtype_csr  <= '0;
-      execute_memory_if.next_avl_csr  <= '0;
       execute_memory_if.eew_loadstore     <= '0;
       execute_memory_if.ls_idx     <= '0;
       execute_memory_if.segment_type      <= '0;
@@ -485,8 +483,6 @@ module rv32v_execute_stage (
       execute_memory_if.vd          <= '0;
       execute_memory_if.eew         <= '0;
       execute_memory_if.single_bit_write  <= '0;
-      execute_memory_if.next_vtype_csr    <= '0;
-      execute_memory_if.next_avl_csr      <= '0;
       execute_memory_if.eew_loadstore     <= '0;
       execute_memory_if.ls_idx     <= '0;
       execute_memory_if.segment_type      <= '0;
@@ -528,8 +524,6 @@ module rv32v_execute_stage (
       // execute_memory_if.eew         <= decode_execute_if.eew;
       execute_memory_if.eew               <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
-      execute_memory_if.next_vtype_csr    <= decode_execute_if.next_vtype_csr;
-      execute_memory_if.next_avl_csr      <= decode_execute_if.next_avl_csr;
 
       execute_memory_if.eew_loadstore     <= decode_execute_if.eew_loadstore;
       execute_memory_if.ls_idx            <= decode_execute_if.ls_idx ;
