@@ -274,7 +274,7 @@ program test(
 	@(posedge CLK);
 	proc_gen_bus_if.ren = 1'b0;
 	
-	// Test case 8,	#CLK_PERIOD;
+	// Test case 8,	#CLK_PERIOD; // Byte Enable
 	@(negedge CLK);
 	test_num++;
 	test_case 	      = "Byte Enable";
@@ -306,7 +306,7 @@ program test(
        for(integer i = 0; i < 4; i = i + 1) begin
 	    proc_gen_bus_if.addr = i*16; #1;
 	    wait(~proc_gen_bus_if.busy);
-	    assert(proc_gen_bus_if.rdata == ({24'd0,test_value[7:0]})) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
+	    assert((proc_gen_bus_if.rdata >> (i * 8)) == ({24'd0,test_value[7:0]})) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
 	    test_value = test_value >> 8;
 	    @(posedge CLK);
 	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
@@ -314,7 +314,7 @@ program test(
 	// Test case: 9, Pass Through Functionality
 	#CLK_PERIOD;
 	test_num++;
-	test_case  = "Continous write/read to non-cache addresses";
+	test_case  = "Pass through read and write";
 	@(posedge CLK);
 	nRST 		     = 1'b0;
 	proc_gen_bus_if.wen  = 1'b0;
@@ -347,7 +347,46 @@ program test(
 	    @(posedge CLK);
 	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
 
-/*	// Test case 10, flush after random write
+	// Test case: 10, Pass Through Byte Enable Functionality
+	#CLK_PERIOD;
+	test_num++;
+	test_case  = "Pass through read and write w/ byte enable";
+	@(posedge CLK);
+	nRST 		     = 1'b0;
+	proc_gen_bus_if.wen  = 1'b0;
+	proc_gen_bus_if.ren  = 1'b0;
+	@(posedge CLK);
+	@(posedge CLK);
+	nRST  = 1'b1;
+	@(posedge CLK);
+	proc_gen_bus_if.wen    = 1'b1;
+	proc_gen_bus_if.wdata  = 32'hDDCCBBAA;
+	mem_gen_bus_if.busy    = 1'b0;
+	mem_gen_bus_if.rdata   = '0;
+	proc_gen_bus_if.byte_en = 4'b1111;
+	// Write twice to each word
+	
+	for(integer i = 32'h8000_0000; i < 32'h8000_0010; i = i + 4) begin
+		for(integer j = 0; j < 4; j =j+1)begin
+			proc_gen_bus_if.addr  = i; #1;
+			proc_gen_bus_if.byte_en = 1'b1 << (j); // small edit
+			@(posedge CLK);
+		end
+	end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
+	proc_gen_bus_if.wen 	  = 1'b0;
+	proc_gen_bus_if.ren 	  = 1'b0;
+	#CLK_PERIOD;
+        @(posedge CLK);
+	test_value 	     = 32'h0000_0080;
+	proc_gen_bus_if.ren  = 1'b1;
+	// Read back lastest values
+	for(integer i = 32'h8000_0000; i < 32'h8000_0010; i = i + 4) begin
+	    proc_gen_bus_if.addr = i; #1;
+	    assert(proc_gen_bus_if.rdata == '0) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
+	    test_value++;
+	    @(posedge CLK);
+	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
+/*	// Test case 11, flush after random write
 	@(negedge CLK);
 	nRST  = 1'b0;
 	#CLK_PERIOD;
