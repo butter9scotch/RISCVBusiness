@@ -165,35 +165,6 @@ module rv32v_memory_stage (
   assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
   assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
 
-
-  // VSTART_ADDR --> exception
-  // VXSAT_ADDR --> who knows
-  // VXRM_ADDR  --> who knows
-  // VCSR_ADDR  --> who knows
-  // VL_ADDR    --> will be set by config instrs
-  // VTYPE_ADDR --> will be set by config instrs
-  // VLENB_ADDR --> probably not use this
-  logic [7:0] next_vl_csr;
-  assign next_vl_csr = execute_memory_if.next_avl_csr[7:0]; //CHANGE FOR ACTUAL DECISION LOGIC
-  assign prv_if.swap =  ~(execute_memory_if.config_type == NOT_CFG);
-  assign prv_if.clr = 0;
-  assign prv_if.set = 0;
-  assign prv_if.wdata = {8'd0, next_vl_csr, execute_memory_if.next_vtype_csr};
-  assign prv_if.addr = VTYPE_ADDR;
-  assign prv_if.valid_write = prv_if.swap; 
-  assign prv_if.instr = 0; 
-
   assign hu_if.csr_update =   ~(execute_memory_if.config_type == NOT_CFG);
-
-  logic use_mem_pc;
-
-
-  // Next vstart logic
-/*
-  always_comb begin
-    if (asif.exception) next_vstart = asif.index;
-    else if (success) next_vstart = 0;
-    else next_vstart = vstart;
-  end */
-
+  
 endmodule

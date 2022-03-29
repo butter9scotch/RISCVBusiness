@@ -664,6 +664,7 @@ package rv32i_types_pkg;
     vfunct3_t funct3;
     logic [4:0] rd;
     rv32i_types_pkg::opcode_t op;
+    
   } vop_cfg;
 
   typedef enum logic [2:0] {
