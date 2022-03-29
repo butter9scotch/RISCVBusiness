@@ -32,6 +32,7 @@ interface prv_pipeline_if();
 
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
+  // import rv32i_types_pkg::*;
 
   parameter NUM_EXTENSIONS = 2;
 
@@ -69,6 +70,13 @@ interface prv_pipeline_if();
   logic [2:0] lmul;
   logic [2:0] sew;
   logic vill;
+  logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
+  logic [7:0] vtype;
+
+  // vector extension signals
+  vlmul_t lmul;
+  sew_t   sew;
+  logic   vill;
   logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
   logic [7:0] vtype;
 
