@@ -124,7 +124,7 @@ class end2end extends uvm_component;
         end
       end else begin
         errors++;
-        `uvm_error(this.get_name(), "Error: Mem Mapped I/O Pass Through Transaction Size Mismatch");
+        `uvm_error(this.get_name(), $sformatf("Error: Mem Mapped I/O Pass Through Transaction Size Mismatch: expected 1, actual %0d", history.size()));
       end
     end
 

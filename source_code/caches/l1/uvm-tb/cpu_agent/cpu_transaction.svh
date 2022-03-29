@@ -57,9 +57,10 @@ class cpu_transaction extends uvm_sequence_item;
       `uvm_field_int(cycle, UVM_NOCOMPARE)
   `uvm_object_utils_end
 
-  constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[1:0] == '0; }
+  // constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[1:0] == '0; }
+  constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[3:0] == '0; }
 
-  constraint usable_byte_en { byte_sel == 4'b1111; } //TODO: We want to actually randomize this, waiting on design team to implement
+  // constraint usable_byte_en { byte_sel == 4'b1111; } //TODO: We want to actually randomize this, waiting on design team to implement
 
   function new(string name = "cpu_transaction");
     super.new(name);
