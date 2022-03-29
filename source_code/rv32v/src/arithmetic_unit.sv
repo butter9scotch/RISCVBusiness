@@ -24,9 +24,9 @@
 
 `include "vector_lane_if.vh"
 
-module arithmetic_unit (
+module varithmetic_unit (
   input logic CLK, nRST,
-  vector_lane_if.arithmetic_unit aif
+  vector_lane_if.varithmetic_unit aif
 );
 
   import rv32i_types_pkg::*;

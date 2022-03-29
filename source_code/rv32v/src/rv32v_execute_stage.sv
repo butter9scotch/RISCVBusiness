@@ -464,7 +464,7 @@ module rv32v_execute_stage (
       execute_memory_if.rd_data <= 0;
 
       //TESTBENCH ONLY
-      execute_memory_if.tb_line_num        <= 0;
+      // execute_memory_if.tb_line_num        <= 0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -492,7 +492,7 @@ module rv32v_execute_stage (
       execute_memory_if.rd_data <= 0;
 
       //TESTBENCH ONLY
-      execute_memory_if.tb_line_num        <= 0;
+      // execute_memory_if.tb_line_num        <= 0;
 
 
 
@@ -538,7 +538,7 @@ module rv32v_execute_stage (
                                              32'hDEAD;
 
             //TESTBENCH ONLY
-      execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
+      // execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
 
 
     end

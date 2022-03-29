@@ -165,6 +165,5 @@ module rv32v_memory_stage (
 
   // TODO: Change this to pull the signal from the scalar hazard unit
   assign hu_if.csr_update =   0;
-  
 
 endmodule

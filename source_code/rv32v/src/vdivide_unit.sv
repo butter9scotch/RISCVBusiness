@@ -24,9 +24,9 @@
 
 `include "vector_lane_if.vh"
 
-module divide_unit (
+module vdivide_unit (
   input logic CLK, nRST,
-  vector_lane_if.divide_unit dif
+  vector_lane_if.vdivide_unit dif
 );
 
   import rv32i_types_pkg::*;

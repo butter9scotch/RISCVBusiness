@@ -22,13 +22,14 @@
 *   Description:  testbench for vector control unit
 */
 // `include "rvv_decoder.sv"
+/*
 `include "rv32v_fetch2_decode_if.vh"
 `include "rv32v_decode_execute_if.vh"
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
 `include "prv_pipeline_if.vh"
 `include "rv32v_top_level_if.vh"
-`include "instruction.svh"
+//`include "instruction.svh"
 // `include "rvv_decoder.svh"
 // `include "config_test.svh"
 
@@ -412,4 +413,4 @@ module tb_rv32v_top_level ();
     $finish;
   end : MAIN
 endmodule
-
+*/

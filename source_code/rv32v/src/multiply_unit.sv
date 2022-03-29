@@ -24,9 +24,9 @@
 
 `include "vector_lane_if.vh"
 
-module multiply_unit (
+module vmultiply_unit (
   input logic CLK, nRST,
-  vector_lane_if.multiply_unit mif
+  vector_lane_if.vmultiply_unit mif
 );
 
   import rv32i_types_pkg::*;

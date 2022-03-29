@@ -39,17 +39,17 @@ interface vector_lane_if;
     output  lane_result, busy, next_busy, exception, done_mu, mul_on
   );
 
-  modport arithmetic_unit (
+  modport varithmetic_unit (
     input   vs1_data, vs2_data, vs3_data, result_type, offset, aluop, start, reduction_ena, rev, mask, adc_sbc, carry_borrow_ena, sew,  comp_type, minmax_type, ext_type, carryin_ena, win, zext_w, woutu, index, vd_widen, is_signed, is_masked, vd_narrow,
     output  wdata_a, busy_a, exception_a
   );
 
-  modport multiply_unit (
+  modport vmultiply_unit (
     input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, decode_done, is_signed,
     output  wdata_mu, busy_mu, exception_mu, next_busy_mu, done_mu
   );
 
-  modport divide_unit (
+  modport vdivide_unit (
     input   vs1_data, vs2_data, start_div, div_type, is_signed_div, is_signed,
     output  wdata_du, busy_du, exception_du, done_du
   );
@@ -64,7 +64,7 @@ interface vector_lane_if;
     output  wdata_p, busy_p, exception_p
   );
 
-  modport loadstore_unit (
+  modport vloadstore_unit (
     input   porta0, porta1, portb0, portb1, porta_sel, portb_sel,
     output  in_addr, out_addr, wdata_ls
   );

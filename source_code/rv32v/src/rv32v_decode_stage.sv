@@ -482,7 +482,7 @@ module rv32v_decode_stage (
 
 
       //TESTBENCH ONLY
-      decode_execute_if.tb_line_num        <= 0;
+      // decode_execute_if.tb_line_num        <= 0;
 
 
     end else if(hu_if.flush_dec) begin
@@ -573,7 +573,7 @@ module rv32v_decode_stage (
 
 
       //TESTBENCH ONLY
-      decode_execute_if.tb_line_num        <= 0;
+      // decode_execute_if.tb_line_num        <= 0;
 
 
 
@@ -698,7 +698,7 @@ module rv32v_decode_stage (
       decode_execute_if.segment_type      <= segment_type;
 
       //TESTBENCH ONLY
-      decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;
+      // decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;
 
     end
   end

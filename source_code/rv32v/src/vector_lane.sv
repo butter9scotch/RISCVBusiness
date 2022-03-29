@@ -33,19 +33,19 @@ module vector_lane (
 
   // Instantiate fall functional unit
 
-  arithmetic_unit AU (
+  varithmetic_unit AU (
     .CLK(CLK),
     .nRST(nRST),
     .aif(vif)
   );
 
-  multiply_unit MULU (
+  vmultiply_unit MULU (
     .CLK(CLK),
     .nRST(nRST),
     .mif(vif)
   );
 
-  divide_unit DIVU (
+  vdivide_unit DIVU (
     .CLK(CLK),
     .nRST(nRST),
     .dif(vif)
@@ -61,7 +61,7 @@ module vector_lane (
     .mu_if(vif)
   ); 
 
-  loadstore_unit LSU (
+  vloadstore_unit LSU (
     .lsif(vif)
   ); 
 

@@ -35,6 +35,10 @@
 `include "multiply_unit_if.vh"
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
+`include "rv32v_fetch2_decode_if.vh"  
+`include "cache_model_if.vh" 
+`include "rv32v_hazard_unit_if.vh"
+`include "rv32v_top_level_if.vh"
 
 module ooo_execute_stage(
   input logic CLK, nRST,halt,
@@ -183,6 +187,24 @@ module ooo_execute_stage(
   );
 
   /*******************************************************
+  *** Vector Unit
+  *******************************************************/ 
+  rv32v_fetch2_decode_if  rv32v_decode_if();
+  cache_model_if cif();
+  rv32v_hazard_unit_if rv32v_hazard_unit();
+  rv32v_top_level_if rv32v_if();
+
+
+  rv32v_top_level RVV (
+    .CLK,
+    .nRST,
+    .cif(cif),
+    .hu_if(rv32v_hazard_unit),
+    .prv_if(prv_pipe_if),
+    .top_if(rv32v_if)
+  );
+
+  /*******************************************************
   *** Hazard Unit Signal Connections
   *******************************************************/
   //assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
@@ -254,6 +276,9 @@ module ooo_execute_stage(
   //Forwading logic
   assign hazard_if.load   = decode_execute_if.lsu_sigs.dren;
 
+  /*******************************************************
+  *** Execute-commit latch for functional unit signals
+  *******************************************************/
   always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
     if (~nRST) begin
       execute_commit_if.mult_sigs <= '0;
@@ -323,27 +348,27 @@ module ooo_execute_stage(
       execute_commit_if.intr_seen        <= '0;
       execute_commit_if.jump_instr       <= '0;
       execute_commit_if.jump_addr        <= '0;
-      execute_commit_if.exception_a      <= 0; // TODO
-      execute_commit_if.exception_mu     <= 0; // TODO
-      execute_commit_if.exception_du     <= 0; // TODO
-      execute_commit_if.exception_ls     <= 0; // TODO
+      execute_commit_if.exception_a      <= '0; 
+      execute_commit_if.exception_mu     <= '0; 
+      execute_commit_if.exception_du     <= '0; 
+      execute_commit_if.exception_ls     <= '0; 
 
-      execute_commit_if.index_a  <= '0;
-      execute_commit_if.index_mu <= '0;
-      execute_commit_if.index_ls <= '0;
-      execute_commit_if.index_du <= '0;
+      execute_commit_if.index_a          <= '0;
+      execute_commit_if.index_mu         <= '0;
+      execute_commit_if.index_ls         <= '0;
+      execute_commit_if.index_du         <= '0;
 
-      //execute_commit_if.branch_instr     <= '0;
-      execute_commit_if.br_resolved_addr <= '0;
+      //execute_commit_if.branch_instr    <= '0;
+      execute_commit_if.br_resolved_addr  <= '0;
       //BRANCH PREDICTOR UPDATE
       execute_commit_if.branch_instr      <= '0;
       execute_commit_if.branch_taken      <= '0;
       execute_commit_if.prediction        <= '0;
       execute_commit_if.br_resolved_addr  <= '0;
       execute_commit_if.pc                <= '0;
-      execute_commit_if.pc_a                <= '0;
+      execute_commit_if.pc_a              <= '0;
       execute_commit_if.pc4               <= '0;
-      execute_commit_if.pc_ls    <= '0;
+      execute_commit_if.pc_ls             <= '0;
 
       //Halt
       execute_commit_if.halt_instr       <= '0;
@@ -383,16 +408,16 @@ module ooo_execute_stage(
         execute_commit_if.fault_insn       <= '0;
         execute_commit_if.memory_addr      <= '0;
         execute_commit_if.pc               <= '0;
-        execute_commit_if.pc_a               <= '0;
-        execute_commit_if.pc4               <= '0;
+        execute_commit_if.pc_a             <= '0;
+        execute_commit_if.pc4              <= '0;
         execute_commit_if.token            <= '0;
         execute_commit_if.intr_seen        <= '0;
         execute_commit_if.jump_instr       <= '0;
         execute_commit_if.jump_addr        <= '0;
-        execute_commit_if.exception_a            <= 0; // TODO
-        execute_commit_if.exception_mu            <= 0; // TODO
-        execute_commit_if.exception_du            <= 0; // TODO
-        execute_commit_if.exception_ls            <= 0; // TODO
+        execute_commit_if.exception_a      <= '0;  
+        execute_commit_if.exception_mu     <= '0; 
+        execute_commit_if.exception_du     <= '0; 
+        execute_commit_if.exception_ls     <= '0; 
 
         execute_commit_if.index_a  <= '0;
         execute_commit_if.index_mu <= '0;

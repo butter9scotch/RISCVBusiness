@@ -14,7 +14,7 @@
 *   limitations under the License.
 *
 *
-*   Filename:     loadstore_unit.sv
+*   Filename:     vloadstore_unit.sv
 *
 *   Created by:   Owen Prince
 *   Email:        oprince@purdue.edu

@@ -28,25 +28,19 @@
 interface rv32v_fetch2_decode_if();
 
   import rv32i_types_pkg::*;
-  // import rv32i_types_pkg::*;
 
   word_t        instr;
   logic         mal_insn;
   logic         fault_insn;
-  sew_t sew, eew;
-  vlmul_t lmul;  
 
   int tb_line_num;
 
   modport fetch(
-    output  instr, mal_insn, fault_insn,
-    tb_line_num //TESTBENCH ONLY
+    output  instr, mal_insn, fault_insn
   );
 
   modport decode(
-    input   instr, mal_insn, fault_insn, 
-    tb_line_num //TESTBENCH ONLY
-    // sew, eew, lmul
+    input   instr, mal_insn, fault_insn 
   );
 
 endinterface

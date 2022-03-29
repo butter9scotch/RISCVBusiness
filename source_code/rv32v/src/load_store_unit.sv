@@ -1,7 +1,7 @@
 `include "vector_lane_if.vh"
 
-module loadstore_unit (
-  vector_lane_if.loadstore_unit lsif
+module vloadstore_unit (
+  vector_lane_if.vloadstore_unit lsif
 );
 
   logic [31:0] portb;

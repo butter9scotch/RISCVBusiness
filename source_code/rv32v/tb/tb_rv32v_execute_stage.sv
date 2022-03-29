@@ -21,7 +21,7 @@
 *   Date Created: 10/13/2021
 *   Description:  testbench for vector control unit
 */
-
+/*
 // `include "vector_control_unit_if.vh"
 `include "instruction.svh"
 
@@ -100,4 +100,4 @@ module tb_vector_control_unit ();
     $finish;
   end : MAIN
 endmodule
-
+*/

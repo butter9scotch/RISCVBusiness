@@ -18,7 +18,7 @@ interface rv32v_arithmetic_unit_if();
   ext_t ext_type; 
   sign_type_t is_signed;
 
-  modport arithmetic_unit (
+  modport varithmetic_unit (
     input   vs1_data, vs2_data, vs3_data, result_type, offset, aluop, start, reduction_ena, 
     rev, mask, adc_sbc, carry_borrow_ena, sew,  comp_type, minmax_type, ext_type, carryin_ena, 
     win, zext_w, woutu, index, vd_widen, is_signed, is_masked, vd_narrow,
