@@ -1,5 +1,5 @@
 irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
-TOOL:	irun(64)	15.20-s030: Started on Mar 22, 2022 at 17:21:07 EDT
+TOOL:	irun(64)	15.20-s030: Started on Mar 28, 2022 at 20:46:03 EDT
 irun
 	-gui
 	-access +rwc
@@ -11,11 +11,11 @@ irun
 	l1_cache.sv
 	../memory_arbiter.sv
 	tb/tb_l1_cache.sv
-Recompiling... reason: file './tb/tb_l1_cache.sv' is newer than expected.
-	expected: Tue Mar 22 16:53:51 2022
-	actual:   Tue Mar 22 17:21:02 2022
-file: tb/tb_l1_cache.sv
-	program worklib.test:sv
+Recompiling... reason: file './l1_cache.sv' is newer than expected.
+	expected: Mon Mar 28 19:41:55 2022
+	actual:   Mon Mar 28 20:45:52 2022
+file: l1_cache.sv
+	module worklib.l1_cache:sv
 		errors: 0, warnings: 0
 		Caching library 'worklib' ....... Done
 	Elaborating the design hierarchy:
@@ -41,8 +41,8 @@ ncelab: *W,COVFHT: FSM hold transitions (transitions to the current state) are n
 	Enabling instrumentation for coverage types: block expression FSM toggle functional
 ncelab: *W,COVDCL: By default expression coverage is scored only for Verilog logical operators (|| and &&) and VHDL logical operators (OR, AND, NOR, and NAND), and is scored only in condition expressions. To score coverage for other operators and for expressions in other statements, use the "set_expr_coverable_operators" and "set_expr_coverable_statements" coverage configuration file commands with suitable options at elaboration.
 	Generating native compiled code:
-		worklib.test:sv <0x61b7b84b>
-			streams:   1, words: 126501
+		worklib.l1_cache:sv <0x37ecf6b0>
+			streams:  20, words: 78473
 ncelab: *W,COVNOEN: By default, toggle coverage is not supported for systemverilog enumerated nets and variables. To enable toggle coverage of these objects, specify the 'set_toggle_scoring -sv_enum' command in the coverage configuration file.
     integer 	 test_num, test_value, test_value2;
             	        |
@@ -58,14 +58,14 @@ ncelab: *W,COVMDD (./l1_cache.sv,108|19): Toggle coverage for bit, logic, reg, w
 		Interfaces:              3       1
 		Programs:                1       1
 		Verilog packages:        1       1
-		Registers:              96      82
+		Registers:             100      86
 		Scalar wires:           22       -
 		Vectored wires:          1       -
 		Always blocks:          13      13
 		Initial blocks:          2       2
 		Cont. assignments:       4       4
 		Pseudo assignments:     11      11
-		Assertions:             13      13
+		Assertions:             14      14
 		Compilation units:       1       1
 		Simulation timescale:  1ns
 	Writing initial simulation snapshot: worklib.memory_arbiter:sv
@@ -77,29 +77,13 @@ ncsim>
 ncsim> source /package/eda/cadence/INCISIVE152/tools/inca/files/ncsimrc
 ncsim> database -open waves -into waves.shm -default
 Created default SHM database waves
-ncsim> probe -create -shm tb_l1_cache.CLK tb_l1_cache.clear tb_l1_cache.clear_done tb_l1_cache.flush tb_l1_cache.flush_done tb_l1_cache.nRST tb_l1_cache.DUT.CLK tb_l1_cache.DUT.cache tb_l1_cache.DUT.clear tb_l1_cache.DUT.clear_done tb_l1_cache.DUT.clr_frame_ctr tb_l1_cache.DUT.clr_set_ctr tb_l1_cache.DUT.clr_word_ctr tb_l1_cache.DUT.decoded_addr tb_l1_cache.DUT.en_frame_ctr tb_l1_cache.DUT.en_set_ctr tb_l1_cache.DUT.en_word_ctr tb_l1_cache.DUT.finish_frame tb_l1_cache.DUT.finish_set tb_l1_cache.DUT.finish_word tb_l1_cache.DUT.flush tb_l1_cache.DUT.flush_done tb_l1_cache.DUT.frame_num tb_l1_cache.DUT.hit tb_l1_cache.DUT.hit_data tb_l1_cache.DUT.hit_idx tb_l1_cache.DUT.last_used tb_l1_cache.DUT.nRST tb_l1_cache.DUT.next_cache tb_l1_cache.DUT.next_frame_num tb_l1_cache.DUT.next_last_used tb_l1_cache.DUT.next_read_addr tb_l1_cache.DUT.next_set_num tb_l1_cache.DUT.next_state tb_l1_cache.DUT.next_word_num tb_l1_cache.DUT.pass_through tb_l1_cache.DUT.read_addr tb_l1_cache.DUT.ridx tb_l1_cache.DUT.set_num tb_l1_cache.DUT.state tb_l1_cache.DUT.word_num tb_l1_cache.mem_gen_bus_if.cpu.addr tb_l1_cache.mem_gen_bus_if.cpu.busy tb_l1_cache.mem_gen_bus_if.cpu.byte_en tb_l1_cache.mem_gen_bus_if.cpu.rdata tb_l1_cache.mem_gen_bus_if.cpu.ren tb_l1_cache.mem_gen_bus_if.cpu.wdata tb_l1_cache.mem_gen_bus_if.cpu.wen tb_l1_cache.proc_gen_bus_if.generic_bus.addr tb_l1_cache.proc_gen_bus_if.generic_bus.busy tb_l1_cache.proc_gen_bus_if.generic_bus.byte_en tb_l1_cache.proc_gen_bus_if.generic_bus.rdata tb_l1_cache.proc_gen_bus_if.generic_bus.ren tb_l1_cache.proc_gen_bus_if.generic_bus.wdata tb_l1_cache.proc_gen_bus_if.generic_bus.wen
+ncsim> probe -create -shm tb_l1_cache.TB_DUT.test_case tb_l1_cache.TB_DUT.test_num tb_l1_cache.TB_DUT.test_value tb_l1_cache.TB_DUT.test_value2 tb_l1_cache.mem_gen_bus_if.generic_bus.wen tb_l1_cache.mem_gen_bus_if.generic_bus.wdata tb_l1_cache.mem_gen_bus_if.generic_bus.ren tb_l1_cache.mem_gen_bus_if.generic_bus.rdata tb_l1_cache.mem_gen_bus_if.generic_bus.byte_en tb_l1_cache.mem_gen_bus_if.generic_bus.busy tb_l1_cache.mem_gen_bus_if.generic_bus.addr tb_l1_cache.proc_gen_bus_if.cpu.wen tb_l1_cache.proc_gen_bus_if.cpu.wdata tb_l1_cache.proc_gen_bus_if.cpu.ren tb_l1_cache.proc_gen_bus_if.cpu.rdata tb_l1_cache.proc_gen_bus_if.cpu.byte_en tb_l1_cache.proc_gen_bus_if.cpu.busy tb_l1_cache.proc_gen_bus_if.cpu.addr tb_l1_cache.DUT.pass_through
 Created probe 1
 ncsim> run
-177766 NS + 1 (Assertion output stop: tb_l1_cache.TB_DUT.unmblk7.__assert_13 = failed)
-ncsim: *E,ASRTST (./tb/tb_l1_cache.sv,345): (time 177766 NS) Assertion tb_l1_cache.TB_DUT.unmblk7.__assert_13 has failed
-Test case: Continous write/read, test num: 9, read: 0x000000dd, expected: 0x00000080 for address: 0x80000000
-
-ncsim> retstart
-ncsim: *E,TCLERR: invalid command name "retstart".
-ncsim> restart
-ncsim: *E,SVNONM: Missing snapshot name.
-ncsim> reset
-ncsim: *W,C58RST: Reset command executed. Coverage is enabled for the subsequent simulation run.  The coverage test name needs to be changed to prevent data overwrite, and any coverage control commands previously used must be reissued.
-ncsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
-Loaded snapshot worklib.memory_arbiter:sv
-ncsim> probe -create -shm tb_l1_cache.TB_DUT.test_value2 tb_l1_cache.TB_DUT.test_value tb_l1_cache.TB_DUT.test_num tb_l1_cache.TB_DUT.test_case
-Created probe 2
-ncsim> run
-177766 NS + 1 (Assertion output stop: tb_l1_cache.TB_DUT.unmblk7.__assert_13 = failed)
-ncsim: *E,ASRTST (./tb/tb_l1_cache.sv,345): (time 177766 NS) Assertion tb_l1_cache.TB_DUT.unmblk7.__assert_13 has failed
-Test case: Continous write/read, test num: 9, read: 0x000000dd, expected: 0x00000080 for address: 0x80000000
-
-ncsim> quit
+Simulation complete via $finish(1) at time 331635 NS + 3
+./tb/tb_l1_cache.sv:424 */	$finish;	
+ncsim> ^C
+ncsim> exit
 
 coverage setup:
   workdir  :  ./cov_work
@@ -109,6 +93,6 @@ coverage setup:
   testname :  test
 
 coverage files:
-  model(design data) :  ./cov_work/scope/icc_23d072ff_248b447d.ucm
-  data               :  ./cov_work/scope/test/icc_23d072ff_248b447d.ucd
-TOOL:	irun(64)	15.20-s030: Exiting on Mar 22, 2022 at 17:31:04 EDT  (total: 00:09:57)
+  model(design data) :  ./cov_work/scope/icc_4d5651f8_16770702.ucm (reused)
+  data               :  ./cov_work/scope/test/icc_4d5651f8_16770702.ucd
+TOOL:	irun(64)	15.20-s030: Exiting on Mar 28, 2022 at 20:47:35 EDT  (total: 00:01:32)
