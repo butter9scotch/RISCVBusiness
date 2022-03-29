@@ -262,7 +262,7 @@ module priv_1_11_csr_rfile (
 
   // Calculate AVL from VL
   always_comb begin
-    if ((prv_intern_if.addr == VTYPE_ADDR) && swap) begin
+    if ((prv_intern_if.vector_csr_instr) && swap) begin
       vl_next = vl_t'({24'd0, rup_data[15:8]});
     end else if ((prv_intern_if.addr == VL_ADDR) && swap) begin
       vl_next = vl_t'(rup_data);
@@ -273,44 +273,48 @@ module priv_1_11_csr_rfile (
 
   always_comb begin // register to send to pipeline based on the address
     valid_csr_addr = 1'b1;
-    casez (prv_intern_if.addr)
-      MVENDORID_ADDR  : prv_intern_if.rdata = mvendorid;
-      MARCHID_ADDR    : prv_intern_if.rdata = marchid;
-      MIMPID_ADDR     : prv_intern_if.rdata = mimpid;
-      MHARTID_ADDR    : prv_intern_if.rdata = mhartid;
-      MISA_ADDR       : prv_intern_if.rdata = misaid; 
+    if (prv_intern_if.vector_csr_instr) begin
+      prv_intern_if.rdata = vl_next;
+    end else begin
+      casez (prv_intern_if.addr)
+        MVENDORID_ADDR  : prv_intern_if.rdata = mvendorid;
+        MARCHID_ADDR    : prv_intern_if.rdata = marchid;
+        MIMPID_ADDR     : prv_intern_if.rdata = mimpid;
+        MHARTID_ADDR    : prv_intern_if.rdata = mhartid;
+        MISA_ADDR       : prv_intern_if.rdata = misaid; 
 
-      MSTATUS_ADDR    : prv_intern_if.rdata = mstatus;
-      MTVEC_ADDR      : prv_intern_if.rdata = mtvec;
-      MEDELEG_ADDR    : prv_intern_if.rdata = medeleg; 
-      MIDELEG_ADDR    : prv_intern_if.rdata = mideleg; 
-      MIE_ADDR        : prv_intern_if.rdata = mie;
+        MSTATUS_ADDR    : prv_intern_if.rdata = mstatus;
+        MTVEC_ADDR      : prv_intern_if.rdata = mtvec;
+        MEDELEG_ADDR    : prv_intern_if.rdata = medeleg; 
+        MIDELEG_ADDR    : prv_intern_if.rdata = mideleg; 
+        MIE_ADDR        : prv_intern_if.rdata = mie;
 
-      MSCRATCH_ADDR   : prv_intern_if.rdata = mscratch;
-      MEPC_ADDR       : prv_intern_if.rdata = mepc;
-      MCAUSE_ADDR     : prv_intern_if.rdata = mcause;
-      MTVAL_ADDR      : prv_intern_if.rdata = mtval;
-      MIP_ADDR        : prv_intern_if.rdata = mip; 
+        MSCRATCH_ADDR   : prv_intern_if.rdata = mscratch;
+        MEPC_ADDR       : prv_intern_if.rdata = mepc;
+        MCAUSE_ADDR     : prv_intern_if.rdata = mcause;
+        MTVAL_ADDR      : prv_intern_if.rdata = mtval;
+        MIP_ADDR        : prv_intern_if.rdata = mip; 
 
-      // Performance counters
-      MCYCLE_ADDR      : prv_intern_if.rdata = cycle;
-      MINSTRET_ADDR    : prv_intern_if.rdata = instret;
-      MCYCLEH_ADDR     : prv_intern_if.rdata = cycleh;
-      MINSTRETH_ADDR   : prv_intern_if.rdata = instreth;
+        // Performance counters
+        MCYCLE_ADDR      : prv_intern_if.rdata = cycle;
+        MINSTRET_ADDR    : prv_intern_if.rdata = instret;
+        MCYCLEH_ADDR     : prv_intern_if.rdata = cycleh;
+        MINSTRETH_ADDR   : prv_intern_if.rdata = instreth;
 
-      // Vector Extension CSRs 
-      VSTART_ADDR      : prv_intern_if.rdata = vstart;     
-//      VXSAT_ADDR       : prv_intern_if.rdata = vxsat;     
-//      VXRM_ADDR        : prv_intern_if.rdata = vxrm;   
-//      VCSR_ADDR        : prv_intern_if.rdata = vcsr;   
-      VL_ADDR          : prv_intern_if.rdata = vl; 
-      VTYPE_ADDR       : prv_intern_if.rdata = vtype;     
-      VLENB_ADDR       : prv_intern_if.rdata = vlenb; 
-      default : begin
-        valid_csr_addr = 1'b0;
-        prv_intern_if.rdata = '0;
-      end
-    endcase
+        // Vector Extension CSRs 
+        VSTART_ADDR      : prv_intern_if.rdata = vstart;     
+//        VXSAT_ADDR       : prv_intern_if.rdata = vxsat;     
+//        VXRM_ADDR        : prv_intern_if.rdata = vxrm;   
+//        VCSR_ADDR        : prv_intern_if.rdata = vcsr;   
+        VL_ADDR          : prv_intern_if.rdata = vl; 
+        VTYPE_ADDR       : prv_intern_if.rdata = vtype;     
+        VLENB_ADDR       : prv_intern_if.rdata = vlenb; 
+        default : begin
+          valid_csr_addr = 1'b0;
+          prv_intern_if.rdata = '0;
+        end
+      endcase
+    end
   end
 
   assign prv_intern_if.mtvec     = mtvec;

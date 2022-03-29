@@ -100,7 +100,9 @@ module priv_1_11_block (
 
   assign prv_intern_if.ex_rmgmt = prv_pipe_if.ex_rmgmt;
   assign prv_intern_if.ex_rmgmt_cause = prv_pipe_if.ex_rmgmt_cause;
-
+  
+  //RVV control signal
+  assign prv_intern_if.vector_csr_instr = prv_pipe_if.vector_csr_instr;
   // from priv unit to pipeline
   assign prv_pipe_if.priv_pc     = prv_intern_if.priv_pc;
   assign prv_pipe_if.insert_pc   = prv_intern_if.insert_pc;

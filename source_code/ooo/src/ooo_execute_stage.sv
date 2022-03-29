@@ -230,6 +230,7 @@ module ooo_execute_stage(
   assign prv_pipe_if.wdata = csr_wdata;
   assign prv_pipe_if.addr  = decode_execute_if.csr_sigs.csr_addr;
   assign prv_pipe_if.valid_write = (prv_pipe_if.swap | prv_pipe_if.clr | prv_pipe_if.set); //TODO add to latch
+  assign prv_pipe_if.vector_csr_instr = decode_execute_if.csr_sigs.vector_csr_instr;
   //assign prv_pipe_if.instr = (decode_execute_if.csr_sigs.csr_instr != '0);
   assign hazard_if.csr_pc = decode_execute_if.pc;
 
@@ -421,8 +422,9 @@ module ooo_execute_stage(
         execute_commit_if.done_a  <= decode_execute_if.arith_sigs.ena; //auif.done_a;
         //WRITEBACK Signals:
         //ARITHMETIC
+
         execute_commit_if.wen_au                 <= auif.wen_au; 
-        execute_commit_if.wdata_au               <= auif.wdata_au;
+        execute_commit_if.wdata_au               <= decode_execute_if.csr_sigs.csr_swap ? csr_rdata : auif.wdata_au;
         execute_commit_if.reg_rd_au              <= auif.reg_rd_au;
         //MULTIPLY
         //execute_commit_if.wen_mu                 <= mif.done_mu; //done
