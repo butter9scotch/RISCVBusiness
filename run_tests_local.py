@@ -44,7 +44,7 @@ TEST_TYPE = ""
 # Change this variable to the filename (minus extension)
 # of the top level file for your project. This should
 # match the file name given in the top level wscript
-TOP_LEVEL = "RISCVBusiness" # NOTE: Adjust this module name to adjust what top level is needed for the Cadence simulation 
+TOP_LEVEL = "RISCVBusiness" # NOTE: Adjust this module name to adjust what top level is needed for the Cadence simulation
 
 def parse_arguments():
     global ARCH, FILE_NAME, SUPPORTED_ARCHS, TEST_TYPE
@@ -106,7 +106,7 @@ def compile_asm(file_name):
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))
 
-    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi, '-static',
+    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi, '-static',
                 '-mcmodel=medany', '-fvisibility=hidden', '-nostdlib',
                 '-nostartfiles', '-T./verification/asm-env/link.ld',
                 '-I./verification/asm-env/asm', file_name, '-o', output_name]
@@ -139,9 +139,9 @@ def compile_asm_for_self(file_name):
     abi = 'lp64' if '64' in ARCH else 'ilp32'
 
 
-    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
+    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
                 '-static', '-mcmodel=medany', '-fvisibility=hidden',
-                '-nostdlib', '-nostartfiles', 
+                '-nostdlib', '-nostartfiles',
                 '-T./verification/asm-env/link.ld',
                 '-I./verification/asm-env/selfasm', file_name, '-o',
                 output_name]
@@ -174,7 +174,7 @@ def compile_c(file_name):
 
     cmd_arr = ['riscv64-unknown-elf-gcc', '-O0', '-march='+xlen, '-mabi='+abi]
     cmd_arr += ['-ffunction-sections', '-Wno-comments']
-    cmd_arr += ['-ffreestanding', '-nostdlib', '-o', output_name, 
+    cmd_arr += ['-ffreestanding', '-nostdlib', '-o', output_name,
               '-Wl,-Bstatic,-T,verification/c-firmware/link.ld,--strip-debug']
     cmd_arr += ['-lgcc', 'verification/c-firmware/trap.S']
     cmd_arr += ['-Iverification/c-firmware/']
@@ -223,7 +223,7 @@ def calculate_checksum_str(data, addr):
     checksum_lower_byte = hex(checksum)[2:]
     if len(checksum_lower_byte) > 2:
         checksum_lower_byte = checksum_lower_byte[-2:]
-    return checksum_lower_byte 
+    return checksum_lower_byte
 
 # Create a temp file that consists of the Intel HEX format
 # version of the meminit.hex file, delete the original log file
@@ -343,9 +343,9 @@ def clean_spike_output(file_name):
     subprocess.call(['rm', spike_output])
     subprocess.call(['mv', cleaned_location, spike_output])
 
-    # clean the trace 
+    # clean the trace
     trace_output = output_dir + short_name + '_spike.trace'
-    cleaned_output = '' 
+    cleaned_output = ''
     with open(trace_output, 'r') as trace_file:
         for line in trace_file:
             line = line.strip()
@@ -365,7 +365,7 @@ def clean_spike_output(file_name):
             new_line = ' '.join(broken_line_arr) + '\n'
             cleaned_output += new_line
     with open(trace_output, 'w') as trace_file:
-        trace_file.write(cleaned_output) 
+        trace_file.write(cleaned_output)
 
     return
 
@@ -384,7 +384,7 @@ def clean_sim_trace(file_name):
             new_line = ' '.join(broken_line_arr) + '\n'
             cleaned_output += new_line
     with open(trace_output, 'w') as trace_file:
-        trace_file.write(cleaned_output) 
+        trace_file.write(cleaned_output)
     return
 
 def run_sim(file_name):
@@ -557,7 +557,7 @@ def run_sparce():
    failures = 0
    print "starting sparce module tests..."
    for module in SPARCE_MODULES:
-      
+
       pass_msg = '{0:<40}{1:>20}'.format(module,START_GREEN + '[PASSED]' + END_COLOR)
       fail_msg = '{0:<40}{1:>20}'.format(module,START_RED + '[FAILED]' + END_COLOR)
 
