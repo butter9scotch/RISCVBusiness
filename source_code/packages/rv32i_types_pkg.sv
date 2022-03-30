@@ -308,6 +308,11 @@ package rv32i_types_pkg;
   } lsu_control_signals_t;
 
   typedef struct packed {
+    logic ena;
+    logic [$clog2(NUM_CB_ENTRY)-1:0] index_v; 
+  } v_control_signals_t;
+
+  typedef struct packed {
     logic csr_instr;
     logic vector_csr_instr;
     logic csr_swap;

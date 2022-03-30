@@ -159,7 +159,7 @@ module RISCVBusiness (
      ,.rf_if
     );
 
-    assign cb_if.rv32v_commit_done  = 0;
+    //assign cb_if.rv32v_commit_done  = 0;
     assign cb_if.rv32v_exception  = 0;
     assign cb_if.rv32v_wb_scalar_ready  = 0;
     assign cb_if.rv32v_wb_exception = 0;

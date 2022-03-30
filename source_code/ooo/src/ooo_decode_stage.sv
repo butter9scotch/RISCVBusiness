@@ -272,12 +272,18 @@ module ooo_decode_stage (
   *********************************************************/
   always_ff @(posedge CLK, negedge nRST) begin : VECTOR_CONTROL_SIGNALS 
     if (~nRST) begin
-      decode_execute_if.instr   <= '0;
+      decode_execute_if.instr                <= '0;
+      decode_execute_if.v_sigs.ena           <= scalar_fu_t'('0);
+      decode_execute_if.v_sigs.index_v       <= 0;
     end else begin 
         if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
-          decode_execute_if.instr   <= '0;
+          decode_execute_if.instr            <= '0;
+          decode_execute_if.v_sigs.ena       <= scalar_fu_t'('0);
+          decode_execute_if.v_sigs.index_v   <= 0;
         end else if(~hazard_if.stall_ex & ~hazard_if.stall_v) begin
-          decode_execute_if.instr   <= fetch_decode_if.instr;
+          decode_execute_if.instr            <= fetch_decode_if.instr;
+          decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
+          decode_execute_if.v_sigs.index_v   <= cb_if.cur_tail;
         end
     end
   end

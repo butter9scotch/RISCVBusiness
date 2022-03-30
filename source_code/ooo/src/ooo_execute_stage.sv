@@ -196,6 +196,12 @@ module ooo_execute_stage(
   assign hazard_if.busy_v = rv32v_hazard_unit.busy_dec | rv32v_hazard_unit.busy_ex | rv32v_hazard_unit.busy_mem;
   assign rv32v_if.instr = decode_execute_if.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
 
+  assign execute_commit_if.index_v    = decode_execute_if.v_sigs.index_v;
+  assign execute_commit_if.reg_rd_v   = rv32v_if.rd_sel;
+  assign execute_commit_if.done_v     = ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
+  assign execute_commit_if.exception_v= rv32v_if.exception_v;
+  assign execute_commit_if.wdata_v   = rv32v_if.rd_data;     
+  
   rv32v_top_level RVV (
     .CLK,
     .nRST,

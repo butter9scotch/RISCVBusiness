@@ -61,6 +61,7 @@ interface ooo_decode_execute_if();
   mult_control_signals_t mult_sigs; //
   div_control_signals_t div_sigs; //
   lsu_control_signals_t lsu_sigs; //
+  v_control_signals_t v_sigs; //
   
   cpu_tracker_signals_t tracker_sigs; //
 
@@ -71,6 +72,7 @@ interface ooo_decode_execute_if();
     mult_sigs,
     div_sigs,
     lsu_sigs,
+    v_sigs,
     tracker_sigs,
     stall_multiply,
     stall_divide,
@@ -93,6 +95,7 @@ interface ooo_decode_execute_if();
     mult_sigs,
     div_sigs,
     lsu_sigs,
+    v_sigs,
     tracker_sigs,
     pc,
     immediate,
