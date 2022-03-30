@@ -22,10 +22,10 @@
 *   Description:  Decode-execute interface for vector extension 
 */
 
-`ifndef RV32V_FETCH2_DECODE_IF_VH
-`define RV32V_FETCH2_DECODE_IF_VH
+`ifndef SCALAR_VECTOR_DECODE_IF_VH
+`define SCALAR_VECTOR_DECODE_IF_VH
 
-interface rv32v_fetch2_decode_if();
+interface scalar_vector_decode_if();
 
   import rv32i_types_pkg::*;
 
@@ -45,4 +45,4 @@ interface rv32v_fetch2_decode_if();
 
 endinterface
 
-`endif //RV32V_FETCH2_DECODE_IF_VH
+`endif //SCALAR_VECTOR_DECODE_IF_VH

@@ -23,7 +23,7 @@
 */
 // `include "rvv_decoder.sv"
 /*
-`include "rv32v_fetch2_decode_if.vh"
+`include "scalar_vector_decode_if.vh"
 `include "rv32v_decode_execute_if.vh"
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
@@ -95,7 +95,7 @@ module tb_rv32v_top_level ();
 
 
 
-  rv32v_fetch2_decode_if  fetch_decode_if();
+  scalar_vector_decode_if  fetch_decode_if();
   cache_model_if cif();
   rv32v_hazard_unit_if hu_if();
   prv_pipeline_if prv_if();

@@ -35,7 +35,7 @@
 `include "multiply_unit_if.vh"
 `include "divide_unit_if.vh"
 `include "loadstore_unit_if.vh"
-`include "rv32v_fetch2_decode_if.vh"  
+`include "scalar_vector_decode_if.vh"  
 `include "cache_model_if.vh" 
 `include "rv32v_hazard_unit_if.vh"
 `include "rv32v_top_level_if.vh"
@@ -189,11 +189,12 @@ module ooo_execute_stage(
   /*******************************************************
   *** Vector Unit
   *******************************************************/ 
-  rv32v_fetch2_decode_if  rv32v_decode_if();
+  //scalar_vector_decode_if  rv32v_decode_if();
   cache_model_if cif();
   rv32v_hazard_unit_if rv32v_hazard_unit();
   rv32v_top_level_if rv32v_if();
-
+  assign hazard_if.busy_v = rv32v_hazard_unit.busy_dec | rv32v_hazard_unit.busy_ex | rv32v_hazard_unit.busy_mem;
+  assign rv32v_if.instr = decode_execute_if.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
 
   rv32v_top_level RVV (
     .CLK,

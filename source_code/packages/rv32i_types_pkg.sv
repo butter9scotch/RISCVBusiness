@@ -445,6 +445,13 @@ package rv32i_types_pkg;
   } exception_control_signals_t;
 
   typedef struct packed {
+    logic wen; 
+    logic rd;
+    logic rd_data;
+    logic scalar_hazard_if_ret;
+  } vector_struct_t;
+
+  typedef struct packed {
     logic [2:0] funct3;
     logic [11:0] funct12;
     logic [11:0] imm_S;

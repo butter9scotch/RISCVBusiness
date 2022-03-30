@@ -22,7 +22,7 @@
 *   Description:  Decode-execute interface for vector extension
 */
 
-`include "rv32v_fetch2_decode_if.vh"
+`include "scalar_vector_decode_if.vh"
 `include "rv32v_decode_execute_if.vh"
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
@@ -32,7 +32,7 @@
 
 module rv32v_decode_stage (
   input logic CLK, nRST, halt,
-  rv32v_fetch2_decode_if.decode fetch_decode_if,
+  scalar_vector_decode_if.decode scalar_vector_if,
   rv32v_decode_execute_if.decode decode_execute_if,
   rv32v_reg_file_if.decode rfv_if,
   rv32v_hazard_unit_if.decode hu_if,
@@ -70,7 +70,7 @@ module rv32v_decode_stage (
   sew_t next_decode_execute_if_eew;
 
   assign sew = vcu_if.sew; 
-  // assign eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
+  // assign eew_loadstore = width_t'(scalar_vector_if.instr[14:12]); 
   assign lmul = vcu_if.lmul;
   assign segment_type = vcu_if.nf != '0 && (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
 
@@ -96,7 +96,7 @@ module rv32v_decode_stage (
   assign num_ele_each_reg6 = num_ele_each_reg5 + num_ele_each_reg;
   assign num_ele_each_reg7 = num_ele_each_reg6 + num_ele_each_reg;
   assign nf_count_ena = ((woffset0 == ele_if.vl[ZERO] - 1) | (woffset1 == ele_if.vl[ZERO] - 1)) & (vcu_if.nf != 0) & (vcu_if.lumop != LUMOP_UNIT_FULLREG) & (vcu_if.is_load | vcu_if.is_store);
-  assign next_buffered_instr = {fetch_decode_if.instr[31:12], new_vd, fetch_decode_if.instr[6:0]};
+  assign next_buffered_instr = {scalar_vector_if.instr[31:12], new_vd, scalar_vector_if.instr[6:0]};
   //assign next_nf_count_reg = nf_count_ena ? nf_count_reg + 1 : nf_count_reg;
   always_comb begin // EMUL = EEW/SEW * LMUL
     case(lmul)
@@ -163,12 +163,12 @@ module rv32v_decode_stage (
 
   always_comb begin
     case(emul)
-       LMUL1, LMULHALF, LMULFOURTH: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg; // (0, 1j, 2j ....)
-       LMUL2: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg; // (0, 2j, 4j ....)
-       //LMUL3: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 3j, 6j ....)
-       LMUL4: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 4j, 8j ....)
-       LMUL8: new_vd = fetch_decode_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 8j, 16j ....)
-       default: new_vd = fetch_decode_if.instr;
+       LMUL1, LMULHALF, LMULFOURTH: new_vd = scalar_vector_if.instr[11:7] + nf_count_reg; // (0, 1j, 2j ....)
+       LMUL2: new_vd = scalar_vector_if.instr[11:7] + nf_count_reg + nf_count_reg; // (0, 2j, 4j ....)
+       //LMUL3: new_vd = scalar_vector_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 3j, 6j ....)
+       LMUL4: new_vd = scalar_vector_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 4j, 8j ....)
+       LMUL8: new_vd = scalar_vector_if.instr[11:7] + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg + nf_count_reg; // (0, 8j, 16j ....)
+       default: new_vd = scalar_vector_if.instr;
     endcase
   end
 
@@ -218,7 +218,7 @@ module rv32v_decode_stage (
   end
 
   // vector control unit assigns
-  assign vcu_if.instr = nf_count_ena_ff2 ? buffered_instr : fetch_decode_if.instr;
+  assign vcu_if.instr = nf_count_ena_ff2 ? buffered_instr : scalar_vector_if.instr;
   assign vcu_if.vtype = prv_if.vtype;
   // element counter assigns
   assign ele_if.vstart[ZERO]    = prv_if.vstart; 
@@ -698,7 +698,7 @@ module rv32v_decode_stage (
       decode_execute_if.segment_type      <= segment_type;
 
       //TESTBENCH ONLY
-      // decode_execute_if.tb_line_num       <= fetch_decode_if.tb_line_num;
+      // decode_execute_if.tb_line_num       <= scalar_vector_if.tb_line_num;
 
     end
   end

@@ -58,7 +58,7 @@ module ooo_decode_stage (
   * Input to the Control Unit
   *******************************************************/
   assign cu_if.instr = fetch_decode_if.instr;
-  assign decode_execute_if.instr = fetch_decode_if.instr;
+  //assign decode_execute_if.instr = fetch_decode_if.instr;
   assign cu_if.pc_en = hazard_if.pc_en;
   
   control_unit cu (
@@ -218,6 +218,7 @@ module ooo_decode_stage (
       ARITH_S:     hazard_if.wen = cu_if.arith_sigs.wen;
       DIV_S:       hazard_if.wen = cu_if.div_sigs.wen;
       MUL_S:       hazard_if.wen = cu_if.mult_sigs.wen;
+      VECTOR_S:    hazard_if.wen = 0; //TODO: This needs to be more complicated logic
     endcase
   end
 
@@ -263,20 +264,36 @@ module ooo_decode_stage (
   logic TODO = 0;
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
   assign cb_if.rv32v_wb_scalar_ena  = TODO;
-  assign cb_if.rv32v_instr  = TODO;
+  assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
 
+  /*********************************************************
+  *** Vector Unit signals
+  *********************************************************/
+  always_ff @(posedge CLK, negedge nRST) begin : VECTOR_CONTROL_SIGNALS 
+    if (~nRST) begin
+      decode_execute_if.instr   <= '0;
+    end else begin 
+        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
+          decode_execute_if.instr   <= '0;
+        end else if(~hazard_if.stall_ex & ~hazard_if.stall_v) begin
+          decode_execute_if.instr   <= fetch_decode_if.instr;
+        end
+    end
+  end
 
-  /***** CPU_TRACKER, FUNCTIONAL UNIT TYPE LATCH *****/
+  /*********************************************************
+  *** CPU_TRACKER, FUNCTIONAL UNIT TYPE LATCH 
+  *********************************************************/
   always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
     if (~nRST) begin
       decode_execute_if.sfu_type   <= ARITH_S;
       decode_execute_if.tracker_sigs <= '0;
     end else begin 
-        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | halt) begin
+        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
           decode_execute_if.sfu_type   <= ARITH_S;
           decode_execute_if.tracker_sigs <= '0;
-        end else if(~hazard_if.stall_ex) begin
+        end else if(~hazard_if.stall_ex & ~hazard_if.stall_v) begin
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           decode_execute_if.tracker_sigs <= CPU_TRACKER;
         end

@@ -40,3 +40,22 @@ _vmake
 
 open_files.sh
 source_code/rv32v/tb/stuff.txt
+source_code/waves.shm/waves-1.trn
+source_code/waves.shm/waves-2.trn
+source_code/waves.shm/waves-3.trn
+source_code/waves.shm/waves-4.trn
+source_code/waves.shm/waves-5.trn
+source_code/waves.shm/waves-6.trn
+source_code/waves.shm/waves-7.trn
+source_code/waves.shm/waves-8.trn
+source_code/waves.shm/waves-9.trn
+source_code/waves.shm/waves-10.trn
+source_code/waves.shm/waves-11.trn
+source_code/waves.shm/waves-12.trn
+source_code/waves.shm/waves-13.trn
+source_code/waves.shm/waves-14.trn
+source_code/waves.shm/waves.dsn
+source_code/waves.shm/waves.trn
+source_code/restore-*
+source_code/dump.db/*
+source_code/.simvision/*

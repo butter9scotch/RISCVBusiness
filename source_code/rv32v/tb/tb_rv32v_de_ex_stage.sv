@@ -22,7 +22,7 @@
 *   Description:  testbench for vector control unit
 */
 
-`include "rv32v_fetch2_decode_if.vh"
+`include "scalar_vector_decode_if.vh"
 `include "rv32v_decode_execute_if.vh"
 `include "rv32v_reg_file_if.vh"
 `include "rv32v_hazard_unit_if.vh"
@@ -69,7 +69,7 @@ module tb_rv32v_de_ex_stage ();
   logic scalar_hazard_if_ret;
 
   rv32v_decode_execute_if decode_execute_if();
-  rv32v_fetch2_decode_if  fetch_decode_if();
+  scalar_vector_decode_if  fetch_decode_if();
   rv32v_reg_file_if rfv_if();
   rv32v_hazard_unit_if hu_if();
   prv_pipeline_if prv_if();
