@@ -5,6 +5,7 @@
 
 #include "../encoding.h"
 
+#define __RISCVEL
 //-----------------------------------------------------------------------
 // Begin Macro
 //-----------------------------------------------------------------------
@@ -246,7 +247,7 @@ reset_vector:                                                           \
         //li a0, 0;                                                       \
         //ecall
 
-#define TESTNUM gp
+#define TESTNUM x28
 #define RVTEST_FAIL                                                     \
         fence;                                                          \
 1:      beqz TESTNUM, 1b;                                               \

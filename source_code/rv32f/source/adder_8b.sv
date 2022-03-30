@@ -25,12 +25,12 @@ module adder_8b(
    
 
    always_comb begin
-      r_exp1 = exp1 - 8'b10000000;
-      r_exp2 = exp2 - 8'b10000000;
+      r_exp1 = exp1 - 8'b01111111;
+      r_exp2 = exp2 - 8'b01111111;
       r_sum  = r_exp1 + r_exp2;
    end
    
-   assign sum = (exp1 + exp2) - 8'b10000000; // add with offset
+   assign sum = (exp1 + exp2) - 8'b01111111; // add with offset
    assign ovf = r_sum[7] && ~r_exp1[7] && ~r_exp2[7];
    assign unf = ((carry != 1) || (sum != 8'b11111111)) && (~r_sum[7] && r_exp1[7] && r_exp2[7]);
 

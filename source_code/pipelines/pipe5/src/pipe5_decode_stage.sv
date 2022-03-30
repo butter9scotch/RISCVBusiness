@@ -70,7 +70,7 @@ module pipe5_decode_stage (
 
    assign frf_if.f_rs1 = cu_if.f_reg_rs1;
    assign frf_if.f_rs2 = cu_if.f_reg_rs2;
-   assign frf_if.f_frm_in = cu_if.frm_in;
+   //assign frf_if.f_frm_in = cu_if.frm_in;
 
 
   /*******************************************************
@@ -324,7 +324,7 @@ module pipe5_decode_stage (
             decode_execute_if.aluop                     <= cu_if.alu_op;
             //FPU
             decode_execute_if.f_funct7                  <= cu_if.f_funct7; 
-            decode_execute_if.frm_out                   <= frf_if.f_frm; 
+            decode_execute_if.frm_out                   <= cu_if.frm_in == 3'b111 ? frf_if.f_frm: cu_if.frm_in;
             //REG_FILE/ WRITEBACK
             decode_execute_if.reg_file_wdata            <= w_data;
             decode_execute_if.w_sel                     <= cu_if.w_sel;

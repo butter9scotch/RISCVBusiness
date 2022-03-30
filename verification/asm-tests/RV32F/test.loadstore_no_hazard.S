@@ -11,7 +11,7 @@ main:
     flw f0, 0(x6) 
     flw f1, 4(x6) 
     flw f2, 8(x6) 
-#    fadd.s f3, f1, f30
+    fadd.s f3, f1, f30
     fsw f0, 12(x6)
     fsw f1, 16(x6)
     fsw f2, 20(x6)

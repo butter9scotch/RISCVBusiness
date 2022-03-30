@@ -32,7 +32,7 @@ module rounder(
       round_amount = 0;
       if(fraction[24:2] != '1) begin
 	      if(frm == RNE) begin
-	          if(fraction[1:0] == 2'b11) begin
+	          if(fraction[1] == 1'b1) begin
 	              round_amount = 1;
             end
 	      end

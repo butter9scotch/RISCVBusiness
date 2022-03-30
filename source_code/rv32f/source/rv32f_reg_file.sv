@@ -54,11 +54,11 @@ module rv32f_reg_file (
     end else if (frf_rf.f_wen) begin 
       registers[frf_rf.f_rd] <= frf_rf.f_wdata; //f_w_data: FPU_out or dload_ext
       //frf_rf.frm <= frf_rf.f_frm_in;
-      fcsr_reg[7:5] <= frf_rf.f_frm_in;
+      //fcsr_reg[7:5] <= frf_rf.f_frm_in;
       fcsr_reg[4:0] <= frf_rf.f_flags;
     end else begin
       //frf_rf.frm <= frf_rf.f_frm_in;
-      fcsr_reg[7:5] <= frf_rf.f_frm_in;
+      //fcsr_reg[7:5] <= frf_rf.f_frm_in;
     end
   end 
 
