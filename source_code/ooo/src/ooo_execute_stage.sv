@@ -176,12 +176,12 @@ module ooo_execute_stage(
   assign lsif.port_b = decode_execute_if.port_b;
   assign lsif.store_data = decode_execute_if.store_data; // this is an issue here because sw needs three operands
   assign lsif.pc = decode_execute_if.pc;
-  
+  generic_bus_if scalar_gen_bus_if();
   loadstore_unit LSU(
     .CLK(CLK),
     .nRST(nRST),
     .halt(halt), // halt should no longer be resolved here 
-    .dgen_bus_if(dgen_bus_if),
+    .dgen_bus_if(scalar_gen_bus_if),
     .hazard_if(hazard_if), 
     .lsif(lsif)
   );
@@ -202,6 +202,17 @@ module ooo_execute_stage(
   assign execute_commit_if.exception_v= rv32v_if.exception_v;
   assign execute_commit_if.wdata_v   = rv32v_if.rd_data;     
   
+  generic_bus_if vector_gen_bus_if();
+  // translation of the vector cache model if to the generic bus if
+  // used by the arbitor and system level
+  assign vector_gen_bus_if.addr = cif.dmemaddr;
+  assign vector_gen_bus_if.ren = cif.ren;
+  assign vector_gen_bus_if.wen = cif.wen;
+  assign vector_gen_bus_if.wdata = cif.dmemstore;
+  assign vector_gen_bus_if.byte_en = cif.byte_ena;
+  assign cif.dmemload = vector_gen_bus_if.rdata;
+  assign cif.dhit = ~vector_gen_bus_if.busy;
+
   rv32v_top_level RVV (
     .CLK,
     .nRST,
@@ -209,6 +220,18 @@ module ooo_execute_stage(
     .hu_if(rv32v_hazard_unit),
     .prv_if(prv_pipe_if),
     .top_if(rv32v_if)
+  );
+
+  
+  /*******************************************************
+  *** Data Memory Arbitration
+  *******************************************************/ 
+  rv32v_memory_arbitor_if arb_if();
+  memory_arbitor mem_arb(
+    .arb_if(arb_if),
+    .scalar_gen_bus_if(scalar_gen_bus_if),
+    .vector_gen_bus_if(vector_gen_bus_if),
+    .out_gen_bus_if(dgen_bus_if)
   );
 
   /*******************************************************
