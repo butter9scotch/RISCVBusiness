@@ -65,16 +65,16 @@ module memory_arbitor(
     // if the tail pointer is larger than the head pointer and both entries are
     // larger than the tail pointer take the larger unsigned integer
     if (vector_tail_dist[$left(vector_tail_dist)] == scalar_tail_dist[$left(scalar_tail_dist)] & 1) begin
-      if ($unsigned(vector_tail_dist) < $unsigned(scalar_tail_dist)) begin
+      if ($unsigned(vector_tail_dist) > $unsigned(scalar_tail_dist)) begin
         current_request = INT_REQ;
-      end else if ($unsigned(vector_tail_dist) >= $unsigned(scalar_tail_dist)) begin
+      end else if ($unsigned(vector_tail_dist) <= $unsigned(scalar_tail_dist)) begin
         current_request = VEC_REQ;
       end
     // else take the smaller unsigned integer
     end else begin
-      if ($unsigned(vector_tail_dist) < $unsigned(scalar_tail_dist)) begin
+      if ($unsigned(vector_tail_dist) > $unsigned(scalar_tail_dist)) begin
         current_request = VEC_REQ;
-      end else if ($unsigned(vector_tail_dist) >= $unsigned(scalar_tail_dist)) begin
+      end else if ($unsigned(vector_tail_dist) <= $unsigned(scalar_tail_dist)) begin
         current_request = INT_REQ;
       end
     end
