@@ -6,7 +6,7 @@ interface cache_model_if;
   import rv32i_types_pkg::*;
 
   logic dhit, ren, wen;
-  logic [1:0] byte_ena;
+  logic [3:0] byte_ena;
   logic [31:0] dmemload, dmemstore, dmemaddr;
 
   modport memory (

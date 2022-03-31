@@ -100,6 +100,7 @@ module vector_lane (
   assign pu  = vif.fu_type == PEM;
   assign lu  = vif.fu_type == LOAD_UNIT;
   assign su  = vif.fu_type == STORE_UNIT;
+  assign maddu = 0;
 
   assign vif.start_mu = mlu;
   assign vif.start_ma = mau;
