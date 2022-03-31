@@ -386,7 +386,44 @@ program test(
 	    test_value++;
 	    @(posedge CLK);
 	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
-/*	// Test case 11, flush after random write
+
+	// Test case: 11, Check indexing wierdness (Bug #58/60)
+	#CLK_PERIOD;
+	test_num++;
+	test_case  = "Indexing Weirdness Bug #58/60";
+	@(posedge CLK);
+	nRST 	   = 1'b0;
+	#(2*CLK_PERIOD);
+	@(posedge CLK);
+	nRST 		       = 1'b1;
+	proc_gen_bus_if.ren    = 1'b0;
+	mem_gen_bus_if.busy    = 1'b0;
+	mem_gen_bus_if.rdata   = 32'hbeef;
+	proc_gen_bus_if.addr  = 32'h0000_0004;
+	proc_gen_bus_if.wdata    = 32'h600d;
+	proc_gen_bus_if.wen    = 1'b1;
+	#1; wait(~proc_gen_bus_if.busy);
+	@(posedge CLK);
+
+	proc_gen_bus_if.wen 	= 1'b0;
+	proc_gen_bus_if.wdata   = '0;
+	mem_gen_bus_if.rdata   	= '0;
+	#CLK_PERIOD;
+	@(negedge CLK);
+
+	//CHECK
+	proc_gen_bus_if.ren    = 1'b1;
+	proc_gen_bus_if.addr = 32'h0000_0000; #1;
+	assert(proc_gen_bus_if.rdata == 32'hbeef) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x0000beef for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, proc_gen_bus_if.addr);
+	@(posedge CLK);
+	proc_gen_bus_if.addr = 32'h0000_0004; #1;
+	assert(proc_gen_bus_if.rdata == 32'h600d) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x0000600d for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, proc_gen_bus_if.addr);
+	@(posedge CLK);
+	proc_gen_bus_if.addr = 32'h0000_0008; #1;
+	assert(proc_gen_bus_if.rdata == 32'h0000_0000) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x00000000 for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, proc_gen_bus_if.addr);
+
+
+/*	// Test case 12, flush after random write
 	@(negedge CLK);
 	nRST  = 1'b0;
 	#CLK_PERIOD;
