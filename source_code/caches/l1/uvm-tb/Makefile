@@ -38,6 +38,8 @@ RUN_COMMON = \
 	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY) \
 	-do "coverage save -onexit -p $(COVERAGE)/$(TESTCASE).ucdb"
 
+POST_RUN = python util/post-run.py
+
 all: build run
 
 gui: build run_gui
@@ -63,11 +65,13 @@ run_gui:
 	$(RUN_COMMON) \
 	-do "do $(WAVES)/wave.do" \
 	-do "run -all"
+	$(POST_RUN)
 
 run:
 	vsim -c \
 	$(RUN_COMMON) \
 	-do "run -all"
+	$(POST_RUN)
 
 help:
 	@printf  "\n\
