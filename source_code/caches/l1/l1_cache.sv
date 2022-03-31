@@ -357,11 +357,11 @@ module l1_cache #(
                     end 
                 end
 		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-                	next_read_addr =  {decoded_addr.tag_bits, decoded_addr.set_bits, 2'b00, 2'b00}; ////////////////////// FIX FOR WB to wrong address?
+                	next_read_addr =  {decoded_addr.tag_bits, decoded_addr.set_bits, BLOCK_SIZE, 2'b00}; ////////////////////// FIX FOR WB to wrong address?
 			 end
 
 			else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-			next_read_addr  =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00};
+			next_read_addr  =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, BLOCK_SIZE, 2'b00};
 			   
             	end
             end // case: IDLE
