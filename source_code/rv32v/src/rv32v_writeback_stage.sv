@@ -5,9 +5,11 @@ module rv32v_writeback_stage(
   input logic CLK, nRST,
   rv32v_memory_writeback_if.writeback memory_writeback_if,
   rv32v_reg_file_if.writeback rfv_if,
+  rv32v_hazard_unit_if.writeback hu_if,
   output logic rd_wen,
   output logic [4:0] rd_sel,
-  output logic [31:0] rd_data
+  output logic [31:0] rd_data,
+  output logic done
 
 );
 
@@ -26,7 +28,8 @@ module rv32v_writeback_stage(
   assign rfv_if.eew = memory_writeback_if.eew;
   assign rfv_if.vl = memory_writeback_if.vl;
   assign rfv_if.single_bit_write = memory_writeback_if.single_bit_write;
-
+  assign hu_if.writeback_ena = memory_writeback_if.ena;
+  assign done = memory_writeback_if.done;
 
 
 endmodule

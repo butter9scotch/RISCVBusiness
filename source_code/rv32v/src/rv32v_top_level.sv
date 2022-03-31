@@ -11,10 +11,12 @@ module rv32v_top_level(
   logic [4:0] rd_sel;
   logic [31:0] rd_data;
   logic [31:0] xs1, xs2;
+  logic done;
 
   assign top_if.rd_wen = rd_wen;
   assign top_if.rd_sel = rd_sel;
   assign top_if.rd_data = rd_data;
+  assign top_if.done = done;
   assign xs1 = top_if.rs1_data;
   assign xs2 = top_if.rs2_data;
   // Inputs
@@ -40,5 +42,5 @@ module rv32v_top_level(
   rv32v_reg_file reg_file(.*);
 
   assign scalar_vector_if.instr = top_if.instr;
-
+  
 endmodule

@@ -19,6 +19,8 @@ interface rv32v_memory_writeback_if;
   logic [4:0]  rd_sel;
   logic [31:0] rd_data;
   logic  rd_wen;
+  logic ena;
+  logic done;
   int tb_line_num; //TESTBENCH ONLY
 
 
@@ -26,6 +28,7 @@ interface rv32v_memory_writeback_if;
   modport memory (
     output wdat0, wdat1, wen, woffset0, woffset1, sew, mul, vd, vl, eew, single_bit_write, 
     rd_sel, rd_data, rd_wen,
+    ena, done,
     tb_line_num //TESTBENCH ONLY
 
   );
@@ -33,6 +36,7 @@ interface rv32v_memory_writeback_if;
   modport writeback (
     input wdat0, wdat1, wen, woffset0, woffset1, vd, vl, eew, single_bit_write, 
     rd_sel, rd_data, rd_wen,
+    ena, done,
     tb_line_num //TESTBENCH ONLY
 
   );

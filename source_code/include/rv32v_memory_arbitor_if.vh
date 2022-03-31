@@ -33,12 +33,13 @@ interface rv32v_memory_arbitor_if #(
   logic [$clog2(NUM_CB_ENTRY)-1:0] cb_tail_index;
   logic [$clog2(NUM_CB_ENTRY)-1:0] vector_cb_index;
   logic [$clog2(NUM_CB_ENTRY)-1:0] scalar_cb_index;
+  logic v_ena, s_ena;
 
   modport arbitor (
-    input cb_tail_index, vector_cb_index, scalar_cb_index
+    input v_ena, cb_tail_index, vector_cb_index, scalar_cb_index
   );
   modport datapath (
-    output cb_tail_index, vector_cb_index, scalar_cb_index
+    output v_ena, cb_tail_index, vector_cb_index, scalar_cb_index
   );
 endinterface
 

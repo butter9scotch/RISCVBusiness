@@ -12,6 +12,7 @@ interface ooo_execute_commit_if();
   logic wen_mu;
   logic wen_du;
   logic wen_ls;
+  logic wen_v;
   logic busy_au;
   logic busy_mu;
   logic busy_du;
@@ -91,7 +92,7 @@ interface ooo_execute_commit_if();
 
   modport execute (
     output halt_instr, csr_instr, instr_30, wen_au, wen_mu, wen_du, 
-           wen_ls, busy_au, busy_mu, busy_du, busy_ls, dren, 
+           wen_ls,wen_v, busy_au, busy_mu, busy_du, busy_ls, dren, 
            mal_addr, dwen, breakpoint, ecall_insn, ret_insn, illegal_insn, 
            invalid_csr, mal_insn, fault_insn, token, intr_seen, jump_instr, 
            jump_addr, branch_instr, prediction, branch_taken, funct12, imm_I, 
@@ -108,7 +109,7 @@ interface ooo_execute_commit_if();
 
   modport commit (
     input halt_instr, csr_instr, instr_30, wen_au, wen_mu, wen_du, 
-           wen_ls, busy_au, busy_mu, busy_du, busy_ls, dren, 
+           wen_ls, wen_v, busy_au, busy_mu, busy_du, busy_ls, dren, 
            mal_addr, dwen, breakpoint, ecall_insn, ret_insn, illegal_insn, 
            invalid_csr, mal_insn, fault_insn, token, intr_seen, jump_instr, 
            jump_addr, branch_instr, prediction, branch_taken, 

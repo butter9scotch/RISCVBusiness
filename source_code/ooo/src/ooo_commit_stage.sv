@@ -153,9 +153,9 @@ module ooo_commit_stage(
   assign cb_if.vd_v        = execute_commit_if.reg_rd_v; 
   assign cb_if.ready_v     = execute_commit_if.done_v; 
   // only valid without v completion buffer
-  assign cb_if.rv32v_commit_done     = execute_commit_if.done_v; 
-  //TODO
+  assign cb_if.rv32v_commit_done = execute_commit_if.done_v; 
   assign cb_if.exception_v = execute_commit_if.exception_v; 
+  assign cb_if.wen_v = execute_commit_if.wen_v; 
   assign cb_if.wdata_v     = execute_commit_if.wdata_v;  
 
   assign cb_if.index_ls     = execute_commit_if.index_ls; 

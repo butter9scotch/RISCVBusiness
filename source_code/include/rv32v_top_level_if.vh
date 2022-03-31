@@ -12,15 +12,19 @@ interface rv32v_top_level_if;
   logic scalar_hazard_if_ret;
   logic returnex;
   logic exception_v;
+  logic csr_update;
+  logic done;
 
   modport rv32v (
     output rd_wen,
     output rd_sel,
     output rd_data, //change to wdata_v
     output exception_v,
+    output done,
     input instr, rs1_data, rs2_data,
     input scalar_hazard_if_ret,
-    input returnex
+    input returnex,
+    input csr_update
   );
 
   modport tb (

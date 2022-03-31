@@ -389,6 +389,7 @@ module rv32v_decode_stage (
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 :
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
+  assign hu_if.decode_ena = vcu_if.de_en;
 
 
 
@@ -479,6 +480,7 @@ module rv32v_decode_stage (
       decode_execute_if.lumop             <= '0;
       decode_execute_if.vmv_type          <= NOT_VMV;
       decode_execute_if.segment_type      <= '0;
+      decode_execute_if.ena               <= '0;
 
 
       //TESTBENCH ONLY
@@ -570,6 +572,8 @@ module rv32v_decode_stage (
       decode_execute_if.lumop             <= '0;
       decode_execute_if.vmv_type          <= NOT_VMV;
       decode_execute_if.segment_type      <= '0;
+
+      decode_execute_if.ena               <= '0;
 
 
       //TESTBENCH ONLY
@@ -696,6 +700,7 @@ module rv32v_decode_stage (
       decode_execute_if.rd_scalar_src     <= vcu_if.rd_scalar_src;
       decode_execute_if.nf_count          <= nf_count_reg;
       decode_execute_if.segment_type      <= segment_type;
+      decode_execute_if.ena               <= vcu_if.de_en;
 
       //TESTBENCH ONLY
       // decode_execute_if.tb_line_num       <= scalar_vector_if.tb_line_num;

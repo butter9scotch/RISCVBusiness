@@ -74,16 +74,18 @@ interface completion_buffer_if();
   logic branch_mispredict;
   logic wen_a;
   logic wen_ls;
+  logic wen_v;
   logic valid_a;
   logic mal_ls;
   cpu_tracker_signals_t CPU_TRACKER, CPU_TRACKER_decode;
 
   logic tb_read;
+  // Memory
 
   modport cb (
     input alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
            rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, exception_v, ready_a, 
-           ready_mu, ready_du, ready_ls, ready_v, branch_mispredict, wen_a, wen_ls, valid_a, 
+           ready_mu, ready_du, ready_ls, ready_v, branch_mispredict, wen_a, wen_ls, wen_v, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, index_v, 
            rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, vd_v, rv32v_wb_scalar_data, 
            wdata_a, wdata_mu, wdata_du, wdata_ls, wdata_v, address_a, address_ls, CPU_TRACKER_decode, opcode,
@@ -106,7 +108,7 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input index_a, index_mu, index_du, index_ls, index_v, wdata_a, wdata_mu, wdata_du, wdata_ls, wdata_v, vd_a, vd_mu, vd_du, vd_ls, vd_v, exception_a, exception_mu, exception_du, exception_ls, exception_v, ready_a, ready_mu, ready_du, ready_ls, ready_v, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr, mal_priv, rv32v_commit_done
+    input index_a, index_mu, index_du, index_ls, index_v, wdata_a, wdata_mu, wdata_du, wdata_ls, wdata_v, vd_a, vd_mu, vd_du, vd_ls, vd_v, exception_a, exception_mu, exception_du, exception_ls, exception_v, ready_a, ready_mu, ready_du, ready_ls, ready_v, branch_mispredict, wen_a, wen_ls, wen_v, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr, mal_priv, rv32v_commit_done
   );
 
   modport hu (
@@ -118,7 +120,10 @@ interface completion_buffer_if();
     output rv32v_wb_scalar_data
   );
 
-
+  modport memory (
+    input cur_tail
+  );
+  
 endinterface
 
 `endif //COMPLETION_BUFFER_IF_VH

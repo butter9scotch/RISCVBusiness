@@ -309,7 +309,10 @@ package rv32i_types_pkg;
 
   typedef struct packed {
     logic ena;
+    scalar_fu_t sfu_type;
     logic [$clog2(NUM_CB_ENTRY)-1:0] index_v; 
+    logic [31:0] rs1_data; 
+    logic [31:0] rs2_data; 
   } v_control_signals_t;
 
   typedef struct packed {

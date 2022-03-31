@@ -193,14 +193,19 @@ module ooo_execute_stage(
   cache_model_if cif();
   rv32v_hazard_unit_if rv32v_hazard_unit();
   rv32v_top_level_if rv32v_if();
-  assign hazard_if.busy_v = rv32v_hazard_unit.busy_dec | rv32v_hazard_unit.busy_ex | rv32v_hazard_unit.busy_mem;
-  assign rv32v_if.instr = decode_execute_if.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
+  assign rv32v_hazard_unit.csr_update = 0;
+  assign hazard_if.busy_v = (rv32v_hazard_unit.decode_ena | rv32v_hazard_unit.execute_ena | rv32v_hazard_unit.memory_ena | rv32v_hazard_unit.writeback_ena) & ~rv32v_if.done;
+  assign rv32v_if.instr = decode_execute_if.v_sigs.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
+  assign rv32v_if.rs1_data = decode_execute_if.v_sigs.rs1_data;
+  assign rv32v_if.rs2_data = decode_execute_if.v_sigs.rs2_data;
+  //Feed index into the vector unit 
 
   assign execute_commit_if.index_v    = decode_execute_if.v_sigs.index_v;
   assign execute_commit_if.reg_rd_v   = rv32v_if.rd_sel;
-  assign execute_commit_if.done_v     = ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
+  assign execute_commit_if.done_v     = rv32v_if.done;       
+  //assign execute_commit_if.done_v     = ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
   assign execute_commit_if.exception_v= rv32v_if.exception_v;
-  assign execute_commit_if.wdata_v   = rv32v_if.rd_data;     
+  assign execute_commit_if.wdata_v    = rv32v_if.rd_data;     
   
   generic_bus_if vector_gen_bus_if();
   // translation of the vector cache model if to the generic bus if
@@ -233,10 +238,12 @@ module ooo_execute_stage(
     .vector_gen_bus_if(vector_gen_bus_if),
     .out_gen_bus_if(dgen_bus_if)
   );
-
+  assign arb_if.cb_tail_index   = cb_if.cur_tail;
+  assign arb_if.vector_cb_index = decode_execute_if.v_sigs.index_v;
+  assign arb_if.scalar_cb_index = lsif.index_ls;
   /*******************************************************
   *** Hazard Unit Signal Connections
-  *******************************************************/
+  /t*******************************************************/
   //assign hazard_if.brj_addr   = ( jump_instr) ? jump_if.jump_addr : 
   //                                              branch_if.branch_addr;
   // assign hazard_if.mispredict = decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken;

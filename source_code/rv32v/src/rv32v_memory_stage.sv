@@ -47,6 +47,7 @@ module rv32v_memory_stage (
 
 
   assign hu_if.busy_mem = asif.busy;
+  assign hu_if.memory_ena = execute_memory_if.ena;
   // assign hu_if.csr_update = (execute_memory_if.config_type) ? 1 : 0;
   assign addr0_shifted = asif.addr0[1:0] << 3;
   assign addr1_shifted = asif.addr1[1:0] << 3;
@@ -80,7 +81,6 @@ module rv32v_memory_stage (
   assign cif.ren       = asif.ren;
   assign cif.wen       = asif.wen;
   assign cif.byte_ena  = asif.byte_ena;
-
   // Load buffer
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
@@ -103,6 +103,8 @@ module rv32v_memory_stage (
       memory_writeback_if.rd_wen    <= '0;
       memory_writeback_if.rd_sel    <= '0;
       memory_writeback_if.rd_data   <= '0;
+      memory_writeback_if.ena       <= '0;
+      memory_writeback_if.done     <= 0;
 
       // memory_writeback_if.tb_line_num <= 0;
 
@@ -117,6 +119,8 @@ module rv32v_memory_stage (
       memory_writeback_if.rd_wen    <= '0;
       memory_writeback_if.rd_sel    <= '0;
       memory_writeback_if.rd_data   <= '0;
+      memory_writeback_if.ena       <= '0;
+      memory_writeback_if.done     <= 0;
 
             //TESTBENCH ONLY
       // memory_writeback_if.tb_line_num <= 0;
@@ -134,9 +138,11 @@ module rv32v_memory_stage (
       memory_writeback_if.vl  <= execute_memory_if.vl;
       memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
 
-      memory_writeback_if.rd_wen <= execute_memory_if.rd_wen;
-      memory_writeback_if.rd_sel <= execute_memory_if.rd_sel;
+      memory_writeback_if.rd_wen  <= execute_memory_if.rd_wen;
+      memory_writeback_if.rd_sel  <= execute_memory_if.rd_sel;
       memory_writeback_if.rd_data <= ~(execute_memory_if.config_type == NOT_CFG) ? prv_if.rdata : execute_memory_if.rd_data;
+      memory_writeback_if.ena     <= execute_memory_if.ena;
+      memory_writeback_if.done     <= execute_memory_if.done;
 
       //TESTBENCH ONLY
       // memory_writeback_if.tb_line_num <= execute_memory_if.tb_line_num;
@@ -163,7 +169,5 @@ module rv32v_memory_stage (
   assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
   assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
 
-  // TODO: Change this to pull the signal from the scalar hazard unit
-  assign hu_if.csr_update =   0;
 
 endmodule

@@ -64,7 +64,11 @@ module memory_arbitor(
     vector_gen_bus_if.busy = 1;
     // if the tail pointer is larger than the head pointer and both entries are
     // larger than the tail pointer take the larger unsigned integer
-    if (vector_tail_dist[$left(vector_tail_dist)] == scalar_tail_dist[$left(scalar_tail_dist)] & 1) begin
+    if (~vector_gen_bus_if.wen & ~vector_gen_bus_if.ren) begin
+      current_request = INT_REQ;
+    end else if (~scalar_gen_bus_if.wen & ~scalar_gen_bus_if.ren) begin
+      current_request = VEC_REQ;
+    end else if (vector_tail_dist[$left(vector_tail_dist)] == scalar_tail_dist[$left(scalar_tail_dist)] & 1) begin
       if ($unsigned(vector_tail_dist) > $unsigned(scalar_tail_dist)) begin
         current_request = INT_REQ;
       end else if ($unsigned(vector_tail_dist) <= $unsigned(scalar_tail_dist)) begin

@@ -276,6 +276,7 @@ module rv32v_execute_stage (
 
   assign hu_if.busy_ex = vif0.busy | vif1.busy;
   assign hu_if.next_busy_ex = vif0.next_busy | vif1.next_busy;
+  assign hu_if.execute_ena = decode_execute_if.ena;
   
   assign vif0.vd_widen    = decode_execute_if.vd_widen;
   assign vif0.is_signed   = decode_execute_if.is_signed;
@@ -462,7 +463,8 @@ module rv32v_execute_stage (
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
       execute_memory_if.rd_data <= 0;
-
+      execute_memory_if.ena <= 0;
+      execute_memory_if.done <= '0;
       //TESTBENCH ONLY
       // execute_memory_if.tb_line_num        <= 0;
 
@@ -490,6 +492,8 @@ module rv32v_execute_stage (
       execute_memory_if.rd_wen <= 0;
       execute_memory_if.rd_sel <= 0;
       execute_memory_if.rd_data <= 0;
+      execute_memory_if.ena <= 0;
+      execute_memory_if.done <= '0;
 
       //TESTBENCH ONLY
       // execute_memory_if.tb_line_num        <= 0;
@@ -537,6 +541,8 @@ module rv32v_execute_stage (
                                              decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
                                              32'hDEAD;
 
+      execute_memory_if.done <= decode_execute_if.decode_done;
+      execute_memory_if.ena <= decode_execute_if.ena;
             //TESTBENCH ONLY
       // execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
 

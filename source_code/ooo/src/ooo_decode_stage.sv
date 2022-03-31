@@ -273,17 +273,26 @@ module ooo_decode_stage (
   always_ff @(posedge CLK, negedge nRST) begin : VECTOR_CONTROL_SIGNALS 
     if (~nRST) begin
       decode_execute_if.instr                <= '0;
-      decode_execute_if.v_sigs.ena           <= scalar_fu_t'('0);
-      decode_execute_if.v_sigs.index_v       <= 0;
+      decode_execute_if.v_sigs.ena           <= '0;
+      decode_execute_if.v_sigs.index_v       <= '0;
+      decode_execute_if.v_sigs.rs1_data      <= '0;
+      decode_execute_if.v_sigs.rs2_data      <= '0;
+      decode_execute_if.v_sigs.sfu_type      <= scalar_fu_t'('0);
     end else begin 
-        if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
+        if ((hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
           decode_execute_if.instr            <= '0;
-          decode_execute_if.v_sigs.ena       <= scalar_fu_t'('0);
-          decode_execute_if.v_sigs.index_v   <= 0;
-        end else if(~hazard_if.stall_ex & ~hazard_if.stall_v) begin
+          decode_execute_if.v_sigs.ena       <= '0;
+          decode_execute_if.v_sigs.index_v   <= '0;
+          decode_execute_if.v_sigs.rs1_data  <= '0;
+          decode_execute_if.v_sigs.rs2_data  <= '0;
+          decode_execute_if.v_sigs.sfu_type  <= scalar_fu_t'('0);
+        end else if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
           decode_execute_if.instr            <= fetch_decode_if.instr;
           decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
           decode_execute_if.v_sigs.index_v   <= cb_if.cur_tail;
+          decode_execute_if.v_sigs.rs1_data  <= rf_if.rs1_data;
+          decode_execute_if.v_sigs.rs2_data  <= rf_if.rs2_data;
+          decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
         end
     end
   end
@@ -299,7 +308,7 @@ module ooo_decode_stage (
         if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
           decode_execute_if.sfu_type   <= ARITH_S;
           decode_execute_if.tracker_sigs <= '0;
-        end else if(~hazard_if.stall_ex & ~hazard_if.stall_v) begin
+        end else if(~hazard_if.stall_ex ) begin
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
           decode_execute_if.tracker_sigs <= CPU_TRACKER;
         end

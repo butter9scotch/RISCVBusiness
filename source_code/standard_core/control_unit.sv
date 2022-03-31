@@ -397,7 +397,7 @@ module control_unit
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   // assign cu_if.zimm     = cu_if.instr[19:15];
   
-  assign cu_if.csr_sigs.vector_csr_instr = (cu_if.opcode == VECTOR) & (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
+  assign cu_if.csr_sigs.vector_csr_instr = (cu_if.opcode == VECTOR) && (instr_r.funct3 == 3'b111) && (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
   
   // new struct refactor
   // TODO: remove intermediaries from part of the interface

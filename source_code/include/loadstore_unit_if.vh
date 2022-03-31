@@ -66,10 +66,10 @@ interface loadstore_unit_if(input rv32i_types_pkg::lsu_control_signals_t control
 
   modport execute (
     input port_a, port_b, store_data, pc, load_type, dren, 
-           dwen, wen, reg_rd, opcode, index, ena,
+           dwen, wen, reg_rd, opcode, index, ena, 
     output wdata_ls, wen_ls, reg_rd_ls, dren_ls, dwen_ls, 
             opcode_ls, mal_addr, memory_addr, busy_ls, done_ls,
-          index_ls
+          index_ls, 
   );
 
 endinterface
