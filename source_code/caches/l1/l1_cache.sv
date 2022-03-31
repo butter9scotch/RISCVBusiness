@@ -302,6 +302,9 @@ module l1_cache #(
 
         casez(state)
             IDLE: begin
+                
+                next_read_addr = decoded_addr;
+
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
@@ -317,17 +320,17 @@ module l1_cache #(
 		                4'b0011:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFF0000)|{16'd0,proc_gen_bus_if.wdata[15:0]};
 		                4'b1100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'h0000FFFF)|{proc_gen_bus_if.wdata[31:16],16'd0};
                         default:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-                    endcase															   				   
+                    endcase														   				   
                     //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
-		            next_last_used[decoded_addr.set_bits] 					     = hit_idx;
+		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
+		            next_last_used[decoded_addr.set_bits] 				        = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
                 else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
                         //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
                         mem_gen_bus_if.ren      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
+                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;	
                     end
                     else if(proc_gen_bus_if.wen)begin
                         //mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata; //non byte enable
@@ -344,9 +347,8 @@ module l1_cache #(
                         endcase
                     end 
                 end
-		        next_read_addr = decoded_addr;
-		        if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-                	next_read_addr =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; ////////////////////// FIX FOR WB to wrong address?
+		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~pass_through) begin
+                	next_read_addr =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 1'b0, 2'b00}; ////////////////////// FIX FOR WB to wrong address?
             	end
             end // case: IDLE
 	    
