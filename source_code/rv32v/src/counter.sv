@@ -34,6 +34,7 @@ module counter (
   output logic done, next_done
 );
   // import rv32i_types_pkg::*;
+  logic done_reg;
   
   offset_t next_offset;
   //offset_t offset;
@@ -45,22 +46,22 @@ module counter (
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       offset <= 0;
-      done <= 0;
+      done_reg <= 0;
     end else if (clear) begin
       offset <= 0;
-      done <= 0;
+      done_reg <= 0;
     end else if (ex_return & de_en) begin
       offset <= vstart;
-      done <= next_done;
+      done_reg <= next_done;
     end else if (offset + NUM_LANES >= vl & ~busy_ex) begin
       offset <= 0;
-      done <= next_done;
-    end else if (done) begin
+      done_reg <= next_done;
+    end else if (done_reg) begin
       offset <= 0;
-      done <= next_done;
+      done_reg <= next_done;
     end else if (de_en  & ~stall)begin
       offset <= offset + NUM_LANES; //in this case 2
-      done <= next_done;
+      done_reg <= next_done;
     end
   end
 
@@ -70,7 +71,7 @@ module counter (
         next_offset = vstart;
     end else if (offset + NUM_LANES >= vl) begin
       next_offset = 0;
-    end else if (done) begin
+    end else if (done_reg) begin
       next_offset = 0;
     end else if ((de_en == 1) & ~stall)begin
       next_offset = offset + NUM_LANES; //in this case 2
@@ -84,5 +85,12 @@ module counter (
     end
   end
 
+  always_comb begin
+    if (vl == 1 || vl == 2) begin
+      done = de_en;
+    end else begin
+      done = done_reg & de_en;
+    end
+  end
 
 endmodule

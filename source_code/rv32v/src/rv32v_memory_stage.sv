@@ -140,7 +140,7 @@ module rv32v_memory_stage (
 
       memory_writeback_if.rd_wen  <= execute_memory_if.rd_wen;
       memory_writeback_if.rd_sel  <= execute_memory_if.rd_sel;
-      memory_writeback_if.rd_data <= ~(execute_memory_if.config_type == NOT_CFG) ? prv_if.rdata : execute_memory_if.rd_data;
+      memory_writeback_if.rd_data <= execute_memory_if.rd_data;
       memory_writeback_if.ena     <= execute_memory_if.ena;
       memory_writeback_if.done     <= execute_memory_if.done;
 

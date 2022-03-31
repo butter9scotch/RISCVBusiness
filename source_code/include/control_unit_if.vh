@@ -52,6 +52,7 @@ interface control_unit_if;
   scalar_fu_t sfu_type;
   load_t load_type;
   logic pc_en;
+  logic vector_wb_src;
 
   // New cpu tracker signals
   cpu_tracker_t cpu_track_sigs;
@@ -84,7 +85,7 @@ interface control_unit_if;
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
     csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, sign_type, sfu_type, 
-    high_low_sel, div_type, source_a_sel, source_b_sel
+    high_low_sel, div_type, source_a_sel, source_b_sel, vector_wb_src
   );
 
 endinterface

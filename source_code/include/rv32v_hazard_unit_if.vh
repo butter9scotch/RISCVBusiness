@@ -7,6 +7,7 @@ interface rv32v_hazard_unit_if;
   logic exception_mem;
   logic next_busy_ex;
   logic decode_ena, execute_ena, memory_ena, writeback_ena;
+  logic decode_done;
 
   modport hazard_unit (
     input csr_update, busy_dec, busy_ex, busy_mem, decode_ena, execute_ena, memory_ena, writeback_ena,
@@ -26,7 +27,7 @@ interface rv32v_hazard_unit_if;
 
   modport decode (
     input stall_dec, flush_dec, busy_ex, busy_mem, next_busy_ex, csr_update,
-    output busy_dec, decode_ena
+    output busy_dec, decode_ena, decode_done
   );
 
   modport execute (

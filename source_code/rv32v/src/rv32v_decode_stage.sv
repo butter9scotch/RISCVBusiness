@@ -390,6 +390,7 @@ module rv32v_decode_stage (
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 :
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
   assign hu_if.decode_ena = vcu_if.de_en;
+  assign hu_if.decode_done = ele_if.done[ZERO];
 
 
 

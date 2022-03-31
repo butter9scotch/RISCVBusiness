@@ -74,7 +74,8 @@ module completion_buffer # (
   assign cb_if.flush             = cb[head_sel].exception;
   assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
   //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
-  assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
+  //assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
+  assign cb_if.rv32v_commit_ena  = 0; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
@@ -134,7 +135,7 @@ module completion_buffer # (
       for (i = 0; i < NUM_ENTRY; i++) begin
         cb[i] <= '0;
       end
-    end else begin
+    end else begin      
       for (i = 0; i < NUM_ENTRY; i++) begin
         cb[i] <= next_cb[i];
       end
@@ -216,13 +217,14 @@ module completion_buffer # (
       //next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for vector unit result
-    if (cb_if.rv32v_wb_scalar_ready) begin
-      next_cb[cb_if.rv32v_wb_scalar_index].data = cb_if.rv32v_wb_scalar_data;
-      next_cb[cb_if.rv32v_wb_scalar_index].vd = cb_if.rv32v_wb_vd; 
-      next_cb[cb_if.rv32v_wb_scalar_index].valid = 1;
-      next_cb[cb_if.rv32v_wb_scalar_index].exception = cb_if.rv32v_wb_exception;
-      next_cb[cb_if.rv32v_wb_scalar_index].mal = 0;
-      next_cb[cb_if.rv32v_wb_scalar_index].rv32f = 0;
+    if (cb_if.ready_v) begin
+      next_cb[cb_if.index_v].data = cb_if.wdata_v;
+      next_cb[cb_if.index_v].vd = cb_if.vd_v; 
+      next_cb[cb_if.index_v].wen = cb_if.wen_v & ~cb_if.exception_du; 
+      next_cb[cb_if.index_v].valid = 1;
+      next_cb[cb_if.index_v].exception = cb_if.rv32v_wb_exception;
+      next_cb[cb_if.index_v].mal = 0;
+      next_cb[cb_if.index_v].rv32f = 0;
       //next_cb[cb_if.index_wb_scalar_index].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // TODO: Add floating point signals when integrating FPU

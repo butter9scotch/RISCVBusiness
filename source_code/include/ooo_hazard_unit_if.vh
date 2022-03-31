@@ -87,13 +87,14 @@ interface ooo_hazard_unit_if();
   logic rob_empty;
   logic hazard;
   logic mispredict_ff;
+  logic vdecode_done;
 
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
            stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty, stall_v,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, vdecode_done
   );
 
   modport execute (
@@ -101,7 +102,7 @@ interface ooo_hazard_unit_if();
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
-           epc, pc_ex, busy_v
+           epc, pc_ex, busy_v, vdecode_done
   );
 
   modport fetch (

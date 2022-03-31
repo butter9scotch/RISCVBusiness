@@ -261,9 +261,8 @@ module ooo_decode_stage (
   /*********************************************************
   *** Completion buffer signals
   *********************************************************/
-  logic TODO = 0;
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
-  assign cb_if.rv32v_wb_scalar_ena  = TODO;
+  assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
   assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
 
@@ -286,6 +285,15 @@ module ooo_decode_stage (
           decode_execute_if.v_sigs.rs1_data  <= '0;
           decode_execute_if.v_sigs.rs2_data  <= '0;
           decode_execute_if.v_sigs.sfu_type  <= scalar_fu_t'('0);
+        end else if (hazard_if.vdecode_done) begin
+          decode_execute_if.instr <= 0;
+          if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
+            decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
+            decode_execute_if.v_sigs.index_v   <= cb_if.cur_tail;
+            decode_execute_if.v_sigs.rs1_data  <= rf_if.rs1_data;
+            decode_execute_if.v_sigs.rs2_data  <= rf_if.rs2_data;
+            decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
+          end
         end else if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
           decode_execute_if.instr            <= fetch_decode_if.instr;
           decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;

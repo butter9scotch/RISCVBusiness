@@ -104,6 +104,7 @@ module control_unit
   end
   // Assign register write enable
 
+  assign vector_wb_src = (cu_if.instr[31:26] == 6'b010000) && (cu_if.reg_rs1 == 5'b0) && ((vfunct3_t'(instr_i.funct3) == OPMVV) || (vfunct3_t'(instr_i.funct3) == OPMVX));
     //config instructions
   always_comb begin
     case(cu_if.opcode)
@@ -112,7 +113,7 @@ module control_unit
       REGREG, JAL, JALR,
       LOAD                : cu_if.wen   = 1'b1;
       // Opcode is VECTOR, funct3 is 3'b111: vsetvli, vsetivli, vsetvl
-      VECTOR              : cu_if.wen   = instr_i.funct3 == 3'b111;
+      VECTOR              : cu_if.wen   = (instr_i.funct3 == 3'b111) || vector_wb_src;
       SYSTEM              : cu_if.wen   = cu_if.csr_rw_valid;
       default:  cu_if.wen   = 1'b0;
     endcase
@@ -156,6 +157,7 @@ module control_unit
   assign vector_store_ena = (cu_if.opcode == STORE_FP)  && ((eew_loadstore == WIDTH8) || (eew_loadstore == WIDTH16) || (eew_loadstore == WIDTH32));
   assign vector_regreg_ena = (cu_if.opcode == VECTOR) && (vfunct3_t'(instr_i.funct3) != OPCFG);
 
+  
   // assign functional unit type based on decoded instruction
   always_comb begin
     if (cu_if.opcode == REGREG && (instr_r.funct7 == 7'b000_0001)) begin

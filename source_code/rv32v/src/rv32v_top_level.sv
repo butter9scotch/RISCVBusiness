@@ -12,11 +12,13 @@ module rv32v_top_level(
   logic [31:0] rd_data;
   logic [31:0] xs1, xs2;
   logic done;
+  logic decode_done;
 
   assign top_if.rd_wen = rd_wen;
   assign top_if.rd_sel = rd_sel;
   assign top_if.rd_data = rd_data;
   assign top_if.done = done;
+
   assign xs1 = top_if.rs1_data;
   assign xs2 = top_if.rs2_data;
   // Inputs

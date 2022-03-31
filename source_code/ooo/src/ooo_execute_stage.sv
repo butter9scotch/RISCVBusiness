@@ -206,6 +206,8 @@ module ooo_execute_stage(
   //assign execute_commit_if.done_v     = ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
   assign execute_commit_if.exception_v= rv32v_if.exception_v;
   assign execute_commit_if.wdata_v    = rv32v_if.rd_data;     
+  assign execute_commit_if.wen_v    = rv32v_if.rd_wen;     
+  assign hazard_if.vdecode_done = rv32v_hazard_unit.decode_done;
   
   generic_bus_if vector_gen_bus_if();
   // translation of the vector cache model if to the generic bus if
