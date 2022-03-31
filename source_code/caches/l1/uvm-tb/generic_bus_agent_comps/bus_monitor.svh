@@ -50,7 +50,6 @@ class bus_monitor#(int precedence = 0) extends uvm_monitor;
     super.new(name, parent);
     req_ap = new("req_ap", this);
     resp_ap = new("resp_ap", this);
-    cycle = 0;
   endfunction: new
 
   // Build Phase - Get handle to virtual if from config_db
@@ -65,15 +64,13 @@ class bus_monitor#(int precedence = 0) extends uvm_monitor;
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
-    //TODO: DO I NEED TO WORRY ABOUT INTEGER OVERFLOW FOR CYCLE?
     super.run_phase(phase);
 
     forever begin
       cpu_transaction tx;
-      int timeout_lim;
+      int cycle;
 
       @(posedge cif.CLK);
-      cycle++;
 
       if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
@@ -90,15 +87,14 @@ class bus_monitor#(int precedence = 0) extends uvm_monitor;
           tx.data = bus_if.wdata;
         end
 
-        tx.cycle = cycle;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
-        timeout_lim = cycle + env_config.mem_timeout; 
+        cycle = 0; 
         while (bus_if.busy) begin
           @(posedge cif.CLK);
           cycle++; //wait for memory to return
-          if (cycle > timeout_lim) begin
+          if (cycle > env_config.mem_timeout) begin
             `uvm_fatal(this.get_name(), "memory timeout reached")
           end
         end
@@ -107,7 +103,6 @@ class bus_monitor#(int precedence = 0) extends uvm_monitor;
           tx.data = bus_if.rdata;
         end
 
-        tx.cycle = cycle;
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         #(precedence); //delay to give precedence
         resp_ap.write(tx);

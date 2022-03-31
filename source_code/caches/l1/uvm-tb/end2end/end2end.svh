@@ -171,7 +171,6 @@ class end2end extends uvm_component;
       `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", history.size(), `L1_BLOCK_SIZE));
     end
 
-    //TODO: check that words match up to blocks
     while (history.size() > 0) begin
       cpu_transaction t = history.pop_front();
       handle_mem_tx(t);

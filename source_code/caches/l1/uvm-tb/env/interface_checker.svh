@@ -39,7 +39,8 @@ module interface_checker(
     //     property (@(posedge cif.CLK) cpu_if.busy |-> ##2 (cpu_if.ren || cpu_if.wen))
     //     else $fatal(1, "fatal error");
     // assert property (@(posedge mem_if.busy) mem_if.ren || mem_if.wen);
-
+    // assert property(@(posedge cif.CLK) cpu_if.byte_en != 32'hff00ff00);
+    //TODO: IMPLEMENT CHECK FOR VALID BYTE_EN
 endmodule: interface_checker
 
 
