@@ -58,44 +58,45 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
   endfunction
 
   function void write(cpu_transaction t);
-    string str;
     // t is the transaction sent from monitor
     pred_tx = cpu_transaction::type_id::create("pred_tx", this);
     pred_tx.copy(t);
 
     `uvm_info(this.get_name(), $sformatf("Recevied Transaction:\n%s", pred_tx.sprint()), UVM_HIGH)
 
-    $swriteh(str,"memory before:\n%p",memory);
-    `uvm_info(this.get_name(), str, UVM_HIGH)
+    `uvm_info(this.get_name(), $sformatf("memory before:\n%p", memory), UVM_HIGH)
 
     if (pred_tx.rw) begin
       // 1 -> write
-      memory[pred_tx.addr] = pred_tx.data;
+      if (pred_tx.addr < `NONCACHE_START_ADDR) begin
+        word_t mask = byte_mask(pred_tx.byte_sel);
+        if (memory.exists(pred_tx.addr)) begin
+          memory[pred_tx.addr] = (mask & pred_tx.data) | (~mask & memory[pred_tx.addr]);
+        end else begin
+          memory[pred_tx.addr] = (mask & pred_tx.data) | (~mask & read_mem(pred_tx.addr));
+        end
+      end // else don't cache
     end else begin
       // 0 -> read
-      pred_tx.data = byte_mask(read_mem(pred_tx.addr), pred_tx.byte_sel);
+      pred_tx.data = read_mem(pred_tx.addr);
     end
 
-    $swriteh(str,"memory after:\n%p",memory);
-    `uvm_info(this.get_name(), str, UVM_HIGH)
+    `uvm_info(this.get_name(), $sformatf("memory after:\n%p", memory), UVM_HIGH)
 
     // after prediction, the expected output send to the scoreboard 
     pred_ap.write(pred_tx);
   endfunction: write
 
-  function word_t byte_mask(word_t data, logic [3:0] byte_sel);
+  function word_t byte_mask(logic [3:0] byte_en);
     word_t mask;
-    word_t ret;
 
-    mask = 32'hff;
-    ret = '0;
+    mask = '0;
     for (int i = 0; i < 4; i++) begin
-      if (byte_sel[i]) begin
-        ret |= data & mask;
-      end
-      mask = mask << 8;
+        if (byte_en[i]) begin
+            mask |= 32'hff << (8*i);
+        end
     end
-    return ret;
+    return mask;
   endfunction: byte_mask
 
   virtual function word_t read_mem(word_t addr);

@@ -32,7 +32,8 @@ import uvm_pkg::*;
 `include "l1_cache_wrapper_if.svh"
 `include "dut_params.svh"
 
-class bus_monitor extends uvm_monitor;
+class bus_monitor#(int precedence = 0) extends uvm_monitor;
+  // precedence breaks ties for transactions that come during the same tick (lower is higher precedence)
   `uvm_component_utils(bus_monitor)
 
   virtual l1_cache_wrapper_if cif;
@@ -108,6 +109,7 @@ class bus_monitor extends uvm_monitor;
 
         tx.cycle = cycle;
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        #(precedence); //delay to give precedence
         resp_ap.write(tx);
       end
     end

@@ -51,9 +51,8 @@ add wave -noupdate -group l1 /tb_caches_top/l1/hit_idx
 add wave -noupdate -group l1 /tb_caches_top/l1/ridx
 add wave -noupdate -group l1 /tb_caches_top/l1/read_addr
 add wave -noupdate -group l1 /tb_caches_top/l1/next_read_addr
-add wave -noupdate -group l1 /tb_caches_top/l1/byte_en_mask
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {1139880 ps} 0}
+WaveRestoreCursors {{Cursor 1} {1018500 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -69,4 +68,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {322425 ps} {1340925 ps}
+WaveRestoreZoom {0 ps} {388500 ps}

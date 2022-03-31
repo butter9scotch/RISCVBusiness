@@ -32,7 +32,7 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "l1_cache_wrapper_if.svh"
 
-class cpu_monitor extends bus_monitor;
+class cpu_monitor extends bus_monitor #(1);
   `uvm_component_utils(cpu_monitor)
   
   function new(string name, uvm_component parent = null);

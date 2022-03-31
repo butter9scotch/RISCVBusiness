@@ -109,11 +109,20 @@ class end2end extends uvm_component;
         end
       end 
     end
+
+    if (tx.rw) begin
+      // update cache on PrWr
+      cache.update(tx.addr, tx.data);
+    end
   end else begin
       // memory mapped io request
 
       if (history.size() == 1) begin
         cpu_transaction mapped = history.pop_front();
+        //FIXME:CHECK THAT THIS IS PROPER WAY TO DEAL WITH THIS
+        if (tx.rw) begin
+          tx.data = byte_mask(tx.byte_sel) & tx.data;
+        end
         if (mapped.compare(tx)) begin
           successes++;
           `uvm_info(this.get_name(), "Success: Mem Mapped I/O Pass Through Match", UVM_LOW);
@@ -127,19 +136,13 @@ class end2end extends uvm_component;
         `uvm_error(this.get_name(), $sformatf("Error: Mem Mapped I/O Pass Through Transaction Size Mismatch: expected 1, actual %0d", history.size()));
       end
     end
-
-    if (tx.rw) begin
-      // update cache on PrWr
-      cache.update(tx.addr, tx.data);
-    end
-
   endfunction: write_cpu_resp
 
   function void write_mem_resp(cpu_transaction t);
     cpu_transaction tx = cpu_transaction::type_id::create("mem_resp_tx", this);
     tx.copy(t);
 
-    `uvm_info(this.get_name(), $sformatf("Detected Memory Response @%h", tx.addr), UVM_MEDIUM);
+    `uvm_info(this.get_name(), $sformatf("Detected Memory Response:: addr=%h", tx.addr), UVM_MEDIUM);
 
     history.push_back(tx);
   endfunction: write_mem_resp
@@ -186,6 +189,18 @@ class end2end extends uvm_component;
       end 
     end
   endfunction: flush_history
+
+  function word_t byte_mask(logic[3:0] byte_en);
+    word_t mask;
+
+    mask = '0;
+    for (int i = 0; i < 4; i++) begin
+      if (byte_en[i]) begin
+        mask |= 32'hff << (8*i);
+      end
+    end
+    return mask;
+  endfunction: byte_mask
 
 endclass: end2end
 
