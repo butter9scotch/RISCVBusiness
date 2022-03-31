@@ -38,7 +38,7 @@ RUN_COMMON = \
 	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY) \
 	-do "coverage save -onexit -p $(COVERAGE)/$(TESTCASE).ucdb"
 
-POST_RUN = python util/post-run.py
+POST_RUN = python post-run.py
 
 all: build run
 
