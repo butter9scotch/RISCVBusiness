@@ -111,7 +111,7 @@ module ooo_hazard_unit (
   assign prv_pipe_if.ex_rmgmt     = 1'b0;
   
   assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m) ? hazard_if.pc_ex : cb_if.epc;
-  assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? hazard_if.badaddr_i : 
+  assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? cb_if.epc : 
                                hazard_if.badaddr_d;  
   
   assign hazard_if.intr = ~e_commit_stage & prv_pipe_if.intr;

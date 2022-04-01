@@ -513,15 +513,17 @@ module ooo_decode_stage (
   logic alu_write_conflict_stall;
   logic write_conflict_stall;
   logic div_special_case;
+  logic alu_ena;
 
   assign hazard_if.wb_port_conflict  = write_conflict_stall;
 
+  assign alu_ena = cu_if.arith_sigs.ena | cu_if.illegal_insn | fetch_decode_if.mal_insn;
   assign div_write_conflict_stall = cu_if.div_sigs.ena & div_special_case ? write_conflict_reg[0] :
                                     cu_if.div_sigs.ena ? write_conflict_reg[17] :
                                     0;
   assign mul_write_conflict_stall = cu_if.mult_sigs.ena & write_conflict_reg[3];
   assign alu_write_conflict_stall = cu_if.csr_sigs.csr_instr ? write_conflict_reg[1] :
-                                    cu_if.arith_sigs.ena ? write_conflict_reg[0] :
+                                    alu_ena ? write_conflict_reg[0] :
                                     0;
   assign write_conflict_stall     = (div_write_conflict_stall | mul_write_conflict_stall | alu_write_conflict_stall) & ~ebreak_ecall & (cu_if.opcode != opcode_t'('h0));
   assign div_special_case         = fu_source_a == 32'h8000_0000 | fu_source_b == 32'hffff_ffff | fu_source_b == 32'h0;       
@@ -545,7 +547,7 @@ module ooo_decode_stage (
         next_write_conflict_reg = write_conflict_reg | 4'b1000;
     end else if (cu_if.csr_sigs.csr_instr) begin
         next_write_conflict_reg = write_conflict_reg | 2'b10;
-    end else if (cu_if.arith_sigs.ena) begin
+    end else if (alu_ena) begin
         next_write_conflict_reg = write_conflict_reg | 1'b1;
     end
   end

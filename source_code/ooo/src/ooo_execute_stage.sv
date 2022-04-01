@@ -69,11 +69,21 @@ module ooo_execute_stage(
   logic [4:0] reg_rd_mu_ff0, reg_rd_mu_ff1, reg_rd_mu_ff2;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu_ff0, index_mu_ff1, index_mu_ff2; 
   logic branch_mispredict;
+  logic illegal_braddr, illegal_jaddr;
+  logic mal_insn;
+  logic illegal_insn;
 
   assign hazard_if.breakpoint  = decode_execute_if.exception_sigs.breakpoint;
   assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
   assign hazard_if.ret         = decode_execute_if.exception_sigs.ret_insn;
   assign hazard_if.pc_ex       = decode_execute_if.pc;
+
+  assign illegal_jaddr          = (decode_execute_if.jump_sigs.jump_instr & (jump_if.jump_addr[1:0] != 2'b00));
+  assign illegal_braddr         = (decode_execute_if.branch_sigs.branch_instr & (resolved_addr[1:0] != 2'b00));
+  assign mal_insn               = decode_execute_if.exception_sigs.mal_insn | illegal_jaddr | illegal_braddr; 
+  assign illegal_insn           = decode_execute_if.exception_sigs.illegal_insn;
+  assign hazard_if.illegal_insn = cb_if.illegal_insn;
+  assign hazard_if.mal_insn     = cb_if.mal_insn;
   
   /*******************************************************
   *** Arithmetic Unit
@@ -117,7 +127,7 @@ module ooo_execute_stage(
   assign branch_addr  = branch_if.branch_addr;
   assign resolved_addr = branch_if.branch_taken ? branch_addr : decode_execute_if.pc4;
 
-  assign branch_mispredict = decode_execute_if.branch_sigs.branch_instr & (decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken);
+  assign branch_mispredict = decode_execute_if.branch_sigs.branch_instr & (decode_execute_if.branch_sigs.prediction ^ branch_if.branch_taken) & ~(illegal_jaddr | illegal_braddr);
   assign hazard_if.brj_addr = decode_execute_if.jump_sigs.jump_instr ? jump_if.jump_addr :
                               branch_mispredict ? branch_if.branch_addr : 
                               decode_execute_if.pc4;
@@ -439,54 +449,61 @@ module ooo_execute_stage(
   /*******************************************************
   *** Completion buffer writeback port
   *******************************************************/ 
-  assign cb_if.index_ls     = index_ls; 
-  assign cb_if.wdata_ls     = wdata_ls; 
-  assign cb_if.vd_ls        = vd_ls; 
-  assign cb_if.exception_ls = exception_ls; 
-  assign cb_if.ready_ls     = ready_ls; 
-  assign cb_if.mal_ls       = mal_ls; 
-  assign cb_if.wen_ls       = wen_ls; 
+  assign cb_if.index_ls          = index_ls; 
+  assign cb_if.wdata_ls          = wdata_ls; 
+  assign cb_if.vd_ls             = vd_ls; 
+  assign cb_if.exception_type_ls = exception_ls ? MAL_LOADSTORE : NO_EXCEPTION; 
+  assign cb_if.ready_ls          = ready_ls; 
+  assign cb_if.wen_ls            = wen_ls; 
   always_comb begin
-    if (ready_a) begin
+    if (ready_a | illegal_insn | mal_insn) begin
+      if (illegal_insn) begin
+        cb_if.exception_type_sfu = ILLEGAL; 
+        cb_if.wdata_sfu     = decode_execute_if.pc; 
+      end else if (mal_insn) begin
+        cb_if.exception_type_sfu = MAL_NORMAL; 
+        cb_if.wdata_sfu     = decode_execute_if.pc; 
+      end else begin
+        cb_if.exception_type_sfu = NO_EXCEPTION; 
+        cb_if.wdata_sfu     = wdata_a; 
+      end
       cb_if.index_sfu     = index_a; 
-      cb_if.wdata_sfu     = wdata_a; 
       cb_if.vd_sfu        = vd_a; 
-      cb_if.exception_sfu = exception_a; 
       cb_if.ready_sfu     = 1; 
-      cb_if.wen_sfu       = wen_a; 
+      cb_if.wen_sfu       = wen_a & (cb_if.exception_type_sfu == NO_EXCEPTION); 
     end else if (ready_mu) begin
-      cb_if.index_sfu     = index_mu; 
-      cb_if.wdata_sfu     = wdata_mu; 
-      cb_if.vd_sfu        = vd_mu; 
-      cb_if.exception_sfu = exception_mu; 
-      cb_if.ready_sfu     = 1; 
-      cb_if.wen_sfu       = 1; 
+      cb_if.index_sfu          = index_mu; 
+      cb_if.wdata_sfu          = wdata_mu; 
+      cb_if.vd_sfu             = vd_mu; 
+      cb_if.exception_type_sfu = NO_EXCEPTION; 
+      cb_if.ready_sfu          = 1; 
+      cb_if.wen_sfu            = 1; 
     end else if (ready_du) begin
-      cb_if.index_sfu     = index_du; 
-      cb_if.wdata_sfu     = wdata_du; 
-      cb_if.vd_sfu        = vd_du; 
-      cb_if.exception_sfu = exception_du; 
-      cb_if.ready_sfu     = 1; 
-      cb_if.wen_sfu       = 1;  
+      cb_if.index_sfu          = index_du; 
+      cb_if.wdata_sfu          = wdata_du; 
+      cb_if.vd_sfu             = vd_du; 
+      cb_if.exception_type_sfu = NO_EXCEPTION; 
+      cb_if.ready_sfu          = 1; 
+      cb_if.wen_sfu            = 1;  
     end else begin
-      cb_if.index_sfu     = 0; 
-      cb_if.wdata_sfu     = 0; 
-      cb_if.vd_sfu        = 0; 
-      cb_if.exception_sfu = 0; 
-      cb_if.ready_sfu     = 0; 
-      cb_if.wen_sfu       = 0; 
+      cb_if.index_sfu          = 0; 
+      cb_if.wdata_sfu          = 0; 
+      cb_if.vd_sfu             = 0; 
+      cb_if.exception_type_sfu = NO_EXCEPTION; 
+      cb_if.ready_sfu          = 0; 
+      cb_if.wen_sfu            = 0; 
     end
   end
 
   /*******************************************************
-  *** Mal Load Store logic 
+  *** Bad Load Store Address logic 
   *******************************************************/
   logic mal_found;
   logic clear_mal;
   logic mal_type; // 1: Load, 0: Store
-  assign hazard_if.mal_l   = mal_type & cb_if.mal_priv;
-  assign hazard_if.mal_s   = ~mal_type & cb_if.mal_priv;
-  assign clear_mal         = cb_if.mal_priv; 
+  assign hazard_if.mal_l   = mal_type & cb_if.mal_ls;
+  assign hazard_if.mal_s   = ~mal_type & cb_if.mal_ls;
+  assign clear_mal         = cb_if.mal_ls | cb_if.illegal_insn | cb_if.mal_insn; 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
         hazard_if.badaddr_d <= '0;
@@ -499,7 +516,7 @@ module ooo_execute_stage(
     end else if (mal_pulse & ~mal_found) begin
         hazard_if.badaddr_d <= lsif.memory_addr;
         mal_found <= 1;
-        if (wen_ls) begin
+        if (lsif.wen_ls) begin
             mal_type <= 1;
         end else begin
             mal_type <= 0;

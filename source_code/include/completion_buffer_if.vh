@@ -23,7 +23,6 @@ interface completion_buffer_if();
   logic flush;
   logic exception;
   logic branch_mispredict_ena;
-  logic mal_priv;
 
   //VECTOR PIPELINE
   logic rv32v_instr;
@@ -52,8 +51,8 @@ interface completion_buffer_if();
   word_t epc;
   logic [4:0] vd_ls;
   logic [4:0] vd_sfu;
-  logic exception_ls;
-  logic exception_sfu;
+  cb_exception_t exception_type_ls;
+  cb_exception_t exception_type_sfu;
   logic ready_ls;
   logic ready_sfu;
   logic branch_mispredict;
@@ -61,19 +60,21 @@ interface completion_buffer_if();
   logic wen_sfu;
   logic valid_a;
   logic mal_ls;
+  logic illegal_insn;
+  logic mal_insn;
   cpu_tracker_signals_t CPU_TRACKER, CPU_TRACKER_decode;
 
   logic tb_read;
 
   modport cb (
     input alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
-           rv32v_wb_exception, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, 
-           mal_ls, rv32v_wb_scalar_index, index_ls, index_sfu, 
+           rv32v_wb_exception, exception_type_ls, exception_type_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, 
+           rv32v_wb_scalar_index, index_ls, index_sfu, 
            rv32v_wb_vd, vd_ls, vd_sfu, rv32v_wb_scalar_data, wen_sfu,
            wdata_ls, wdata_sfu, CPU_TRACKER_decode, opcode,
     output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
-           exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
-           wdata_final, halt_instr, CPU_TRACKER, epc
+           exception, branch_mispredict_ena, mal_ls, tb_read, cur_tail, vd_final, 
+           wdata_final, halt_instr, CPU_TRACKER, epc, illegal_insn, mal_insn
   );
 
   modport decode (
@@ -86,11 +87,11 @@ interface completion_buffer_if();
   );
 
   modport execute (
-    input index_ls, index_sfu, wdata_ls, wdata_sfu, vd_ls, vd_sfu, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, wen_sfu, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr, mal_priv
+    input illegal_insn, mal_insn, index_ls, index_sfu, wdata_ls, wdata_sfu, vd_ls, vd_sfu, exception_type_ls, exception_type_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, wen_sfu, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
   );
 
   modport hu (
-    input full, empty, flush, exception, branch_mispredict_ena, mal_priv, epc
+    input full, empty, flush, exception, branch_mispredict_ena, epc
   );
 
   modport rv32v (

@@ -41,8 +41,7 @@ module completion_buffer # (
     word_t data;
     logic [4:0] vd;
     logic valid;
-    logic exception;
-    logic mal;
+    cb_exception_t exception_type;
     logic wen;
     logic rv32v;
     logic rv32f;
@@ -66,15 +65,17 @@ module completion_buffer # (
   assign cb_if.wdata_final       = cb[head_sel].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
-  assign cb_if.flush             = cb[head_sel].exception;
-  assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
+  assign cb_if.flush             = cb[head_sel].exception_type != 2'b00;
+  assign cb_if.exception         = cb_if.flush | cb_if.rv32v_exception; // WEN to epc register
   assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
   assign cb_if.branch_mispredict_ena = 0;
-  assign cb_if.mal_priv = cb[head_sel].mal;
-  assign cb_if.epc = cb[head_sel].data;
+  assign cb_if.mal_ls             = cb[head_sel].exception_type == MAL_LOADSTORE;
+  assign cb_if.illegal_insn       = cb[head_sel].exception_type == ILLEGAL; 
+  assign cb_if.mal_insn           = cb[head_sel].exception_type == MAL_NORMAL; 
+  assign cb_if.epc                = cb[head_sel].data;
 
   assign head_sel                = head[$clog2(NUM_ENTRY)-1:0];
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
@@ -163,9 +164,8 @@ module completion_buffer # (
     if (cb_if.ready_sfu) begin
       next_cb[cb_if.index_sfu].data = cb_if.wdata_sfu;
       next_cb[cb_if.index_sfu].vd = cb_if.vd_sfu;
-      next_cb[cb_if.index_sfu].valid = ~cb_if.exception_sfu; 
-      next_cb[cb_if.index_sfu].exception = cb_if.exception_sfu;
-      next_cb[cb_if.index_sfu].mal = 0;
+      next_cb[cb_if.index_sfu].valid = cb_if.exception_type_sfu == NO_EXCEPTION; 
+      next_cb[cb_if.index_sfu].exception_type = cb_if.exception_type_sfu;
       next_cb[cb_if.index_sfu].wen = cb_if.wen_sfu; 
       next_cb[cb_if.index_sfu].rv32v = 0;
       next_cb[cb_if.index_sfu].rv32f = 0;
@@ -174,10 +174,9 @@ module completion_buffer # (
     if (cb_if.ready_ls) begin
       next_cb[cb_if.index_ls].data = cb_if.wdata_ls;
       next_cb[cb_if.index_ls].vd = cb_if.vd_ls;
-      next_cb[cb_if.index_ls].valid = ~cb_if.exception_ls;
-      next_cb[cb_if.index_ls].exception = cb_if.exception_ls;
-      next_cb[cb_if.index_ls].mal = cb_if.mal_ls;
-      next_cb[cb_if.index_ls].wen = cb_if.wen_ls & ~cb_if.exception_ls; 
+      next_cb[cb_if.index_ls].valid = cb_if.exception_type_ls == NO_EXCEPTION;
+      next_cb[cb_if.index_ls].exception_type = cb_if.exception_type_ls;
+      next_cb[cb_if.index_ls].wen = cb_if.wen_ls & cb_if.exception_type_ls == NO_EXCEPTION; 
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
     end
@@ -186,8 +185,7 @@ module completion_buffer # (
       next_cb[cb_if.rv32v_wb_scalar_index].data = cb_if.rv32v_wb_scalar_data;
       next_cb[cb_if.rv32v_wb_scalar_index].vd = cb_if.rv32v_wb_vd; 
       next_cb[cb_if.rv32v_wb_scalar_index].valid = 1;
-      next_cb[cb_if.rv32v_wb_scalar_index].exception = cb_if.rv32v_wb_exception;
-      next_cb[cb_if.rv32v_wb_scalar_index].mal = 0;
+      next_cb[cb_if.rv32v_wb_scalar_index].exception_type = cb_if.rv32v_wb_exception;
       next_cb[cb_if.rv32v_wb_scalar_index].rv32f = 0;
     end
     // TODO: Add floating point signals when integrating FPU
