@@ -43,32 +43,22 @@ interface completion_buffer_if();
   logic rv32f_commit_ena;
 
   //FUNCTIONAL UNIT RESULT
-  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
-  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
-  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls;
-  word_t wdata_a;
-  word_t wdata_mu;
-  word_t wdata_du;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_sfu;
   word_t wdata_ls;
+  word_t wdata_sfu;
   word_t address_a;
   word_t address_ls;
   word_t epc;
-  logic [4:0] vd_a;
-  logic [4:0] vd_mu;
-  logic [4:0] vd_du;
   logic [4:0] vd_ls;
-  logic exception_a;
-  logic exception_mu;
-  logic exception_du;
+  logic [4:0] vd_sfu;
   logic exception_ls;
-  logic ready_a;
-  logic ready_mu;
-  logic ready_du;
+  logic exception_sfu;
   logic ready_ls;
+  logic ready_sfu;
   logic branch_mispredict;
-  logic wen_a;
   logic wen_ls;
+  logic wen_sfu;
   logic valid_a;
   logic mal_ls;
   cpu_tracker_signals_t CPU_TRACKER, CPU_TRACKER_decode;
@@ -77,22 +67,13 @@ interface completion_buffer_if();
 
   modport cb (
     input alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
-           rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, ready_a, 
-           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
-           mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
-           rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, CPU_TRACKER_decode, opcode,
+           rv32v_wb_exception, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, 
+           mal_ls, rv32v_wb_scalar_index, index_ls, index_sfu, 
+           rv32v_wb_vd, vd_ls, vd_sfu, rv32v_wb_scalar_data, wen_sfu,
+           wdata_ls, wdata_sfu, CPU_TRACKER_decode, opcode,
     output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
            wdata_final, halt_instr, CPU_TRACKER, epc
-  );
-  modport commit (
-    output alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
-           rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, ready_a, 
-           ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, 
-           mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, 
-           rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, rv32v_wb_scalar_data, 
-           wdata_a, wdata_mu, wdata_du, wdata_ls, address_a, address_ls, halt_instr
   );
 
   modport decode (
@@ -105,7 +86,7 @@ interface completion_buffer_if();
   );
 
   modport execute (
-    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr
+    input index_ls, index_sfu, wdata_ls, wdata_sfu, vd_ls, vd_sfu, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, wen_sfu, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
   );
 
   modport hu (

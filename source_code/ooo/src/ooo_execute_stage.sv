@@ -502,7 +502,6 @@ module ooo_execute_stage(
     end
   end
 
-  // -------------------------------------------------------------------------NEW OPT-------------------------------------
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
@@ -582,6 +581,11 @@ module ooo_execute_stage(
 
   assign mal_ls = mal_pulse; 
 
+  assign cb_if.halt_instr   = decode_execute_if.halt_instr;
+
+  /*******************************************************
+  *** Bypass from FU
+  *******************************************************/ 
   assign bypass_if.rd_alu    = vd_a;
   assign bypass_if.valid_alu = wen_a & ready_a;
   assign bypass_if.data_alu  = wdata_a;
@@ -595,25 +599,9 @@ module ooo_execute_stage(
   assign bypass_if.valid_lsu = wen_ls & ready_ls & ~exception_ls;
   assign bypass_if.data_lsu  = wdata_ls;
 
-  assign cb_if.index_a     = index_a; 
-  assign cb_if.wdata_a     = wdata_a; 
-  assign cb_if.vd_a        = vd_a; 
-  assign cb_if.exception_a = exception_a; 
-  assign cb_if.ready_a     = ready_a; 
-  assign cb_if.wen_a       = wen_a; 
-
-  assign cb_if.index_mu     = index_mu; 
-  assign cb_if.wdata_mu     = wdata_mu;  
-  assign cb_if.vd_mu        = vd_mu; 
-  assign cb_if.exception_mu = exception_mu; 
-  assign cb_if.ready_mu     = ready_mu; 
-
-  assign cb_if.index_du     = index_du; 
-  assign cb_if.wdata_du     = wdata_du; 
-  assign cb_if.vd_du        = vd_du; 
-  assign cb_if.exception_du = exception_du; 
-  assign cb_if.ready_du     = ready_du; 
-
+  /*******************************************************
+  *** Completion buffer writeback port
+  *******************************************************/ 
   assign cb_if.index_ls     = index_ls; 
   assign cb_if.wdata_ls     = wdata_ls; 
   assign cb_if.vd_ls        = vd_ls; 
@@ -621,7 +609,36 @@ module ooo_execute_stage(
   assign cb_if.ready_ls     = ready_ls; 
   assign cb_if.mal_ls       = mal_ls; 
   assign cb_if.wen_ls       = wen_ls; 
-
-  assign cb_if.halt_instr   = decode_execute_if.halt_instr;
+  always_comb begin
+    if (ready_a) begin
+      cb_if.index_sfu     = index_a; 
+      cb_if.wdata_sfu     = wdata_a; 
+      cb_if.vd_sfu        = vd_a; 
+      cb_if.exception_sfu = exception_a; 
+      cb_if.ready_sfu     = 1; 
+      cb_if.wen_sfu       = wen_a; 
+    end else if (ready_mu) begin
+      cb_if.index_sfu     = index_mu; 
+      cb_if.wdata_sfu     = wdata_mu; 
+      cb_if.vd_sfu        = vd_mu; 
+      cb_if.exception_sfu = exception_mu; 
+      cb_if.ready_sfu     = 1; 
+      cb_if.wen_sfu       = 1; 
+    end else if (ready_du) begin
+      cb_if.index_sfu     = index_du; 
+      cb_if.wdata_sfu     = wdata_du; 
+      cb_if.vd_sfu        = vd_du; 
+      cb_if.exception_sfu = exception_du; 
+      cb_if.ready_sfu     = 1; 
+      cb_if.wen_sfu       = 1;  
+    end else begin
+      cb_if.index_sfu     = 0; 
+      cb_if.wdata_sfu     = 0; 
+      cb_if.vd_sfu        = 0; 
+      cb_if.exception_sfu = 0; 
+      cb_if.ready_sfu     = 0; 
+      cb_if.wen_sfu       = 0; 
+    end
+  end
 
 endmodule

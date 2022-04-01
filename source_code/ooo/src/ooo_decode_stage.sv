@@ -507,7 +507,6 @@ module ooo_decode_stage (
     end
   end
 
-  // -------------------------------------------------------------------------NEW OPT-------------------------------------
   logic [18:0] write_conflict_reg, next_write_conflict_reg;
   logic div_write_conflict_stall;
   logic mul_write_conflict_stall;
