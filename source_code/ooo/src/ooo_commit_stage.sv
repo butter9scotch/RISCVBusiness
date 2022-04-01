@@ -60,14 +60,9 @@ module ooo_commit_stage(
 
   assign hazard_if.fault_l      = 1'b0;
   assign hazard_if.fault_s      = 1'b0;
-  //assign hazard_if.illegal_insn = execute_commit_if.illegal_insn &  execute_commit_if.invalid_csr; //Illegal Opcode
-  //assign hazard_if.mal_insn     = execute_commit_if.mal_insn | illegal_jaddr | illegal_braddr; //Instruction not loaded from PC+4
   assign hazard_if.fault_insn   = execute_commit_if.fault_insn; //assigned 1'b0
-  assign hazard_if.badaddr_i    = execute_commit_if.pc;// bad addr - instr memory
   assign hazard_if.token        = execute_commit_if.token;
   assign hazard_if.intr_taken   = execute_commit_if.intr_seen;
-  //assign illegal_jaddr          = (execute_commit_if.jump_instr & (execute_commit_if.jump_addr[1:0] != 2'b00));
-  //assign illegal_braddr         = (execute_commit_if.branch_instr & (execute_commit_if.br_resolved_addr[1:0] != 2'b00));
 
   assign valid_pc = (execute_commit_if.opcode != opcode_t'('h0));
 

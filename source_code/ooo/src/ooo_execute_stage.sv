@@ -81,7 +81,7 @@ module ooo_execute_stage(
   assign illegal_jaddr          = (decode_execute_if.jump_sigs.jump_instr & (jump_if.jump_addr[1:0] != 2'b00));
   assign illegal_braddr         = (decode_execute_if.branch_sigs.branch_instr & (resolved_addr[1:0] != 2'b00));
   assign mal_insn               = decode_execute_if.exception_sigs.mal_insn | illegal_jaddr | illegal_braddr; 
-  assign illegal_insn           = decode_execute_if.exception_sigs.illegal_insn;
+  assign illegal_insn           = decode_execute_if.exception_sigs.illegal_insn | prv_pipe_if.invalid_csr;
   assign hazard_if.illegal_insn = cb_if.illegal_insn;
   assign hazard_if.mal_insn     = cb_if.mal_insn;
   
