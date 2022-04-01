@@ -100,7 +100,7 @@ interface ooo_hazard_unit_if();
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
-           epc, pc_ex
+           epc, pc_ex, mal_l, mal_s, badaddr_d
   );
 
   modport fetch (
@@ -129,9 +129,9 @@ interface ooo_hazard_unit_if();
 
   modport commit (
     input stall_commit,
-    output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
+    output fault_l, fault_s, mal_insn, fault_insn, 
            intr_taken, breakpoint, env_m, illegal_insn, token, 
-           epc, badaddr_d, badaddr_i, rob_full, rob_empty, pc_en, execute_commit_flush
+           epc, badaddr_i, rob_full, rob_empty, pc_en, execute_commit_flush
   );
 
   modport memory (

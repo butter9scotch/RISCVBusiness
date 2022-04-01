@@ -263,27 +263,6 @@ module ooo_execute_stage(
   //Forwading logic
   assign hazard_if.load   = decode_execute_if.lsu_sigs.dren;
 
-  always_ff @(posedge CLK, negedge nRST) begin : ARITH_UNIT
-    if (~nRST) begin
-      execute_commit_if.mult_sigs <= '0;
-      execute_commit_if.div_sigs <= '0;
-      execute_commit_if.lsu_sigs <= '0;
-      execute_commit_if.arith_sigs <= '0;
-    end else begin
-      if (hazard_if.execute_commit_flush | (hazard_if.stall_ex & ~hazard_if.stall_commit) | halt) begin
-        execute_commit_if.mult_sigs <= '0;
-        execute_commit_if.div_sigs <= '0;
-        execute_commit_if.lsu_sigs <= '0;
-        execute_commit_if.arith_sigs <= '0;
-      end else if(~hazard_if.stall_commit) begin
-        execute_commit_if.mult_sigs <= decode_execute_if.mult_sigs;
-        execute_commit_if.div_sigs <= decode_execute_if.div_sigs;
-        execute_commit_if.lsu_sigs <= decode_execute_if.lsu_sigs;
-        execute_commit_if.arith_sigs <= decode_execute_if.arith_sigs;
-      end
-    end
-  end
-
   // word_t next_pc;
   // One pc port for the commit stage, more than one possible for the pc
   // to come from. we might be able to mux this, or it might need to be 
@@ -298,51 +277,13 @@ module ooo_execute_stage(
   *******************************************************/ 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST ) begin
-      //WRITEBACK Signals:
-      //ARITHMETIC
-      execute_commit_if.wen_au           <= '0;
-      execute_commit_if.wdata_au         <= '0;
-      execute_commit_if.reg_rd_au        <= '0;
-      //MULTIPLY
-      execute_commit_if.wen_mu           <= '0;
-      execute_commit_if.wdata_mu         <= '0;
-      execute_commit_if.reg_rd_mu        <= '0;
-      //DIVIDE
-      execute_commit_if.wen_du           <= '0;
-      execute_commit_if.wdata_du         <= '0;
-      execute_commit_if.reg_rd_du        <= '0;
-      //LOADSTORE
-      execute_commit_if.wen_ls           <= '0;
-      execute_commit_if.wdata_ls         <= '0;
-      execute_commit_if.reg_rd_ls        <= '0;
-      execute_commit_if.opcode           <= '0;
-      execute_commit_if.dren             <= '0;
-      execute_commit_if.dwen             <= '0;
       //EXECUTE
-      execute_commit_if.mal_addr         <= '0;
-      execute_commit_if.breakpoint       <= '0;
-      execute_commit_if.ecall_insn       <= '0;
-      execute_commit_if.ret_insn         <= '0;
       execute_commit_if.illegal_insn     <= '0;
       execute_commit_if.invalid_csr      <= '0;
       execute_commit_if.mal_insn         <= '0;
       execute_commit_if.fault_insn       <= '0;
-      execute_commit_if.memory_addr      <= '0;
       execute_commit_if.token            <= '0;
       execute_commit_if.intr_seen        <= '0;
-      execute_commit_if.jump_instr       <= '0;
-      execute_commit_if.jump_addr        <= '0;
-      execute_commit_if.exception_a      <= 0; // TODO
-      execute_commit_if.exception_mu     <= 0; // TODO
-      execute_commit_if.exception_du     <= 0; // TODO
-      execute_commit_if.exception_ls     <= 0; // TODO
-
-      execute_commit_if.index_a  <= '0;
-      execute_commit_if.index_mu <= '0;
-      execute_commit_if.index_ls <= '0;
-      execute_commit_if.index_du <= '0;
-
-      //execute_commit_if.branch_instr     <= '0;
       execute_commit_if.br_resolved_addr <= '0;
       //BRANCH PREDICTOR UPDATE
       execute_commit_if.branch_instr      <= '0;
@@ -350,138 +291,33 @@ module ooo_execute_stage(
       execute_commit_if.prediction        <= '0;
       execute_commit_if.br_resolved_addr  <= '0;
       execute_commit_if.pc                <= '0;
-      execute_commit_if.pc_a                <= '0;
       execute_commit_if.pc4               <= '0;
-      execute_commit_if.pc_ls    <= '0;
-
-      //Halt
-      execute_commit_if.halt_instr       <= '0;
-      //CPU tracker
-      execute_commit_if.CPU_TRACKER <= '0;
     end
     else begin
       if (hazard_if.execute_commit_flush | hazard_if.stall_commit & ~hazard_if.stall_ex || halt ) begin
-        //WRITEBACK Signals:
-        //ARITHMETIC
-        execute_commit_if.wen_au           <= '0;
-        execute_commit_if.wdata_au         <= '0;
-        execute_commit_if.reg_rd_au        <= '0;
-        //MULTIPLY
-        execute_commit_if.wen_mu           <= '0;
-        execute_commit_if.wdata_mu         <= '0;
-        execute_commit_if.reg_rd_mu        <= '0;
-        //DIVIDE
-        execute_commit_if.wen_du           <= '0;
-        execute_commit_if.wdata_du         <= '0;
-        execute_commit_if.reg_rd_du        <= '0;
-        //LOADSTORE
-        execute_commit_if.wen_ls           <= '0;
-        execute_commit_if.wdata_ls         <= '0;
-        execute_commit_if.reg_rd_ls        <= '0;
-        execute_commit_if.opcode           <= '0;
-        execute_commit_if.dren             <= '0;
-        execute_commit_if.dwen             <= '0;
         //EXCEPTION
-        execute_commit_if.mal_addr         <= '0;
-        execute_commit_if.breakpoint       <= '0;
-        execute_commit_if.ecall_insn       <= '0;
-        execute_commit_if.ret_insn         <= '0;
         execute_commit_if.illegal_insn     <= '0;
         execute_commit_if.invalid_csr      <= '0;
         execute_commit_if.mal_insn         <= '0;
         execute_commit_if.fault_insn       <= '0;
-        execute_commit_if.memory_addr      <= '0;
         execute_commit_if.pc               <= '0;
-        execute_commit_if.pc_a               <= '0;
-        execute_commit_if.pc4               <= '0;
         execute_commit_if.token            <= '0;
         execute_commit_if.intr_seen        <= '0;
-        execute_commit_if.jump_instr       <= '0;
-        execute_commit_if.jump_addr        <= '0;
-        execute_commit_if.exception_a            <= 0; // TODO
-        execute_commit_if.exception_mu            <= 0; // TODO
-        execute_commit_if.exception_du            <= 0; // TODO
-        execute_commit_if.exception_ls            <= 0; // TODO
-
-        execute_commit_if.index_a  <= '0;
-        execute_commit_if.index_mu <= '0;
-        execute_commit_if.index_ls <= '0;
-        execute_commit_if.index_du <= '0;
-        execute_commit_if.pc_ls    <= '0;
-
-
-        //execute_commit_if.branch_instr     <= '0;
-        execute_commit_if.br_resolved_addr <= '0;
         //BRANCH PREDICTOR UPDATE
         execute_commit_if.branch_instr      <= '0;
         execute_commit_if.branch_taken      <= '0;
         execute_commit_if.prediction        <= '0;
         execute_commit_if.br_resolved_addr  <= '0;
-        execute_commit_if.pc_a                <= '0;
-        execute_commit_if.pc                <= '0;
         execute_commit_if.pc4               <= '0;
-        //Halt
-        execute_commit_if.halt_instr       <= '0;
-        //CPU tracker
-        execute_commit_if.CPU_TRACKER <= '0;
       end else if (~hazard_if.stall_commit) begin
-        execute_commit_if.done_ls <= lsif.done_ls;
-        execute_commit_if.done_mu <= mif.done_mu;
-        execute_commit_if.done_du <= dif.done_du;
-        execute_commit_if.done_a  <= decode_execute_if.arith_sigs.ena; //auif.done_a;
-        //WRITEBACK Signals:
-        //ARITHMETIC
-
-        execute_commit_if.wen_au                 <= auif.wen_au; 
-        execute_commit_if.wdata_au               <= decode_execute_if.csr_sigs.csr_swap ? csr_rdata : auif.wdata_au;
-        execute_commit_if.reg_rd_au              <= auif.reg_rd_au;
-        //MULTIPLY
-        //execute_commit_if.wen_mu                 <= mif.done_mu; //done
-        execute_commit_if.wdata_mu               <= mif.wdata_mu;
-        execute_commit_if.reg_rd_mu              <= reg_rd_mu_ff2;
-        execute_commit_if.index_mu               <= index_mu_ff2;
-        //DIVIDE
-        //execute_commit_if.wen_du                 <= dif.done_du; //or finished
-        execute_commit_if.wdata_du               <= dif.wdata_du;
-        /*if (dif.start_div) begin
-                execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
-                execute_commit_if.index_du               <= dif.index_du;
-        end */
-        //LOADSTORE
-        execute_commit_if.wen_ls                 <= lsif.wen_ls; 
-        execute_commit_if.wdata_ls               <= lsif.wdata_ls;
-        execute_commit_if.reg_rd_ls              <= lsif.reg_rd_ls;
-        execute_commit_if.opcode                 <= decode_execute_if.lsu_sigs.opcode;
-        execute_commit_if.dren                   <= lsif.dren_ls;
-        execute_commit_if.dwen                   <= lsif.dwen_ls;
-        if (decode_execute_if.lsu_sigs.dren || decode_execute_if.lsu_sigs.dwen) begin
-                execute_commit_if.pc_ls          <= decode_execute_if.pc;
-        end
         //exception
-        execute_commit_if.mal_addr               <= lsif.mal_addr;
-        execute_commit_if.breakpoint             <= decode_execute_if.exception_sigs.breakpoint;
-        execute_commit_if.ecall_insn             <= decode_execute_if.exception_sigs.ecall_insn;
-        execute_commit_if.ret_insn               <= decode_execute_if.exception_sigs.ret_insn;
         execute_commit_if.illegal_insn           <= decode_execute_if.exception_sigs.illegal_insn;
         execute_commit_if.invalid_csr            <= prv_pipe_if.invalid_csr;
         execute_commit_if.mal_insn               <= decode_execute_if.exception_sigs.mal_insn;
         execute_commit_if.fault_insn             <= decode_execute_if.exception_sigs.fault_insn;
-        execute_commit_if.memory_addr            <= lsif.memory_addr;
-        execute_commit_if.pc_a                   <= decode_execute_if.pc;
         execute_commit_if.pc                     <= decode_execute_if.pc;
         execute_commit_if.token                  <= 0;
         execute_commit_if.intr_seen              <= intr_taken_ex; //TODO
-        execute_commit_if.jump_instr             <= decode_execute_if.jump_sigs.jump_instr;
-        execute_commit_if.jump_addr              <= jump_if.jump_addr;
-
-        execute_commit_if.exception_a            <= 0; // TODO
-        execute_commit_if.exception_mu           <= 0; // TODO
-        execute_commit_if.exception_du           <= 0; // TODO
-        //execute_commit_if.exception_ls           <= lsif.mal_addr; // TODO      
-        if (execute_commit_if.exception_ls) execute_commit_if.exception_ls <= 0;
-        else execute_commit_if.exception_ls      <= lsif.mal_addr;
-        //execute_commit_if.branch_instr         <= branch_addr;
-        execute_commit_if.br_resolved_addr       <= resolved_addr;
         //BRANCH PREDICTOR UPDATE
         execute_commit_if.branch_instr           <= decode_execute_if.branch_sigs.branch_instr;
         execute_commit_if.branch_taken           <= branch_if.branch_taken;
@@ -489,14 +325,6 @@ module ooo_execute_stage(
         execute_commit_if.br_resolved_addr       <= resolved_addr;
         execute_commit_if.pc4                    <= decode_execute_if.pc4;
 
-        execute_commit_if.index_a  <= auif.index_a;
-        execute_commit_if.index_ls <= lsif.index_ls;
-
-        
-        //Halt
-        execute_commit_if.halt_instr             <= decode_execute_if.halt_instr;
-        //CPU tracker
-        execute_commit_if.CPU_TRACKER <= decode_execute_if.tracker_sigs;
        
       end
     end
@@ -510,6 +338,7 @@ module ooo_execute_stage(
   word_t wdata_mu;
   word_t wdata_du;
   word_t wdata_ls;
+  word_t pc_ls_reg;
   logic [4:0] vd_a;
   logic [4:0] vd_mu;
   logic [4:0] vd_du;
@@ -538,6 +367,14 @@ module ooo_execute_stage(
     end else if (dif.start_div) begin
       reg_rd_du_reg <= dif.reg_rd_du;
       index_du_reg <= dif.index_du;
+    end
+  end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      pc_ls_reg <= '0;
+    end else if (decode_execute_if.lsu_sigs.dren || decode_execute_if.lsu_sigs.dwen) begin
+      pc_ls_reg <= decode_execute_if.pc;
     end
   end
 
@@ -574,7 +411,7 @@ module ooo_execute_stage(
   assign wdata_a   = decode_execute_if.jump_sigs.jump_instr ? decode_execute_if.pc + 4 : decode_execute_if.csr_sigs.csr_swap ? csr_rdata : auif.wdata_au;
   assign wdata_mu  = mif.wdata_mu;  
   assign wdata_du  = dif.wdata_du;
-  assign wdata_ls  = exception_ls ? execute_commit_if.pc_ls : lsif.wdata_ls; 
+  assign wdata_ls  = exception_ls ? pc_ls_reg : lsif.wdata_ls; 
 
   assign wen_a  = (exception_a | decode_execute_if.branch_sigs.branch_instr) ? 1'b0 : 1'b1;
   assign wen_ls = lsif.wen_ls & ~exception_ls; 
@@ -638,6 +475,35 @@ module ooo_execute_stage(
       cb_if.exception_sfu = 0; 
       cb_if.ready_sfu     = 0; 
       cb_if.wen_sfu       = 0; 
+    end
+  end
+
+  /*******************************************************
+  *** Mal Load Store logic 
+  *******************************************************/
+  logic mal_found;
+  logic clear_mal;
+  logic mal_type; // 1: Load, 0: Store
+  assign hazard_if.mal_l   = mal_type & cb_if.mal_priv;
+  assign hazard_if.mal_s   = ~mal_type & cb_if.mal_priv;
+  assign clear_mal         = cb_if.mal_priv; 
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+        hazard_if.badaddr_d <= '0;
+        mal_found <= 0;
+        mal_type <= 0;
+    end else if (clear_mal) begin
+        hazard_if.badaddr_d <= '0;
+        mal_found <= '0;
+        mal_type <= 0;
+    end else if (mal_pulse & ~mal_found) begin
+        hazard_if.badaddr_d <= lsif.memory_addr;
+        mal_found <= 1;
+        if (wen_ls) begin
+            mal_type <= 1;
+        end else begin
+            mal_type <= 0;
+        end
     end
   end
 

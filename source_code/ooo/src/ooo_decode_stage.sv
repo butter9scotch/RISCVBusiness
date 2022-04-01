@@ -272,14 +272,14 @@ module ooo_decode_stage (
   always_ff @(posedge CLK, negedge nRST) begin : TOP_CONTROL_SIGNALS
     if (~nRST) begin
       decode_execute_if.sfu_type   <= ARITH_S;
-      decode_execute_if.tracker_sigs <= '0;
+      //decode_execute_if.tracker_sigs <= '0;
     end else begin 
         if ((hazard_if.decode_execute_flush |(hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) | halt) begin
           decode_execute_if.sfu_type   <= ARITH_S;
-          decode_execute_if.tracker_sigs <= '0;
+          //decode_execute_if.tracker_sigs <= '0;
         end else if(~hazard_if.stall_ex) begin
           decode_execute_if.sfu_type   <= cu_if.sfu_type;
-          decode_execute_if.tracker_sigs <= CPU_TRACKER;
+          //decode_execute_if.tracker_sigs <= CPU_TRACKER;
         end
     end
   end

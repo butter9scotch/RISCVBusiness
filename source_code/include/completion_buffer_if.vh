@@ -82,11 +82,11 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input mal_priv, CPU_TRACKER
+    input CPU_TRACKER
   );
 
   modport execute (
-    input index_ls, index_sfu, wdata_ls, wdata_sfu, vd_ls, vd_sfu, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, wen_sfu, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr
+    input index_ls, index_sfu, wdata_ls, wdata_sfu, vd_ls, vd_sfu, exception_ls, exception_sfu, ready_ls, ready_sfu, branch_mispredict, wen_ls, wen_sfu, valid_a, mal_ls, CPU_TRACKER, opcode, halt_instr, mal_priv
   );
 
   modport hu (
