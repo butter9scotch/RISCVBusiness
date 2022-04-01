@@ -43,6 +43,7 @@ module rv32v_reorder_buffer # (
     logic exception;
     logic [4:0] exception_index;
     logic single_bit_write;
+    logic commit_ack;
     sew_t sew;
   } rob_entry;
 
@@ -109,7 +110,8 @@ module rv32v_reorder_buffer # (
 
   assign rob_if.cur_tail    = tail[$clog2(NUM_ENTRY)-1:0]; 
   assign rob_if.full        = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
-  assign rob_if.commit_done = rob[head].valid & rob_if.commit_ena;
+  assign rob_if.vreg_wen    = rob[head].valid & rob_if.commit_ena;
+  assign rob_if.commit_done = rob_if.vreg_wen & rob[head].commit_ack;
   assign rob_if.vd_final    = rob[head].vd;
   assign rob_if.wen_final   = rob_if.rv32v_exception ? (rob[head].wen & ~(16'hffff << excep_index_final)) : rob[head].wen;
   assign rob_if.wdata_final = rob[head].data;
@@ -139,7 +141,7 @@ module rv32v_reorder_buffer # (
     next_head = head;
     if (flush) begin
       next_head = 0;
-    end else if (rob_if.commit_done) begin
+    end else if (rob_if.vreg_wen) begin
       next_head = head + 1;
     end
   end
@@ -148,7 +150,7 @@ module rv32v_reorder_buffer # (
     next_tail = tail;
     if (flush) begin
         next_tail = 0;
-    end else if (rob_if.alloc_ena) begin
+    end else if (rob_if.alloc_ena & ~rob_if.full) begin
       if (rob_if.single_bit_op) begin
         next_tail = tail + 1;
       end else begin
@@ -208,7 +210,7 @@ module rv32v_reorder_buffer # (
     // Set default value
     next_rob = rob;
     // Clear head entry when committed
-    if (rob_if.commit_done) begin
+    if (rob_if.vreg_wen) begin
       next_rob[head] = '0;
     end
     // Next state for arithemtic unit result
@@ -226,11 +228,13 @@ module rv32v_reorder_buffer # (
         next_rob[rob_if.index_a].data[rob_if.woffset_a+:2] = {rob_if.wdata_a[32], rob_if.wdata_a[0]};
         next_rob[rob_if.index_a].wen = '1; // TODO: Corner case: Masked single bit write. 
         next_rob[rob_if.index_a].valid = (rob_if.woffset_a == VLEN - 1) | (rob_if.woffset_a == VLEN - 2) | reached_max_a;
+        next_rob[rob_if.index_a].commit_ack = reached_max_a;
       end else begin
         next_rob[a_em_if.final_index].single_bit_write = 0; 
         next_rob[a_em_if.final_index].sew = rob_if.sew_a;
         next_rob[a_em_if.final_index].vd = a_em_if.final_vd;
         next_rob[a_em_if.final_index].valid = a_em_if.filled_one_entry | reached_max_a;
+        next_rob[a_em_if.final_index].commit_ack = reached_max_a;
         case(rob_if.sew_a)
           SEW32: begin
             next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:64] = rob_if.wdata_a;
@@ -254,6 +258,7 @@ module rv32v_reorder_buffer # (
       next_rob[mu_em_if.final_index].vd = mu_em_if.final_vd;
       next_rob[mu_em_if.final_index].valid = mu_em_if.filled_one_entry | reached_max_mu;
       next_rob[mu_em_if.final_index].exception = rob[mu_em_if.final_index].exception | rob_if.exception_mu;
+      next_rob[mu_em_if.final_index].commit_ack = reached_max_mu;
       if (rob_if.exception_mu & ~rob[mu_em_if.final_index].exception) begin
         next_rob[mu_em_if.final_index].exception_index = rob_if.exception_index_mu;
       end else begin
@@ -280,6 +285,7 @@ module rv32v_reorder_buffer # (
       next_rob[du_em_if.final_index].sew = rob_if.sew_du;
       next_rob[du_em_if.final_index].vd = du_em_if.final_vd;
       next_rob[du_em_if.final_index].valid = du_em_if.filled_one_entry | reached_max_du;
+      next_rob[du_em_if.final_index].commit_ack = reached_max_du;
       next_rob[du_em_if.final_index].exception = rob[du_em_if.final_index].exception | rob_if.exception_du;
       if (rob_if.exception_du & ~rob[du_em_if.final_index].exception) begin
         next_rob[du_em_if.final_index].exception_index = rob_if.exception_index_du;
@@ -307,6 +313,7 @@ module rv32v_reorder_buffer # (
       next_rob[m_em_if.final_index].sew = rob_if.sew_m;
       next_rob[m_em_if.final_index].vd = m_em_if.final_vd;
       next_rob[m_em_if.final_index].valid = m_em_if.filled_one_entry | reached_max_m;
+      next_rob[m_em_if.final_index].commit_ack = reached_max_m;
       next_rob[m_em_if.final_index].exception = rob[m_em_if.final_index].exception | rob_if.exception_m;
       if (rob_if.exception_m & ~rob[m_em_if.final_index].exception) begin
         next_rob[m_em_if.final_index].exception_index = rob_if.exception_index_m;
@@ -334,6 +341,7 @@ module rv32v_reorder_buffer # (
       next_rob[p_em_if.final_index].sew = rob_if.sew_p;
       next_rob[p_em_if.final_index].vd = p_em_if.final_vd;
       next_rob[p_em_if.final_index].valid = p_em_if.filled_one_entry | reached_max_p;
+      next_rob[p_em_if.final_index].commit_ack = reached_max_p;
       next_rob[p_em_if.final_index].exception = rob[p_em_if.final_index].exception | rob_if.exception_p;
       if (rob_if.exception_p & ~rob[p_em_if.final_index].exception) begin
         next_rob[p_em_if.final_index].exception_index = rob_if.exception_index_p;
@@ -361,6 +369,7 @@ module rv32v_reorder_buffer # (
       next_rob[ls_em_if.final_index].sew = rob_if.sew_ls;
       next_rob[ls_em_if.final_index].vd = ls_em_if.final_vd;
       next_rob[ls_em_if.final_index].valid = ls_em_if.filled_one_entry | reached_max_ls;
+      next_rob[ls_em_if.final_index].commit_ack = reached_max_ls;
       next_rob[ls_em_if.final_index].exception = rob[ls_em_if.final_index].exception | rob_if.exception_ls;
       if (rob_if.exception_ls & ~rob[ls_em_if.final_index].exception) begin
         next_rob[ls_em_if.final_index].exception_index = rob_if.exception_index_ls;
