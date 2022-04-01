@@ -64,7 +64,7 @@ module ooo_commit_stage(
   assign hazard_if.mal_s        = ~mal_type & cb_if.mal_priv;
   //assign hazard_if.breakpoint   = execute_commit_if.breakpoint;
   //assign hazard_if.env_m        = execute_commit_if.ecall_insn;
-  assign hazard_if.ret          = execute_commit_if.ret_insn;
+  //assign hazard_if.ret          = execute_commit_if.ret_insn;
   assign hazard_if.illegal_insn = execute_commit_if.illegal_insn &  execute_commit_if.invalid_csr; //Illegal Opcode
   assign hazard_if.mal_insn     = execute_commit_if.mal_insn | illegal_jaddr | illegal_braddr; //Instruction not loaded from PC+4
   assign hazard_if.fault_insn   = execute_commit_if.fault_insn; //assigned 1'b0
@@ -130,11 +130,11 @@ module ooo_commit_stage(
   /*******************************************************
   *** Write to Completion Buffer logic 
   *******************************************************/
-  assign cb_if.index_a     = execute_commit_if.index_a; 
+  /*assign cb_if.index_a     = execute_commit_if.index_a; 
   assign cb_if.wdata_a     = execute_commit_if.exception_a ? execute_commit_if.pc_a : execute_commit_if.jump_instr ? execute_commit_if.pc_a + 4 : execute_commit_if.wdata_au; 
   assign cb_if.vd_a        = execute_commit_if.reg_rd_au; 
   assign cb_if.exception_a = execute_commit_if.exception_a; 
-  assign cb_if.ready_a     = (execute_commit_if.ret_insn | execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr & valid_pc) & execute_commit_if.done_a; 
+  assign cb_if.ready_a     = (execute_commit_if.wen_au | execute_commit_if.branch_instr | execute_commit_if.jump_instr & valid_pc) & execute_commit_if.done_a; 
   assign cb_if.wen_a       = (cb_if.exception_a | execute_commit_if.branch_instr) ? 1'b0 : 1'b1; 
 
   assign cb_if.index_mu     = execute_commit_if.index_mu; 
@@ -165,7 +165,7 @@ module ooo_commit_stage(
   assign cb_if.ready_ls     = execute_commit_if.done_ls | execute_commit_if.exception_ls; 
   assign cb_if.mal_ls       = execute_commit_if.mal_addr; 
   assign cb_if.halt_instr   = execute_commit_if.halt_instr;
-  assign cb_if.wen_ls       = execute_commit_if.wen_ls & ~execute_commit_if.exception_ls;
+  assign cb_if.wen_ls       = execute_commit_if.wen_ls & ~execute_commit_if.exception_ls; */
   //assign cb_if.opcode_commit = execute_commit_if.opcode;
 
   /*******************************************************

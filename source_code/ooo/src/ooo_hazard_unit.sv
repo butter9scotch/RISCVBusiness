@@ -60,7 +60,7 @@ module ooo_hazard_unit (
   assign rd_busy = hazard_if.rd_busy & hazard_if.wen;
 
   //assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
-  assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls); 
+  assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls) || hazard_if.wb_port_conflict; 
 
   assign hazard_if.stall_au = hazard_if.csr;
   assign hazard_if.stall_du = hazard_if.busy_du;
@@ -123,7 +123,7 @@ module ooo_hazard_unit (
   assign hazard_if.loadstore_flush = cb_if.flush;
 
 
-  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken | hazard_if.breakpoint | hazard_if.env_m;
+  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret;
 
   // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
   // assign intr_e_flush = intr_exception;

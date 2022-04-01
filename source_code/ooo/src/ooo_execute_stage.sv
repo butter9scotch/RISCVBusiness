@@ -39,6 +39,8 @@
 `include "cache_model_if.vh" 
 `include "rv32v_hazard_unit_if.vh"
 `include "rv32v_top_level_if.vh"
+`include "ooo_bypass_unit_if.vh"
+`include "completion_buffer_if.vh"
 
 module ooo_execute_stage(
   input logic CLK, nRST,halt,
@@ -49,7 +51,9 @@ module ooo_execute_stage(
   //branch_res_if.execute branch_if,
   cache_control_if.pipeline cc_if,
   prv_pipeline_if.pipe  prv_pipe_if,
-  generic_bus_if.cpu dgen_bus_if
+  generic_bus_if.cpu dgen_bus_if,
+  ooo_bypass_unit_if.execute bypass_if,
+  completion_buffer_if.execute cb_if
 );
 
   import rv32i_types_pkg::*;
@@ -72,6 +76,7 @@ module ooo_execute_stage(
 
   assign hazard_if.breakpoint  = decode_execute_if.exception_sigs.breakpoint;
   assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
+  assign hazard_if.ret         = decode_execute_if.exception_sigs.ret_insn;
   assign hazard_if.pc_ex       = decode_execute_if.pc;
   
   /*******************************************************
@@ -295,11 +300,15 @@ module ooo_execute_stage(
   //assign prv_pipe_if.instr = (decode_execute_if.csr_sigs.csr_instr != '0);
   assign hazard_if.csr_pc = decode_execute_if.pc;
 
+  logic csr_pulse_reg;
   always_ff @ (posedge CLK, negedge nRST) begin
-    if (~nRST)
+    if (~nRST) begin
       csr_reg <= 1'b0;
-    else 
+      csr_pulse_reg <= 1'b0;
+    end else begin
       csr_reg <= decode_execute_if.csr_sigs.csr_instr;
+      csr_pulse_reg <= csr_pulse;
+    end
   end
 
   assign csr_pulse = decode_execute_if.csr_sigs.csr_instr && ~csr_reg;
@@ -498,10 +507,10 @@ module ooo_execute_stage(
         //DIVIDE
         //execute_commit_if.wen_du                 <= dif.done_du; //or finished
         execute_commit_if.wdata_du               <= dif.wdata_du;
-        if (dif.start_div) begin
+        /*if (dif.start_div) begin
                 execute_commit_if.reg_rd_du              <= dif.reg_rd_du;
                 execute_commit_if.index_du               <= dif.index_du;
-        end
+        end */
         //LOADSTORE
         execute_commit_if.wen_ls                 <= lsif.wen_ls; 
         execute_commit_if.wdata_ls               <= lsif.wdata_ls;
@@ -556,5 +565,127 @@ module ooo_execute_stage(
       end
     end
   end
+
+  // -------------------------------------------------------------------------NEW OPT-------------------------------------
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index_ls;
+  word_t wdata_a;
+  word_t wdata_mu;
+  word_t wdata_du;
+  word_t wdata_ls;
+  logic [4:0] vd_a;
+  logic [4:0] vd_mu;
+  logic [4:0] vd_du;
+  logic [4:0] vd_ls;
+  logic exception_a;
+  logic exception_mu;
+  logic exception_du;
+  logic exception_ls;
+  logic ready_a;
+  logic ready_mu;
+  logic ready_du;
+  logic ready_ls;
+  logic wen_a;
+  logic wen_ls;
+  logic mal_ls;
+  logic valid_pc;
+  logic mal_pulse;
+  logic mal_reg;
+  logic [4:0] reg_rd_du_reg;
+  logic [4:0] index_du_reg;
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      reg_rd_du_reg <= '0;
+      index_du_reg <= '0;
+    end else if (dif.start_div) begin
+      reg_rd_du_reg <= dif.reg_rd_du;
+      index_du_reg <= dif.index_du;
+    end
+  end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST)
+      mal_reg <= 1'b0;
+    else 
+      mal_reg <= lsif.mal_addr;
+  end
+
+  assign mal_pulse = lsif.mal_addr & ~mal_reg;
+  assign valid_pc  = decode_execute_if.lsu_sigs.opcode != opcode_t'('h0);
+
+  assign index_a   = auif.index_a;
+  assign index_mu  = index_mu_ff2;
+  assign index_du  = (dif.start_div & dif.done_du) ? dif.index_du : index_du_reg;
+  assign index_ls  = lsif.index_ls;
+
+  assign vd_a  = auif.reg_rd_au;
+  assign vd_mu = reg_rd_mu_ff2;
+  assign vd_du = (dif.start_div & dif.done_du) ? dif.reg_rd_du : reg_rd_du_reg;
+  assign vd_ls = lsif.reg_rd_ls;
+
+  assign exception_a  = 0;
+  assign exception_mu = 0;
+  assign exception_du = 0;
+  assign exception_ls = mal_pulse; 
+
+  assign ready_a  = decode_execute_if.csr_sigs.csr_instr ? csr_pulse_reg : (auif.wen_au | decode_execute_if.branch_sigs.branch_instr | decode_execute_if.jump_sigs.jump_instr & valid_pc) & decode_execute_if.arith_sigs.ena; 
+  assign ready_mu = mif.done_mu;
+  assign ready_du = dif.done_du;
+  assign ready_ls = lsif.done_ls | exception_ls;
+
+  assign wdata_a   = decode_execute_if.jump_sigs.jump_instr ? decode_execute_if.pc + 4 : decode_execute_if.csr_sigs.csr_swap ? csr_rdata : auif.wdata_au;
+  assign wdata_mu  = mif.wdata_mu;  
+  assign wdata_du  = dif.wdata_du;
+  assign wdata_ls  = exception_ls ? execute_commit_if.pc_ls : lsif.wdata_ls; 
+
+  assign wen_a  = (exception_a | decode_execute_if.branch_sigs.branch_instr) ? 1'b0 : 1'b1;
+  assign wen_ls = lsif.wen_ls & ~exception_ls; 
+
+  assign mal_ls = mal_pulse; 
+
+  assign bypass_if.rd_alu    = vd_a;
+  assign bypass_if.valid_alu = wen_a & ready_a;
+  assign bypass_if.data_alu  = wdata_a;
+  assign bypass_if.rd_mul    = vd_mu;
+  assign bypass_if.valid_mul = ready_mu;
+  assign bypass_if.data_mul  = wdata_mu;
+  assign bypass_if.rd_div    = vd_du;
+  assign bypass_if.valid_div = ready_du;
+  assign bypass_if.data_div  = wdata_du;
+  assign bypass_if.rd_lsu    = vd_ls;
+  assign bypass_if.valid_lsu = wen_ls & ready_ls & ~exception_ls;
+  assign bypass_if.data_lsu  = wdata_ls;
+
+  assign cb_if.index_a     = index_a; 
+  assign cb_if.wdata_a     = wdata_a; 
+  assign cb_if.vd_a        = vd_a; 
+  assign cb_if.exception_a = exception_a; 
+  assign cb_if.ready_a     = ready_a; 
+  assign cb_if.wen_a       = wen_a; 
+
+  assign cb_if.index_mu     = index_mu; 
+  assign cb_if.wdata_mu     = wdata_mu;  
+  assign cb_if.vd_mu        = vd_mu; 
+  assign cb_if.exception_mu = exception_mu; 
+  assign cb_if.ready_mu     = ready_mu; 
+
+  assign cb_if.index_du     = index_du; 
+  assign cb_if.wdata_du     = wdata_du; 
+  assign cb_if.vd_du        = vd_du; 
+  assign cb_if.exception_du = exception_du; 
+  assign cb_if.ready_du     = ready_du; 
+
+  assign cb_if.index_ls     = index_ls; 
+  assign cb_if.wdata_ls     = wdata_ls; 
+  assign cb_if.vd_ls        = vd_ls; 
+  assign cb_if.exception_ls = exception_ls; 
+  assign cb_if.ready_ls     = ready_ls; 
+  assign cb_if.mal_ls       = mal_ls; 
+  assign cb_if.wen_ls       = wen_ls; 
+
+  assign cb_if.halt_instr   = decode_execute_if.halt_instr;
 
 endmodule
