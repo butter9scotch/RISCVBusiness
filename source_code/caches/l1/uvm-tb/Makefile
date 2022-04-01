@@ -13,6 +13,7 @@ SEQUENCES = sequences
 TEST = tests
 INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
+UTILS = utils
 SRC = $(ROOT)/source_code/caches/l1
 
 TESTCASE = random
@@ -48,6 +49,7 @@ build:
 	vlog +incdir+$(SRC) \
 	+incdir+$(INCLUDE) \
 	+incdir+$(PACKAGES) \
+	+incdir+$(UTILS) \
 	+incdir+$(CPU_AGENT) \
 	+incdir+$(MEM_AGENT) \
 	+incdir+$(END2END) \

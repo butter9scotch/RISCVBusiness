@@ -31,6 +31,8 @@
 
 `include "dut_params.svh"
 
+`include "Utils.svh"
+
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
@@ -124,10 +126,10 @@ class memory_bfm extends uvm_component;
         end
 
         if (mem.exists(bus_if.addr)) begin
-            word_t mask = byte_mask();
+            word_t mask = Utils::byte_mask(bus_if.byte_en);
             mem[bus_if.addr] = (bus_if.wdata & mask) | (mem[bus_if.addr] & ~mask);
         end else begin
-            mem[bus_if.addr] = bus_if.wdata & byte_mask();
+            mem[bus_if.addr] = bus_if.wdata & Utils::byte_mask(bus_if.byte_en);
         end
         bus_if.busy = '0;
     endtask: mem_write
@@ -162,18 +164,6 @@ class memory_bfm extends uvm_component;
         // mmio[bus_if.addr] = bus_if.wdata; //TODO: DO SOMETHING MORE MEANINGFUL FOR WRITING TO MMIO, REGISTER MODEL?
         bus_if.busy = '0;
     endtask: mmio_write
-
-    function word_t byte_mask();
-        word_t mask;
-
-        mask = '0;
-        for (int i = 0; i < 4; i++) begin
-            if (bus_if.byte_en[i]) begin
-                mask |= 32'hff << (8*i);
-            end
-        end
-        return mask;
-    endfunction: byte_mask
 
 endclass: memory_bfm
 

@@ -32,6 +32,7 @@ import rv32i_types_pkg::*;
 `include "dut_params.svh"
 `include "cpu_transaction.svh"
 `include "cache_model.svh"
+`include "Utils.svh"
 
 `uvm_analysis_imp_decl(_cpu_req)
 `uvm_analysis_imp_decl(_cpu_resp)
@@ -121,7 +122,7 @@ class end2end extends uvm_component;
         cpu_transaction mapped = history.pop_front();
         //FIXME:CHECK THAT THIS IS PROPER WAY TO DEAL WITH THIS
         if (tx.rw) begin
-          tx.data = byte_mask(tx.byte_sel) & tx.data;
+          tx.data = Utils::byte_mask(tx.byte_sel) & tx.data;
         end
         if (mapped.compare(tx)) begin
           successes++;
@@ -188,18 +189,6 @@ class end2end extends uvm_component;
       end 
     end
   endfunction: flush_history
-
-  function word_t byte_mask(logic[3:0] byte_en);
-    word_t mask;
-
-    mask = '0;
-    for (int i = 0; i < 4; i++) begin
-      if (byte_en[i]) begin
-        mask |= 32'hff << (8*i);
-      end
-    end
-    return mask;
-  endfunction: byte_mask
 
 endclass: end2end
 

@@ -31,6 +31,7 @@ import rv32i_types_pkg::*;
 
 `include "uvm_macros.svh"
 `include "cpu_transaction.svh"
+`include "Utils.svh"
 
 class bus_predictor extends uvm_subscriber #(cpu_transaction);
   `uvm_component_utils(bus_predictor) 
@@ -69,7 +70,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
     if (pred_tx.rw) begin
       // 1 -> write
       if (pred_tx.addr < `NONCACHE_START_ADDR) begin
-        word_t mask = byte_mask(pred_tx.byte_sel);
+        word_t mask = Utils::byte_mask(pred_tx.byte_sel);
         if (memory.exists(pred_tx.addr)) begin
           memory[pred_tx.addr] = (mask & pred_tx.data) | (~mask & memory[pred_tx.addr]);
         end else begin
@@ -86,18 +87,6 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
     // after prediction, the expected output send to the scoreboard 
     pred_ap.write(pred_tx);
   endfunction: write
-
-  function word_t byte_mask(logic [3:0] byte_en);
-    word_t mask;
-
-    mask = '0;
-    for (int i = 0; i < 4; i++) begin
-        if (byte_en[i]) begin
-            mask |= 32'hff << (8*i);
-        end
-    end
-    return mask;
-  endfunction: byte_mask
 
   virtual function word_t read_mem(word_t addr);
     // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)
