@@ -30,7 +30,7 @@
 `include "ooo_hazard_unit_if.vh"
 `include "cache_control_if.vh"
 `include "completion_buffer_if.vh"
-
+`include "ooo_bypass_unit_if.vh"
 
 module ooo_decode_stage (
   input logic CLK, nRST, halt,
@@ -39,7 +39,8 @@ module ooo_decode_stage (
   rv32i_reg_file_if.decode rf_if,
   ooo_hazard_unit_if.decode hazard_if,
   cache_control_if.pipeline cc_if,
-  completion_buffer_if.decode cb_if
+  completion_buffer_if.decode cb_if,
+  ooo_bypass_unit_if.decode bypass_if
 );
 
   import rv32i_types_pkg::*;
@@ -48,7 +49,7 @@ module ooo_decode_stage (
   import machine_mode_types_1_11_pkg::*;
 
   logic ebreak_ecall;
-  assign ebreak_ecall = cu_if.breakpoint | cu_if.ecall_insn;
+  assign ebreak_ecall = cu_if.breakpoint | cu_if.ecall_insn | cu_if.ret_insn;
 
   // Interface declarations
   control_unit_if   cu_if();
@@ -151,13 +152,13 @@ module ooo_decode_stage (
 
   word_t fu_source_a;
   word_t fu_source_b;
-  //word_t rs1_data;
-  //word_t rs2_data;
-  //assign rs1_data = bypass_if.rs1_bypass_ena ? bypass_if.rs1_bypass_data : rf_if.rs1_data;
-  //assign rs2_data = bypass_if.rs2_bypass_ena ? bypass_if.rs2_bypass_data : rf_if.rs2_data;
+  word_t rs1_data;
+  word_t rs2_data;
+  assign rs1_data = bypass_if.rs1_bypass_ena ? bypass_if.rs1_bypass_data : rf_if.rs1_data;
+  assign rs2_data = bypass_if.rs2_bypass_ena ? bypass_if.rs2_bypass_data : rf_if.rs2_data;
   always_comb begin
     case (cu_if.source_a_sel)
-      2'd0: fu_source_a = rf_if.rs1_data;
+      2'd0: fu_source_a = rs1_data;
       2'd1: fu_source_a = imm_S_ext;
       2'd2: fu_source_a = fetch_decode_if.pc;
       2'd3: fu_source_a = '0; //Not Used 
@@ -166,8 +167,8 @@ module ooo_decode_stage (
  
   always_comb begin
     case(cu_if.source_b_sel)
-      2'd0: fu_source_b = rf_if.rs1_data;
-      2'd1: fu_source_b = rf_if.rs2_data;
+      2'd0: fu_source_b = rs1_data;
+      2'd1: fu_source_b = rs2_data;
       2'd2: fu_source_b = imm_or_shamt;
       2'd3: fu_source_b = cu_if.imm_U;
     endcase
@@ -206,8 +207,8 @@ module ooo_decode_stage (
   *** Hazard unit connection  
   *******************************************************/
   assign hazard_if.halt = cu_if.halt; //TODO
-  assign hazard_if.rs1_busy  = rf_if.rs1_busy;
-  assign hazard_if.rs2_busy  = rf_if.rs2_busy;
+  assign hazard_if.rs1_busy  = rf_if.rs1_busy & ~bypass_if.rs1_bypass_ena;
+  assign hazard_if.rs2_busy  = rf_if.rs2_busy & ~bypass_if.rs2_bypass_ena;
   assign hazard_if.rd_busy   = rf_if.rd_busy;
   assign hazard_if.source_a_sel = cu_if.source_a_sel;
   assign hazard_if.source_b_sel = cu_if.source_b_sel;
@@ -224,8 +225,8 @@ module ooo_decode_stage (
   /*******************************************************
   *** Bypass Unit logic 
   *******************************************************/
-  //assign bypass_if.rs1 = cu_if.reg_rs1; 
-  //assign bypass_if.rs2 = cu_if.reg_rs2; 
+  assign bypass_if.rs1 = cu_if.reg_rs1; 
+  assign bypass_if.rs2 = cu_if.reg_rs2; 
 
 
   /*********************************************************
@@ -350,6 +351,7 @@ module ooo_decode_stage (
       if (hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin : FLUSH
         decode_execute_if.mult_sigs <= '0;
         decode_execute_if.div_sigs <= '0;
+        decode_execute_if.lsu_sigs <= '0;
       end else begin
         //MULTIPLY
         if(~cu_if.mult_sigs.ena) begin
@@ -392,7 +394,7 @@ module ooo_decode_stage (
           decode_execute_if.lsu_sigs.reg_rd <= cu_if.lsu_sigs.reg_rd;
           decode_execute_if.lsu_sigs.ready_ls <= cu_if.lsu_sigs.ready_ls;
           decode_execute_if.lsu_sigs.index_ls <= cb_if.cur_tail;
-          decode_execute_if.store_data <= rf_if.rs2_data;
+          decode_execute_if.store_data <= rs2_data;
         end
 
       end
@@ -502,6 +504,50 @@ module ooo_decode_stage (
         decode_execute_if.exception_sigs.w_src        <= cu_if.arith_sigs.w_src;
 
       end
+    end
+  end
+
+  // -------------------------------------------------------------------------NEW OPT-------------------------------------
+  logic [18:0] write_conflict_reg, next_write_conflict_reg;
+  logic div_write_conflict_stall;
+  logic mul_write_conflict_stall;
+  logic alu_write_conflict_stall;
+  logic write_conflict_stall;
+  logic div_special_case;
+
+  assign hazard_if.wb_port_conflict  = write_conflict_stall;
+
+  assign div_write_conflict_stall = cu_if.div_sigs.ena & div_special_case ? write_conflict_reg[0] :
+                                    cu_if.div_sigs.ena ? write_conflict_reg[17] :
+                                    0;
+  assign mul_write_conflict_stall = cu_if.mult_sigs.ena & write_conflict_reg[3];
+  assign alu_write_conflict_stall = cu_if.csr_sigs.csr_instr ? write_conflict_reg[1] :
+                                    cu_if.arith_sigs.ena ? write_conflict_reg[0] :
+                                    0;
+  assign write_conflict_stall     = (div_write_conflict_stall | mul_write_conflict_stall | alu_write_conflict_stall) & ~ebreak_ecall & (cu_if.opcode != opcode_t'('h0));
+  assign div_special_case         = fu_source_a == 32'h8000_0000 | fu_source_b == 32'hffff_ffff | fu_source_b == 32'h0;       
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+        write_conflict_reg <= '0;
+    end else if (~hazard_if.stall_fetch_decode) begin
+        write_conflict_reg <= next_write_conflict_reg >> 1;
+    end else begin
+        write_conflict_reg <= write_conflict_reg >> 1;
+    end
+  end
+
+  always_comb begin
+    next_write_conflict_reg = write_conflict_reg;
+    if (cu_if.div_sigs.ena) begin
+        if (div_special_case) next_write_conflict_reg = write_conflict_reg | 1'b1;
+        else next_write_conflict_reg = write_conflict_reg | 18'b100000000000000000;
+    end else if (cu_if.mult_sigs.ena) begin
+        next_write_conflict_reg = write_conflict_reg | 4'b1000;
+    end else if (cu_if.csr_sigs.csr_instr) begin
+        next_write_conflict_reg = write_conflict_reg | 2'b10;
+    end else if (cu_if.arith_sigs.ena) begin
+        next_write_conflict_reg = write_conflict_reg | 1'b1;
     end
   end
 

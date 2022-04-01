@@ -85,13 +85,14 @@ interface ooo_hazard_unit_if();
   logic rob_empty;
   logic hazard;
   logic mispredict_ff;
+  logic wb_port_conflict;
 
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
            stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, wb_port_conflict
   );
 
   modport execute (
@@ -118,7 +119,7 @@ interface ooo_hazard_unit_if();
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode, pc_ex,
+          busy_decode, pc_ex, wb_port_conflict,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
            loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
@@ -129,7 +130,7 @@ interface ooo_hazard_unit_if();
   modport commit (
     input stall_commit,
     output fault_l, mal_l, fault_s, mal_s, mal_insn, fault_insn, 
-           intr_taken, breakpoint, env_m, ret, illegal_insn, token, 
+           intr_taken, breakpoint, env_m, illegal_insn, token, 
            epc, badaddr_d, badaddr_i, rob_full, rob_empty, pc_en, execute_commit_flush
   );
 

@@ -101,7 +101,11 @@ interface completion_buffer_if();
   );
 
   modport writeback (
-    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr, mal_priv
+    input mal_priv, CPU_TRACKER
+  );
+
+  modport execute (
+    input index_a, index_mu, index_du, index_ls, wdata_a, wdata_mu, wdata_du, wdata_ls, vd_a, vd_mu, vd_du, vd_ls, exception_a, exception_mu, exception_du, exception_ls, ready_a, ready_mu, ready_du, ready_ls, branch_mispredict, wen_a, wen_ls, valid_a, mal_ls, address_a, address_ls, CPU_TRACKER, opcode, halt_instr
   );
 
   modport hu (
