@@ -24,6 +24,7 @@
 
 `include "completion_buffer_if.vh"
 `include "prv_pipeline_if.vh"
+`include "ooo_hazard_unit_if.vh"
 
 module completion_buffer # (
   parameter NUM_ENTRY = 16
@@ -32,7 +33,8 @@ module completion_buffer # (
   input CLK, nRST,
   completion_buffer_if.cb cb_if,
   prv_pipeline_if.cb  prv_pipe_if, 
-  rv32i_reg_file_if.writeback rf_if
+  rv32i_reg_file_if.writeback rf_if,
+  ooo_hazard_unit_if.cb hazard_if
 );
 
   import rv32i_types_pkg::*;

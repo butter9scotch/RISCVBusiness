@@ -97,11 +97,11 @@ interface ooo_hazard_unit_if();
   );
 
   modport execute (
-    input pc_en, execute_commit_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
+    input loadstore_flush, pc_en, execute_commit_flush, dmem_access, intr, intr_taken, stall_commit,
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
-           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, intr_found
+           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, intr_found, d_mem_busy, dren, dwen
   );
 
   modport fetch (

@@ -162,6 +162,7 @@ module RISCVBusiness (
      ,.cb_if
      ,.prv_pipe_if
      ,.rf_if
+     ,.hazard_if(hazard_if)
     );
 
    ooo_bypass_unit bypass_unit (bypass_if);
