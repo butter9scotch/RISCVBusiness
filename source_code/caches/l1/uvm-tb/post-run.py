@@ -24,6 +24,31 @@
 #   Description:  Script for parsing test info from transcript after running tests
 
 from datetime import datetime
+import argparse
+
+TESTCASE = None
+SEED = None
+MEM_TIMEOUT = None
+MEM_LATENCY = None
+MMIO_LATENCY = None
+
+def parse_arguments():
+    global TESTCASE, MEM_TIMEOUT, MEM_LATENCY, MMIO_LATENCY
+
+    parser = argparse.ArgumentParser(description="Parse runtime parameters from the transcript for tracking purposes")
+    parser.add_argument('testcase', metavar='testcase', type=str,
+                        help="Specify the testcase")
+    parser.add_argument('mem_timeout', metavar='mem_timeout', type=str,
+                        help="Specify the max memory latency before a fatal timeout error")
+    parser.add_argument('mem_latency', metavar='mem_latency', type=str,
+                        help="Specify the number of clock cycles before memory returns")
+    parser.add_argument('mmio_latency', metavar='mmio_latency', type=str,
+                        help="Specify the number of clock cycles before memory mapped IO returns")
+    args = parser.parse_args()
+    TESTCASE = args.testcase
+    MEM_TIMEOUT = args.mem_timeout
+    MEM_LATENCY = args.mem_latency
+    MMIO_LATENCY = args.mmio_latency
 
 class bcolors:
     LOG = '\033[95m[LOG]:'
@@ -67,8 +92,13 @@ def log2str(log):
 
 if __name__ == '__main__':
     cprint("Running Post Run Script...", bcolors.LOG)
+    parse_arguments()
 
     log = {}
+    log["test"] = TESTCASE
+    log["mem_timeout"] = MEM_TIMEOUT
+    log["mem_latency"] = MEM_LATENCY
+    log["mmio_latency"] = MMIO_LATENCY
     
     with open("transcript", "r") as transcript:
         lines = transcript.readlines()
@@ -80,22 +110,6 @@ if __name__ == '__main__':
                         log["seed"] = words[i+2]
                     elif words[i+1] != "random":
                         log["seed"] = words[i+1]
-
-                if not log.has_key("testname") and "testname" in word.lower():
-                    testcase = word.split("=")[1].replace("_test\"", "")
-                    log["test"] = testcase
-
-                if not log.has_key("mem_timeout") and "mem_timeout" in word.lower():
-                    timeout = word.split(",")[2].replace("\"", "")
-                    log["mem_timeout"] = timeout
-
-                if not log.has_key("mem_latency") and "mem_latency" in word.lower():
-                    lat = word.split(",")[2].replace("\"", "")
-                    log["mem_latency"] = lat
-
-                if not log.has_key("mmio_latency") and "mmio_latency" in word.lower():
-                    lat = word.split(",")[2].replace("\"", "")
-                    log["mmio_latency"] = lat
 
                 if not log.has_key("uvm_fatal") and "UVM_FATAL" in word:
                     if (words[i+1] == ":"):
