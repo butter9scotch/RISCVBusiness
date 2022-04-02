@@ -62,7 +62,7 @@ module ooo_commit_stage(
   assign hazard_if.fault_s      = 1'b0;
   assign hazard_if.fault_insn   = execute_commit_if.fault_insn; //assigned 1'b0
   assign hazard_if.token        = execute_commit_if.token;
-  assign hazard_if.intr_taken   = execute_commit_if.intr_seen;
+  //assign hazard_if.intr_taken   = execute_commit_if.intr_seen;
 
   assign valid_pc = (execute_commit_if.opcode != opcode_t'('h0));
 

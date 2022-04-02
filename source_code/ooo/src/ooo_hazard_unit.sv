@@ -34,7 +34,7 @@ module ooo_hazard_unit (
   assign store = hazard_if.fu_type == LOADSTORE_S && hazard_if.source_a_sel == 2'd1;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  assign hazard_if.stall_fetch_decode = hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | hazard_if.mispredict_ff; 
+  assign hazard_if.stall_fetch_decode = hazard_if.intr_found | hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | hazard_if.mispredict_ff; 
   assign hazard_if.hazard = hazard_if.data_hazard | structural_hazard;
   //assign hazard_if.decode_execute_flush  = 0;
 
@@ -110,7 +110,7 @@ module ooo_hazard_unit (
   assign prv_pipe_if.ret          = hazard_if.ret;
   assign prv_pipe_if.ex_rmgmt     = 1'b0;
   
-  assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m) ? hazard_if.pc_ex : cb_if.epc;
+  assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m || hazard_if.intr_found) ? hazard_if.pc_ex : cb_if.epc;
   assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? cb_if.epc : 
                                hazard_if.badaddr_d;  
   
@@ -122,7 +122,8 @@ module ooo_hazard_unit (
   assign hazard_if.loadstore_flush = cb_if.flush;
 
 
-  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret;
+  assign prv_pipe_if.pipe_clear   =   hazard_if.intr_found ? hazard_if.rob_empty : cb_if.flush | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret;
+  assign hazard_if.intr_taken = hazard_if.intr_found & hazard_if.rob_empty;
 
   // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
   // assign intr_e_flush = intr_exception;

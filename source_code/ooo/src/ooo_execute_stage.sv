@@ -218,6 +218,7 @@ module ooo_execute_stage(
   assign csr_wdata = decode_execute_if.csr_sigs.csr_wdata;
 
   //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
+  assign hazard_if.intr_found = intr_taken_ex;
   always_ff @(posedge CLK, negedge nRST) begin :INTERRUPT
     if (~nRST) begin
       intr_taken_ex <= 1'b0;
@@ -226,11 +227,11 @@ module ooo_execute_stage(
       if (halt) begin
         intr_taken_ex <= 1'b0;
       end
-      else if (hazard_if.intr) begin
-        intr_taken_ex <= 1'b1;
-      end
       else if (hazard_if.intr_taken) begin
         intr_taken_ex <= 1'b0;
+      end
+      else if (hazard_if.intr) begin
+        intr_taken_ex <= 1'b1;
       end
     end
   end
