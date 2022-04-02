@@ -482,11 +482,7 @@ module rv32v_decode_stage (
       decode_execute_if.vmv_type          <= NOT_VMV;
       decode_execute_if.segment_type      <= '0;
       decode_execute_if.ena               <= '0;
-
-
-      //TESTBENCH ONLY
-      // decode_execute_if.tb_line_num        <= 0;
-
+      decode_execute_if.index             <= '0;
 
     end else if(hu_if.flush_dec) begin
       decode_execute_if.stride_type       <= '0;
@@ -568,19 +564,14 @@ module rv32v_decode_stage (
       decode_execute_if.decode_done       <= '0;
       decode_execute_if.rd_scalar_src     <= '0;
 
-      decode_execute_if.nf             <= '0;
+      decode_execute_if.nf                <= '0;
       decode_execute_if.eew_loadstore     <= '0;
       decode_execute_if.lumop             <= '0;
       decode_execute_if.vmv_type          <= NOT_VMV;
       decode_execute_if.segment_type      <= '0;
 
       decode_execute_if.ena               <= '0;
-
-
-      //TESTBENCH ONLY
-      // decode_execute_if.tb_line_num        <= 0;
-
-
+      decode_execute_if.index             <= '0;
 
     end else if (~hu_if.stall_dec) begin
       decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src; //write to scalar regs
@@ -629,7 +620,7 @@ module rv32v_decode_stage (
       decode_execute_if.woffset0          <=  woffset0; 
       decode_execute_if.woffset1          <=  woffset1; 
       decode_execute_if.vd                <= vcu_if.vd;
-      decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
+      decode_execute_if.single_bit_write  <= vcu_if.single_bit_write;
       decode_execute_if.wen[0]            <= vcu_if.merge_ena | wen0;
       decode_execute_if.wen[1]            <= vcu_if.merge_ena | wen1;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
@@ -702,9 +693,8 @@ module rv32v_decode_stage (
       decode_execute_if.nf_count          <= nf_count_reg;
       decode_execute_if.segment_type      <= segment_type;
       decode_execute_if.ena               <= vcu_if.de_en;
-
-      //TESTBENCH ONLY
-      // decode_execute_if.tb_line_num       <= scalar_vector_if.tb_line_num;
+      // ROB signals
+      decode_execute_if.index             <= scalar_vector_if.index;
 
     end
   end

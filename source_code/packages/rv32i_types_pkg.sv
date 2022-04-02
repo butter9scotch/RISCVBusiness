@@ -38,6 +38,8 @@ package rv32i_types_pkg;
   parameter IMM_W = 3;
   parameter REG_W = 3;
   parameter NUM_CB_ENTRY = 16;
+  parameter NUM_ROB_ENTRIES = 16;
+
 
   //RVV constants
   parameter VLEN_WIDTH = 7; // 128 bit registers
@@ -940,7 +942,20 @@ package rv32i_types_pkg;
     MSAC
   } multiply_type_t;
 
+  typedef struct packed {
+    logic [$clog2(NUM_ROB_ENTRIES)-1:0] index;
+    logic [VL_WIDTH:0] vl;
+    sew_t sew;
+    offset_t woffset;
+    offset_t exception_index;
+    logic exception;
+    logic [63:0] wdata;
+    logic [4:0] vd;
+    logic [1:0] wen;
+    logic ready;
+  } rob_fu_result_t;
 
+  typedef [$clog2(NUM_CB_ENTRY)-1:0] cb_index_t;
 
 
 endpackage

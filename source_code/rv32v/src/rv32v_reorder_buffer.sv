@@ -52,7 +52,7 @@ module rv32v_reorder_buffer # (
   rob_entry next_rob [0:NUM_ENTRY-1]; 
   sew_t head_sew;
   logic [VL_WIDTH:0] vl_reg;
-  logic [$clog2(NUM_ENTRY)-1:0] index_a, index_mu, index_du, index_m, index_p, index_ls;
+  // logic [$clog2(NUM_ENTRY)-1:0] index, index_mu, index_du, index_m, index_p, index_ls;
   logic [4:0] head_exception_index, excep_index_off32, excep_index_off16, excep_index_off8, excep_index_final;
   logic [4:0] vd_a, vd_mu, vd_du, vd_m, vd_p, vd_ls;
   logic [3:0] vd_wen_offset_a, vd_wen_offset_mu, vd_wen_offset_du, vd_wen_offset_m, vd_wen_offset_p, vd_wen_offset_ls;
@@ -76,30 +76,30 @@ module rv32v_reorder_buffer # (
   entry_modifier p_em (p_em_if);
   entry_modifier ls_em (ls_em_if);
 
-  assign a_em_if.woffset  = rob_if.woffset_a;
-  assign a_em_if.index    = rob_if.index_a;
-  assign a_em_if.vd       = rob_if.vd_a;
-  assign a_em_if.sew      = rob_if.sew_a;
-  assign mu_em_if.woffset = rob_if.woffset_mu;
-  assign mu_em_if.index   = rob_if.index_mu;
-  assign mu_em_if.vd      = rob_if.vd_mu;
-  assign mu_em_if.sew     = rob_if.sew_mu;
-  assign du_em_if.woffset = rob_if.woffset_du;
-  assign du_em_if.index   = rob_if.index_du;
-  assign du_em_if.vd      = rob_if.vd_du;
-  assign du_em_if.sew     = rob_if.sew_du;
-  assign m_em_if.woffset  = rob_if.woffset_m;
-  assign m_em_if.index    = rob_if.index_m;
-  assign m_em_if.vd       = rob_if.vd_m;
-  assign m_em_if.sew      = rob_if.sew_m;
-  assign p_em_if.woffset  = rob_if.woffset_p;
-  assign p_em_if.index    = rob_if.index_p;
-  assign p_em_if.vd       = rob_if.vd_p;
-  assign p_em_if.sew      = rob_if.sew_p;
-  assign ls_em_if.woffset = rob_if.woffset_ls;
-  assign ls_em_if.index   = rob_if.index_ls;
-  assign ls_em_if.vd      = rob_if.vd_ls;
-  assign ls_em_if.sew     = rob_if.sew_ls;
+  assign a_em_if.woffset  = rob_if.a_sigs.woffset;
+  assign a_em_if.index    = rob_if.a_sigs.index;
+  assign a_em_if.vd       = rob_if.a_sigs.vd;
+  assign a_em_if.sew      = rob_if.a_sigs.sew;
+  assign mu_em_if.woffset = rob_if.mu_sigs.woffset;
+  assign mu_em_if.index   = rob_if.mu_sigs.index;
+  assign mu_em_if.vd      = rob_if.mu_sigs.vd;
+  assign mu_em_if.sew     = rob_if.mu_sigs.sew;
+  assign du_em_if.woffset = rob_if.du_sigs.woffset;
+  assign du_em_if.index   = rob_if.du_sigs.index;
+  assign du_em_if.vd      = rob_if.du_sigs.vd;
+  assign du_em_if.sew     = rob_if.du_sigs.sew;
+  assign m_em_if.woffset  = rob_if.m_sigs.woffset;
+  assign m_em_if.index    = rob_if.m_sigs.index;
+  assign m_em_if.vd       = rob_if.m_sigs.vd;
+  assign m_em_if.sew      = rob_if.m_sigs.sew;
+  assign p_em_if.woffset  = rob_if.p_sigs.woffset;
+  assign p_em_if.index    = rob_if.p_sigs.index;
+  assign p_em_if.vd       = rob_if.p_sigs.vd;
+  assign p_em_if.sew      = rob_if.p_sigs.sew;
+  assign ls_em_if.woffset = rob_if.ls_sigs.woffset;
+  assign ls_em_if.index   = rob_if.ls_sigs.index;
+  assign ls_em_if.vd      = rob_if.ls_sigs.vd;
+  assign ls_em_if.sew     = rob_if.ls_sigs.sew;
 
   assign flush                = rob_if.branch_mispredict | rob_if.scalar_exception;
   assign head_exception_index = rob[head].exception_index;
@@ -119,12 +119,12 @@ module rv32v_reorder_buffer # (
   assign rob_if.single_wen_vl   = vl_reg;
   assign rob_if.rv32v_exception = rob[head].exception & rob_if.commit_ena;
 
-  assign reached_max_a  = (rob_if.woffset_a == rob_if.vl_a - 1) || (rob_if.woffset_a == rob_if.vl_a - 2);
-  assign reached_max_mu = (rob_if.woffset_mu == rob_if.vl_mu - 1) || (rob_if.woffset_mu == rob_if.vl_mu - 2);
-  assign reached_max_du = (rob_if.woffset_du == rob_if.vl_du - 1) || (rob_if.woffset_du == rob_if.vl_du - 2);
-  assign reached_max_m  = (rob_if.woffset_m == rob_if.vl_m - 1) || (rob_if.woffset_m == rob_if.vl_m - 2);
-  assign reached_max_p  = (rob_if.woffset_p == rob_if.vl_p - 1) || (rob_if.woffset_p == rob_if.vl_p - 2);
-  assign reached_max_ls = (rob_if.woffset_ls == rob_if.vl_ls - 1) || (rob_if.woffset_ls == rob_if.vl_ls - 2);
+  assign reached_max_a  = (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 1) || (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 2);
+  assign reached_max_mu = (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 1) || (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 2);
+  assign reached_max_du = (rob_if.du_sigs.woffset == rob_if.du_sigs.vl - 1) || (rob_if.du_sigs.woffset == rob_if.du_sigs.vl - 2);
+  assign reached_max_m  = (rob_if.m_sigs.woffset == rob_if.m_sigs.vl - 1) || (rob_if.m_sigs.woffset == rob_if.m_sigs.vl - 2);
+  assign reached_max_p  = (rob_if.p_sigs.woffset == rob_if.p_sigs.vl - 1) || (rob_if.p_sigs.woffset == rob_if.p_sigs.vl - 2);
+  assign reached_max_ls = (rob_if.ls_sigs.woffset == rob_if.ls_sigs.vl - 1) || (rob_if.ls_sigs.woffset == rob_if.ls_sigs.vl - 2);
 
   // HEAD AND TAIL POINTER LOGIC
   always_ff @ (posedge CLK, negedge nRST) begin
@@ -201,8 +201,8 @@ module rv32v_reorder_buffer # (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       vl_reg <= '0;
-    end else if (rob_if.ready_a & rob_if.single_bit_write) begin
-      vl_reg <= rob_if.vl_a;
+    end else if (rob_if.a_sigs.ready & rob_if.single_bit_write) begin
+      vl_reg <= rob_if.a_sigs.vl;
     end
   end 
 
@@ -214,180 +214,180 @@ module rv32v_reorder_buffer # (
       next_rob[head] = '0;
     end
     // Next state for arithemtic unit result
-    if (rob_if.ready_a) begin
-      next_rob[rob_if.index_a].sew = rob_if.sew_a; 
-      next_rob[a_em_if.final_index].exception = rob[a_em_if.final_index].exception | rob_if.exception_a;
-      if (rob_if.exception_a & ~rob[a_em_if.final_index].exception) begin
-        next_rob[a_em_if.final_index].exception_index = rob_if.exception_index_a;
+    if (rob_if.a_sigs.ready) begin
+      next_rob[rob_if.a_sigs.index].sew = rob_if.a_sigs.sew; 
+      next_rob[a_em_if.final_index].exception = rob[a_em_if.final_index].exception | rob_if.a_sigs.exception;
+      if (rob_if.a_sigs.exception & ~rob[a_em_if.final_index].exception) begin
+        next_rob[a_em_if.final_index].exception_index = rob_if.a_sigs.exception_index;
       end else begin
         next_rob[a_em_if.final_index].exception_index = rob[a_em_if.final_index].exception_index;
       end
       if (rob_if.single_bit_write) begin
-        next_rob[rob_if.index_a].single_bit_write = 1; 
-        next_rob[rob_if.index_a].vd = rob_if.vd_a;
-        next_rob[rob_if.index_a].data[rob_if.woffset_a+:2] = {rob_if.wdata_a[32], rob_if.wdata_a[0]};
-        next_rob[rob_if.index_a].wen = '1; // TODO: Corner case: Masked single bit write. 
-        next_rob[rob_if.index_a].valid = (rob_if.woffset_a == VLEN - 1) | (rob_if.woffset_a == VLEN - 2) | reached_max_a;
-        next_rob[rob_if.index_a].commit_ack = reached_max_a;
+        next_rob[rob_if.a_sigs.index].single_bit_write = 1; 
+        next_rob[rob_if.a_sigs.index].vd = rob_if.a_sigs.vd;
+        next_rob[rob_if.a_sigs.index].data[rob_if.a_sigs.woffset+:2] = {rob_if.a_sigs.wdata[32], rob_if.a_sigs.wdata[0]};
+        next_rob[rob_if.a_sigs.index].wen = '1; // TODO: Corner case: Masked single bit write. 
+        next_rob[rob_if.a_sigs.index].valid = (rob_if.a_sigs.woffset == VLEN - 1) | (rob_if.a_sigs.woffset == VLEN - 2) | reached_max_a;
+        next_rob[rob_if.a_sigs.index].commit_ack = reached_max_a;
       end else begin
         next_rob[a_em_if.final_index].single_bit_write = 0; 
-        next_rob[a_em_if.final_index].sew = rob_if.sew_a;
+        next_rob[a_em_if.final_index].sew = rob_if.a_sigs.sew;
         next_rob[a_em_if.final_index].vd = a_em_if.final_vd;
         next_rob[a_em_if.final_index].valid = a_em_if.filled_one_entry | reached_max_a;
         next_rob[a_em_if.final_index].commit_ack = reached_max_a;
-        case(rob_if.sew_a)
+        case(rob_if.a_sigs.sew)
           SEW32: begin
-            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:64] = rob_if.wdata_a;
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_a[1]}}, {4{rob_if.wen_a[0]}}};
+            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:64] = rob_if.a_sigs.wdata;
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:8] = {{4{rob_if.a_sigs.wen[1]}}, {4{rob_if.a_sigs.wen[0]}}};
           end
           SEW16: begin 
-            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:32] = {rob_if.wdata_a[47:32], rob_if.wdata_a[15:0]};
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_a[1]}}, {2{rob_if.wen_a[0]}}};
+            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:32] = {rob_if.a_sigs.wdata[47:32], rob_if.a_sigs.wdata[15:0]};
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:4] = {{2{rob_if.a_sigs.wen[1]}}, {2{rob_if.a_sigs.wen[0]}}};
           end
           default: begin
-            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:16] = {rob_if.wdata_a[39:32], rob_if.wdata_a[7:0]};
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:2] = rob_if.wen_a;
+            next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:16] = {rob_if.a_sigs.wdata[39:32], rob_if.a_sigs.wdata[7:0]};
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:2] = rob_if.a_sigs.wen;
           end
         endcase
       end
     end
     // Next state for multiply unit result
-    if (rob_if.ready_mu) begin
+    if (rob_if.mu_sigs.ready) begin
       next_rob[mu_em_if.final_index].single_bit_write = 0; 
-      next_rob[mu_em_if.final_index].sew = rob_if.sew_mu;
+      next_rob[mu_em_if.final_index].sew = rob_if.mu_sigs.sew;
       next_rob[mu_em_if.final_index].vd = mu_em_if.final_vd;
       next_rob[mu_em_if.final_index].valid = mu_em_if.filled_one_entry | reached_max_mu;
-      next_rob[mu_em_if.final_index].exception = rob[mu_em_if.final_index].exception | rob_if.exception_mu;
+      next_rob[mu_em_if.final_index].exception = rob[mu_em_if.final_index].exception | rob_if.mu_sigs.exception;
       next_rob[mu_em_if.final_index].commit_ack = reached_max_mu;
-      if (rob_if.exception_mu & ~rob[mu_em_if.final_index].exception) begin
-        next_rob[mu_em_if.final_index].exception_index = rob_if.exception_index_mu;
+      if (rob_if.mu_sigs.exception & ~rob[mu_em_if.final_index].exception) begin
+        next_rob[mu_em_if.final_index].exception_index = rob_if.mu_sigs.exception_index;
       end else begin
         next_rob[mu_em_if.final_index].exception_index = rob[mu_em_if.final_index].exception_index;
       end
-      case(rob_if.sew_mu)
+      case(rob_if.mu_sigs.sew)
         SEW32: begin
-          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:64] = rob_if.wdata_mu;
-          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_mu[1]}}, {4{rob_if.wen_mu[0]}}};
+          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:64] = rob_if.mu_sigs.wdata;
+          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:8] = {{4{rob_if.mu_sigs.wen[1]}}, {4{rob_if.mu_sigs.wen[0]}}};
         end
         SEW16: begin 
-          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:32] = {rob_if.wdata_mu[47:32], rob_if.wdata_mu[15:0]};
-          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_mu[1]}}, {2{rob_if.wen_mu[0]}}};
+          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:32] = {rob_if.mu_sigs.wdata[47:32], rob_if.mu_sigs.wdata[15:0]};
+          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:4] = {{2{rob_if.mu_sigs.wen[1]}}, {2{rob_if.mu_sigs.wen[0]}}};
         end
         default: begin
-          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:16] = {rob_if.wdata_mu[39:32], rob_if.wdata_mu[7:0]};
-          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:2] = rob_if.wen_mu;
+          next_rob[mu_em_if.final_index].data[mu_em_if.vd_outer_offset+:16] = {rob_if.mu_sigs.wdata[39:32], rob_if.mu_sigs.wdata[7:0]};
+          next_rob[mu_em_if.final_index].wen[mu_em_if.vd_wen_offset+:2] = rob_if.mu_sigs.wen;
         end
       endcase
     end
     // Next state for divide unit result
-    if (rob_if.ready_du) begin
+    if (rob_if.du_sigs.ready) begin
       next_rob[du_em_if.final_index].single_bit_write = 0; 
-      next_rob[du_em_if.final_index].sew = rob_if.sew_du;
+      next_rob[du_em_if.final_index].sew = rob_if.du_sigs.sew;
       next_rob[du_em_if.final_index].vd = du_em_if.final_vd;
       next_rob[du_em_if.final_index].valid = du_em_if.filled_one_entry | reached_max_du;
       next_rob[du_em_if.final_index].commit_ack = reached_max_du;
-      next_rob[du_em_if.final_index].exception = rob[du_em_if.final_index].exception | rob_if.exception_du;
-      if (rob_if.exception_du & ~rob[du_em_if.final_index].exception) begin
-        next_rob[du_em_if.final_index].exception_index = rob_if.exception_index_du;
+      next_rob[du_em_if.final_index].exception = rob[du_em_if.final_index].exception | rob_if.du_sigs.exception;
+      if (rob_if.du_sigs.exception & ~rob[du_em_if.final_index].exception) begin
+        next_rob[du_em_if.final_index].exception_index = rob_if.du_sigs.exception_index;
       end else begin
         next_rob[du_em_if.final_index].exception_index = rob[du_em_if.final_index].exception_index;
       end
-      case(rob_if.sew_du)
+      case(rob_if.du_sigs.sew)
         SEW32: begin
-          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:64] = rob_if.wdata_du;
-          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_du[1]}}, {4{rob_if.wen_du[0]}}};
+          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:64] = rob_if.du_sigs.wdata;
+          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:8] = {{4{rob_if.du_sigs.wen[1]}}, {4{rob_if.du_sigs.wen[0]}}};
         end
         SEW16: begin 
-          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:32] = {rob_if.wdata_du[47:32], rob_if.wdata_du[15:0]};
-          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_du[1]}}, {2{rob_if.wen_du[0]}}};
+          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:32] = {rob_if.du_sigs.wdata[47:32], rob_if.du_sigs.wdata[15:0]};
+          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:4] = {{2{rob_if.du_sigs.wen[1]}}, {2{rob_if.du_sigs.wen[0]}}};
         end
         default: begin
-          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:16] = {rob_if.wdata_du[39:32], rob_if.wdata_du[7:0]};
-          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:2] = rob_if.wen_du;
+          next_rob[du_em_if.final_index].data[du_em_if.vd_outer_offset+:16] = {rob_if.du_sigs.wdata[39:32], rob_if.du_sigs.wdata[7:0]};
+          next_rob[du_em_if.final_index].wen[du_em_if.vd_wen_offset+:2] = rob_if.du_sigs.wen;
         end
       endcase
     end
     // Next state for mask unit result
-    if (rob_if.ready_m) begin
+    if (rob_if.m_sigs.ready) begin
       next_rob[m_em_if.final_index].single_bit_write = 0; 
-      next_rob[m_em_if.final_index].sew = rob_if.sew_m;
+      next_rob[m_em_if.final_index].sew = rob_if.m_sigs.sew;
       next_rob[m_em_if.final_index].vd = m_em_if.final_vd;
       next_rob[m_em_if.final_index].valid = m_em_if.filled_one_entry | reached_max_m;
       next_rob[m_em_if.final_index].commit_ack = reached_max_m;
-      next_rob[m_em_if.final_index].exception = rob[m_em_if.final_index].exception | rob_if.exception_m;
-      if (rob_if.exception_m & ~rob[m_em_if.final_index].exception) begin
-        next_rob[m_em_if.final_index].exception_index = rob_if.exception_index_m;
+      next_rob[m_em_if.final_index].exception = rob[m_em_if.final_index].exception | rob_if.m_sigs.exception;
+      if (rob_if.m_sigs.exception & ~rob[m_em_if.final_index].exception) begin
+        next_rob[m_em_if.final_index].exception_index = rob_if.m_sigs.exception_index;
       end else begin
-        next_rob[m_em_if.final_index].exception_index = rob[index_m].exception_index;
+        next_rob[m_em_if.final_index].exception_index = rob[rob_if.m_sigs.index].exception_index;
       end
-      case(rob_if.sew_m)
+      case(rob_if.m_sigs.sew)
         SEW32: begin
-          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:64] = rob_if.wdata_m;
-          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_m[1]}}, {4{rob_if.wen_m[0]}}};
+          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:64] = rob_if.m_sigs.wdata;
+          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:8] = {{4{rob_if.m_sigs.wen[1]}}, {4{rob_if.m_sigs.wen[0]}}};
         end
         SEW16: begin 
-          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:32] = {rob_if.wdata_m[47:32], rob_if.wdata_m[15:0]};
-          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_m[1]}}, {2{rob_if.wen_m[0]}}};
+          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:32] = {rob_if.m_sigs.wdata[47:32], rob_if.m_sigs.wdata[15:0]};
+          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:4] = {{2{rob_if.m_sigs.wen[1]}}, {2{rob_if.m_sigs.wen[0]}}};
         end
         default: begin
-          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:16] = {rob_if.wdata_m[39:32], rob_if.wdata_m[7:0]};
-          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:2] = rob_if.wen_m;
+          next_rob[m_em_if.final_index].data[m_em_if.vd_outer_offset+:16] = {rob_if.m_sigs.wdata[39:32], rob_if.m_sigs.wdata[7:0]};
+          next_rob[m_em_if.final_index].wen[m_em_if.vd_wen_offset+:2] = rob_if.m_sigs.wen;
         end
       endcase
     end
     // Next state for permutation unit result
-    if (rob_if.ready_p) begin
+    if (rob_if.p_sigs.ready) begin
       next_rob[p_em_if.final_index].single_bit_write = 0; 
-      next_rob[p_em_if.final_index].sew = rob_if.sew_p;
+      next_rob[p_em_if.final_index].sew = rob_if.p_sigs.sew;
       next_rob[p_em_if.final_index].vd = p_em_if.final_vd;
       next_rob[p_em_if.final_index].valid = p_em_if.filled_one_entry | reached_max_p;
       next_rob[p_em_if.final_index].commit_ack = reached_max_p;
-      next_rob[p_em_if.final_index].exception = rob[p_em_if.final_index].exception | rob_if.exception_p;
-      if (rob_if.exception_p & ~rob[p_em_if.final_index].exception) begin
-        next_rob[p_em_if.final_index].exception_index = rob_if.exception_index_p;
+      next_rob[p_em_if.final_index].exception = rob[p_em_if.final_index].exception | rob_if.p_sigs.exception;
+      if (rob_if.p_sigs.exception & ~rob[p_em_if.final_index].exception) begin
+        next_rob[p_em_if.final_index].exception_index = rob_if.p_sigs.exception_index;
       end else begin
         next_rob[p_em_if.final_index].exception_index = rob[p_em_if.final_index].exception_index;
       end
-      case(rob_if.sew_p)
+      case(rob_if.p_sigs.sew)
         SEW32: begin
-          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:64] = rob_if.wdata_p;
-          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_p[1]}}, {4{rob_if.wen_p[0]}}};
+          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:64] = rob_if.p_sigs.wdata;
+          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:8] = {{4{rob_if.p_sigs.wen[1]}}, {4{rob_if.p_sigs.wen[0]}}};
         end
         SEW16: begin 
-          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:32] = {rob_if.wdata_p[47:32], rob_if.wdata_p[15:0]};
-          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_p[1]}}, {2{rob_if.wen_p[0]}}};
+          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:32] = {rob_if.p_sigs.wdata[47:32], rob_if.p_sigs.wdata[15:0]};
+          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:4] = {{2{rob_if.p_sigs.wen[1]}}, {2{rob_if.p_sigs.wen[0]}}};
         end
         default: begin
-          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:16] = {rob_if.wdata_p[39:32], rob_if.wdata_p[7:0]};
-          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:2] = rob_if.wen_p;
+          next_rob[p_em_if.final_index].data[p_em_if.vd_outer_offset+:16] = {rob_if.p_sigs.wdata[39:32], rob_if.p_sigs.wdata[7:0]};
+          next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:2] = rob_if.p_sigs.wen;
         end
       endcase
     end
     // Next state for load store unit result
-    if (rob_if.ready_ls) begin
+    if (rob_if.ls_sigs.ready) begin
       next_rob[ls_em_if.final_index].single_bit_write = 0; 
-      next_rob[ls_em_if.final_index].sew = rob_if.sew_ls;
+      next_rob[ls_em_if.final_index].sew = rob_if.ls_sigs.sew;
       next_rob[ls_em_if.final_index].vd = ls_em_if.final_vd;
       next_rob[ls_em_if.final_index].valid = ls_em_if.filled_one_entry | reached_max_ls;
       next_rob[ls_em_if.final_index].commit_ack = reached_max_ls;
-      next_rob[ls_em_if.final_index].exception = rob[ls_em_if.final_index].exception | rob_if.exception_ls;
-      if (rob_if.exception_ls & ~rob[ls_em_if.final_index].exception) begin
-        next_rob[ls_em_if.final_index].exception_index = rob_if.exception_index_ls;
+      next_rob[ls_em_if.final_index].exception = rob[ls_em_if.final_index].exception | rob_if.ls_sigs.exception;
+      if (rob_if.ls_sigs.exception & ~rob[ls_em_if.final_index].exception) begin
+        next_rob[ls_em_if.final_index].exception_index = rob_if.ls_sigs.exception_index;
       end else begin
         next_rob[ls_em_if.final_index].exception_index = rob[ls_em_if.final_index].exception_index;
       end
-      case(rob_if.sew_ls)
+      case(rob_if.ls_sigs.sew)
         SEW32: begin
-          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:64] = rob_if.wdata_ls;
-          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:8] = {{4{rob_if.wen_ls[1]}}, {4{rob_if.wen_ls[0]}}};
+          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:64] = rob_if.ls_sigs.wdata;
+          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:8] = {{4{rob_if.ls_sigs.wen[1]}}, {4{rob_if.ls_sigs.wen[0]}}};
         end
         SEW16: begin 
-          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:32] = {rob_if.wdata_ls[47:32], rob_if.wdata_ls[15:0]};
-          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:4] = {{2{rob_if.wen_ls[1]}}, {2{rob_if.wen_ls[0]}}};
+          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:32] = {rob_if.ls_sigs.wdata[47:32], rob_if.ls_sigs.wdata[15:0]};
+          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:4] = {{2{rob_if.ls_sigs.wen[1]}}, {2{rob_if.ls_sigs.wen[0]}}};
         end
         default: begin
-          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:16] = {rob_if.wdata_ls[39:32], rob_if.wdata_ls[7:0]};
-          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:2] = rob_if.wen_ls;
+          next_rob[ls_em_if.final_index].data[ls_em_if.vd_outer_offset+:16] = {rob_if.ls_sigs.wdata[39:32], rob_if.ls_sigs.wdata[7:0]};
+          next_rob[ls_em_if.final_index].wen[ls_em_if.vd_wen_offset+:2] = rob_if.ls_sigs.wen;
         end
       endcase
     end

@@ -263,10 +263,10 @@ module ooo_decode_stage (
   *** Completion buffer signals
   *********************************************************/
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
+  assign decode_execute_if.valloc_ena = cb_if.alloc_ena & cu_if.sfu_type == VECTOR_S; // This is for the vector completion buffer
   assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
   assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
-
   /*********************************************************
   *** Vector Unit signals
   *********************************************************/

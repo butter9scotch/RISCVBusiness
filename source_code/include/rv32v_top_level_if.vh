@@ -14,6 +14,8 @@ interface rv32v_top_level_if;
   logic exception_v;
   logic csr_update;
   logic done;
+  logic alloc_ena;
+  cb_index_t index;
 
   modport rv32v (
     output rd_wen,
@@ -21,6 +23,8 @@ interface rv32v_top_level_if;
     output rd_data, //change to wdata_v
     output exception_v,
     output done,
+    input index,
+    input alloc_ena,
     input instr, rs1_data, rs2_data,
     input scalar_hazard_if_ret,
     input returnex,

@@ -26,6 +26,7 @@
 `include "rv32v_memory_writeback_if.vh"
 `include "cache_model_if.vh"
 `include "address_scheduler_if.vh"
+`include "rv32v_reorder_buffer_if.vh"
 
 module rv32v_memory_stage (
   input logic CLK, nRST, returnex,
@@ -33,7 +34,8 @@ module rv32v_memory_stage (
   rv32v_hazard_unit_if.memory hu_if,
   rv32v_execute_memory_if.memory execute_memory_if,
   rv32v_memory_writeback_if.memory memory_writeback_if,
-  prv_pipeline_if.pipe prv_if
+  prv_pipeline_if.pipe prv_if,
+  rv32v_reorder_buffer_if.memory rob_if
 );
   import rv32i_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
@@ -90,6 +92,25 @@ module rv32v_memory_stage (
     end
   end
 
+  rob_fu_result_t next_a_sigs, next_mu_sigs, next_du_sigs, next_m_sigs, next_p_sigs, next_ls_sigs;
+    assign next_a_sigs.index = execute_memory_if.index;
+    assign next_a_sigs.vl = execute_memory_if.vl;
+    assign next_a_sigs.sew = execute_memory_if.eew;
+    assign next_a_sigs.woffset = execute_memory_if.woffset0;
+    assign next_a_sigs.exception_index = execute_memory_if.index;
+    assign next_a_sigs.exception = 0;
+    assign next_a_sigs.wdata = {wdat1, wdat0};
+    assign next_a_sigs.vd = execute_memory_if.vd;
+    assign next_a_sigs.wen = execute_memory_if.wen;
+    assign next_a_sigs.ready = 0;
+
+    assign next_mu_sigs = '0;
+    assign next_du_sigs = '0;
+    assign next_m_sigs = '0;
+    assign next_p_sigs = '0;
+    assign next_ls_sigs = '0;
+    
+
   // Pipeline Latch
   always_ff @ (posedge CLK, negedge nRST) begin
 
@@ -106,8 +127,15 @@ module rv32v_memory_stage (
       memory_writeback_if.ena       <= '0;
       memory_writeback_if.done     <= 0;
 
-      // memory_writeback_if.tb_line_num <= 0;
+      rob_if.a_sigs  <= '0;
+      rob_if.mu_sigs <= '0;
+      rob_if.du_sigs <= '0;
+      rob_if.m_sigs  <= '0;
+      rob_if.p_sigs  <= '0;
+      rob_if.ls_sigs <= '0;
 
+      rob_if.lmul    <= '0;
+      rob_if.vl <= '0;
 
     end else if (hu_if.flush_mem) begin
       memory_writeback_if.wdat0     <= '0;
@@ -122,14 +150,32 @@ module rv32v_memory_stage (
       memory_writeback_if.ena       <= '0;
       memory_writeback_if.done     <= 0;
 
-            //TESTBENCH ONLY
-      // memory_writeback_if.tb_line_num <= 0;
+      rob_if.a_sigs  <= '0;
+      rob_if.mu_sigs <= '0;
+      rob_if.du_sigs <= '0;
+      rob_if.m_sigs  <= '0;
+      rob_if.p_sigs  <= '0;
+      rob_if.ls_sigs <= '0;
+      rob_if.lmul    <= '0;
+      rob_if.vl <= '0;
 
     end else if (!hu_if.stall_mem) begin
+      /*******************************************************
+      *** To Scalar Unit
+      *******************************************************/ 
+      memory_writeback_if.rd_wen  <= execute_memory_if.rd_wen;
+      memory_writeback_if.rd_sel  <= execute_memory_if.rd_sel;
+      memory_writeback_if.rd_data <= execute_memory_if.rd_data;
+      memory_writeback_if.ena     <= execute_memory_if.ena;
+      memory_writeback_if.done     <= execute_memory_if.done;
+
+      /*******************************************************
+      *** 
+      *******************************************************/ 
       memory_writeback_if.wdat0     <= wdat0;
       memory_writeback_if.wdat1     <= wdat1;
-      memory_writeback_if.wen[0]      <= execute_memory_if.wen[0];
-      memory_writeback_if.wen[1]      <= execute_memory_if.wen[1];
+      memory_writeback_if.wen[0]    <= execute_memory_if.wen[0];
+      memory_writeback_if.wen[1]    <= execute_memory_if.wen[1];
       memory_writeback_if.woffset0  <= execute_memory_if.woffset0;
       memory_writeback_if.woffset1  <= execute_memory_if.woffset1;
 
@@ -138,36 +184,37 @@ module rv32v_memory_stage (
       memory_writeback_if.vl  <= execute_memory_if.vl;
       memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
 
-      memory_writeback_if.rd_wen  <= execute_memory_if.rd_wen;
-      memory_writeback_if.rd_sel  <= execute_memory_if.rd_sel;
-      memory_writeback_if.rd_data <= execute_memory_if.rd_data;
-      memory_writeback_if.ena     <= execute_memory_if.ena;
-      memory_writeback_if.done     <= execute_memory_if.done;
-
-      //TESTBENCH ONLY
-      // memory_writeback_if.tb_line_num <= execute_memory_if.tb_line_num;
+      rob_if.a_sigs  <= next_a_sigs;
+      rob_if.du_sigs <= next_du_sigs;
+      rob_if.m_sigs  <= next_m_sigs ;
+      rob_if.mu_sigs <= next_mu_sigs;
+      rob_if.p_sigs  <= next_p_sigs ;
+      rob_if.ls_sigs <= next_ls_sigs;
+      rob_if.single_bit_write <= memory_writeback_if.single_bit_write;
+      rob_if.lmul <= execute_memory_if.lmul;
+      rob_if.vl <= execute_memory_if.vl;
     end
   end
 
   // CSR
-  logic [31:0] vl, vlenb, vtype, vstart, next_vstart, next_vl, vlmax;
-  always_ff @ (posedge CLK, negedge nRST) begin
-    if (nRST == 0) begin
-      vl     <= '0;
-      vlenb  <= '0;
-      vtype  <= '0;
-      vstart <= '0;
-    end else if (execute_memory_if.config_type) begin
-      vl     <= execute_memory_if.vl;
-      vlenb  <= VLENB;
-      vtype  <= execute_memory_if.next_vtype_csr;
-      vstart <= '0;
-    end else begin
-      vstart <= next_vstart;
-    end
-  end
-  assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
-  assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
+  // logic [31:0] vl, vlenb, vtype, vstart, next_vstart, next_vl, vlmax;
+  // always_ff @ (posedge CLK, negedge nRST) begin
+  //   if (nRST == 0) begin
+  //     vl     <= '0;
+  //     vlenb  <= '0;
+  //     vtype  <= '0;
+  //     vstart <= '0;
+  //   end else if (execute_memory_if.config_type) begin
+  //     vl     <= execute_memory_if.vl;
+  //     vlenb  <= VLENB;
+  //     vtype  <= execute_memory_if.next_vtype_csr;
+  //     vstart <= '0;
+  //   end else begin
+  //     vstart <= next_vstart;
+  //   end
+  // end
+  // assign memory_writeback_if.sew = sew_t'(vtype[2:0]);
+  // assign memory_writeback_if.mul  = vlmul_t'(vtype[5:3]);
 
 
 endmodule

@@ -32,15 +32,17 @@ interface scalar_vector_decode_if();
   word_t        instr;
   logic         mal_insn;
   logic         fault_insn;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
+ 
 
   int tb_line_num;
 
   modport fetch(
-    output  instr, mal_insn, fault_insn
+    output  instr, mal_insn, fault_insn, index
   );
 
   modport decode(
-    input   instr, mal_insn, fault_insn 
+    input   instr, mal_insn, fault_insn, index
   );
 
 endinterface

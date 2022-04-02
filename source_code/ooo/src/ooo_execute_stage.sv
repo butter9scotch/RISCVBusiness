@@ -200,18 +200,14 @@ module ooo_execute_stage(
   rv32v_top_level_if rv32v_if();
   assign rv32v_hazard_unit.csr_update = 0;
   assign hazard_if.busy_v = (rv32v_hazard_unit.decode_ena | rv32v_hazard_unit.execute_ena | rv32v_hazard_unit.memory_ena | rv32v_hazard_unit.writeback_ena) & ~rv32v_if.done;
+  
+  // Assign signals to top-level vector unit interface
   assign rv32v_if.instr = decode_execute_if.v_sigs.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
   assign rv32v_if.rs1_data = decode_execute_if.v_sigs.rs1_data;
   assign rv32v_if.rs2_data = decode_execute_if.v_sigs.rs2_data;
-  //Feed index into the vector unit 
+  assign rv32v_if.alloc_ena = decode_execute_if.valloc_ena;
+  assign rv32v_if.index = decode_execute_if.v_sigs.index_v;
 
-  assign execute_commit_if.index_v    = decode_execute_if.v_sigs.index_v;
-  assign execute_commit_if.reg_rd_v   = rv32v_if.rd_sel;
-  assign execute_commit_if.done_v     = rv32v_if.done;       
-  //assign execute_commit_if.done_v     = ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
-  assign execute_commit_if.exception_v= rv32v_if.exception_v;
-  assign execute_commit_if.wdata_v    = rv32v_if.rd_data;     
-  assign execute_commit_if.wen_v    = rv32v_if.rd_wen;     
   assign hazard_if.vdecode_done = rv32v_hazard_unit.decode_done;
   
   generic_bus_if vector_gen_bus_if();
@@ -556,7 +552,15 @@ module ooo_execute_stage(
         execute_commit_if.index_a  <= auif.index_a;
         execute_commit_if.index_ls <= lsif.index_ls;
 
-        
+       // Forgot to put these in the latch??? 
+        execute_commit_if.index_v                <= decode_execute_if.v_sigs.index_v;
+        execute_commit_if.reg_rd_v               <= rv32v_if.rd_sel;
+        execute_commit_if.done_v                 <= rv32v_if.done;       
+        execute_commit_if.done_v                 <= ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
+        execute_commit_if.exception_v            <= rv32v_if.exception_v;
+        execute_commit_if.wdata_v                <= rv32v_if.rd_data;     
+        execute_commit_if.wen_v                  <= rv32v_if.rd_wen;     
+          
         //Halt
         execute_commit_if.halt_instr             <= decode_execute_if.halt_instr;
         //CPU tracker

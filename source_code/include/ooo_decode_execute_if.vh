@@ -48,6 +48,7 @@ interface ooo_decode_execute_if();
   logic stall_loadstore;
   logic ifence;
   logic prediction; //TEMPORARY
+  logic valloc_ena; 
   opcode_t opcode;
   word_t store_data;
 
@@ -73,6 +74,7 @@ interface ooo_decode_execute_if();
     div_sigs,
     lsu_sigs,
     v_sigs,
+    valloc_ena,
     tracker_sigs,
     stall_multiply,
     stall_divide,
@@ -96,6 +98,7 @@ interface ooo_decode_execute_if();
     div_sigs,
     lsu_sigs,
     v_sigs,
+    valloc_ena,
     tracker_sigs,
     pc,
     immediate,

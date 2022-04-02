@@ -58,7 +58,7 @@ interface rv32v_decode_execute_if;
   logic rd_scalar_src;
   vmv_type_t vmv_type;
   logic ena;
-
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
   // logic shamt;
   int tb_line_num; //TESTBENCH ONLY
   
@@ -84,6 +84,7 @@ interface rv32v_decode_execute_if;
     rd_scalar_src, 
     vmv_type,
     ena,
+    index,
 
     tb_line_num //TESTBENCH ONLY
   );
@@ -106,6 +107,7 @@ interface rv32v_decode_execute_if;
     rd_scalar_src,
     vmv_type,
     ena,
+    index,
 
     tb_line_num //TESTBENCH ONLY
   );

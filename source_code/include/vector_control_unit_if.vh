@@ -55,7 +55,7 @@ interface vector_control_unit_if();
   logic reduction_ena;
   // logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena; //unit enables
   logic sign_extend; //sign extend the immediate value
-  logic single_bit_op; //move this out to the decode stage top level?
+  logic single_bit_write; //move this out to the decode stage top level?
   logic illegal_insn; 
   logic de_en;
   logic stall;
@@ -135,7 +135,7 @@ interface vector_control_unit_if();
     fu_type,
     sign_extend,
     is_signed, //
-    single_bit_op,
+    single_bit_write,
     illegal_insn,
     vd_offset_src,
     move_src,

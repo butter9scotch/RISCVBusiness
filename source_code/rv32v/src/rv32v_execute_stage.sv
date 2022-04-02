@@ -455,18 +455,19 @@ module rv32v_execute_stage (
       execute_memory_if.vtype       <= '0;
       execute_memory_if.vd          <= '0;
       execute_memory_if.eew         <= '0;
+      execute_memory_if.lmul         <= '0;
       execute_memory_if.single_bit_write  <= '0;
       execute_memory_if.eew_loadstore     <= '0;
       execute_memory_if.ls_idx     <= '0;
       execute_memory_if.segment_type      <= '0;
 
-      execute_memory_if.rd_wen <= 0;
-      execute_memory_if.rd_sel <= 0;
-      execute_memory_if.rd_data <= 0;
-      execute_memory_if.ena <= 0;
-      execute_memory_if.done <= '0;
-      //TESTBENCH ONLY
-      // execute_memory_if.tb_line_num        <= 0;
+      execute_memory_if.rd_wen  <= '0;
+      execute_memory_if.rd_sel  <= '0;
+      execute_memory_if.rd_data <= '0;
+      execute_memory_if.ena     <= '0;
+      execute_memory_if.done    <= '0;
+      execute_memory_if.index   <= '0;
+      execute_memory_if.lmul    <= '0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -484,21 +485,18 @@ module rv32v_execute_stage (
       execute_memory_if.vtype       <= '0;
       execute_memory_if.vd          <= '0;
       execute_memory_if.eew         <= '0;
+      execute_memory_if.lmul         <= '0;
       execute_memory_if.single_bit_write  <= '0;
-      execute_memory_if.eew_loadstore     <= '0;
-      execute_memory_if.ls_idx     <= '0;
       execute_memory_if.segment_type      <= '0;
 
-      execute_memory_if.rd_wen <= 0;
-      execute_memory_if.rd_sel <= 0;
+      execute_memory_if.rd_wen  <= 0;
+      execute_memory_if.rd_sel  <= 0;
       execute_memory_if.rd_data <= 0;
-      execute_memory_if.ena <= 0;
-      execute_memory_if.done <= '0;
+      execute_memory_if.ena     <= 0;
+      execute_memory_if.done    <= '0;
+      execute_memory_if.index   <= '0;
 
-      //TESTBENCH ONLY
-      // execute_memory_if.tb_line_num        <= 0;
-
-
+      execute_memory_if.lmul  <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -523,10 +521,9 @@ module rv32v_execute_stage (
       execute_memory_if.vtype             <= decode_execute_if.vtype;
 
       execute_memory_if.vl                <= decode_execute_if.vl;
-      // execute_memory_if.vd          <= decode_execute_if.vd;
       execute_memory_if.vd                <= vif0.mul_wait ? vd_ff2 : decode_execute_if.vd;
-      // execute_memory_if.eew         <= decode_execute_if.eew;
       execute_memory_if.eew               <= vif0.mul_wait ? eew_ff2 : decode_execute_if.eew;
+      execute_memory_if.lmul         <= '0;
       execute_memory_if.single_bit_write  <= decode_execute_if.single_bit_write;
 
       execute_memory_if.eew_loadstore     <= decode_execute_if.eew_loadstore;
@@ -541,10 +538,10 @@ module rv32v_execute_stage (
                                              decode_execute_if.rd_scalar_src ?  decode_execute_if.vs2_lane0 : 
                                              32'hDEAD;
 
-      execute_memory_if.done <= decode_execute_if.decode_done;
-      execute_memory_if.ena <= decode_execute_if.ena;
-            //TESTBENCH ONLY
-      // execute_memory_if.tb_line_num        <= decode_execute_if.tb_line_num;
+      execute_memory_if.done  <= decode_execute_if.decode_done;
+      execute_memory_if.ena   <= decode_execute_if.ena;
+      execute_memory_if.index <= decode_execute_if.index;
+      execute_memory_if.lmul  <= decode_execute_if.lmul;
 
 
     end
