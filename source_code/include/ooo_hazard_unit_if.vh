@@ -42,6 +42,7 @@ interface ooo_hazard_unit_if();
   word_t csr_pc;
   word_t epc;
   word_t pc_ex;
+  word_t pc_fe;
   logic npc_sel;
   logic ifence_flush;
   logic csr_flush;
@@ -86,7 +87,6 @@ interface ooo_hazard_unit_if();
   logic hazard;
   logic mispredict_ff;
   logic wb_port_conflict;
-  logic intr_found;
 
 
   modport decode (
@@ -101,13 +101,13 @@ interface ooo_hazard_unit_if();
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
-           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, intr_found, d_mem_busy, dren, dwen
+           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, d_mem_busy, dren, dwen
   );
 
   modport fetch (
     input pc_en, npc_sel, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, 
-           priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode,
+           priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode, pc_fe,
     output i_mem_busy 
   );
 
@@ -120,7 +120,7 @@ interface ooo_hazard_unit_if();
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode, pc_ex, wb_port_conflict, intr_found,
+          busy_decode, pc_ex, wb_port_conflict, pc_fe,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
            loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
