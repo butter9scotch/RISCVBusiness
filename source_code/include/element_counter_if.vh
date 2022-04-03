@@ -35,12 +35,13 @@ interface element_counter_if # (
   logic    [NUM_COUNTERS-1:0]        done, next_done;
   logic    [NUM_COUNTERS-1:0][31:0]  vstart, vl;
   logic    [NUM_COUNTERS-1:0]        stall, ex_return, start, clear, busy_ex;
+  logic    [NUM_COUNTERS-1:0]        active;
 
   modport decode (
     input   vstart, vl,
             stall, ex_return, start,
             clear, busy_ex, 
-    output  offset,  done, next_done
+    output  offset,  done, next_done, active
   );
 
 endinterface

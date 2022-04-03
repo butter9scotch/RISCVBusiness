@@ -257,7 +257,7 @@ module ooo_execute_stage(
   *******************************************************/ 
   rv32v_memory_arbitor_if arb_if();
   memory_arbitor mem_arb(
-    .arb_if(arb_if),
+    .CLK, .nRST,
     .scalar_gen_bus_if(scalar_gen_bus_if),
     .vector_gen_bus_if(vector_gen_bus_if),
     .out_gen_bus_if(dgen_bus_if)

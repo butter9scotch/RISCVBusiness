@@ -50,13 +50,14 @@ module completion_buffer # (
   } cb_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
-  logic [$clog2(NUM_ENTRY) - 1:0] head_sel;
+  logic [$clog2(NUM_ENTRY) - 1:0] head_sel, tail_sel;
   cb_entry cb [0:NUM_ENTRY-1]; 
   cb_entry next_cb [0:NUM_ENTRY-1]; 
   logic move_head, move_tail, flush_cb;
   integer i;
 
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
+  assign tail_sel = head[$clog2(NUM_ENTRY)-1:0];
   //assign hazard_if.brj_addr = cb[head_sel].address;
   // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
 
@@ -160,12 +161,12 @@ module completion_buffer # (
       end 
     end */
     // Allocate entry for vector instr
-    if (cb_if.alloc_ena & cb_if.rv32v_instr) begin
-      next_cb[tail].rv32v = 1;
+    if (move_tail & cb_if.rv32v_instr) begin
+      next_cb[tail_sel].rv32v = 1;
       if (cb_if.rv32v_wb_scalar_ena) begin
-        next_cb[tail].wen = 1;
+        next_cb[tail_sel].wen = 1;
       end else begin
-        next_cb[tail].wen = 0;
+        next_cb[tail_sel].wen = 0;
       end
     end
     // Next state for arithemtic unit result

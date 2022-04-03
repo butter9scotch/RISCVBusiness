@@ -587,7 +587,7 @@ module rv32v_decode_stage (
       decode_execute_if.segment_type      <= '0;
 
       decode_execute_if.ena               <= '0;
-      decode_execute_if.index             <= '0;
+      decode_execute_if.index             <= scalar_vector_if.index;
       decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
     end else if (~hu_if.stall_dec & ~ele_if.done[ZERO]) begin
@@ -710,7 +710,7 @@ module rv32v_decode_stage (
       decode_execute_if.nf_count          <= nf_count_reg;
       decode_execute_if.segment_type      <= segment_type;
       decode_execute_if.ena               <= vcu_if.de_en;
-      decode_execute_if.valid               <= vcu_if.de_en;
+      decode_execute_if.valid             <= ele_if.active[ZERO];
       // ROB signals
       decode_execute_if.index             <= scalar_vector_if.index;
       decode_execute_if.counter_done      <= ele_if.done[ZERO];

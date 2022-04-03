@@ -31,7 +31,8 @@ module counter (
   input [31:0] vstart, vl,
   input logic stall, ex_return, start, clear, busy_ex, 
   output offset_t offset,
-  output logic done, next_done
+  output logic done, next_done,
+  output logic active
 );
   // import rv32i_types_pkg::*;
   logic done_reg;
@@ -44,6 +45,7 @@ module counter (
   logic start_reg, ena;
 
   assign ena = start_reg | start;
+  assign active = ena & ~done_reg;
 
   always_ff @(posedge CLK, negedge nRST) begin : START_FLOP
     if (~nRST) begin
@@ -93,11 +95,11 @@ module counter (
 //  end
 
   always_comb begin
-    if (vl == 1 || vl == 2) begin
-      done = ena;
-    end else begin
-      done = done_reg & (start | start_reg);
-    end
+//    if (vl == 1 || vl == 2) begin
+//      done = ena;
+//    end else begin
+      done = done_reg & ena;
+//    end
   end
 
 endmodule

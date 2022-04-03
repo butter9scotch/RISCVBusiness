@@ -49,6 +49,10 @@ module rv32v_reorder_buffer # (
   } rob_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
+  logic [$clog2(NUM_ENTRY)-1:0] head_sel, tail_sel;
+  assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
+  assign tail_sel = head[$clog2(NUM_ENTRY)-1:0];
+
   rob_entry rob [0:NUM_ENTRY-1]; 
   rob_entry next_rob [0:NUM_ENTRY-1]; 
   sew_t head_sew;
@@ -102,8 +106,8 @@ module rv32v_reorder_buffer # (
   assign ls_em_if.sew     = rob_if.ls_sigs.sew;
 
   assign flush                = rob_if.branch_mispredict | rob_if.scalar_exception;
-  assign head_exception_index = rob[head].exception_index;
-  assign head_sew             = rob[head].sew;
+  assign head_exception_index = rob[head_sel].exception_index;
+  assign head_sew             = rob[head_sel].sew;
   assign excep_index_off32    = head_exception_index[1:0] << 2;
   assign excep_index_off16    = head_exception_index[2:0] << 1;
   assign excep_index_off8     = head_exception_index[3:0];
@@ -119,15 +123,15 @@ module rv32v_reorder_buffer # (
 
   assign rob_if.cur_tail    = tail[$clog2(NUM_ENTRY)-1:0]; 
   assign rob_if.full        = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
-  assign rob_if.vreg_wen    = rob[head].valid & rob_if.commit_ena;
-  assign rob_if.commit_done = rob_if.vreg_wen & rob[head].commit_ack ;
-  assign rob_if.v_done      = rob_if.rd_wen ? counter_done_ff1 :rob[head].commit_ack;
-  assign rob_if.vd_final    = rob[head].vd;
-  assign rob_if.wen_final   = rob_if.v_exception ? (rob[head].wen & ~(16'hffff << excep_index_final)) : rob[head].wen;
-  assign rob_if.wdata_final = rob[head].data;
-  assign rob_if.single_wen  = rob[head].single_bit_write;
+  assign rob_if.vreg_wen    = rob[head_sel].valid & rob_if.commit_ena;
+  assign rob_if.commit_done = rob_if.vreg_wen & rob[head_sel].commit_ack ;
+  assign rob_if.v_done      = rob_if.rd_wen ? counter_done_ff1 :rob[head_sel].commit_ack;
+  assign rob_if.vd_final    = rob[head_sel].vd;
+  assign rob_if.wen_final   = rob_if.v_exception ? (rob[head_sel].wen & ~(16'hffff << excep_index_final)) : rob[head_sel].wen;
+  assign rob_if.wdata_final = rob[head_sel].data;
+  assign rob_if.single_wen  = rob[head_sel].single_bit_write;
   assign rob_if.single_wen_vl   = vl_reg;
-  assign rob_if.v_exception = rob[head].exception & rob_if.commit_ena;
+  assign rob_if.v_exception = rob[head_sel].exception & rob_if.commit_ena;
 
   assign reached_max_a  = (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 1) || (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 2);
   assign reached_max_mu = (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 1) || (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 2);
@@ -235,7 +239,7 @@ module rv32v_reorder_buffer # (
     next_rob = rob;
     // Clear head entry when committed
     if (rob_if.vreg_wen) begin
-      next_rob[head] = '0;
+      next_rob[head_sel] = '0;
     end
     // Next state for arithemtic unit result
     if (rob_if.a_sigs.ready) begin

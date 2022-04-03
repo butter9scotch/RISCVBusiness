@@ -24,7 +24,8 @@ module element_counter # (
         .busy_ex(ele_if.busy_ex[i]), 
         .offset(ele_if.offset[i]),
         .done(ele_if.done[i]), 
-        .next_done(ele_if.next_done[i])
+        .next_done(ele_if.next_done[i]),
+        .active(ele_if.active[i])
       );
     end
   endgenerate
