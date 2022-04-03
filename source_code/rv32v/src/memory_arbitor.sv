@@ -26,33 +26,77 @@
 `include "generic_bus_if.vh"
 `include "rv32v_memory_arbitor_if.vh"
 module memory_arbitor(
-  rv32v_memory_arbitor_if.arbitor arb_if,
+  input logic CLK, nRST,
   generic_bus_if.generic_bus scalar_gen_bus_if,
   generic_bus_if.generic_bus vector_gen_bus_if,
   generic_bus_if.cpu out_gen_bus_if
 );
-  parameter NUM_CB_ENTRY = 16;
-
-  let MSB(sig) = sig[$left(sig)];
+  // the only reason this works is because we expect the worst case 
+  // is that vector ls followed by a scalar ls will come at the same cycle
+  // and that the oldest instruction will always be the vector ls   
 
   typedef enum {
     IDLE,
-    VEC_REQ,
-    INT_REQ
+    VEC_REQ, // servicing a vector memory request 
+    INT_REQ  // servicing a scalar memory request 
   } req_state_t;
 
-  req_state_t current_request;
+  req_state_t current_request, next_request;
 
-  logic [$clog2(NUM_CB_ENTRY)-1:0] vector_tail_dist;
-  logic [$clog2(NUM_CB_ENTRY)-1:0] scalar_tail_dist;
+  // intermediary signals to make it easier to understand the decision logic
+  logic vector_request, scalar_request;
+  assign vector_request = vector_gen_bus_if.ren | vector_gen_bus_if.wen;
+  assign scalar_request = scalar_gen_bus_if.ren | scalar_gen_bus_if.wen;
 
-  // find the distance to the tail pointer
-  assign vector_tail_dist = arb_if.vector_cb_index - arb_if.cb_tail_index;
-  assign scalar_tail_dist = arb_if.scalar_cb_index - arb_if.cb_tail_index;
+  // current request register
+  always_ff @(posedge CLK, negedge nRST) begin
+    if(~nRST) begin
+      current_request <= IDLE;
+    end else begin
+      current_request <= next_request;
+    end
+  end
 
+  always_comb begin : NEXT_REQUEST_LOGIC
+    next_request = current_request;
+    casez(current_request)
+      IDLE: begin
+        // prioritize vector requests
+        if (vector_request) begin
+          next_request = VEC_REQ;
+        end else if (scalar_request) begin
+          next_request = INT_REQ;
+        end else begin
+          next_request = IDLE;
+        end
+      end
+      VEC_REQ: begin
+        // if the memory transaction is complete then go to idle
+        // or the other request on the line
+        if(~out_gen_bus_if.busy) begin
+          if(scalar_request) begin
+            next_request = INT_REQ;
+          end else begin
+            next_request = IDLE;
+          end
+        end
+      end
+      INT_REQ: begin
+        // if the memory transaction is complete then go to idle
+        // or the other request on the line
+        if(~out_gen_bus_if.busy) begin
+          if(vector_request) begin
+            next_request = VEC_REQ;
+          end else begin
+            next_request = IDLE;
+          end
+        end
+      end
+    endcase
+  end
 
-  always_comb begin : DECISION_LOGIC
-    current_request = IDLE;
+  always_comb begin : OUTPUT_LOGIC
+    // default ero the signals
     out_gen_bus_if.addr = '0;
     out_gen_bus_if.ren = '0;
     out_gen_bus_if.wen = '0;
@@ -62,28 +106,9 @@ module memory_arbitor(
     scalar_gen_bus_if.busy = 1;
     vector_gen_bus_if.rdata = '0;
     vector_gen_bus_if.busy = 1;
-    // if the tail pointer is larger than the head pointer and both entries are
-    // larger than the tail pointer take the larger unsigned integer
-    if (~vector_gen_bus_if.wen & ~vector_gen_bus_if.ren) begin
-      current_request = INT_REQ;
-    end else if (~scalar_gen_bus_if.wen & ~scalar_gen_bus_if.ren) begin
-      current_request = VEC_REQ;
-    end else if (vector_tail_dist[$left(vector_tail_dist)] == scalar_tail_dist[$left(scalar_tail_dist)] & 1) begin
-      if ($unsigned(vector_tail_dist) > $unsigned(scalar_tail_dist)) begin
-        current_request = INT_REQ;
-      end else if ($unsigned(vector_tail_dist) <= $unsigned(scalar_tail_dist)) begin
-        current_request = VEC_REQ;
-      end
-    // else take the smaller unsigned integer
-    end else begin
-      if ($unsigned(vector_tail_dist) > $unsigned(scalar_tail_dist)) begin
-        current_request = VEC_REQ;
-      end else if ($unsigned(vector_tail_dist) <= $unsigned(scalar_tail_dist)) begin
-        current_request = INT_REQ;
-      end
-    end
-    // output logic
-    casez(current_request)
+    // output logic based on next state to keep us in a single cycle hit
+    casez(next_request)
+      // connect the scalar loadstore unit
       INT_REQ : begin
         out_gen_bus_if.addr = scalar_gen_bus_if.addr;
         out_gen_bus_if.ren = scalar_gen_bus_if.ren;
@@ -93,6 +118,7 @@ module memory_arbitor(
         scalar_gen_bus_if.rdata = out_gen_bus_if.rdata;
         scalar_gen_bus_if.busy = out_gen_bus_if.busy;
       end
+      // connect the vector loadstore unit
       VEC_REQ : begin
         out_gen_bus_if.addr = vector_gen_bus_if.addr;
         out_gen_bus_if.ren = vector_gen_bus_if.ren;
@@ -101,17 +127,6 @@ module memory_arbitor(
         out_gen_bus_if.byte_en = vector_gen_bus_if.byte_en;
         vector_gen_bus_if.rdata = out_gen_bus_if.rdata;
         vector_gen_bus_if.busy = out_gen_bus_if.busy;
-      end
-      default : begin
-        out_gen_bus_if.addr = '0;
-        out_gen_bus_if.ren = '0;
-        out_gen_bus_if.wen = '0;
-        out_gen_bus_if.wdata = '0;
-        out_gen_bus_if.byte_en = '0;
-        scalar_gen_bus_if.rdata = '0;
-        scalar_gen_bus_if.busy = 1;
-        vector_gen_bus_if.rdata = '0;
-        vector_gen_bus_if.busy = 1;
       end
     endcase 
   end
