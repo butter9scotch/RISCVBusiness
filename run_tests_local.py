@@ -36,7 +36,7 @@ START_GREEN = "\033[92m"
 START_RED = "\033[31m"
 
 FILE_NAME = None
-ARCH = "RV32M"
+ARCH = "rv64uv"
 SUPPORTED_ARCHS = []
 SUPPORTED_TEST_TYPES = ['asm', 'c', 'selfasm', "sparce", ""]
 SPARCE_MODULES = ['sparce_svc', 'sparce_sprf', 'sparce_sasa_table', 'sparce_psru', 'sparce_cfid']
@@ -135,17 +135,17 @@ def compile_asm_for_self(file_name):
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))
 
-    xlen = 'rv64g' if '64' in ARCH else 'rv32g'
-    abi = 'lp64' if '64' in ARCH else 'ilp32'
+    xlen  =  'rv32imv'
+    abi   =  'ilp32'
 
 
-    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
+    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
                 '-static', '-mcmodel=medany', '-fvisibility=hidden',
                 '-nostdlib', '-nostartfiles',
                 '-T./verification/asm-env/link.ld',
                 '-I./verification/asm-env/selfasm', file_name, '-o',
                 output_name]
-    #print " ".join(cmd_arr)
+    print " ".join(cmd_arr)
     failure = subprocess.call(cmd_arr)
     if failure:
         return -1

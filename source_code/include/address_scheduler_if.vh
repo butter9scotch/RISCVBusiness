@@ -5,7 +5,7 @@ interface address_scheduler_if;
   import rv32i_types_pkg::*;
   logic [31:0] addr0, addr1, storedata0, storedata1;
   logic [31:0] final_addr, final_storedata, vl;
-  logic [1:0] byte_ena;
+  logic [3:0] byte_ena;
   logic load_ena, store_ena, dhit, wen, ren, arrived0, arrived1, returnex, exception, busy, ls_idx, segment_type;
   width_t eew_loadstore;
   sew_t sew;

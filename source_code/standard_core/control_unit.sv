@@ -112,7 +112,7 @@ module control_unit
   end
   // Assign register write enable
 
-  assign vector_wb_src = (cu_if.instr[31:26] == 6'b010000) && (cu_if.reg_rs1 == 5'b0) && ((v_funct3 == OPMVV) || (v_funct3 == OPMVX));
+  assign vector_wb_src = (cu_if.instr[31:26] == 6'b010000) && (cu_if.reg_rs1 == 5'b0) && (v_funct3[1:0] == 2'b10);
     //config instructions
   always_comb begin
     case(cu_if.opcode)

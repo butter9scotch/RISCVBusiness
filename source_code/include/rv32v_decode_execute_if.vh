@@ -60,6 +60,7 @@ interface rv32v_decode_execute_if;
   logic ena;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
   logic valid; 
+  logic counter_done;
 
 
 
@@ -83,7 +84,8 @@ interface rv32v_decode_execute_if;
     vmv_type,
     ena,
     index,
-    valid
+    valid,
+    counter_done
   );
 
   modport execute (
@@ -105,7 +107,8 @@ interface rv32v_decode_execute_if;
     vmv_type,
     ena,
     index,
-    valid
+    valid,
+    counter_done
   );
 
 endinterface
