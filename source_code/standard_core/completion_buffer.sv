@@ -51,7 +51,7 @@ module completion_buffer # (
   } cb_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
-  logic [$clog2(NUM_ENTRY) - 1:0] head_sel;
+  logic [$clog2(NUM_ENTRY) - 1:0] head_sel, tail_sel;
   cb_entry cb [0:NUM_ENTRY-1]; 
   cb_entry next_cb [0:NUM_ENTRY-1]; 
   logic move_head, move_tail, flush_cb;
@@ -79,6 +79,7 @@ module completion_buffer # (
   assign cb_if.mal_insn           = cb[head_sel].exception_type == MAL_NORMAL; 
   assign cb_if.epc                = cb[head_sel].data;
 
+  assign tail_sel                = tail[$clog2(NUM_ENTRY)-1:0];
   assign head_sel                = head[$clog2(NUM_ENTRY)-1:0];
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
@@ -144,7 +145,7 @@ module completion_buffer # (
       next_cb[head_sel] = '0;
     end
     if (move_tail) begin
-      next_cb[tail].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
+      next_cb[tail_sel].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
     end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin
@@ -154,12 +155,12 @@ module completion_buffer # (
       end 
     end */
     // Allocate entry for vector instr
-    if (cb_if.alloc_ena & cb_if.rv32v_instr) begin
-      next_cb[tail].rv32v = 1;
+    if (move_tail & cb_if.rv32v_instr) begin
+      next_cb[tail_sel].rv32v = 1;
       if (cb_if.rv32v_wb_scalar_ena) begin
-        next_cb[tail].wen = 1;
+        next_cb[tail_sel].wen = 1;
       end else begin
-        next_cb[tail].wen = 0;
+        next_cb[tail_sel].wen = 0;
       end
     end
     // Next state for arithemtic/multiply/divide unit result
