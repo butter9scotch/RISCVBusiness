@@ -31,17 +31,14 @@ import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
 
 `include "cpu_transaction.svh"
+`include "base_sequence.svh"
 
 /** Sequence to test read after writes to the same location */
-class nominal_sequence extends uvm_sequence #(cpu_transaction);
+class nominal_sequence extends base_sequence;
   `uvm_object_utils(nominal_sequence)
   function new(string name = "");
     super.new(name);
   endfunction: new
-
-  rand int N;  // total number of processor side transactions
-
-  constraint even {N%2==0;}
 
   task body();
     cpu_transaction req_item;
@@ -59,7 +56,7 @@ class nominal_sequence extends uvm_sequence #(cpu_transaction);
 
       // writes.shuffle();
       if(!req_item.randomize() with {
-        if (write_count >= N/2) {
+        if (write_count > N/2) {
           //only reads allowed
           rw == 0;
         }

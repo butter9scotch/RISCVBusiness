@@ -29,16 +29,13 @@ import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
 `include "uvm_macros.svh"
-
 `include "cpu_transaction.svh"
-
 `include "dut_params.svh"
+`include "base_sequence.svh"
 
 /** Sequence to test read after writes to the same location */
-class index_sequence extends uvm_sequence #(cpu_transaction);
+class index_sequence extends base_sequence;
   `uvm_object_utils(index_sequence)
-
-  rand int N; //number of iterations of eviction events
 
   function new(string name = "");
     super.new(name);
@@ -56,6 +53,10 @@ class index_sequence extends uvm_sequence #(cpu_transaction);
     N_reps = N / (`L1_BLOCK_SIZE);
 
     `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d", N, N_reps * (`L1_BLOCK_SIZE)), UVM_LOW)
+
+    if (N_reps <= 0) begin
+      `uvm_fatal(this.get_name(), $sformatf("Invalid Sequence Size: N must be at least %0d to touch all words of a block", (`L1_BLOCK_SIZE)))
+    end
     
     repeat(N_reps) begin
       for (int i = 0; i < `L1_BLOCK_SIZE; i++) begin

@@ -82,6 +82,7 @@ class bus_scoreboard extends uvm_scoreboard;
   function void report_phase(uvm_phase phase);
     `uvm_info($sformatf("%s", this.get_name()), $sformatf("Matches:    %0d", m_matches), UVM_LOW);
     `uvm_info($sformatf("%s", this.get_name()), $sformatf("Mismatches: %0d", m_mismatches), UVM_LOW);
+    `uvm_info($sformatf("%s", this.get_name()), $sformatf("TXN_Total: %0d", m_matches + m_mismatches), UVM_LOW);
   endfunction
 
 endclass : bus_scoreboard

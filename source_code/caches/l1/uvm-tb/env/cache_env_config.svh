@@ -34,11 +34,13 @@ class cache_env_config extends uvm_object;
     int mem_timeout;
     int mem_latency;
     int mmio_latency;
+    int iterations;
 
     rand logic[15:0] mem_tag; // used by mem bfm and bus predictors for non-initialized memory
     rand logic[15:0] mmio_tag; // used by mem bfm and bus predictors for memory mapped io response to reads
 
     `uvm_object_utils_begin(cache_env_config)
+       `uvm_field_int(iterations, UVM_ALL_ON)
        `uvm_field_int(mem_timeout, UVM_ALL_ON)
        `uvm_field_int(mem_latency, UVM_ALL_ON)
        `uvm_field_int(mmio_latency, UVM_ALL_ON)
@@ -58,6 +60,10 @@ class cache_env_config extends uvm_object;
 
         if (!uvm_config_db#(uvm_bitstream_t)::get(null,"","mmio_latency",mmio_latency)) begin
             `uvm_fatal("mmio_latency", "No parameter passed in from command line with uvm_set_config_int");
+        end
+
+        if (!uvm_config_db#(uvm_bitstream_t)::get(null,"","iterations",iterations)) begin
+            `uvm_fatal("iterations", "No parameter passed in from command line with uvm_set_config_int");
         end
     endfunction
 

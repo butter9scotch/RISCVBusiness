@@ -30,24 +30,12 @@ import uvm_pkg::*;
 `include "master_sequence.svh"
 `include "uvm_macros.svh"
 
-class random_test extends base_test#(master_sequence, "MASTER_SEQ");
+class random_test extends base_test#(master_sequence, "RANDOM_TEST");
   `uvm_component_utils(random_test)
 
-  function new(string name = "random_test", uvm_component parent);
+  function new(string name = "", uvm_component parent);
 		super.new(name, parent);
 	endfunction: new
-
-  task run_phase(uvm_phase phase);
-    phase.raise_objection( this, $sformatf("Starting <%s> in main phase", this.get_name()) );
-
-    if(!seq.randomize()) begin
-      `uvm_fatal("Randomize Error", "not able to randomize")
-    end
-  
- 		seq.start(env.cpu_agt.sqr);
-		#100ns;
-		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", this.get_name()) );
-  endtask
 
 endclass: random_test
 

@@ -25,6 +25,7 @@ SEED = random
 MEM_TIMEOUT = 11
 MEM_LATENCY = 1
 MMIO_LATENCY = 1
+ITERATIONS = 0
 
 RUN_COMMON = \
 	tb_$(TOP) -L \
@@ -34,16 +35,18 @@ RUN_COMMON = \
 	-sv_seed $(SEED) \
 	+UVM_TESTNAME=$(TESTCASE)_test \
 	+UVM_VERBOSITY=UVM_$(VERBOSITY) \
+	+uvm_set_config_int=*,iterations,$(ITERATIONS) \
 	+uvm_set_config_int=*,mem_timeout,$(MEM_TIMEOUT) \
 	+uvm_set_config_int=*,mem_latency,$(MEM_LATENCY) \
 	+uvm_set_config_int=*,mmio_latency,$(MMIO_LATENCY) \
 	-do "coverage save -onexit -p $(COVERAGE)/$(TESTCASE).ucdb"
 
 POST_RUN = python post-run.py \
-			testcase=$(TESTCASE) \
-			mem_timeout=$(MEM_TIMEOUT) \
-			mem_latency=$(MEM_LATENCY) \
-			mmio_latency=$(MMIO_LATENCY) \
+			$(TESTCASE) \
+			$(ITERATIONS) \
+			$(MEM_TIMEOUT) \
+			$(MEM_LATENCY) \
+			$(MMIO_LATENCY) \
 
 all: build run
 
@@ -99,7 +102,9 @@ help:
 				-> see readme.md for details on each level\n\
 		SEED <int>: starter seed for uvm randomization\n\
 		MEM_TIMEOUT <int>: allowed memory latency before timeout error\n\
-		MEM_LATENCY <int>: cycles to wait before memory returns\n" | less
+		MEM_LATENCY <int>: cycles to wait before memory returns\n\
+		ITERATIONS <int>: number of sub-sequences to run for a given test\n\
+			setting iterations to 0 will make iterations random\n" | less
 
 clean:
 	rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf

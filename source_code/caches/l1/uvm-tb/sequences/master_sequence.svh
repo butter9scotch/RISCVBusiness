@@ -36,37 +36,52 @@ import rv32i_types_pkg::*;
 `include "index_sequence.svh"
 `include "evict_sequence.svh"
 `include "mmio_sequence.svh"
+`include "base_sequence.svh"
 
 `include "cpu_transaction.svh"
 
-class sub_master_sequence;
-  rand int nom_max_n;
-  rand int evt_max_n;
-  rand int idx_max_n;
-  rand int mmio_max_n;
 
-  //TODO: CHANGE THESE TO MORE CONFIGURABLE PARAMS
-  constraint max {
-    nom_max_n > 0; nom_max_n < 10;
-    idx_max_n > 0; idx_max_n < 10; 
-    evt_max_n > 0; evt_max_n < 10; 
-    mmio_max_n > 0; mmio_max_n < 10;
-  }
+class bounds;
+  rand int upper;
+  int lower;
+
+  constraint ub { upper > lower; }
+
+  function new(int _lower);
+    lower = _lower;
+  endfunction: new
+
+  function string sprint();
+    return $sformatf("(%0d, %0d)", lower, upper);
+  endfunction: sprint
+endclass: bounds
+
+class sub_master_sequence;
+  rand bounds nom_bounds;
+  rand bounds evt_bounds;
+  rand bounds idx_bounds;
+  rand bounds mmio_bounds;
+
+  constraint nom { nom_bounds.upper < 10; }
+  constraint evt { evt_bounds.upper < 10; }
+  constraint idx { idx_bounds.upper < 10; }
+  constraint mmio { mmio_bounds.upper < 10; }
+
+  function new();
+    nom_bounds = new(1);
+    evt_bounds = new(`L1_ASSOC + 1);
+    idx_bounds = new(`L1_BLOCK_SIZE);
+    mmio_bounds = new(1);
+  endfunction: new
 
   function void show();
-    `uvm_info("sub_master_seq", $sformatf("evt_max_n: %0d, nom_max_n: %0d, mmio_max_n: %0d", evt_max_n, nom_max_n, mmio_max_n), UVM_LOW);
+    `uvm_info("sub_master_seq", $sformatf("evt_bounds: %s, idx_bounds: %s, nom_bounds: %s, mmio_bounds: %s", evt_bounds.sprint(), idx_bounds.sprint(), nom_bounds.sprint(), mmio_bounds.sprint()), UVM_LOW);
   endfunction
 endclass: sub_master_sequence
 
-class master_sequence extends uvm_sequence #(cpu_transaction);
+class master_sequence extends base_sequence;
   `uvm_object_utils(master_sequence)
   `uvm_declare_p_sequencer(cpu_sequencer)
-
-  rand int iterations;
-
-  constraint range {
-    iterations > 0; iterations < 10;
-  }
 
   sub_master_sequence seq_param;
 
@@ -87,25 +102,25 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
   function void sub_randomize();
     //randomize sub-sequences
     if(!nom_seq.randomize() with {
-      N inside {[0:seq_param.nom_max_n]};
+      N inside {[seq_param.nom_bounds.lower:seq_param.nom_bounds.upper]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
     if(!idx_seq.randomize() with {
-      N inside {[0:seq_param.idx_max_n]};
+      N inside {[seq_param.idx_bounds.lower:seq_param.idx_bounds.upper]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
     if(!evt_seq.randomize() with {
-      N inside {[0:seq_param.nom_max_n]};
+      N inside {[seq_param.evt_bounds.lower:seq_param.evt_bounds.upper]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
     if(!mmio_seq.randomize() with {
-      N inside {[0:seq_param.mmio_max_n]};
+      N inside {[seq_param.mmio_bounds.lower:seq_param.mmio_bounds.upper]};
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
@@ -113,25 +128,27 @@ class master_sequence extends uvm_sequence #(cpu_transaction);
 
   task body();
     cpu_transaction req_item;
-    uvm_sequence #(cpu_transaction) seq_list [$];
+    base_sequence seq_list [$];
     seq_list.push_back(nom_seq);
     seq_list.push_back(idx_seq);
     seq_list.push_back(evt_seq);
     seq_list.push_back(mmio_seq);
 
-    `uvm_info(this.get_name(), $sformatf("running %0d iterations", iterations), UVM_LOW)
+    `uvm_info(this.get_name(), $sformatf("running %0d iterations", N), UVM_LOW)
 
-    repeat(iterations) begin
-      if(!seq_param.randomize()) begin
+    while (N > 0) begin
+      if (!seq_param.randomize()) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
       seq_param.show();   // display sequence parameters
+      sub_randomize();    // randomize sub sequences
 
       seq_list.shuffle(); // reorder list elements to get random ordering
-      sub_randomize();    // randomize sub sequences
 
       for (int i = 0; i < seq_list.size(); i++) begin
         seq_list[i].start(p_sequencer);
+        N -= seq_list[i].N;
+        $display("here: %0d", N);
       end
     end
   endtask: body

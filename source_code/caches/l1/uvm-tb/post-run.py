@@ -28,16 +28,19 @@ import argparse
 
 TESTCASE = None
 SEED = None
+ITERATIONS = None
 MEM_TIMEOUT = None
 MEM_LATENCY = None
 MMIO_LATENCY = None
 
 def parse_arguments():
-    global TESTCASE, MEM_TIMEOUT, MEM_LATENCY, MMIO_LATENCY
+    global TESTCASE, ITERATIONS, MEM_TIMEOUT, MEM_LATENCY, MMIO_LATENCY
 
     parser = argparse.ArgumentParser(description="Parse runtime parameters from the transcript for tracking purposes")
     parser.add_argument('testcase', metavar='testcase', type=str,
                         help="Specify the testcase")
+    parser.add_argument('iterations', metavar='iterations', type=str,
+                        help="Specify the requested number of memory accesses for a test")
     parser.add_argument('mem_timeout', metavar='mem_timeout', type=str,
                         help="Specify the max memory latency before a fatal timeout error")
     parser.add_argument('mem_latency', metavar='mem_latency', type=str,
@@ -46,6 +49,7 @@ def parse_arguments():
                         help="Specify the number of clock cycles before memory mapped IO returns")
     args = parser.parse_args()
     TESTCASE = args.testcase
+    ITERATIONS = args.iterations
     MEM_TIMEOUT = args.mem_timeout
     MEM_LATENCY = args.mem_latency
     MMIO_LATENCY = args.mmio_latency
@@ -66,17 +70,26 @@ def cprint(msg, *formats):
     print(msg),
     print(bcolors.ENDC)
 
-keys = ["test", "seed", "mem_timeout", "mem_latency", "mmio_latency", "uvm_error", "uvm_fatal"] # keys to log variable
+keys = ["test", "seed", "iterations", "mem_timeout", "mem_latency", "mmio_latency", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
 
 def display_log(log):
     for key in keys:
         if key == "uvm_error" or key == "uvm_fatal":
             num = int(log[key])
             if (num != 0):
-                cprint(key + ": " + log[key], bcolors.FAIL)
-                continue
-        
-        cprint(key + ": " + log[key], bcolors.INFO)
+                cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.FAIL)
+            else:
+                cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.SUCCESS)
+            continue
+
+        if "txns" in key:
+            try:
+                cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.LOG)
+            except:
+                cprint("{key}: None".format(key=key), bcolors.FAIL)
+            continue
+
+        cprint("{key:<12}=> {val}".format(key=key, val=log[key]), bcolors.INFO)
 
 def log2str(log):
     now = datetime.now()
@@ -85,7 +98,10 @@ def log2str(log):
     out = "[{date}]: ".format(date=dt_string)
 
     for key in keys:
-        out += "{key}: {val}, ".format(key=key, val=log[key])
+        try:
+            out += "{key}: {val}, ".format(key=key, val=log[key])
+        except:
+            out += "{key}: None, ".format(key=key)
     
     return out
 
@@ -96,6 +112,7 @@ if __name__ == '__main__':
 
     log = {}
     log["test"] = TESTCASE
+    log["iterations"] = ITERATIONS
     log["mem_timeout"] = MEM_TIMEOUT
     log["mem_latency"] = MEM_LATENCY
     log["mmio_latency"] = MMIO_LATENCY
@@ -118,6 +135,12 @@ if __name__ == '__main__':
                 if not log.has_key("uvm_error") and "UVM_ERROR" in word:
                     if (words[i+1] == ":"):
                         log["uvm_error"] = words[i+2]
+
+                if "TXN_Total" in word:
+                    if words[i-1] == "[CPU_SCORE]":
+                        log["cpu_txns"] = words[i+1]
+                    elif words[i-1] == "[MEM_SCORE]":
+                        log["mem_txns"] = words[i+1]
             if len(log) == len(keys):
                 break # ignore the rest of the file
 
