@@ -498,6 +498,7 @@ module rv32v_decode_stage (
       decode_execute_if.segment_type      <= '0;
       decode_execute_if.ena               <= '0;
       decode_execute_if.index             <= '0;
+      decode_execute_if.counter_done      <= '0;
 
     end else if(hu_if.flush_dec | (ele_if.done[ZERO] & ~hu_if.stall_dec)) begin
       decode_execute_if.stride_type       <= '0;
@@ -587,6 +588,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.ena               <= '0;
       decode_execute_if.index             <= '0;
+      decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
     end else if (~hu_if.stall_dec & ~ele_if.done[ZERO]) begin
       decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src; //write to scalar regs
@@ -711,6 +713,7 @@ module rv32v_decode_stage (
       decode_execute_if.valid               <= vcu_if.de_en;
       // ROB signals
       decode_execute_if.index             <= scalar_vector_if.index;
+      decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
     end
   end

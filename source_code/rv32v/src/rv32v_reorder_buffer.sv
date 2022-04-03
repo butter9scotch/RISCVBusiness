@@ -111,7 +111,7 @@ module rv32v_reorder_buffer # (
   assign rob_if.cur_tail    = tail[$clog2(NUM_ENTRY)-1:0]; 
   assign rob_if.full        = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign rob_if.vreg_wen    = rob[head].valid & rob_if.commit_ena;
-  assign rob_if.commit_done = rob_if.vreg_wen & rob[head].commit_ack;
+  assign rob_if.commit_done = |(rob[head].wen) ? rob_if.vreg_wen & rob[head].commit_ack : rob_if.counter_done;
   assign rob_if.v_done      = rob[head].commit_ack;
   assign rob_if.vd_final    = rob[head].vd;
   assign rob_if.wen_final   = rob_if.v_exception ? (rob[head].wen & ~(16'hffff << excep_index_final)) : rob[head].wen;
