@@ -67,6 +67,14 @@ module control_unit
   assign instr_m = rv32m_insn_t'(cu_if.instr);
   assign instr_sys = systype_t'(cu_if.instr);
 
+
+  // Funct3 field
+  vfunct3_t   v_funct3;
+  logic [5:0] v_funct6;
+  
+  assign v_funct3 = vfunct3_t'(instr_i.funct3);
+  assign v_funct6 = cu_if.instr[31:26];
+
   // assign the opcode of the instruction
   assign cu_if.opcode = opcode_t'(cu_if.instr[6:0]);
 
@@ -104,7 +112,7 @@ module control_unit
   end
   // Assign register write enable
 
-  assign vector_wb_src = (cu_if.instr[31:26] == 6'b010000) && (cu_if.reg_rs1 == 5'b0) && ((vfunct3_t'(instr_i.funct3) == OPMVV) || (vfunct3_t'(instr_i.funct3) == OPMVX));
+  assign vector_wb_src = (cu_if.instr[31:26] == 6'b010000) && (cu_if.reg_rs1 == 5'b0) && ((v_funct3 == OPMVV) || (v_funct3 == OPMVX));
     //config instructions
   always_comb begin
     case(cu_if.opcode)
@@ -155,7 +163,7 @@ module control_unit
 
   assign vector_load_ena = (cu_if.opcode == LOAD_FP) && ((eew_loadstore == WIDTH8) || (eew_loadstore == WIDTH16) || (eew_loadstore == WIDTH32));
   assign vector_store_ena = (cu_if.opcode == STORE_FP)  && ((eew_loadstore == WIDTH8) || (eew_loadstore == WIDTH16) || (eew_loadstore == WIDTH32));
-  assign vector_regreg_ena = (cu_if.opcode == VECTOR) && (vfunct3_t'(instr_i.funct3) != OPCFG);
+  assign vector_regreg_ena = (cu_if.opcode == VECTOR) && (v_funct3 != OPCFG);
 
   
   // assign functional unit type based on decoded instruction
@@ -286,6 +294,23 @@ module control_unit
   assign cu_if.div_sigs.wen = cu_if.wen;
   assign cu_if.div_sigs.reg_rd= cu_if.reg_rd;
 
+
+  /***** VECTOR CONTROL SIGNALS *****/
+  // need to determine if the instruction is a single-bit vector operation 
+  always_comb begin 
+    case ({cu_if.opcode, v_funct3, v_funct6[5:3]})
+      // VMSEQ, VMSNE, etc... the comparison operations that set mask bits
+      // 011{0-7}
+      {VECTOR, OPIVX, 3'b011}: cu_if.v_single_bit_op = 1;
+      {VECTOR, OPIVI, 3'b011}: cu_if.v_single_bit_op = v_funct6[2:1] != 2'b01;
+      {VECTOR, OPIVV, 3'b011}: cu_if.v_single_bit_op = v_funct6[2:1] != 2'b11;
+      // VMADC, VMSBC
+      // 010001, 010011
+      {VECTOR, OPIVX, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b011) || (v_funct6[2:0] == 3'b001);
+      {VECTOR, OPIVI, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b111);
+      {VECTOR, OPIVV, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b111) || (v_funct6[2:0] == 3'b001);
+    endcase
+  end
 
   /***** FLOATING POINT CONTROL SIGNALS *****/
   // TODO: The top level signals for the floating point decoding here 

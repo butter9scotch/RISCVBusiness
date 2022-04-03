@@ -267,6 +267,7 @@ module ooo_decode_stage (
   assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
   assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
+  assign decode_execute_if.v_single_bit_op = cu_if.v_single_bit_op;
   /*********************************************************
   *** Vector Unit signals
   *********************************************************/
@@ -278,6 +279,7 @@ module ooo_decode_stage (
       decode_execute_if.v_sigs.rs1_data      <= '0;
       decode_execute_if.v_sigs.rs2_data      <= '0;
       decode_execute_if.v_sigs.sfu_type      <= scalar_fu_t'('0);
+      decode_execute_if.v_sigs.rob_index_v   <= '0;
     end else begin 
         if ((hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
           decode_execute_if.instr            <= '0;
@@ -286,7 +288,8 @@ module ooo_decode_stage (
           decode_execute_if.v_sigs.rs1_data  <= '0;
           decode_execute_if.v_sigs.rs2_data  <= '0;
           decode_execute_if.v_sigs.sfu_type  <= scalar_fu_t'('0);
-        end else if (hazard_if.vdecode_done) begin
+          decode_execute_if.v_sigs.rob_index_v   <= '0;
+        end else if (hazard_if.v_decode_done) begin
           decode_execute_if.instr <= 0;
           if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
             decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
@@ -302,6 +305,7 @@ module ooo_decode_stage (
           decode_execute_if.v_sigs.rs1_data  <= rf_if.rs1_data;
           decode_execute_if.v_sigs.rs2_data  <= rf_if.rs2_data;
           decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
+          decode_execute_if.v_sigs.rob_index_v   <= decode_execute_if.rob_index; // rob index is a signal coming from the vector reorder buffer in the next stage. not great style here
         end
     end
   end

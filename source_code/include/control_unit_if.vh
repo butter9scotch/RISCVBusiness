@@ -62,12 +62,16 @@ interface control_unit_if;
 
   // functional unit control signal structs
   //branch_control_signals_t branch_sigs;
+  jump_control_signals_t jump_sigs;
   csr_control_signals_t csr_sigs;
+  
+  // Functional unit signals
   arith_control_signals_t arith_sigs;
   mult_control_signals_t mult_sigs;
   div_control_signals_t div_sigs;
   lsu_control_signals_t lsu_sigs;
-  jump_control_signals_t jump_sigs;
+  // Vector unit signals
+  logic v_single_bit_op;
 
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
@@ -85,7 +89,8 @@ interface control_unit_if;
     opcode, halt, wen, fault_insn, illegal_insn, ret_insn, breakpoint, 
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
     csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, sign_type, sfu_type, 
-    high_low_sel, div_type, source_a_sel, source_b_sel, vector_wb_src
+    high_low_sel, div_type, source_a_sel, source_b_sel, vector_wb_src,
+    v_single_bit_op
   );
 
 endinterface

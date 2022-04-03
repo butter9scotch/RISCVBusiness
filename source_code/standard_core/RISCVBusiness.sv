@@ -129,6 +129,8 @@ module RISCVBusiness (
        ,.bypass_if(bypass_if)
       );
 
+   rv32v_reorder_buffer_if rob_if();
+
    ooo_execute_stage execute_stage (
         .CLK(CLK)
        ,.nRST(nRST)
@@ -137,6 +139,7 @@ module RISCVBusiness (
        ,.execute_commit_if(execute_commit_if)
        //,.jump_if(jump_if)
        ,.hazard_if(hazard_if)
+       ,.rob_if(rob_if)
        //,.branch_if(branch_if)
        ,.cc_if(cc_if)
        ,.prv_pipe_if(prv_pipe_if)
@@ -166,8 +169,8 @@ module RISCVBusiness (
 
    ooo_bypass_unit bypass_unit (bypass_if);
 
-    // assign cb_if.rv32v_commit_done  = 0;
-    assign cb_if.rv32v_exception  = 0;
+    // assign cb_if.v_commit_done  = 0;
+    assign cb_if.v_exception  = 0;
     assign cb_if.rv32v_wb_scalar_ready  = 0;
     assign cb_if.rv32v_wb_exception = 0;
     assign cb_if.rv32v_wb_scalar_index  = 0;

@@ -27,15 +27,20 @@ interface rv32v_execute_memory_if;
   fu_t fu_type;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
   vlmul_t lmul;
+  logic valid;
 
   modport execute (
     output load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vl, vtype, eew, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen,
-    ena, done, fu_type, index, lmul
+    ena, done, fu_type, index, lmul, valid
+  );
+
   modport memory (
     input load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vtype, eew, vl, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen ,
-    ena, done, fu_type, index, lmul
+    ena, done, fu_type, index, lmul, valid
+  );
+endinterface
 `endif // RV32V_EXECUTE_MEMORY_IF_VH

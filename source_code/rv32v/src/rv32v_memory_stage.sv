@@ -102,7 +102,7 @@ module rv32v_memory_stage (
     assign next_a_sigs.wdata = {wdat1, wdat0};
     assign next_a_sigs.vd = execute_memory_if.vd;
     assign next_a_sigs.wen = execute_memory_if.wen;
-    assign next_a_sigs.ready = 0;
+    assign next_a_sigs.ready = execute_memory_if.valid;
 
     assign next_mu_sigs = '0;
     assign next_du_sigs = '0;
@@ -172,17 +172,17 @@ module rv32v_memory_stage (
       /*******************************************************
       *** 
       *******************************************************/ 
-      memory_writeback_if.wdat0     <= wdat0;
-      memory_writeback_if.wdat1     <= wdat1;
-      memory_writeback_if.wen[0]    <= execute_memory_if.wen[0];
-      memory_writeback_if.wen[1]    <= execute_memory_if.wen[1];
-      memory_writeback_if.woffset0  <= execute_memory_if.woffset0;
-      memory_writeback_if.woffset1  <= execute_memory_if.woffset1;
+//      memory_writeback_if.wdat0     <= wdat0;
+//      memory_writeback_if.wdat1     <= wdat1;
+//      memory_writeback_if.wen[0]    <= execute_memory_if.wen[0];
+//      memory_writeback_if.wen[1]    <= execute_memory_if.wen[1];
+//      memory_writeback_if.woffset0  <= execute_memory_if.woffset0;
+//      memory_writeback_if.woffset1  <= execute_memory_if.woffset1;
 
-      memory_writeback_if.vd  <= execute_memory_if.vd;
-      memory_writeback_if.eew <= execute_memory_if.eew;
-      memory_writeback_if.vl  <= execute_memory_if.vl;
-      memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
+//      memory_writeback_if.vd  <= execute_memory_if.vd;
+//      memory_writeback_if.eew <= execute_memory_if.eew;
+//      memory_writeback_if.vl  <= execute_memory_if.vl;
+//      memory_writeback_if.single_bit_write  <= execute_memory_if.single_bit_write;
 
       rob_if.a_sigs  <= next_a_sigs;
       rob_if.du_sigs <= next_du_sigs;

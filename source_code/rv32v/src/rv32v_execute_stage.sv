@@ -468,6 +468,7 @@ module rv32v_execute_stage (
       execute_memory_if.done    <= '0;
       execute_memory_if.index   <= '0;
       execute_memory_if.lmul    <= '0;
+      execute_memory_if.valid   <= '0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -497,6 +498,7 @@ module rv32v_execute_stage (
       execute_memory_if.index   <= '0;
 
       execute_memory_if.lmul  <= '0;
+      execute_memory_if.valid <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -511,7 +513,6 @@ module rv32v_execute_stage (
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
                                         zero_aluresult1 & (decode_execute_if.fu_type == MASK) ? 0 : 
                                         move_sel ? decode_execute_if.vs2_lane1 : aluresult1;
-      // ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         
       execute_memory_if.wen[0]            <= next_wen[0];
       execute_memory_if.wen[1]            <= next_wen[1];
@@ -542,7 +543,7 @@ module rv32v_execute_stage (
       execute_memory_if.ena   <= decode_execute_if.ena;
       execute_memory_if.index <= decode_execute_if.index;
       execute_memory_if.lmul  <= decode_execute_if.lmul;
-
+      execute_memory_if.valid <= decode_execute_if.valid;
 
     end
   end

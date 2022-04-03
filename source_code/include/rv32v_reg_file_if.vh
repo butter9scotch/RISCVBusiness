@@ -33,6 +33,7 @@ interface rv32v_reg_file_if #(
 )();
 
   import rv32i_types_pkg::*;
+  parameter REG_SIZE_BITS = 128;
   // import rv32i_types_pkg::*;
 
   //====================READ SIGNALS=========================
@@ -43,10 +44,11 @@ interface rv32v_reg_file_if #(
   sew_t    [READ_PORTS-1:0]               sew, vs2_sew;
   
   //====================WRITE SIGNALS=========================
-  word_t   [LANES-1:0]                    w_data;
-  offset_t [LANES-1:0]                    vd_offset;
+  // wdata is a vector of 8 bytes 
+  vreg_t                                  w_data;
   logic    [4:0]                          vd;
-  logic    [1:0]                          wen;
+  logic    [15:0]                          byte_ena;
+  logic    [15:0]                          wen;
   logic                                   single_bit_write;
   sew_t                                   eew;
   logic    [VL_WIDTH:0]                   vl;
@@ -58,7 +60,8 @@ interface rv32v_reg_file_if #(
   modport rf (
     input w_data, vs1, vs2, vs3, vd, wen,
           sew, eew, vs2_sew, vl, //for wb stage
-          vs1_offset, vs2_offset, vs3_offset, vd_offset, single_bit_write,
+          vs1_offset, vs2_offset, vs3_offset, single_bit_write,
+          byte_ena,
 
     output vs1_data, vs2_data, vs3_data, vs1_mask, vs2_mask, vs3_mask, mask_32bit_lane0, mask_32bit_lane1
   );
@@ -72,8 +75,12 @@ interface rv32v_reg_file_if #(
             mask_32bit_lane0, mask_32bit_lane1
   );
 
-  modport writeback (
-    input w_data, vd, wen, vd_offset, eew, vl, single_bit_write
+//  modport writeback (
+//    input w_data, vd, wen, vd_offset, eew, vl, single_bit_write
+//  );
+
+  modport rob (
+    input w_data, vd, wen, byte_ena, vl 
   );
 
 endinterface

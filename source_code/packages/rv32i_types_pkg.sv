@@ -313,6 +313,7 @@ package rv32i_types_pkg;
     logic ena;
     scalar_fu_t sfu_type;
     logic [$clog2(NUM_CB_ENTRY)-1:0] index_v; 
+    logic [$clog2(NUM_ROB_ENTRIES)-1:0] rob_index_v; 
     logic [31:0] rs1_data; 
     logic [31:0] rs2_data; 
   } v_control_signals_t;
@@ -956,6 +957,7 @@ package rv32i_types_pkg;
   } rob_fu_result_t;
 
   typedef [$clog2(NUM_CB_ENTRY)-1:0] cb_index_t;
+  typedef [$clog2(NUM_ROB_ENTRIES)-1:0] rob_index_t;
 
 
 endpackage

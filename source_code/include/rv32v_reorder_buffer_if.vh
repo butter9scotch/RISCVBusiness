@@ -22,7 +22,8 @@ interface rv32v_reorder_buffer_if;
   vlmul_t lmul;
 
   // SCALAR PIPELINE
-  logic branch_mispredict, scalar_exception, rv32v_exception;
+  logic branch_mispredict, scalar_exception, v_exception;
+  logic v_done;
 
   // COMPLETION BUFFER
   logic commit_ena, commit_done;
@@ -35,28 +36,23 @@ interface rv32v_reorder_buffer_if;
 
   modport rob (
     input a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs,
-<<<<<<< Updated upstream
     alloc_ena, sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl, single_bit_op,  
     single_bit_write,
-    output cur_tail, vd_final, wen_final, wdata_final, full, rv32v_exception, commit_done, single_wen, single_wen_vl, vreg_wen
-=======
+    output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, v_done, single_wen, single_wen_vl, vreg_wen 
 
-    alloc_ena, sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl, 
-    single_bit_op, single_bit_write, 
-    output cur_tail, vd_final, wen_final, wdata_final, full, rv32v_exception, commit_done, single_wen, single_wen_vl
->>>>>>> Stashed changes
   );
 
   modport memory (
     output a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs,
            single_bit_write,
            sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl,  single_bit_op,
-    output cur_tail, vd_final, wen_final, wdata_final, full, rv32v_exception, commit_done, single_wen, single_wen_vl
+    output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, single_wen, single_wen_vl
   );
   
   // Alloc_ena comes from scalar decode stage. 
-//  modport decode (
-//  ); 
+  modport decode (
+    input cur_tail, v_done
+  ); 
 
 endinterface
 

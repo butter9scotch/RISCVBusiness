@@ -37,6 +37,7 @@ module rv32v_decode_stage (
   rv32v_reg_file_if.decode rfv_if,
   rv32v_hazard_unit_if.decode hu_if,
   prv_pipeline_if.vdecode prv_if,
+  rv32v_reorder_buffer_if.decode rob_if,
   input logic [31:0] xs1, xs2,
   input logic scalar_hazard_if_ret
 );
@@ -68,6 +69,20 @@ module rv32v_decode_stage (
   logic mask0, mask1;
 
   sew_t next_decode_execute_if_eew;
+
+   
+  //======================V_STALL LATCH===========================
+  logic busy;
+  assign hu_if.v_busy = busy | scalar_vector_if.v_start;
+  always_ff @(posedge CLK, negedge nRST) begin : STALL_LATCH
+    if (~nRST) begin
+      busy <= 0; 
+    end else if (hu_if.exception_v | rob_if.v_done) begin // or on flush
+      busy <= 0;
+    end else if (scalar_vector_if.v_start) begin
+      busy <= 1;
+    end
+  end
 
   assign sew = vcu_if.sew; 
   // assign eew_loadstore = width_t'(scalar_vector_if.instr[14:12]); 
@@ -229,8 +244,8 @@ module rv32v_decode_stage (
                             			(VLENB >> sew) << vcu_if.vmv_type;  
   assign ele_if.stall[ZERO]     = hu_if.busy_ex | hu_if.busy_mem;  
   assign ele_if.ex_return[ZERO] = scalar_hazard_if_ret;  //TODO: check this
-  assign ele_if.de_en[ZERO]     = vcu_if.de_en;   
-  assign ele_if.clear[ZERO]     = hu_if.flush_dec;
+  assign ele_if.start[ZERO]     = scalar_vector_if.v_start;   
+  assign ele_if.clear[ZERO]     = hu_if.flush_dec | rob_if.v_done;
   assign ele_if.busy_ex[ZERO]   = hu_if.busy_ex | hu_if.busy_mem;
 
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
@@ -390,7 +405,7 @@ module rv32v_decode_stage (
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 :
                                               // (prv_if.sew == SEW8) ? SEW16 : prv_if.sew;
   assign hu_if.decode_ena = vcu_if.de_en;
-  assign hu_if.decode_done = ele_if.done[ZERO];
+  assign hu_if.v_decode_done = ele_if.done[ZERO];
 
 
 
@@ -484,7 +499,7 @@ module rv32v_decode_stage (
       decode_execute_if.ena               <= '0;
       decode_execute_if.index             <= '0;
 
-    end else if(hu_if.flush_dec) begin
+    end else if(hu_if.flush_dec | (ele_if.done[ZERO] & ~hu_if.stall_dec)) begin
       decode_execute_if.stride_type       <= '0;
       decode_execute_if.rd_wen            <= '0;
       decode_execute_if.config_type       <= '0;
@@ -493,8 +508,8 @@ module rv32v_decode_stage (
       decode_execute_if.reduction_ena     <= '0;
       decode_execute_if.is_signed         <= '0;
       decode_execute_if.ls_idx            <= '0;
-      decode_execute_if.load_ena              <= '0;
-      decode_execute_if.store_ena             <= '0;
+      decode_execute_if.load_ena          <= '0;
+      decode_execute_if.store_ena         <= '0;
       decode_execute_if.wen[0]            <= '0;
       decode_execute_if.wen[1]            <= '0;
       decode_execute_if.stride_val        <= '0;
@@ -573,7 +588,7 @@ module rv32v_decode_stage (
       decode_execute_if.ena               <= '0;
       decode_execute_if.index             <= '0;
 
-    end else if (~hu_if.stall_dec) begin
+    end else if (~hu_if.stall_dec & ~ele_if.done[ZERO]) begin
       decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src; //write to scalar regs
       decode_execute_if.rd_sel            <= vcu_if.vd;
       decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[ZERO][0] : 32'hDEAD;
@@ -620,7 +635,7 @@ module rv32v_decode_stage (
       decode_execute_if.woffset0          <=  woffset0; 
       decode_execute_if.woffset1          <=  woffset1; 
       decode_execute_if.vd                <= vcu_if.vd;
-      decode_execute_if.single_bit_write  <= vcu_if.single_bit_write;
+      decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
       decode_execute_if.wen[0]            <= vcu_if.merge_ena | wen0;
       decode_execute_if.wen[1]            <= vcu_if.merge_ena | wen1;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
@@ -693,6 +708,7 @@ module rv32v_decode_stage (
       decode_execute_if.nf_count          <= nf_count_reg;
       decode_execute_if.segment_type      <= segment_type;
       decode_execute_if.ena               <= vcu_if.de_en;
+      decode_execute_if.valid               <= vcu_if.de_en;
       // ROB signals
       decode_execute_if.index             <= scalar_vector_if.index;
 

@@ -30,19 +30,19 @@ interface scalar_vector_decode_if();
   import rv32i_types_pkg::*;
 
   word_t        instr;
+  logic         v_single_bit_op;
   logic         mal_insn;
   logic         fault_insn;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
+  logic         v_start;
  
 
-  int tb_line_num;
-
   modport fetch(
-    output  instr, mal_insn, fault_insn, index
+    output  instr, mal_insn, fault_insn, index, v_single_bit_op, v_start
   );
 
   modport decode(
-    input   instr, mal_insn, fault_insn, index
+    input   instr, mal_insn, fault_insn, index, v_single_bit_op, v_start
   );
 
 endinterface

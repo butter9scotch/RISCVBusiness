@@ -34,11 +34,11 @@ interface element_counter_if # (
   offset_t [NUM_COUNTERS-1:0]        offset;
   logic    [NUM_COUNTERS-1:0]        done, next_done;
   logic    [NUM_COUNTERS-1:0][31:0]  vstart, vl;
-  logic    [NUM_COUNTERS-1:0]        stall, ex_return, de_en, clear, busy_ex;
+  logic    [NUM_COUNTERS-1:0]        stall, ex_return, start, clear, busy_ex;
 
   modport decode (
     input   vstart, vl,
-            stall, ex_return, de_en,
+            stall, ex_return, start,
             clear, busy_ex, 
     output  offset,  done, next_done
   );

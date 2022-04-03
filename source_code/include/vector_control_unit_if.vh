@@ -55,7 +55,7 @@ interface vector_control_unit_if();
   logic reduction_ena;
   // logic arith_ena, mask_ena, perm_ena, reduction_ena, loadstore_ena, mul_ena, div_ena; //unit enables
   logic sign_extend; //sign extend the immediate value
-  logic single_bit_write; //move this out to the decode stage top level?
+  logic single_bit_op; //move this out to the decode stage top level?
   logic illegal_insn; 
   logic de_en;
   logic stall;
@@ -98,9 +98,7 @@ interface vector_control_unit_if();
   vlmul_t lmul;
   width_t eew_loadstore;
   sew_t   sew, vs2_sew, eew;
-  // logic [VL_WIDTH:0] vl, vstart, vlenb; //[1, 128]
   logic [7:0] vtype;
-
   vmv_type_t vmv_type;
 
   logic merge_ena;
@@ -135,7 +133,7 @@ interface vector_control_unit_if();
     fu_type,
     sign_extend,
     is_signed, //
-    single_bit_write,
+    single_bit_op,
     illegal_insn,
     vd_offset_src,
     move_src,

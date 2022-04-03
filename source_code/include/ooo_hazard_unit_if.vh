@@ -17,7 +17,7 @@ interface ooo_hazard_unit_if();
   logic stall_du;
   logic stall_ls;
   logic stall_v;
-  logic busy_v;
+  logic v_busy;
   logic stall_all;
   logic intr;
   logic halt;
@@ -87,7 +87,7 @@ interface ooo_hazard_unit_if();
   logic rob_empty;
   logic hazard;
   logic mispredict_ff;
-  logic vdecode_done;
+  logic v_decode_done;
   logic wb_port_conflict;
 
 
@@ -95,14 +95,14 @@ interface ooo_hazard_unit_if();
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
            stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty, stall_v,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, vdecode_done, wb_port_conflict
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, v_decode_done, wb_port_conflict
   );
   modport execute (
     input pc_en, execute_commit_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
-           epc, pc_ex, busy_v, vdecode_done
+           epc, pc_ex, v_busy, v_decode_done
   );
 
   modport fetch (
@@ -121,7 +121,7 @@ interface ooo_hazard_unit_if();
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode, pc_ex, wb_port_conflict,busy_v,
+          busy_decode, pc_ex, wb_port_conflict,v_busy,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
            loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 

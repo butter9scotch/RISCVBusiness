@@ -29,7 +29,7 @@ import rv32i_types_pkg::*;
 module counter (
   input logic CLK, nRST,
   input [31:0] vstart, vl,
-  input logic stall, ex_return, de_en, clear, busy_ex, 
+  input logic stall, ex_return, start, clear, busy_ex, 
   output offset_t offset,
   output logic done, next_done
 );
@@ -41,55 +41,62 @@ module counter (
   //logic  done, next_done;
   //logic [31:0] vstart, vl;
   //logic stall, ex_return, de_en, clear, busy_ex;
-  
+  logic start_reg, ena;
 
-  always_ff @(posedge CLK, negedge nRST) begin
+  assign ena = start_reg | start;
+
+  always_ff @(posedge CLK, negedge nRST) begin : START_FLOP
+    if (~nRST) begin
+      start_reg <= 0;
+    end else if (start) begin
+      start_reg <= 1;
+    end else if (done | clear)begin
+      start_reg <= 0;
+    end 
+  end 
+
+  always_ff @(posedge CLK, negedge nRST) begin : DONE_AND_OFFSET
     if (~nRST) begin
       offset <= 0;
       done_reg <= 0;
     end else if (clear) begin
       offset <= 0;
       done_reg <= 0;
-    end else if (ex_return & de_en) begin
+    end else if (ex_return & ena) begin
       offset <= vstart;
       done_reg <= next_done;
-    end else if (offset + NUM_LANES >= vl & ~busy_ex) begin
-      offset <= 0;
-      done_reg <= next_done;
-    end else if (done_reg) begin
-      offset <= 0;
-      done_reg <= next_done;
-    end else if (de_en  & ~stall)begin
+    end else if (ena & ~stall & ~done) begin
       offset <= offset + NUM_LANES; //in this case 2
-      done_reg <= next_done;
+      if (((offset + NUM_LANES + 1 >= vl) && (vl > 0)) && ena) begin
+        done_reg <= 1;
+        offset <= 0; 
+      end
     end
   end
 
-  always_comb begin
-    next_offset = offset;
-    if (ex_return & de_en) begin
-        next_offset = vstart;
-    end else if (offset + NUM_LANES >= vl) begin
-      next_offset = 0;
-    end else if (done_reg) begin
-      next_offset = 0;
-    end else if ((de_en == 1) & ~stall)begin
-      next_offset = offset + NUM_LANES; //in this case 2
-    end
-  end
+//  always_comb begin
+//    next_offset = offset;
+//    if (ex_return & de_en) begin
+//        next_offset = vstart;
+//    end else if (offset + NUM_LANES >= vl) begin
+//      next_offset = 0;
+//    end else if (ena & ~stall)begin
+//      next_offset = offset + NUM_LANES; //in this case 2
+//    end
+//  end
 
-  always_comb begin
-    next_done = 0;
-    if ((offset + 3 >= vl && (vl > 0)) && de_en) begin
-      next_done = 1; 
-    end
-  end
+//  always_comb begin
+//    next_done = done;
+//    if ((offset + 3 >= vl && (vl > 0)) && ena) begin
+//      next_done = 1; 
+//    end
+//  end
 
   always_comb begin
     if (vl == 1 || vl == 2) begin
-      done = de_en;
+      done = ena;
     end else begin
-      done = done_reg & de_en;
+      done = done_reg & (start | start_reg);
     end
   end
 

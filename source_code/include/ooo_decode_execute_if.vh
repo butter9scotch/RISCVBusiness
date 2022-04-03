@@ -63,10 +63,13 @@ interface ooo_decode_execute_if();
   div_control_signals_t div_sigs; //
   lsu_control_signals_t lsu_sigs; //
   v_control_signals_t v_sigs; //
+  logic v_single_bit_op; // This is assigned combinationally
+  rob_index_t rob_index;
   
   cpu_tracker_signals_t tracker_sigs; //
 
   modport decode (
+    input rob_index,
     output port_a, port_b, reg_file_wdata, sfu_type, halt_instr,
     exception_sigs, csr_sigs,
     arith_sigs, jump_sigs, branch_sigs, 
@@ -87,10 +90,12 @@ interface ooo_decode_execute_if();
     prediction,
     instr,
     opcode,
-    store_data
+    store_data,
+    v_single_bit_op
   );
 
   modport execute (
+    output rob_index,
     input port_a, port_b, reg_file_wdata, sfu_type, halt_instr,
     exception_sigs, csr_sigs,
     arith_sigs, jump_sigs, branch_sigs, 
@@ -106,7 +111,8 @@ interface ooo_decode_execute_if();
     prediction,
     instr,
     opcode,
-    store_data
+    store_data,
+    v_single_bit_op
   );
 
 endinterface

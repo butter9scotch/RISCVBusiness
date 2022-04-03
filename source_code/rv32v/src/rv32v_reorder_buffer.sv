@@ -31,7 +31,8 @@ module rv32v_reorder_buffer # (
 )
 (
   input CLK, nRST,
-  rv32v_reorder_buffer_if.rob rob_if
+  rv32v_reorder_buffer_if.rob rob_if,
+  rv32v_reg_file_if.rob rfv_if
 );
   import rv32i_types_pkg::*;
 
@@ -58,7 +59,6 @@ module rv32v_reorder_buffer # (
   logic [3:0] vd_wen_offset_a, vd_wen_offset_mu, vd_wen_offset_du, vd_wen_offset_m, vd_wen_offset_p, vd_wen_offset_ls;
   logic [6:0] vd_outer_offset_a, vd_outer_offset_mu, vd_outer_offset_du, vd_outer_offset_m, vd_outer_offset_p, vd_outer_offset_ls;
   logic reached_max_a, reached_max_mu, reached_max_du, reached_max_m, reached_max_p, reached_max_ls;
-  logic filled_one_entry_a, filled_one_entry_mu, filled_one_entry_du, filled_one_entry_m, filled_one_entry_p, filled_one_entry_ls;
   logic flush;
   integer i;
 
@@ -112,12 +112,13 @@ module rv32v_reorder_buffer # (
   assign rob_if.full        = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign rob_if.vreg_wen    = rob[head].valid & rob_if.commit_ena;
   assign rob_if.commit_done = rob_if.vreg_wen & rob[head].commit_ack;
+  assign rob_if.v_done      = rob[head].commit_ack;
   assign rob_if.vd_final    = rob[head].vd;
-  assign rob_if.wen_final   = rob_if.rv32v_exception ? (rob[head].wen & ~(16'hffff << excep_index_final)) : rob[head].wen;
+  assign rob_if.wen_final   = rob_if.v_exception ? (rob[head].wen & ~(16'hffff << excep_index_final)) : rob[head].wen;
   assign rob_if.wdata_final = rob[head].data;
   assign rob_if.single_wen  = rob[head].single_bit_write;
   assign rob_if.single_wen_vl   = vl_reg;
-  assign rob_if.rv32v_exception = rob[head].exception & rob_if.commit_ena;
+  assign rob_if.v_exception = rob[head].exception & rob_if.commit_ena;
 
   assign reached_max_a  = (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 1) || (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 2);
   assign reached_max_mu = (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 1) || (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 2);
@@ -126,7 +127,21 @@ module rv32v_reorder_buffer # (
   assign reached_max_p  = (rob_if.p_sigs.woffset == rob_if.p_sigs.vl - 1) || (rob_if.p_sigs.woffset == rob_if.p_sigs.vl - 2);
   assign reached_max_ls = (rob_if.ls_sigs.woffset == rob_if.ls_sigs.vl - 1) || (rob_if.ls_sigs.woffset == rob_if.ls_sigs.vl - 2);
 
-  // HEAD AND TAIL POINTER LOGIC
+  //=====================================================
+  //                   Reg file signals
+  //=====================================================
+  assign rfv_if.w_data = rob_if.wdata_final;
+  assign rfv_if.vd = rob_if.vd_final;
+  assign rfv_if.wen =rob_if.vreg_wen;
+  assign rfv_if.byte_ena=rob_if.wen_final;
+  //assign rfv_if.wen               = 
+//  assign rfv_if.w_data            = cb[head_sel].data; 
+//  assign rfv_if.rd                = cb[head_sel].vd; 
+  
+  //=====================================================
+  //                Head and tail pointers
+  //=====================================================
+
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       head <= '0;
@@ -392,5 +407,6 @@ module rv32v_reorder_buffer # (
       endcase
     end
   end
+
 
 endmodule

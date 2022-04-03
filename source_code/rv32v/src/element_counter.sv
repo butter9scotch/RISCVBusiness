@@ -19,7 +19,7 @@ module element_counter # (
         .vl(ele_if.vl[i]),
         .stall(ele_if.stall[i]), 
         .ex_return(ele_if.ex_return[i]), 
-        .de_en(ele_if.de_en[i]), 
+        .start(ele_if.start[i]), 
         .clear(ele_if.clear[i]), 
         .busy_ex(ele_if.busy_ex[i]), 
         .offset(ele_if.offset[i]),

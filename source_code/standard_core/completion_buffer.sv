@@ -72,16 +72,16 @@ module completion_buffer # (
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
   assign cb_if.flush             = cb[head_sel].exception;
-  assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
+  assign cb_if.exception         = cb[head_sel].exception | cb_if.v_exception; // WEN to epc register
   //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
-  //assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
-  assign cb_if.rv32v_commit_ena  = 0; // For vector instr that is not writing back to scalar reg
+  assign cb_if.v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
+//  assign cb_if.v_commit_ena  = 0; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
-  assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
+  assign move_head               = cb_if.v_commit_ena ? cb_if.v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
-  assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
+  assign flush_cb                = cb_if.flush | cb_if.v_exception;
 
   //assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;
   assign prv_pipe_if.instr = move_head;
@@ -217,7 +217,7 @@ module completion_buffer # (
       //next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for vector unit result
-    if (cb_if.ready_v) begin
+    if (cb_if.ready_v & ~cb_if.v_commit_ena) begin
       next_cb[cb_if.index_v].data = cb_if.wdata_v;
       next_cb[cb_if.index_v].vd = cb_if.vd_v; 
       next_cb[cb_if.index_v].wen = cb_if.wen_v & ~cb_if.exception_du; 

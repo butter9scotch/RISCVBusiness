@@ -27,9 +27,9 @@ interface completion_buffer_if();
 
   //VECTOR PIPELINE
   logic rv32v_instr;
-  logic rv32v_commit_ena;
-  logic rv32v_commit_done;
-  logic rv32v_exception;
+  logic v_commit_ena;
+  logic v_commit_done;
+  logic v_exception;
   logic rv32v_wb_scalar_ena;
   logic rv32v_wb_scalar_ready;
   logic rv32v_wb_exception;
@@ -83,7 +83,7 @@ interface completion_buffer_if();
   // Memory
 
   modport cb (
-    input alloc_ena, rv32v_instr, rv32v_commit_done, rv32v_exception, 
+    input alloc_ena, rv32v_instr, v_commit_done, v_exception, 
           rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
           rv32v_wb_exception, 
           exception_a, exception_mu, exception_du, exception_ls, exception_v, 
@@ -94,13 +94,13 @@ interface completion_buffer_if();
           wdata_a, wdata_mu, wdata_du, wdata_ls, wdata_v, 
           address_a, address_ls, CPU_TRACKER_decode, opcode,
           branch_mispredict, 
-    output full, empty, scalar_commit_ena, flush, rv32v_commit_ena, rv32f_commit_ena, 
+    output full, empty, scalar_commit_ena, flush, v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
            wdata_final, halt_instr, CPU_TRACKER, epc
   );
 
   modport commit (
-    output alloc_ena, rv32v_instr,  rv32v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
+    output alloc_ena, rv32v_instr,  v_exception, rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
            rv32v_wb_exception, exception_a, exception_mu, exception_du, exception_ls, exception_v, ready_a, 
            ready_mu, ready_du, ready_ls, ready_v, branch_mispredict, wen_a, wen_ls, valid_a, 
            mal_ls, rv32v_wb_scalar_index, index_a, index_mu, index_du, index_ls, index_v, 
@@ -122,7 +122,7 @@ interface completion_buffer_if();
   );
 
   modport rv32v (
-    input rv32v_commit_done, rv32v_exception, rv32v_wb_scalar_ready, rv32v_wb_exception, rv32v_wb_scalar_index, rv32v_wb_vd, rv32v_commit_ena,
+    input v_commit_done, v_exception, rv32v_wb_scalar_ready, rv32v_wb_exception, rv32v_wb_scalar_index, rv32v_wb_vd, v_commit_ena,
     output rv32v_wb_scalar_data
   );
 
@@ -136,7 +136,8 @@ interface completion_buffer_if();
         valid_a, mal_ls, 
         address_a, address_ls, 
         branch_mispredict, 
-        CPU_TRACKER, opcode, halt_instr, rv32v_commit_done, cur_tail
+        CPU_TRACKER, opcode, halt_instr, v_commit_done, cur_tail,
+        v_commit_ena
   );
   
 endinterface

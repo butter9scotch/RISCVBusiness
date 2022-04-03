@@ -53,7 +53,8 @@ module ooo_execute_stage(
   prv_pipeline_if.pipe  prv_pipe_if,
   generic_bus_if.cpu dgen_bus_if,
   ooo_bypass_unit_if.execute bypass_if,
-  completion_buffer_if.execute cb_if
+  completion_buffer_if.execute cb_if,
+  rv32v_reorder_buffer_if rob_if
 );
 
   import rv32i_types_pkg::*;
@@ -195,39 +196,59 @@ module ooo_execute_stage(
   *** Vector Unit
   *******************************************************/ 
   //scalar_vector_decode_if  rv32v_decode_if();
+  rv32v_hazard_unit_if rv32v_hazard_if();
   cache_model_if cif();
-  rv32v_hazard_unit_if rv32v_hazard_unit();
   rv32v_top_level_if rv32v_if();
-  assign rv32v_hazard_unit.csr_update = 0;
-  assign hazard_if.busy_v = (rv32v_hazard_unit.decode_ena | rv32v_hazard_unit.execute_ena | rv32v_hazard_unit.memory_ena | rv32v_hazard_unit.writeback_ena) & ~rv32v_if.done;
+
+  logic v_start_pulse, v_start_reg;
+
+  assign v_start_pulse = decode_execute_if.v_sigs.ena & ~v_start_reg; 
+
+  always_ff @(posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      v_start_reg <= 0;
+    end else begin
+      v_start_reg <= decode_execute_if.v_sigs.ena;
+    end 
+  end
+
+  assign rv32v_hazard_if.csr_update = 0;
+  assign hazard_if.v_busy = rv32v_hazard_if.v_busy;
   
   // Assign signals to top-level vector unit interface
   assign rv32v_if.instr = decode_execute_if.v_sigs.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
-  assign rv32v_if.rs1_data = decode_execute_if.v_sigs.rs1_data;
-  assign rv32v_if.rs2_data = decode_execute_if.v_sigs.rs2_data;
-  assign rv32v_if.alloc_ena = decode_execute_if.valloc_ena;
-  assign rv32v_if.index = decode_execute_if.v_sigs.index_v;
+  assign rv32v_if.rs1_data        = decode_execute_if.v_sigs.rs1_data;
+  assign rv32v_if.rs2_data        = decode_execute_if.v_sigs.rs2_data;
+  assign rv32v_if.alloc_ena       = decode_execute_if.valloc_ena;
+  assign rv32v_if.index           = decode_execute_if.v_sigs.rob_index_v;
+  assign rv32v_if.v_single_bit_op = decode_execute_if.v_single_bit_op;
+  assign rv32v_if.v_commit_ena    = cb_if.v_commit_ena;
+  assign rv32v_if.v_start    = v_start_pulse;
 
-  assign hazard_if.vdecode_done = rv32v_hazard_unit.decode_done;
+  assign cb_if.v_commit_done     = rv32v_if.v_commit_done; 
+  //TODO: this should go through the top level interface
+  //but maybe it is deprecated 
+  assign decode_execute_if.rob_index = rv32v_if.rob_index;
   
   generic_bus_if vector_gen_bus_if();
   // translation of the vector cache model if to the generic bus if
   // used by the arbitor and system level
-  assign vector_gen_bus_if.addr = cif.dmemaddr;
-  assign vector_gen_bus_if.ren = cif.ren;
-  assign vector_gen_bus_if.wen = cif.wen;
-  assign vector_gen_bus_if.wdata = cif.dmemstore;
+  assign vector_gen_bus_if.addr    = cif.dmemaddr;
+  assign vector_gen_bus_if.ren     = cif.ren;
+  assign vector_gen_bus_if.wen     = cif.wen;
+  assign vector_gen_bus_if.wdata   = cif.dmemstore;
   assign vector_gen_bus_if.byte_en = cif.byte_ena;
-  assign cif.dmemload = vector_gen_bus_if.rdata;
-  assign cif.dhit = ~vector_gen_bus_if.busy;
+  assign cif.dmemload              = vector_gen_bus_if.rdata;
+  assign cif.dhit                  = ~vector_gen_bus_if.busy;
 
   rv32v_top_level RVV (
     .CLK,
     .nRST,
     .cif(cif),
-    .hu_if(rv32v_hazard_unit),
+    .hu_if(rv32v_hazard_if),
     .prv_if(prv_pipe_if),
-    .top_if(rv32v_if)
+    .rv32v_if,
+    .rob_if
   );
 
   
@@ -556,7 +577,7 @@ module ooo_execute_stage(
         execute_commit_if.index_v                <= decode_execute_if.v_sigs.index_v;
         execute_commit_if.reg_rd_v               <= rv32v_if.rd_sel;
         execute_commit_if.done_v                 <= rv32v_if.done;       
-        execute_commit_if.done_v                 <= ~hazard_if.busy_v & decode_execute_if.v_sigs.ena;       
+        execute_commit_if.done_v                 <= ~hazard_if.v_busy & decode_execute_if.v_sigs.ena;       
         execute_commit_if.exception_v            <= rv32v_if.exception_v;
         execute_commit_if.wdata_v                <= rv32v_if.rd_data;     
         execute_commit_if.wen_v                  <= rv32v_if.rd_wen;     
@@ -689,6 +710,15 @@ module ooo_execute_stage(
   assign cb_if.ready_ls     = ready_ls; 
   assign cb_if.mal_ls       = mal_ls; 
   assign cb_if.wen_ls       = wen_ls; 
+
+//  assign cb_if.index_v     = index_v; 
+  assign cb_if.wdata_v     = rv32v_if.rd_data; 
+  assign cb_if.vd_v        = rv32v_if.rd_sel; 
+//  assign cb_if.exception_v = exception_v; 
+  assign cb_if.ready_v     = rv32v_if.done; 
+  assign cb_if.index_v     = decode_execute_if.v_sigs.index_v; 
+//  assign cb_if.mal_v       = mal_v; 
+  assign cb_if.wen_v       = rv32v_if.rd_wen; 
 
   assign cb_if.halt_instr   = decode_execute_if.halt_instr;
 
