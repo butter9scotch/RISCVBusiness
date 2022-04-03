@@ -24,13 +24,14 @@ interface rv32v_reorder_buffer_if;
 
   // SCALAR PIPELINE
   logic branch_mispredict, scalar_exception, v_exception;
-  logic v_done;
+  logic rd_wen;
 
   // COMPLETION BUFFER
   logic commit_ena, commit_done;
  
   // VECTOR REGISTER
   logic vreg_wen;
+  logic v_done;
 
   // FUNCTIONAL UNIT RESULT
   rob_fu_result_t a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs;
@@ -38,8 +39,8 @@ interface rv32v_reorder_buffer_if;
   modport rob (
     input a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs,
     alloc_ena, sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl, single_bit_op,  
-    single_bit_write, counter_done,
-    output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, v_done, single_wen, single_wen_vl, vreg_wen 
+    single_bit_write, counter_done, rd_wen, 
+    output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, v_done, single_wen, single_wen_vl, vreg_wen
 
   );
 
@@ -48,7 +49,7 @@ interface rv32v_reorder_buffer_if;
            single_bit_write,
            sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl,  single_bit_op,
     output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, single_wen, single_wen_vl,
-           counter_done
+           counter_done, rd_wen
   );
   
   // Alloc_ena comes from scalar decode stage. 

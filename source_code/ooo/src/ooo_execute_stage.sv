@@ -219,7 +219,7 @@ module ooo_execute_stage(
   assign rv32v_if.instr = decode_execute_if.v_sigs.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
   assign rv32v_if.rs1_data        = decode_execute_if.v_sigs.rs1_data;
   assign rv32v_if.rs2_data        = decode_execute_if.v_sigs.rs2_data;
-  assign rv32v_if.alloc_ena       = decode_execute_if.valloc_ena;
+  assign rv32v_if.alloc_ena       = decode_execute_if.v_alloc_ena;
   assign rv32v_if.index           = decode_execute_if.v_sigs.rob_index_v;
   assign rv32v_if.v_single_bit_op = decode_execute_if.v_single_bit_op;
   assign rv32v_if.v_commit_ena    = cb_if.v_commit_ena;

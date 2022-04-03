@@ -297,7 +297,7 @@ module control_unit
 
   /***** VECTOR CONTROL SIGNALS *****/
   // need to determine if the instruction is a single-bit vector operation 
-  always_comb begin 
+  always_comb begin : VECTOR_UNIT_SINGLE_BIT_OP
     case ({cu_if.opcode, v_funct3, v_funct6[5:3]})
       // VMSEQ, VMSNE, etc... the comparison operations that set mask bits
       // 011{0-7}
@@ -309,6 +309,17 @@ module control_unit
       {VECTOR, OPIVX, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b011) || (v_funct6[2:0] == 3'b001);
       {VECTOR, OPIVI, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b111);
       {VECTOR, OPIVV, 3'b010}: cu_if.v_single_bit_op = (v_funct6[2:0] == 3'b111) || (v_funct6[2:0] == 3'b001);
+      default: cu_if.v_single_bit_op = 0;
+    endcase
+  end
+
+  // determine if the instruction writes to the scalar reg file 
+  always_comb begin : VECTOR_UNIT_WRITE_TO_SCALAR
+    case ({cu_if.opcode, v_funct3, v_funct6, cu_if.reg_rs1})
+      {VECTOR, OPMVV, VWXUNARY0, 5'd0}: cu_if.v_scalar_wen = 1;
+      {VECTOR, OPMVV, VWXUNARY0, 5'b10000}: cu_if.v_scalar_wen = 1;
+      {VECTOR, OPMVV, VWXUNARY0, 5'b10001}: cu_if.v_scalar_wen = 1;
+      default: cu_if.v_scalar_wen = 0;
     endcase
   end
 

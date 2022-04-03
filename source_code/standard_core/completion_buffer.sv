@@ -75,10 +75,10 @@ module completion_buffer # (
   assign cb_if.exception         = cb[head_sel].exception | cb_if.v_exception; // WEN to epc register
   //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
   assign cb_if.v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
-//  assign cb_if.v_commit_ena  = 0; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
+
   assign move_head               = cb_if.v_commit_ena ? cb_if.v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
   assign flush_cb                = cb_if.flush | cb_if.v_exception;

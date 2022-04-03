@@ -31,6 +31,7 @@ interface rv32v_top_level_if;
     output done,
     output v_commit_done,
     output rob_index,
+
     input v_single_bit_op,
     input v_commit_ena,
     input index,

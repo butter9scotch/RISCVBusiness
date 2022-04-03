@@ -72,6 +72,7 @@ interface control_unit_if;
   lsu_control_signals_t lsu_sigs;
   // Vector unit signals
   logic v_single_bit_op;
+  logic v_scalar_wen;
 
   // Privilege control signals
   logic fault_insn, illegal_insn, ret_insn, breakpoint, ecall_insn;
@@ -90,7 +91,7 @@ interface control_unit_if;
     ecall_insn, wfi, csr_swap, csr_set, csr_clr, csr_imm, csr_rw_valid,
     csr_addr, zimm, ifence, reg_rs1, reg_rs2, reg_rd, sign_type, sfu_type, 
     high_low_sel, div_type, source_a_sel, source_b_sel, vector_wb_src,
-    v_single_bit_op
+    v_single_bit_op, v_scalar_wen
   );
 
 endinterface

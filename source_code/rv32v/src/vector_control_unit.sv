@@ -103,12 +103,7 @@ module vector_control_unit
   assign is_vopi   = (vcu_if.opcode == VECTOR)  && (( vfunct3 == OPIVV) || (vfunct3 == OPIVX) || (vfunct3 == OPIVI));
   assign is_vopm   = (vcu_if.opcode == VECTOR)  && ( (vfunct3 == OPMVV) || (vfunct3 == OPMVX));
 
-  //config instructions
-//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
-//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
-//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
-
-
+  
   // Assign memory read/write enables
   //enable counter
   // TODO: update logic
@@ -340,13 +335,7 @@ module vector_control_unit
 
   always_comb begin
     vcu_if.fu_type = ARITH;
-    // vcu_if.arith_ena = 0;
     vcu_if.reduction_ena = 0;
-    // vcu_if.mul_ena = 0;
-    // vcu_if.div_ena = 0;
-    // vcu_if.mask_ena = 0;
-    // vcu_if.perm_ena = 0;
-
     if (vcu_if.is_load) vcu_if.fu_type = LOAD_UNIT;
     if (vcu_if.is_store) vcu_if.fu_type = STORE_UNIT;
     if ((vcu_if.opcode == VECTOR) && (vfunct3 != OPCFG)) begin
@@ -364,12 +353,7 @@ module vector_control_unit
         OP_VRGATHER, OP_VSLIDEUP, OP_VRGATHEREI16, OP_VSLIDEDOWN, OP_VSLIDE1UP, OP_VSLIDE1DOWN, OP_VCOMPRESS: begin vcu_if.fu_type = PEM;  end
         default:   begin 
                 vcu_if.fu_type = ARITH;
-                // vcu_if.arith_ena = 0;
                 vcu_if.reduction_ena = 0;
-                // vcu_if.mul_ena = 0;
-                // vcu_if.div_ena = 0;
-                // vcu_if.mask_ena = 0;
-                // vcu_if.perm_ena = 0;
         end
       endcase
     end
