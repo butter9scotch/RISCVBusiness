@@ -176,13 +176,16 @@ module pipe5_memory_stage(
 
 
   /*******************************************************
-  *** Forwading Logic 
+  *** Forwarding Logic 
   *******************************************************/
 
   assign bypass_if.rd_mem       = execute_mem_if.reg_rd;
   assign bypass_if.WEN_mem      = execute_mem_if.wen;
   assign bypass_if.rd_data_mem  = (execute_mem_if.lui_instr) ? execute_mem_if.reg_file_wdata: execute_mem_if.alu_port_out;
 
+  assign bypass_if.f_rd_mem       = execute_mem_if.f_reg_rd;
+  assign bypass_if.f_WEN_mem      = execute_mem_if.f_wen;
+  assign bypass_if.f_rd_data_mem  = execute_mem_if.fpu_out;
   /*******************************************************
   *** CSR / Priv Interface Logic 
   *******************************************************/ 

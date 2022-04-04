@@ -61,11 +61,6 @@ module pipe5_execute_stage(
 
   clock_counter     cc(fpu_if);
 
-  //assign fpu signals
-  assign fpu_if.port_a = decode_execute_if.f_rs1_data;
-  assign fpu_if.port_b = decode_execute_if.f_rs2_data;
-  assign fpu_if.f_frm_in = decode_execute_if.frm_out;
-  assign fpu_if.f_funct_7 = decode_execute_if.f_funct7;
 
   word_t fpu_out;
   always_comb begin //assign fpu output 
@@ -85,6 +80,7 @@ module pipe5_execute_stage(
   word_t csr_wdata;
   logic intr_taken_ex;
   word_t branch_addr, resolved_addr;
+  word_t updated_f_rs1_data, updated_f_rs2_data;
 
 
   // Assign byte_en based on load type 
@@ -149,9 +145,14 @@ module pipe5_execute_stage(
   assign resolved_addr = branch_if.branch_taken ? branch_addr : decode_execute_if.pc4;
   
 
-  //Forwading logic
+  //Forwarding logic
   assign bypass_if.rs1_ex = decode_execute_if.reg_rs1;
   assign bypass_if.rs2_ex = decode_execute_if.reg_rs2;
+
+  //Floating point forwarding logic
+  assign bypass_if.f_rs1_ex = decode_execute_if.f_reg_rs1;
+  assign bypass_if.f_rs2_ex = decode_execute_if.f_reg_rs2;
+
   assign hazard_if.reg_rd = decode_execute_if.reg_rd;
   assign hazard_if.load   = decode_execute_if.dren;
   
@@ -174,6 +175,23 @@ module pipe5_execute_stage(
        updated_rs2_data = decode_execute_if.rs2_data;// If No forwarding required, then current rs2 in port_b
   end
 
+  always_comb begin
+   if (bypass_if.bypass_f_rs1 == FWD_M)
+       updated_f_rs1_data = bypass_if.f_rd_data_mem;
+   else if (bypass_if.bypass_f_rs1 == FWD_W)
+       updated_f_rs1_data = bypass_if.f_rd_data_wb;
+   else 
+       updated_f_rs1_data = decode_execute_if.f_rs1_data;
+  end
+
+  always_comb begin
+   if (bypass_if.bypass_f_rs2 == FWD_M)
+       updated_f_rs2_data = bypass_if.f_rd_data_mem;
+   else if (bypass_if.bypass_f_rs2 == FWD_W)
+       updated_f_rs2_data = bypass_if.f_rd_data_wb;
+   else 
+       updated_f_rs2_data = decode_execute_if.f_rs2_data;// If No forwarding required, then current rs2 in port_b
+  end
     assign alu_port_a = (decode_execute_if.alu_a_sel == 'd0) ? updated_rs1_data : decode_execute_if.port_a;
     assign alu_port_b = (decode_execute_if.alu_b_sel == 'd0) ? updated_rs1_data 
                                           : (decode_execute_if.alu_b_sel == 'd1) ? updated_rs2_data : decode_execute_if.port_b;
@@ -181,6 +199,11 @@ module pipe5_execute_stage(
     assign csr_wdata = (decode_execute_if.csr_imm) ? decode_execute_if.csr_imm_value : updated_rs1_data;
 
 
+    //assign fpu signals
+    assign fpu_if.port_a = updated_f_rs1_data;
+    assign fpu_if.port_b = updated_f_rs2_data;
+    assign fpu_if.f_frm_in = decode_execute_if.frm_out;
+    assign fpu_if.f_funct_7 = decode_execute_if.f_funct7;
    //Keep polling interrupt. This is so that interrupt can be latched even if the processor is busy doing something 
   always_ff @(posedge CLK, negedge nRST) begin
       if (~nRST) begin
@@ -397,7 +420,7 @@ module pipe5_execute_stage(
           execute_mem_if.f_wsel             <= decode_execute_if.f_wsel;
           execute_mem_if.f_wen              <= decode_execute_if.f_wen;
           execute_mem_if.f_wdata            <= decode_execute_if.f_wdata;
-          execute_mem_if.f_store_wdata      <= decode_execute_if.f_rs2_data;
+          execute_mem_if.f_store_wdata      <= updated_f_rs2_data;
           execute_mem_if.fpu_out            <= fpu_out; 
           execute_mem_if.fpu_flags          <= fpu_if.f_flags;
           execute_mem_if.fsw                <= decode_execute_if.fsw;

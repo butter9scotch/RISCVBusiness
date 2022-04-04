@@ -39,9 +39,12 @@ module pipe5_writeback_stage(
   import rv32i_types_pkg::*;
   word_t w_data;
 
+  //forwarding logic
   assign bypass_if.WEN_wb      = mem_wb_if.wen;
   assign bypass_if.rd_wb       = mem_wb_if.reg_rd;
  
+  assign bypass_if.f_WEN_wb      = mem_wb_if.f_wen;
+  assign bypass_if.f_rd_wb       = mem_wb_if.f_reg_rd;
 
   assign w_data = (mem_wb_if.w_sel == 'd3) ? mem_wb_if.alu_port_out 
                   : (mem_wb_if.w_sel == 'd0) ? mem_wb_if.dload_ext
@@ -49,6 +52,7 @@ module pipe5_writeback_stage(
                   : mem_wb_if.reg_file_wdata;
 
   assign bypass_if.rd_data_wb = w_data;
+  assign bypass_if.f_rd_data_wb = frf_if.f_wdata;
   assign rf_if.wen             = mem_wb_if.wen;     
   assign rf_if.w_data          = w_data;     
   assign rf_if.rd              = mem_wb_if.reg_rd;
