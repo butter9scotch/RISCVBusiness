@@ -107,7 +107,7 @@ module memory_arbitor(
     vector_gen_bus_if.rdata = '0;
     vector_gen_bus_if.busy = 1;
     // output logic based on next state to keep us in a single cycle hit
-    casez(next_request)
+    casez(current_request)
       // connect the scalar loadstore unit
       INT_REQ : begin
         out_gen_bus_if.addr = scalar_gen_bus_if.addr;

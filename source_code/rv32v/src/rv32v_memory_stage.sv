@@ -134,6 +134,8 @@ module rv32v_memory_stage (
       rob_if.m_sigs       <= '0;
       rob_if.p_sigs       <= '0;
       rob_if.ls_sigs      <= '0;
+
+      rob_if.single_bit_write <= 0;
       rob_if.lmul         <= '0;
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
@@ -158,6 +160,8 @@ module rv32v_memory_stage (
       rob_if.m_sigs       <= '0;
       rob_if.p_sigs       <= '0;
       rob_if.ls_sigs      <= '0;
+
+      rob_if.single_bit_write <= 0;
       rob_if.lmul         <= '0;
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
@@ -179,7 +183,8 @@ module rv32v_memory_stage (
       rob_if.mu_sigs          <= next_mu_sigs;
       rob_if.p_sigs           <= next_p_sigs ;
       rob_if.ls_sigs          <= next_ls_sigs;
-      rob_if.single_bit_write <= memory_writeback_if.single_bit_write;
+      
+      rob_if.single_bit_write <= execute_memory_if.single_bit_write;
       rob_if.lmul             <= execute_memory_if.lmul;
       rob_if.vl               <= execute_memory_if.vl;
       rob_if.counter_done     <= execute_memory_if.counter_done;
