@@ -34,16 +34,16 @@ import rv32i_types_pkg::*;
 `include "cache_model.svh"
 `include "Utils.svh"
 
-`uvm_analysis_imp_decl(_cpu_req)
-`uvm_analysis_imp_decl(_cpu_resp)
-`uvm_analysis_imp_decl(_mem_resp)
+`uvm_analysis_imp_decl(_src_req)
+`uvm_analysis_imp_decl(_src_resp)
+`uvm_analysis_imp_decl(_dest_resp)
 
 class end2end extends uvm_component;
   `uvm_component_utils(end2end) 
 
-  uvm_analysis_imp_cpu_req #(cpu_transaction, end2end) cpu_req_export;
-  uvm_analysis_imp_cpu_resp #(cpu_transaction, end2end) cpu_resp_export;
-  uvm_analysis_imp_mem_resp #(cpu_transaction, end2end) mem_resp_export;
+  uvm_analysis_imp_src_req #(cpu_transaction, end2end) src_req_export; // src's request
+  uvm_analysis_imp_src_resp #(cpu_transaction, end2end) src_resp_export; // dest's response to src's request
+  uvm_analysis_imp_dest_resp #(cpu_transaction, end2end) dest_resp_export; // 
 
   cache_model cache; // holds values currently stored in cache
 
@@ -53,14 +53,14 @@ class end2end extends uvm_component;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
-    cpu_req_export = new("cpu_req_ap", this);
-    cpu_resp_export = new("cpu_resp_ap", this);
-    mem_resp_export = new("mem_resp_ap", this);
+    src_req_export = new("src_req_ap", this);
+    src_resp_export = new("src_resp_ap", this);
+    dest_resp_export = new("dest_resp_ap", this);
     cache = new("e2e_cache");
   endfunction: new
 
-  function void write_cpu_req(cpu_transaction t);
-    cpu_transaction tx = cpu_transaction::type_id::create("cpu_req_tx", this);
+  function void write_src_req(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("src_req_tx", this);
     tx.copy(t);
 
     `uvm_info(this.get_name(), $sformatf("Detected CPU Request @%h", tx.addr), UVM_MEDIUM);
@@ -68,10 +68,10 @@ class end2end extends uvm_component;
     if (history.size() > 0) begin
       flush_history();
     end
-  endfunction: write_cpu_req
+  endfunction: write_src_req
 
-  function void write_cpu_resp(cpu_transaction t);
-    cpu_transaction tx = cpu_transaction::type_id::create("cpu_resp_tx", this);
+  function void write_src_resp(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("src_resp_tx", this);
     tx.copy(t);
 
     `uvm_info(this.get_name(), $sformatf("Detected CPU Response @%h", tx.addr), UVM_MEDIUM);
@@ -137,16 +137,16 @@ class end2end extends uvm_component;
         `uvm_error(this.get_name(), $sformatf("Error: Mem Mapped I/O Pass Through Transaction Size Mismatch: expected 1, actual %0d", history.size()));
       end
     end
-  endfunction: write_cpu_resp
+  endfunction: write_src_resp
 
-  function void write_mem_resp(cpu_transaction t);
-    cpu_transaction tx = cpu_transaction::type_id::create("mem_resp_tx", this);
+  function void write_dest_resp(cpu_transaction t);
+    cpu_transaction tx = cpu_transaction::type_id::create("dest_resp_tx", this);
     tx.copy(t);
 
     `uvm_info(this.get_name(), $sformatf("Detected Memory Response:: addr=%h", tx.addr), UVM_MEDIUM);
 
     history.push_back(tx);
-  endfunction: write_mem_resp
+  endfunction: write_dest_resp
 
   function void report_phase(uvm_phase phase);
     `uvm_info(this.get_name(), $sformatf("Successes:    %0d", successes), UVM_LOW);
