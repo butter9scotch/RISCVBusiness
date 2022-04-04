@@ -14,16 +14,16 @@
 *   limitations under the License.
 *
 *
-*   Filename:     i_cpu_agent.svh
+*   Filename:     bus_agent.svh
 *
 *   Created by:   Mitch Arndt
 *   Email:        arndt20@purdue.edu
 *   Date Created: 04/04/2022
-*   Description:  UVM Agent to stand in for the processor side of the instruction cache
+*   Description:  Generic UVM Agent to for a generic_bus_if
 */
 
-`ifndef I_CPU_AGENT_SVH
-`define I_CPU_AGENT_SVH
+`ifndef BUS_AGENT_SVH
+`define BUS_AGENT_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
@@ -33,32 +33,22 @@ import uvm_pkg::*;
 `include "mmio_sequence.svh"
 `include "cpu_driver.svh"
 `include "bus_monitor.svh"
-`include "bus_agent.svh"
 `include "cpu_sequencer.svh"
 
-typedef bus_monitor#(1, "i_cif", "i_cpu_bus_if") i_cpu_monitor;
+typedef bus_monitor#(0, "", "") generic_bus_monitor;
+class null_driver;
+endclass: null_driver
 
-typedef cpu_driver#("i_cif", "i_cpu_bus_if") i_cpu_driver;
-
-class i_cpu_agent extends bus_agent#(i_cpu_monitor, i_cpu_driver);
-  `uvm_component_utils(i_cpu_agent)
+class bus_agent #(type monitor = generic_bus_monitor, type driver = null_driver) extends uvm_agent;
+  `uvm_component_utils(bus_agent#(monitor, driver))
+  cpu_sequencer sqr;
+  driver drv;
+  monitor mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction
 
-  virtual function void build_phase(uvm_phase phase);   
-    sqr = cpu_sequencer::type_id::create("I_CPU_SQR", this);
-    drv = i_cpu_driver::type_id::create("I_CPU_DRV", this);
-    mon = i_cpu_monitor::type_id::create("I_CPU_MON", this);
-    `uvm_info(this.get_name(), $sformatf("Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_FULL)
-  endfunction
-
-  virtual function void connect_phase(uvm_phase phase);
-    drv.seq_item_port.connect(sqr.seq_item_export);
-    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", drv.get_name(), sqr.get_name()), UVM_FULL)
-  endfunction
-
-endclass: i_cpu_agent
+endclass: bus_agent
 
 `endif

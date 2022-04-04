@@ -33,18 +33,15 @@ import uvm_pkg::*;
 `include "mmio_sequence.svh"
 `include "cpu_driver.svh"
 `include "bus_monitor.svh"
-
-typedef uvm_sequencer#(cpu_transaction) cpu_sequencer;
+`include "bus_agent.svh"
+`include "cpu_sequencer.svh"
 
 typedef bus_monitor#(1, "d_cif", "d_cpu_bus_if") d_cpu_monitor;
 
 typedef cpu_driver#("d_cif", "d_cpu_bus_if") d_cpu_driver;
 
-class d_cpu_agent extends uvm_agent;
+class d_cpu_agent extends bus_agent#(d_cpu_monitor, d_cpu_driver);
   `uvm_component_utils(d_cpu_agent)
-  cpu_sequencer sqr;
-  d_cpu_driver drv;
-  d_cpu_monitor mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);

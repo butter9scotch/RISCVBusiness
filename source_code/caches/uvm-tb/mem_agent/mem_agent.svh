@@ -31,9 +31,8 @@ import uvm_pkg::*;
 
 typedef bus_monitor#(0, "l2_cif", "l2_bus_if") mem_monitor;
 
-class mem_agent extends uvm_agent;
+class mem_agent extends bus_agent#(mem_monitor);
   `uvm_component_utils(mem_agent)
-  mem_monitor mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
