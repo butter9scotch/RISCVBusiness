@@ -264,7 +264,8 @@ module ooo_decode_stage (
   *********************************************************/
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
   assign decode_execute_if.v_alloc_ena = cb_if.alloc_ena & cu_if.sfu_type == VECTOR_S & ~cu_if.v_scalar_wen; // This is for the vector completion buffer
-  assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
+  // assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
+  assign cb_if.rv32v_wb_scalar_ena  = cu_if.v_scalar_wen;
   assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
   assign decode_execute_if.v_single_bit_op = cu_if.v_single_bit_op;
@@ -306,6 +307,8 @@ module ooo_decode_stage (
           decode_execute_if.v_sigs.rs2_data  <= rf_if.rs2_data;
           decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
           decode_execute_if.v_sigs.rob_index_v   <= decode_execute_if.rob_index; // rob index is a signal coming from the vector reorder buffer in the next stage. not great style here
+        end else begin
+          decode_execute_if.v_sigs.ena       <= 0;
         end
     end
   end

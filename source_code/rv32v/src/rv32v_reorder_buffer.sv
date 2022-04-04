@@ -32,7 +32,8 @@ module rv32v_reorder_buffer # (
 (
   input CLK, nRST,
   rv32v_reorder_buffer_if.rob rob_if,
-  rv32v_reg_file_if.rob rfv_if
+  rv32v_reg_file_if.rob rfv_if,
+  rv32v_hazard_unit_if.rob hu_if
 );
   import rv32i_types_pkg::*;
 
@@ -125,7 +126,7 @@ module rv32v_reorder_buffer # (
   assign rob_if.full        = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign rob_if.vreg_wen    = rob[head_sel].valid & rob_if.commit_ena;
   assign rob_if.commit_done = rob_if.vreg_wen & rob[head_sel].commit_ack ;
-  assign rob_if.v_done      = rob_if.rd_wen ? counter_done_ff1 :rob[head_sel].commit_ack;
+  assign rob_if.v_done      = rob_if.rd_wen ? rob_if.counter_done :rob[head_sel].commit_ack;
   assign rob_if.vd_final    = rob[head_sel].vd;
   assign rob_if.wen_final   = rob_if.v_exception ? (rob[head_sel].wen & ~(16'hffff << excep_index_final)) : rob[head_sel].wen;
   assign rob_if.wdata_final = rob[head_sel].data;

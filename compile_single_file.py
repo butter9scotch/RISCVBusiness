@@ -10,7 +10,7 @@ RISCV = '/home/asicfab/a/socet49/opt/riscv/bin/'
 def compile_asm(filename):
     short_name = filename[:-2]
     output_name = short_name + '.elf'
-    xlen = 'rv32g'
+    xlen = 'rv32imv'
     abi = 'ilp32'
 
     cmd_arr = [RISCV + 'riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
