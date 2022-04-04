@@ -1,5 +1,5 @@
 #RISCVBUSINESS PROJECT ROOT DIRECTORY
-ROOT = ../../../..
+ROOT = ../../..
 TOP = caches_top
 WAVES = scripts
 COVERAGE = coverage
@@ -14,7 +14,8 @@ TEST = tests
 INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
 UTILS = utils
-SRC = $(ROOT)/source_code/caches/l1
+L1 = $(ROOT)/source_code/caches/l1
+L2 = $(ROOT)/source_code/caches/l2
 
 TESTCASE = random
 VERBOSITY = LOW
@@ -53,7 +54,9 @@ all: build run
 gui: build run_gui
 
 build: 
-	vlog +incdir+$(SRC) \
+	vlog \
+	+incdir+$(L1) \
+	+incdir+$(L2) \
 	+incdir+$(INCLUDE) \
 	+incdir+$(PACKAGES) \
 	+incdir+$(UTILS) \
