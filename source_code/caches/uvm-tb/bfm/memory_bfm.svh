@@ -60,12 +60,15 @@ class memory_bfm extends uvm_component;
         end
 
         // get interface from database
-        if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
-            `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
+        if( !uvm_config_db#(virtual cache_if)::get(this, "", "d_cif", cif) ) begin
+            `uvm_fatal($sformatf("%s/d_cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
-        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_l1_arb_bus_if", bus_if) ) begin
-            `uvm_fatal($sformatf("%s/mem_bus_if", this.get_name()), "No virtual interface specified for this test instance");
+        `uvm_info(this.get_name(), "pulled <d_cif> from db", UVM_FULL)
+
+        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "l2_bus_if", bus_if) ) begin
+            `uvm_fatal($sformatf("%s/l2_bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
+        `uvm_info(this.get_name(), "pulled <l2_bus_cif> from db", UVM_FULL)
 
     endfunction: build_phase
 

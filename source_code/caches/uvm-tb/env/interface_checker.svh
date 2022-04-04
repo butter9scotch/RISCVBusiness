@@ -26,7 +26,7 @@
 `define INTERFACE_CHECKER_SVH
 
 module interface_checker(
-    cache_if.cache cif,
+    cache_if.cache i_cif,
     generic_bus_if.generic_bus cpu_if,
     generic_bus_if.generic_bus mem_if
 );
@@ -34,12 +34,12 @@ module interface_checker(
     //FIXME: L1 RESPONSE WITHOUT REQUEST
     //FIXME: we have busy low when wen/ren are asserted for first cycle (request cycle)
     // this doesn't seem like an issue we need to check (or that is even an issue)
-    // assert property (@(posedge cif.CLK) !(cpu_if.ren || cpu_if.wen) && !cpu_if.busy);
+    // assert property (@(posedge i_cif.CLK) !(cpu_if.ren || cpu_if.wen) && !cpu_if.busy);
     // assert 
-    //     property (@(posedge cif.CLK) cpu_if.busy |-> ##2 (cpu_if.ren || cpu_if.wen))
+    //     property (@(posedge i_cif.CLK) cpu_if.busy |-> ##2 (cpu_if.ren || cpu_if.wen))
     //     else $fatal(1, "fatal error");
     // assert property (@(posedge mem_if.busy) mem_if.ren || mem_if.wen);
-    // assert property(@(posedge cif.CLK) cpu_if.byte_en != 32'hff00ff00);
+    // assert property(@(posedge i_cif.CLK) cpu_if.byte_en != 32'hff00ff00);
     //TODO: IMPLEMENT CHECK FOR VALID BYTE_EN
 endmodule: interface_checker
 

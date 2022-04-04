@@ -43,18 +43,6 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
 		super.new(name, parent);
 	endfunction: new
 
-  function void build_phase(uvm_phase phase);
-    super.build_phase(phase);
-    // get interface from database
-    if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
-      `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
-		end
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if) ) begin
-      `uvm_fatal($sformatf("%s/bus_if", this.get_name()), "No virtual interface specified for this test instance");
-		end
-    `uvm_info(this.get_name(), "pulled <cpu_if> and <cpu_bus_if> from db", UVM_HIGH)
-  endfunction: build_phase
-
   task run_phase(uvm_phase phase);
     cpu_transaction req_item;
 

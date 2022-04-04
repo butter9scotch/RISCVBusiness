@@ -23,8 +23,8 @@ VERBOSITY = LOW
 SEED = random
 
 #env_config parameters
-#TODO: THIS SHOULD PROBABLY BE 8, 4 for evict WB and 4 for read
-MEM_TIMEOUT = 11
+#TODO: Figure out what value mem_timeout should be
+MEM_TIMEOUT = 50
 MEM_LATENCY = 1
 MMIO_LATENCY = 1
 ITERATIONS = 0

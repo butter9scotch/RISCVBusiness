@@ -14,16 +14,16 @@
 *   limitations under the License.
 *
 *
-*   Filename:     cpu_monitor.svh
+*   Filename:     d_cpu_monitor.svh
 *
 *   Created by:   Mitch Arndt
 *   Email:        arndt20@purdue.edu
-*   Date Created: 03/27/2022
-*   Description:  UVM Monitor class for monitoring the generic_bus_if on the processor side of the caches
+*   Date Created: 04/04/2022
+*   Description:  UVM Monitor class for monitoring the generic_bus_if on the processor side of the data caches
 */
 
-`ifndef CPU_MONITOR_SVH
-`define CPU_MONITOR_SVH
+`ifndef D_CPU_MONITOR_SVH
+`define D_CPU_MONITOR_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
@@ -32,8 +32,8 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "cache_if.svh"
 
-class cpu_monitor extends bus_monitor #(1);
-  `uvm_component_utils(cpu_monitor)
+class d_cpu_monitor extends bus_monitor #(1);
+  `uvm_component_utils(d_cpu_monitor)
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -43,15 +43,17 @@ class cpu_monitor extends bus_monitor #(1);
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get interface from database
-    if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
-      `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
+    if( !uvm_config_db#(virtual cache_if)::get(this, "", "d_cif", cif) ) begin
+      `uvm_fatal($sformatf("%s/d_cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", bus_if) ) begin
-      `uvm_fatal($sformatf("%s/cpu_bus_if", this.get_name()), "No virtual interface specified for this test instance");
+    `uvm_info(this.get_name(), "pulled <d_cif> from db", UVM_FULL)
+
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "d_cpu_bus_if", bus_if) ) begin
+      `uvm_fatal($sformatf("%s/d_cpu_bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
-    `uvm_info(this.get_name(), "pulled <cpu_if> and <cpu_bus_if> from db", UVM_FULL)
+    `uvm_info(this.get_name(), "pulled <d_cpu_bus_if> from db", UVM_FULL)
   endfunction: build_phase
 
-endclass: cpu_monitor
+endclass: d_cpu_monitor
 
 `endif

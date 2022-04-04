@@ -34,7 +34,7 @@ import uvm_pkg::*;
 `include "bus_predictor.svh" // uvm_subscriber
 `include "bus_scoreboard.svh" // uvm_scoreboard
 
-`include "cpu_agent.svh"
+`include "d_cpu_agent.svh"
 `include "cpu_transaction.svh" // uvm_sequence_item
 
 `include "mem_agent.svh"
@@ -47,9 +47,9 @@ class cache_env extends uvm_env;
   cache_env_config env_config; //environment configuration
   memory_bfm mem_bfm; //memory bus functional model
   
-  cpu_agent cpu_agt; // contains monitor and driver
-  bus_predictor cpu_pred; // a reference model to check the result
-  bus_scoreboard cpu_score; // scoreboard
+  d_cpu_agent d_cpu_agt; // contains monitor and driver
+  bus_predictor d_cpu_pred; // a reference model to check the result
+  bus_scoreboard d_cpu_score; // scoreboard
 
   mem_agent mem_agt; // contains monitor
   bus_predictor mem_pred; // a reference model to check the result
@@ -61,9 +61,9 @@ class cache_env extends uvm_env;
 	endfunction
 
   function void build_phase(uvm_phase phase);
-    cpu_agt = cpu_agent::type_id::create("CPU_AGT", this);
-    cpu_pred = bus_predictor::type_id::create("CPU_PRED", this);
-    cpu_score = bus_scoreboard::type_id::create("CPU_SCORE", this);
+    d_cpu_agt = d_cpu_agent::type_id::create("D_CPU_AGT", this);
+    d_cpu_pred = bus_predictor::type_id::create("D_CPU_PRED", this);
+    d_cpu_score = bus_scoreboard::type_id::create("D_CPU_SCORE", this);
 
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
     mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
@@ -75,14 +75,14 @@ class cache_env extends uvm_env;
   endfunction
 
   function void connect_phase(uvm_phase phase);
-    cpu_agt.mon.req_ap.connect(cpu_pred.analysis_export); // connect monitor to predictor
-    `uvm_info(this.get_name(), $sformatf("Connected <%s>-req_ap to <%s>", cpu_agt.mon.get_name(), cpu_pred.get_name()), UVM_FULL)
+    d_cpu_agt.mon.req_ap.connect(d_cpu_pred.analysis_export); // connect monitor to predictor
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-req_ap to <%s>", d_cpu_agt.mon.get_name(), d_cpu_pred.get_name()), UVM_FULL)
 
-    cpu_pred.pred_ap.connect(cpu_score.expected_export); // connect predictor to scoreboard
-    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", cpu_pred.get_name(), cpu_score.get_name()), UVM_FULL)
+    d_cpu_pred.pred_ap.connect(d_cpu_score.expected_export); // connect predictor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", d_cpu_pred.get_name(), d_cpu_score.get_name()), UVM_FULL)
 
-    cpu_agt.mon.resp_ap.connect(cpu_score.actual_export); // connect monitor to scoreboard
-    `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", cpu_agt.mon.get_name(), cpu_score.get_name()), UVM_FULL)
+    d_cpu_agt.mon.resp_ap.connect(d_cpu_score.actual_export); // connect monitor to scoreboard
+    `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", d_cpu_agt.mon.get_name(), d_cpu_score.get_name()), UVM_FULL)
 
 
     mem_agt.mon.req_ap.connect(mem_pred.analysis_export); // connect monitor to predictor
@@ -94,8 +94,8 @@ class cache_env extends uvm_env;
     mem_agt.mon.resp_ap.connect(mem_score.actual_export); // connect monitor to scoreboard
     `uvm_info(this.get_name(), $sformatf("Connected <%s>-resp_ap to <%s>", mem_agt.mon.get_name(), mem_score.get_name()), UVM_FULL)
 
-    cpu_agt.mon.req_ap.connect(e2e.cpu_req_export);
-    cpu_agt.mon.resp_ap.connect(e2e.cpu_resp_export);
+    d_cpu_agt.mon.req_ap.connect(e2e.cpu_req_export);
+    d_cpu_agt.mon.resp_ap.connect(e2e.cpu_resp_export);
     mem_agt.mon.resp_ap.connect(e2e.mem_resp_export);
   endfunction
 

@@ -10,34 +10,39 @@ module memory_arbiter (
     
     // Output logic
     always_comb begin
-	icache_if.busy 	  = 1'b1;
-	dcache_if.busy 	  = 1'b1;
-	icache_if.rdata   = '0;
-	dcache_if.rdata   = '0;
-	mem_arb_if.ren 	  = 1'b0;
-	mem_arb_if.wen 	  = 1'b0;
-	mem_arb_if.addr   = '0;
-	mem_arb_if.wdata  = '0;
+	icache_if.busy 	  	= 1'b1;
+	dcache_if.busy 	  	= 1'b1;
+	icache_if.rdata   	= '0;
+	dcache_if.rdata   	= '0;
+	mem_arb_if.ren 	  	= 1'b0;
+	mem_arb_if.wen 	  	= 1'b0;
+	mem_arb_if.addr   	= '0;
+	mem_arb_if.wdata  	= '0;
+	mem_arb_if.byte_en	= '0;
 
 	casez(state)
 	    IDLE: begin
 		if(dcache_if.wen) begin
-		    mem_arb_if.wen    = 1'b1;
-		    mem_arb_if.addr   = dcache_if.addr;
-		    mem_arb_if.wdata  = dcache_if.wdata;
+		    mem_arb_if.wen    	= 1'b1;
+		    mem_arb_if.addr   	= dcache_if.addr;
+		    mem_arb_if.wdata  	= dcache_if.wdata;
+			mem_arb_if.byte_en	= dcache_if.byte_en;
 		end // if (dcache_if.wen)
 		else if(dcache_if.ren) begin
-		    mem_arb_if.ren   = 1'b1;
-		    mem_arb_if.addr  = dcache_if.addr;
+		    mem_arb_if.ren   	= 1'b1;
+		    mem_arb_if.addr  	= dcache_if.addr;
+			mem_arb_if.byte_en	= dcache_if.byte_en;
 		end
 		else if(icache_if.ren) begin
-		    mem_arb_if.ren   = 1'b1;
-		    mem_arb_if.addr  = icache_if.addr;
+		    mem_arb_if.ren   	= 1'b1;
+		    mem_arb_if.addr  	= icache_if.addr;
+			mem_arb_if.byte_en	= icache_if.byte_en;
 		end
 		else if(icache_if.wen) begin
-		    mem_arb_if.wen    = 1'b1;
-		    mem_arb_if.addr   = icache_if.addr;
-		    mem_arb_if.wdata  = icache_if.wdata;
+		    mem_arb_if.wen    	= 1'b1;
+		    mem_arb_if.addr   	= icache_if.addr;
+		    mem_arb_if.wdata  	= icache_if.wdata;
+			mem_arb_if.byte_en	= icache_if.byte_en;
 		end // if (icache_if.wen)
 	    end // case: IDLE
 	    IREQUEST: begin
@@ -50,11 +55,13 @@ module memory_arbiter (
 		end
 
 		if(icache_if.wen) begin
-		    mem_arb_if.wen    = 1'b1;
-		    mem_arb_if.wdata  = icache_if.wdata;
+		    mem_arb_if.wen    	= 1'b1;
+		    mem_arb_if.wdata  	= icache_if.wdata;
+			mem_arb_if.byte_en	= icache_if.byte_en;
 		end
 		else begin
-		    mem_arb_if.ren  = 1'b1;
+		    mem_arb_if.ren  	= 1'b1;
+			mem_arb_if.byte_en	= icache_if.byte_en;
 		end // else: !if(icache_if.wen)
 
 		mem_arb_if.addr = icache_if.addr;
@@ -69,11 +76,13 @@ module memory_arbiter (
 		end
 
 		if(dcache_if.wen) begin
-		    mem_arb_if.wen    = 1'b1;
-		    mem_arb_if.wdata  = dcache_if.wdata;
+		    mem_arb_if.wen    	= 1'b1;
+		    mem_arb_if.wdata  	= dcache_if.wdata;
+			mem_arb_if.byte_en	= dcache_if.byte_en;
 		end
 		else begin
-		    mem_arb_if.ren  = 1'b1;
+		    mem_arb_if.ren  	= 1'b1;
+			mem_arb_if.byte_en	= dcache_if.byte_en;
 		end // else: !if(dcache_if.wen)
 
 		mem_arb_if.addr  = dcache_if.addr;
