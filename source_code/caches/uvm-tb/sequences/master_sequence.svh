@@ -148,7 +148,6 @@ class master_sequence extends base_sequence;
       for (int i = 0; i < seq_list.size(); i++) begin
         seq_list[i].start(p_sequencer);
         N -= seq_list[i].N;
-        $display("here: %0d", N);
       end
     end
   endtask: body

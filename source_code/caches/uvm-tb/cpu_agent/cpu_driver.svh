@@ -33,8 +33,8 @@ import rv32i_types_pkg::*;
 `include "generic_bus_if.vh"
 `include "cache_if.svh"
 
-class cpu_driver extends uvm_driver#(cpu_transaction);
-  `uvm_component_utils(cpu_driver)
+class cpu_driver #(string cif_str, string bus_if_str) extends uvm_driver#(cpu_transaction);
+  `uvm_component_utils(cpu_driver#(cif_str, bus_if_str))
 
   virtual cache_if cif;
   virtual generic_bus_if cpu_bus_if;
@@ -42,6 +42,20 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
   function new(string name, uvm_component parent);
 		super.new(name, parent);
 	endfunction: new
+
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    // get interface from database
+    if( !uvm_config_db#(virtual cache_if)::get(this, "", cif_str, cif) ) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), cif_str), "No virtual interface specified for this test instance");
+		end
+    `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", cif_str), UVM_FULL)
+    
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, cpu_bus_if) ) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str), "No virtual interface specified for this test instance");
+		end
+    `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", bus_if_str), UVM_FULL)
+  endfunction: build_phase
 
   task run_phase(uvm_phase phase);
     cpu_transaction req_item;

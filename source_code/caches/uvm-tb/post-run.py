@@ -70,26 +70,27 @@ def cprint(msg, *formats):
     print(msg),
     print(bcolors.ENDC)
 
-keys = ["test", "seed", "iterations", "mem_timeout", "mem_latency", "mmio_latency", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
+keys = ["test", "seed", "iterations", "mem_timeout", "mem_latency", "mmio_latency", "d_cpu_txns", "i_cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
 
 def display_log(log):
     for key in keys:
-        if key == "uvm_error" or key == "uvm_fatal":
-            num = int(log[key])
-            if (num != 0):
-                cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.FAIL)
-            else:
-                cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.SUCCESS)
-            continue
+        try:
+            if key == "uvm_error" or key == "uvm_fatal":
+                num = int(log[key])
+                if (num != 0):
+                    cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.FAIL)
+                else:
+                    cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.SUCCESS)
+                continue
 
-        if "txns" in key:
-            try:
+            if "txns" in key:
                 cprint("{key}: {val}".format(key=key, val=log[key]), bcolors.LOG)
-            except:
-                cprint("{key}: None".format(key=key), bcolors.FAIL)
-            continue
+                continue
 
-        cprint("{key:<12}=> {val}".format(key=key, val=log[key]), bcolors.INFO)
+            cprint("{key:<12}=> {val}".format(key=key, val=log[key]), bcolors.INFO)
+        
+        except:
+            cprint("{key}: None".format(key=key), bcolors.FAIL)
 
 def log2str(log):
     now = datetime.now()
@@ -137,8 +138,10 @@ if __name__ == '__main__':
                         log["uvm_error"] = words[i+2]
 
                 if "TXN_Total" in word:
-                    if words[i-1] == "[CPU_SCORE]":
-                        log["cpu_txns"] = words[i+1]
+                    if words[i-1] == "[I_CPU_SCORE]":
+                        log["i_cpu_txns"] = words[i+1]
+                    if words[i-1] == "[D_CPU_SCORE]":
+                        log["d_cpu_txns"] = words[i+1]
                     elif words[i-1] == "[MEM_SCORE]":
                         log["mem_txns"] = words[i+1]
             if len(log) == len(keys):

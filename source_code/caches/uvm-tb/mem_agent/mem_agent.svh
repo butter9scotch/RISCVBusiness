@@ -27,7 +27,9 @@
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "mem_monitor.svh"
+`include "bus_monitor.svh"
+
+typedef bus_monitor#(0, "l2_cif", "l2_bus_if") mem_monitor;
 
 class mem_agent extends uvm_agent;
   `uvm_component_utils(mem_agent)

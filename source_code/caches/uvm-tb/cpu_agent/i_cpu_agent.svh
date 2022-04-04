@@ -14,16 +14,16 @@
 *   limitations under the License.
 *
 *
-*   Filename:     d_cpu_agent.svh
+*   Filename:     i_cpu_agent.svh
 *
 *   Created by:   Mitch Arndt
 *   Email:        arndt20@purdue.edu
 *   Date Created: 04/04/2022
-*   Description:  UVM Agent to stand in for the processor side of the data cache
+*   Description:  UVM Agent to stand in for the processor side of the instruction cache
 */
 
-`ifndef D_CPU_AGENT_SVH
-`define D_CPU_AGENT_SVH
+`ifndef I_CPU_AGENT_SVH
+`define I_CPU_AGENT_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
@@ -31,29 +31,27 @@ import uvm_pkg::*;
 `include "index_sequence.svh"
 `include "evict_sequence.svh"
 `include "mmio_sequence.svh"
-`include "cpu_driver.svh"
-`include "bus_monitor.svh"
+`include "i_cpu_driver.svh"
+`include "i_cpu_monitor.svh"
 
 typedef uvm_sequencer#(cpu_transaction) cpu_sequencer;
 
-typedef bus_monitor#(1, "d_cif", "d_cpu_bus_if") d_cpu_monitor;
+typedef bus_monitor#(1, "i_cif", "i_cpu_bus_if") i_cpu_monitor;
 
-typedef cpu_driver#("d_cif", "d_cpu_bus_if") d_cpu_driver;
-
-class d_cpu_agent extends uvm_agent;
-  `uvm_component_utils(d_cpu_agent)
+class i_cpu_agent extends uvm_agent;
+  `uvm_component_utils(i_cpu_agent)
   cpu_sequencer sqr;
-  d_cpu_driver drv;
-  d_cpu_monitor mon;
+  i_cpu_driver drv;
+  i_cpu_monitor mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction
 
   virtual function void build_phase(uvm_phase phase);   
-    sqr = cpu_sequencer::type_id::create("D_CPU_SQR", this);
-    drv = d_cpu_driver::type_id::create("D_CPU_DRV", this);
-    mon = d_cpu_monitor::type_id::create("D_CPU_MON", this);
+    sqr = cpu_sequencer::type_id::create("I_CPU_SQR", this);
+    drv = d_cpu_driver::type_id::create("I_CPU_DRV", this);
+    mon = i_cpu_monitor::type_id::create("I_CPU_MON", this);
     `uvm_info(this.get_name(), $sformatf("Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_FULL)
   endfunction
 
@@ -62,6 +60,6 @@ class d_cpu_agent extends uvm_agent;
     `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", drv.get_name(), sqr.get_name()), UVM_FULL)
   endfunction
 
-endclass: d_cpu_agent
+endclass: i_cpu_agent
 
 `endif

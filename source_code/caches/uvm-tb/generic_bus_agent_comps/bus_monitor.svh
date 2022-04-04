@@ -32,9 +32,9 @@ import uvm_pkg::*;
 `include "cache_if.svh"
 `include "dut_params.svh"
 
-class bus_monitor#(int precedence = 0) extends uvm_monitor;
+class bus_monitor#(int precedence, string cif_str, string bus_if_str) extends uvm_monitor;
   // precedence breaks ties for transactions that come during the same tick (lower is higher precedence)
-  `uvm_component_utils(bus_monitor)
+  `uvm_component_utils(bus_monitor#(precedence, cif_str, bus_if_str))
 
   virtual cache_if cif;
   virtual generic_bus_if bus_if;
@@ -55,12 +55,21 @@ class bus_monitor#(int precedence = 0) extends uvm_monitor;
   // Build Phase - Get handle to virtual if from config_db
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    // NOTE: extended classes must get interfaces from db
-    
     // get config from database
     if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
       `uvm_fatal(this.get_name(), "env config not registered to db")
 		end
+    `uvm_info(this.get_name(), "pulled <env_config> from db", UVM_FULL)
+
+    if( !uvm_config_db#(virtual cache_if)::get(this, "", cif_str, cif) ) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), cif_str), "No virtual interface specified for this test instance");
+		end
+    `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", cif_str), UVM_FULL)
+
+    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, bus_if) ) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str), "No virtual interface specified for this test instance");
+		end
+    `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", bus_if_str), UVM_FULL)
   endfunction: build_phase
 
   virtual task run_phase(uvm_phase phase);
