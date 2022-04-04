@@ -4,7 +4,7 @@ TOP = caches_top
 WAVES = scripts
 COVERAGE = coverage
 CPU_AGENT = cpu_agent
-MEM_AGENT = mem_agent
+BUS_AGENTS = bus_agents
 END2END = end2end
 BUS_COMPS = generic_bus_agent_comps
 BFM = bfm
@@ -63,7 +63,7 @@ build:
 	+incdir+$(PACKAGES) \
 	+incdir+$(UTILS) \
 	+incdir+$(CPU_AGENT) \
-	+incdir+$(MEM_AGENT) \
+	+incdir+$(BUS_AGENTS) \
 	+incdir+$(END2END) \
 	+incdir+$(BUS_COMPS) \
 	+incdir+$(BFM) \

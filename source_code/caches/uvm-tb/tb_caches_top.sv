@@ -93,58 +93,57 @@ module tb_caches_top ();
     .clear_done(d_cif.clear_done),
     .flush_done(d_cif.flush_done),
     .proc_gen_bus_if(d_cpu_bus_if.generic_bus),
-    // .mem_gen_bus_if(d_l1_arb_bus_if.cpu)
-    .mem_gen_bus_if(l2_bus_if.cpu)
+    .mem_gen_bus_if(d_l1_arb_bus_if.cpu)
   );
 
-  // assign i_cif.nRST = d_cif.nRST;
+  assign i_cif.nRST = d_cif.nRST;
 
-	// // Instruction L1
-  // l1_cache #(
-  //   .CACHE_SIZE(`L1_CACHE_SIZE),
-  //   .BLOCK_SIZE(`L1_BLOCK_SIZE),
-  //   .ASSOC(`L1_ASSOC),
-  //   .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
-  // ) i_l1 (
-  //   .CLK(i_cif.CLK),
-  //   .nRST(i_cif.nRST),
-  //   .clear(i_cif.clear),
-  //   .flush(i_cif.flush),
-  //   .clear_done(i_cif.clear_done),
-  //   .flush_done(i_cif.flush_done),
-  //   .proc_gen_bus_if(i_cpu_bus_if.generic_bus),
-  //   .mem_gen_bus_if(i_l1_arb_bus_if.cpu)
-  // );
+	// Instruction L1
+  l1_cache #(
+    .CACHE_SIZE(`L1_CACHE_SIZE),
+    .BLOCK_SIZE(`L1_BLOCK_SIZE),
+    .ASSOC(`L1_ASSOC),
+    .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  ) i_l1 (
+    .CLK(i_cif.CLK),
+    .nRST(i_cif.nRST),
+    .clear(i_cif.clear),
+    .flush(i_cif.flush),
+    .clear_done(i_cif.clear_done),
+    .flush_done(i_cif.flush_done),
+    .proc_gen_bus_if(i_cpu_bus_if.generic_bus),
+    .mem_gen_bus_if(i_l1_arb_bus_if.cpu)
+  );
 
-  // // Memory Arbiter
-  // memory_arbiter mem_arb (
-  //   .CLK(d_cif.CLK),
-  //   .nRST(d_cif.nRST),
-  //   .icache_if(i_l1_arb_bus_if.generic_bus),
-  //   .dcache_if(d_l1_arb_bus_if.generic_bus),
-  //   .mem_arb_if(arb_l2_bus_if.cpu)
-  // );
+  // Memory Arbiter
+  memory_arbiter mem_arb (
+    .CLK(d_cif.CLK),
+    .nRST(d_cif.nRST),
+    .icache_if(i_l1_arb_bus_if.generic_bus),
+    .dcache_if(d_l1_arb_bus_if.generic_bus),
+    .mem_arb_if(arb_l2_bus_if.cpu)
+  );
 
-  // assign l2_cif.nRST  = d_cif.nRST;
-  // assign l2_cif.flush = d_cif.flush;
-  // assign l2_cif.clear = d_cif.clear;
+  assign l2_cif.nRST  = d_cif.nRST;
+  assign l2_cif.flush = d_cif.flush;
+  assign l2_cif.clear = d_cif.clear;
 
-  // // L2
-  // l2_cache #(
-  //   .CACHE_SIZE(`L2_CACHE_SIZE),
-  //   .BLOCK_SIZE(`L2_BLOCK_SIZE),
-  //   .ASSOC(`L2_ASSOC),
-  //   .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
-  // ) l2 (
-  //   .CLK(l2_cif.CLK),
-  //   .nRST(l2_cif.nRST),
-  //   .clear(l2_cif.clear),
-  //   .flush(l2_cif.flush),
-  //   .clear_done(l2_cif.clear_done),
-  //   .flush_done(l2_cif.flush_done),
-  //   .proc_gen_bus_if(arb_l2_bus_if.generic_bus),
-  //   .mem_gen_bus_if(l2_bus_if.cpu)
-  // );
+  // L2
+  l2_cache #(
+    .CACHE_SIZE(`L2_CACHE_SIZE),
+    .BLOCK_SIZE(`L2_BLOCK_SIZE),
+    .ASSOC(`L2_ASSOC),
+    .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  ) l2 (
+    .CLK(l2_cif.CLK),
+    .nRST(l2_cif.nRST),
+    .clear(l2_cif.clear),
+    .flush(l2_cif.flush),
+    .clear_done(l2_cif.clear_done),
+    .flush_done(l2_cif.flush_done),
+    .proc_gen_bus_if(arb_l2_bus_if.generic_bus),
+    .mem_gen_bus_if(l2_bus_if.cpu)
+  );
 
   initial begin
     uvm_config_db#(virtual cache_if)::set( null, "", "i_cif", i_cif);

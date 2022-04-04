@@ -39,6 +39,7 @@ import uvm_pkg::*;
 `include "cpu_transaction.svh" // uvm_sequence_item
 
 `include "mem_agent.svh"
+`include "l2_agent.svh"
 
 `include "end2end.svh" // uvm_scoreboard
 
@@ -56,9 +57,15 @@ class cache_env extends uvm_env;
   bus_predictor i_cpu_pred; // a reference model to check the result
   bus_scoreboard i_cpu_score; // scoreboard
 
+  l2_agent l2_agt; // contains monitor
+  bus_predictor l2_pred; // a reference model to check the result
+  bus_scoreboard l2_score; // scoreboard
+
   mem_agent mem_agt; // contains monitor
   bus_predictor mem_pred; // a reference model to check the result
   bus_scoreboard mem_score; // scoreboard
+
+
   end2end dl1_l2_e2e; //end to end checker from data l1 cache to l2 cache
   end2end il1_l2_e2e; //end to end checker from instr l1 cache to l2 cache
 
@@ -74,6 +81,10 @@ class cache_env extends uvm_env;
     i_cpu_agt = i_cpu_agent::type_id::create("I_CPU_AGT", this);
     i_cpu_pred = bus_predictor::type_id::create("I_CPU_PRED", this);
     i_cpu_score = bus_scoreboard::type_id::create("I_CPU_SCORE", this);
+
+    l2_agt = l2_agent::type_id::create("L2_AGT", this);
+    l2_pred = bus_predictor::type_id::create("L2_PRED", this);
+    l2_score = bus_scoreboard::type_id::create("L2_SCORE", this);
 
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
     mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
@@ -95,14 +106,15 @@ class cache_env extends uvm_env;
     // MEMORY AGENT
     bus_connect(mem_agt, mem_pred, mem_score);
 
-    // d_cpu_agt.mon.req_ap.connect(dl1_l2_e2e.cpu_req_export);
-    // d_cpu_agt.mon.resp_ap.connect(dl1_l2_e2e.cpu_resp_export);
-    // l2_agt.mon.resp_ap.connect(dl1_l2_e2e.mem_resp_export);
+    // DATA L1 CACHE <-> L2 CACHE :: END TO END CHECKER
+    d_cpu_agt.mon.req_ap.connect(dl1_l2_e2e.cpu_req_export);
+    d_cpu_agt.mon.resp_ap.connect(dl1_l2_e2e.cpu_resp_export);
+    l2_agt.mon.resp_ap.connect(dl1_l2_e2e.mem_resp_export);
 
-    //TODO: ADD E2E FOR I CACHE
-    // i_cpu_agt.mon.req_ap.connect(il1_l2_e2e.cpu_req_export);
-    // i_cpu_agt.mon.resp_ap.connect(il1_l2_e2e.cpu_resp_export);
-    // l2_agt.mon.resp_ap.connect(il1_l2_e2e.mem_resp_export);
+    // INSTR L1 CACHE <-> L2 CACHE :: END TO END CHECKER
+    i_cpu_agt.mon.req_ap.connect(il1_l2_e2e.cpu_req_export);
+    i_cpu_agt.mon.resp_ap.connect(il1_l2_e2e.cpu_resp_export);
+    l2_agt.mon.resp_ap.connect(il1_l2_e2e.mem_resp_export);
   endfunction
 
 
