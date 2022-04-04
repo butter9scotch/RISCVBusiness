@@ -30,7 +30,7 @@ import uvm_pkg::*;
 
 `include "bus_monitor.svh"
 `include "generic_bus_if.vh"
-`include "l1_cache_wrapper_if.svh"
+`include "cache_if.svh"
 
 class cpu_monitor extends bus_monitor #(1);
   `uvm_component_utils(cpu_monitor)
@@ -43,7 +43,7 @@ class cpu_monitor extends bus_monitor #(1);
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get interface from database
-    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
+    if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
       `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", bus_if) ) begin

@@ -31,7 +31,7 @@ import uvm_pkg::*;
 `include "cache_env_config.svh"
 
 `include "generic_bus_if.vh"
-`include "l1_cache_wrapper_if.svh"
+`include "cache_if.svh"
 
 class base_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
   `uvm_component_utils(base_test)
@@ -40,10 +40,9 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
 
   cache_env_config env_config;
   cache_env env;
-  virtual l1_cache_wrapper_if cpu_cif;
-  virtual l1_cache_wrapper_if mem_cif;
+  virtual cache_if cif;
   virtual generic_bus_if cpu_bus_if;
-  virtual generic_bus_if l1_bus_if;  
+  virtual generic_bus_if i_l1_arb_bus_if;  
 
   function new(string name = "", uvm_component parent);
 		super.new(name, parent);
@@ -63,11 +62,7 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
     seq = sequence_type::type_id::create(sequence_name);
 
     // send the interface down
-    if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cpu_cif)) begin 
-      // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Base/cif", "No virtual interface specified for this test instance")
-	  end 
-    if (!uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "mem_cif", mem_cif)) begin 
+    if (!uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif)) begin 
       // check if interface is correctly set in testbench top level
 	    `uvm_fatal("Base/cif", "No virtual interface specified for this test instance")
 	  end 
@@ -75,18 +70,17 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
       // check if interface is correctly set in testbench top level
 		  `uvm_fatal("Base/cpu_bus_if", "No virtual interface specified for this test instance")
 	  end 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", l1_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_l1_arb_bus_if", i_l1_arb_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/l1_bus_if", "No virtual interface specified for this test instance")
+		  `uvm_fatal("Base/i_l1_arb_bus_if", "No virtual interface specified for this test instance")
 	  end 
 
   //TODO: SHOULD I NARROW THE SCOPE OF THE ENV_CONFIG?
   uvm_config_db#(cache_env_config)::set(this, "*", "env_config", env_config);
 
-	uvm_config_db#(virtual l1_cache_wrapper_if)::set(this, "env.agt*", "cpu_cif", cpu_cif);
-	uvm_config_db#(virtual l1_cache_wrapper_if)::set(this, "env.agt*", "mem_cif", mem_cif);
+	uvm_config_db#(virtual cache_if)::set(this, "env.agt*", "cif", cif);
 	uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "cpu_bus_if", cpu_bus_if);
-	uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "l1_bus_if", l1_bus_if);
+	uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "i_l1_arb_bus_if", i_l1_arb_bus_if);
 
   endfunction: build_phase
 
@@ -96,7 +90,7 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
         if (env_config.iterations > 0) {
           N == env_config.iterations; //command line request for iterations
         } else {
-          N inside {[10:20]}; //default number of memory accesses
+          N inside {[20:100]}; //default number of memory accesses
         }
       }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")

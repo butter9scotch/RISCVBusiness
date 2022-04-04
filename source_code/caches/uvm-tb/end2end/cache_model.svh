@@ -65,7 +65,7 @@ class cache_model extends uvm_object;
     endfunction
 
     function word_t get_base_addr(word_t addr);
-        word_t base = {addr[31:`ADDR_IDX_END], {`ADDR_IDX_END{1'b0}}};
+        word_t base = {addr[31:`L1_ADDR_IDX_END], {`L1_ADDR_IDX_END{1'b0}}};
         return base;
     endfunction: get_base_addr
 

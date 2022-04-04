@@ -45,7 +45,7 @@ class index_sequence extends base_sequence;
     cpu_transaction req_item;
     int N_reps; // used to back calculate proper repetitions to used when combined with inner for loop
 
-    logic [`ADDR_IDX_SIZE-1:0] index;
+    logic [`L1_ADDR_IDX_SIZE-1:0] index;
     word_t block_words[word_t];
 
     req_item = cpu_transaction::type_id::create("req_item");
@@ -64,18 +64,18 @@ class index_sequence extends base_sequence;
         if(!req_item.randomize() with {
           if (i != 0) {
             // first iteration is completely random txn
-            addr[31:`ADDR_IDX_END] == index;
+            addr[31:`L1_ADDR_IDX_END] == index;
             addr inside {block_words};        
           }
           }) begin
           `uvm_fatal("Randomize Error", "not able to randomize")
         end
-        index = req_item.addr[31:`ADDR_IDX_END];
+        index = req_item.addr[31:`L1_ADDR_IDX_END];
 
         if (i == 0) begin
           // initialize block words arrays
           for (int j = 0; j < `L1_BLOCK_SIZE*4; j+=4) begin
-            word_t temp = {index, j[`ADDR_IDX_END-1:0]};
+            word_t temp = {index, j[`L1_ADDR_IDX_END-1:0]};
             block_words[temp] = temp;
           end
         end

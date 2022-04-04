@@ -39,7 +39,7 @@ import rv32i_types_pkg::*;
 class memory_bfm extends uvm_component;
     `uvm_component_utils(memory_bfm)
 
-    virtual l1_cache_wrapper_if cif;
+    virtual cache_if cif;
     virtual generic_bus_if bus_if;
 
     cache_env_config env_config;
@@ -60,10 +60,10 @@ class memory_bfm extends uvm_component;
         end
 
         // get interface from database
-        if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
+        if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
             `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
-        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "l1_bus_if", bus_if) ) begin
+        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_l1_arb_bus_if", bus_if) ) begin
             `uvm_fatal($sformatf("%s/mem_bus_if", this.get_name()), "No virtual interface specified for this test instance");
 		end
 

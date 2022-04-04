@@ -26,7 +26,7 @@
 `define INTERFACE_CHECKER_SVH
 
 module interface_checker(
-    l1_cache_wrapper_if.cache cif,
+    cache_if.cache cif,
     generic_bus_if.generic_bus cpu_if,
     generic_bus_if.generic_bus mem_if
 );

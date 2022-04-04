@@ -7,19 +7,19 @@ add wave -noupdate -expand -group cpu_bus_if -color Cyan /tb_caches_top/cpu_bus_
 add wave -noupdate -expand -group cpu_bus_if -color Coral /tb_caches_top/cpu_bus_if/wen
 add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/busy
 add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/cpu_bus_if/byte_en
-add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/addr
-add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/wdata
-add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/rdata
-add wave -noupdate -expand -group l1_bus_if -color Cyan /tb_caches_top/l1_bus_if/ren
-add wave -noupdate -expand -group l1_bus_if -color Coral /tb_caches_top/l1_bus_if/wen
-add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/busy
-add wave -noupdate -expand -group l1_bus_if /tb_caches_top/l1_bus_if/byte_en
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/CLK
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/nRST
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/clear
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/flush
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/clear_done
-add wave -noupdate -expand -group cpu_cif /tb_caches_top/cpu_cif/flush_done
+add wave -noupdate -expand -group i_l1_arb_bus_if /tb_caches_top/i_l1_arb_bus_if/addr
+add wave -noupdate -expand -group i_l1_arb_bus_if /tb_caches_top/i_l1_arb_bus_if/wdata
+add wave -noupdate -expand -group i_l1_arb_bus_if /tb_caches_top/i_l1_arb_bus_if/rdata
+add wave -noupdate -expand -group i_l1_arb_bus_if -color Cyan /tb_caches_top/i_l1_arb_bus_if/ren
+add wave -noupdate -expand -group i_l1_arb_bus_if -color Coral /tb_caches_top/i_l1_arb_bus_if/wen
+add wave -noupdate -expand -group i_l1_arb_bus_if /tb_caches_top/i_l1_arb_bus_if/busy
+add wave -noupdate -expand -group i_l1_arb_bus_if /tb_caches_top/i_l1_arb_bus_if/byte_en
+add wave -noupdate -expand -group cif /tb_caches_top/cif/CLK
+add wave -noupdate -expand -group cif /tb_caches_top/cif/nRST
+add wave -noupdate -expand -group cif /tb_caches_top/cif/clear
+add wave -noupdate -expand -group cif /tb_caches_top/cif/flush
+add wave -noupdate -expand -group cif /tb_caches_top/cif/clear_done
+add wave -noupdate -expand -group cif /tb_caches_top/cif/flush_done
 add wave -noupdate -group mem_cif /tb_caches_top/mem_cif/CLK
 add wave -noupdate -group mem_cif /tb_caches_top/mem_cif/nRST
 add wave -noupdate -group mem_cif /tb_caches_top/mem_cif/clear

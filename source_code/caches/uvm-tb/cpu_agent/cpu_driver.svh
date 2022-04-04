@@ -31,12 +31,12 @@ import rv32i_types_pkg::*;
 `include "uvm_macros.svh"
 
 `include "generic_bus_if.vh"
-`include "l1_cache_wrapper_if.svh"
+`include "cache_if.svh"
 
 class cpu_driver extends uvm_driver#(cpu_transaction);
   `uvm_component_utils(cpu_driver)
 
-  virtual l1_cache_wrapper_if cif;
+  virtual cache_if cif;
   virtual generic_bus_if cpu_bus_if;
 
   function new(string name, uvm_component parent);
@@ -46,7 +46,7 @@ class cpu_driver extends uvm_driver#(cpu_transaction);
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get interface from database
-    if( !uvm_config_db#(virtual l1_cache_wrapper_if)::get(this, "", "cpu_cif", cif) ) begin
+    if( !uvm_config_db#(virtual cache_if)::get(this, "", "cif", cif) ) begin
       `uvm_fatal($sformatf("%s/cif", this.get_name()), "No virtual interface specified for this test instance");
 		end
     if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "cpu_bus_if", cpu_bus_if) ) begin

@@ -14,18 +14,18 @@
 *   limitations under the License.
 *
 *
-*   Filename:     l1_cache_wrapper_if.svh
+*   Filename:     cache_if.svh
 *
 *   Created by:   Mitch Arndt
 *   Email:        arndt20@purdue.edu
-*   Date Created: 03/27/2022
+*   Date Created: 04/03/2022
 *   Description:  Bundles cache signals into one interface for each of passing in UVM DB
 */
 
-`ifndef L1_CACHE_WRAPPER_IF_SVH
-`define L1_CACHE_WRAPPER_IF_SVH
+`ifndef CACHE_IF_SVH
+`define CACHE_IF_SVH
 
-interface l1_cache_wrapper_if(
+interface cache_if(
     input logic CLK
 );
     logic nRST;

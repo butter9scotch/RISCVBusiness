@@ -32,19 +32,26 @@
 
 `define NONCACHE_START_ADDR 32'h8000_0000
 
+//32 bit addr - word offset - byte offset
+`define BYTE_INDEX_BITS 2
+
+// L2 Params
 `define L1_BLOCK_SIZE 4
 `define L1_CACHE_SIZE 2048
 `define L1_ASSOC 2
 
-//32 bit addr - word offset - byte offset
-`define BYTE_INDEX_BITS 2
 `define L1_WORD_INDEX_BITS ($clog2(`L1_BLOCK_SIZE))
 `define L1_FRAME_INDEX_BITS ($clog2((`L1_CACHE_SIZE / (32 / 8) ) / `L1_ASSOC / `L1_BLOCK_SIZE))
 `define L1_INDEX_BITS (`L1_FRAME_INDEX_BITS + `L1_WORD_INDEX_BITS + `BYTE_INDEX_BITS)
 `define L1_TAG_BITS (32 - `L1_INDEX_BITS)
 
+`define L1_ADDR_IDX_END (`BYTE_INDEX_BITS+`L1_WORD_INDEX_BITS)
+`define L1_ADDR_IDX_SIZE (32 - `L1_ADDR_IDX_END)
 
-`define ADDR_IDX_END (`BYTE_INDEX_BITS+`L1_WORD_INDEX_BITS)
-`define ADDR_IDX_SIZE (32 - `ADDR_IDX_END)
+// L2 Params
+
+`define L2_CACHE_SIZE 4096
+`define L2_BLOCK_SIZE 4
+`define L2_ASSOC 4
 
 `endif

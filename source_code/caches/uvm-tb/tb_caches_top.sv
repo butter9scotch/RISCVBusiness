@@ -27,13 +27,15 @@
 
 // design file
 `include "l1_cache.sv"
+// `include "l2_cache.sv"
+`include "memory_arbiter.sv"
 
 // Interface checker file
 `include "interface_checker.svh"
 
 // interface file
 `include "generic_bus_if.vh"
-`include "l1_cache_wrapper_if.svh"
+`include "cache_if.svh"
 
 // UVM test file
 `include "nominal_test.svh"
@@ -59,39 +61,67 @@ module tb_caches_top ();
 	end
 
   // instantiate the interface
-  generic_bus_if cpu_bus_if();
-  generic_bus_if l1_bus_if();
-  l1_cache_wrapper_if cpu_cif(clk);
-
-  //TODO: HOW DO WE GET THE CIF (FLUSH, CLEAR) SIGNALS FROM THE L1 TO THE L2/MEMORY
-  l1_cache_wrapper_if mem_cif(clk);
+  generic_bus_if cpu_bus_if();    // from processor to l1 cache
+  generic_bus_if i_l1_arb_bus_if(); // from instruction l1 cache to memory arbiter
+  generic_bus_if d_l1_arb_bus_if(); // from data l1 cache to memory arbiter
+  generic_bus_if arb_l2_bus_if(); // from memory arbiter to l2 cache
+  generic_bus_if l2_bus_if();     // from l2 cache to memory bus
   
-  // instantiate the DUT
-  // Data Cache Portmap
-	l1_cache #(.CACHE_SIZE(`L1_CACHE_SIZE),
-	.BLOCK_SIZE(`L1_BLOCK_SIZE),
-	.ASSOC(`L1_ASSOC),
-	.NONCACHE_START_ADDR(`NONCACHE_START_ADDR))
-	l1 (
-  .CLK(clk),
-  .nRST(cpu_cif.nRST),
-  .clear(cpu_cif.clear),
-  .flush(cpu_cif.flush),
-  .clear_done(cpu_cif.clear_done),
-  .flush_done(cpu_cif.flush_done),
-	.mem_gen_bus_if(l1_bus_if.cpu),
-	.proc_gen_bus_if(cpu_bus_if.generic_bus));
-
+  cache_if cif(clk);  // holds flush, clear signals
+  
   interface_checker if_check(
-    .cif(cpu_cif.cache),
+    .cif(cif.cache),
 	  .cpu_if(cpu_bus_if.generic_bus),
-    .mem_if(l1_bus_if.generic_bus)
-  );  
+    .mem_if(i_l1_arb_bus_if.generic_bus)
+  );
+
+  /********************** Instantiate the DUT **********************/
+	// L1
+  l1_cache #(
+    .CACHE_SIZE(`L1_CACHE_SIZE),
+    .BLOCK_SIZE(`L1_BLOCK_SIZE),
+    .ASSOC(`L1_ASSOC),
+    .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  ) l1 (
+    .CLK(clk),
+    .nRST(cif.nRST),
+    .clear(cif.clear),
+    .flush(cif.flush),
+    .clear_done(cif.clear_done),
+    .flush_done(cif.flush_done),
+    .mem_gen_bus_if(i_l1_arb_bus_if.cpu),
+    .proc_gen_bus_if(cpu_bus_if.generic_bus)
+  );
+
+  // Memory Arbiter
+  // memory_arbiter mem_arb (
+  //   .CLK(clk),
+  //   .nRST(cif.nRST),
+  //   .icache_if(i_l1_arb_bus_if.generic_bus),
+  //   .dcache_if(d_l1_arb_bus_if.generic_bus),
+  //   .mem_arb_if(arb_l2_bus_if.cpu)
+  // );
+
+  // // L2
+  // l2_cache #(
+  //   .CACHE_SIZE(`L2_CACHE_SIZE),
+  //   .BLOCK_SIZE(`L2_BLOCK_SIZE),
+  //   .ASSOC(`L2_ASSOC),
+  //   .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  // ) l1 (
+  //   .CLK(clk),
+  //   .nRST(cif.nRST),
+  //   .clear(cif.clear),
+  //   .flush(cif.flush),
+  //   .clear_done(cif.clear_done),
+  //   .flush_done(cif.flush_done),
+  //   .mem_gen_bus_if(i_l1_arb_bus_if.cpu),
+  //   .proc_gen_bus_if(cpu_bus_if.generic_bus)
+  // );
 
   initial begin
-    uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "cpu_cif", cpu_cif);
-    uvm_config_db#(virtual l1_cache_wrapper_if)::set( null, "", "mem_cif", mem_cif);
-    uvm_config_db#(virtual generic_bus_if)::set( null, "", "l1_bus_if", l1_bus_if);
+    uvm_config_db#(virtual cache_if)::set( null, "", "cif", cif);
+    uvm_config_db#(virtual generic_bus_if)::set( null, "", "i_l1_arb_bus_if", i_l1_arb_bus_if);
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "cpu_bus_if", cpu_bus_if);
     run_test();
   end

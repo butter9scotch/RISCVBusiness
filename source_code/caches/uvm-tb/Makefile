@@ -11,11 +11,12 @@ BFM = bfm
 ENV = env
 SEQUENCES = sequences
 TEST = tests
+UTILS = utils
 INCLUDE = $(ROOT)/source_code/include
 PACKAGES = $(ROOT)/source_code/packages
-UTILS = utils
-L1 = $(ROOT)/source_code/caches/l1
-L2 = $(ROOT)/source_code/caches/l2
+CACHES = $(ROOT)/source_code/caches
+L1 = $(CACHES)/l1
+L2 = $(CACHES)/l2
 
 TESTCASE = random
 VERBOSITY = LOW
@@ -55,6 +56,7 @@ gui: build run_gui
 
 build: 
 	vlog \
+	+incdir+$(CACHES) \
 	+incdir+$(L1) \
 	+incdir+$(L2) \
 	+incdir+$(INCLUDE) \

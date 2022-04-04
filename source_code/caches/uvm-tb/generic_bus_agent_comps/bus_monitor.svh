@@ -29,14 +29,14 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 `include "generic_bus_if.vh"
-`include "l1_cache_wrapper_if.svh"
+`include "cache_if.svh"
 `include "dut_params.svh"
 
 class bus_monitor#(int precedence = 0) extends uvm_monitor;
   // precedence breaks ties for transactions that come during the same tick (lower is higher precedence)
   `uvm_component_utils(bus_monitor)
 
-  virtual l1_cache_wrapper_if cif;
+  virtual cache_if cif;
   virtual generic_bus_if bus_if;
 
   cache_env_config env_config;
