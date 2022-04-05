@@ -143,7 +143,13 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
+`ifdef TB_L1_CONFIG
+ 		seq.start(env.cpu_agt.sqr);
+`endif
+
+`ifdef TB_L2_CONFIG
  		seq.start(env.d_cpu_agt.sqr);
+`endif
 		#5ns;
 		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );
   endtask

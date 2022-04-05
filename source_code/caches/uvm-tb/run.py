@@ -57,7 +57,7 @@ def seed_type(arg):
 def parse_arguments():
     global params
     parser = argparse.ArgumentParser(description="Build and Run the UVM Testbench for the cache hierarchy")
-    parser.add_argument('--clean', '-c', action="store_true",
+    parser.add_argument('--clean', action="store_true",
                         help="Remove build artifacts")
     parser.add_argument('--testcase', '-t', type=str, default="random",
                         help="Specify name of the uvm test")
@@ -76,6 +76,10 @@ def parse_arguments():
                         help="Specify the number of clock cycles before memory returns")
     parser.add_argument('--mmio_latency', type=int, default=2,
                         help="Specify the number of clock cycles before memory mapped IO returns")
+    parser.add_argument('--config', type=str, default="l2",
+                        choices=["l1", "l2"],
+                        help="Specify the configuration of the testbench to determine which agents and modules are activated")
+
     args = parser.parse_args()
     params = args #set global variable
 
@@ -83,7 +87,15 @@ def build():
     cprint("Building Sources...", bcolors.LOG)
     SRC = "../../../source_code/"
 
-    os.system('''\
+    if params.config == "l1":
+        TB_GLOBAL_CONFIG = "TB_L1_CONFIG"
+    elif params.config == "l2":
+        TB_GLOBAL_CONFIG = "TB_L2_CONFIG"
+    else:
+        cprint("Invalid testbench configuration: {}".format(params.config), bcolors.FAIL)
+        exit()
+
+    res = os.system('''\
         vlog\
         +incdir+{CACHES} \
 	    +incdir+{L1} \
@@ -99,7 +111,7 @@ def build():
 	    +incdir+env \
 	    +incdir+sequences \
 	    +incdir+tests \
-	    +define+MEMORY_BFM_CONFIG=1 \
+	    +define+{TB_GLOBAL_CONFIG} \
 	    +acc \
 	    +cover \
 	    -L {QUESTA_HOME}/uvm-1.2 tb_caches_top.sv 
@@ -109,8 +121,15 @@ def build():
         L2=SRC + "caches/l2",
         INCLUDE=SRC + "include",
         PACKAGES=SRC + "packages",
-        QUESTA_HOME=os.getenv('QUESTA_HOME')
+        QUESTA_HOME=os.getenv('QUESTA_HOME'),
+        TB_GLOBAL_CONFIG=TB_GLOBAL_CONFIG
     ))
+
+    if (res == 0):
+        cprint("Build Finsihed", bcolors.SUCCESS)
+    else:
+        cprint("Build Failed", bcolors.FAIL)
+        exit()
 
 def run():
     RUN_COMMON = '''
@@ -139,7 +158,7 @@ def run():
 
     if (params.gui):
         cprint("Running with GUI...", bcolors.LOG)
-        os.system('''
+        res = os.system('''
             vsim -i
             {RUN_COMMON}
             -do "do scripts/wave.do"
@@ -149,7 +168,7 @@ def run():
         ).replace("\n", " "))
     else: 
         cprint("Running with Terminal...", bcolors.LOG)
-        os.system('''
+        res = os.system('''
             vsim -c
             {RUN_COMMON}
 	        -do "run -all"
@@ -157,8 +176,16 @@ def run():
             RUN_COMMON=RUN_COMMON,
         ).replace("\n", " "))
 
+    if (res == 0):
+        cprint("Run Finsihed", bcolors.SUCCESS)
+    else:
+        cprint("Run Failed", bcolors.FAIL)
+
 def post_run():
-    keys = ["seed", "d_cpu_txns", "i_cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
+    if params.config == "l1":
+        keys = ["seed", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
+    elif params.config == "l2":
+        keys = ["seed", "d_cpu_txns", "i_cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
 
     log = {}
     if (params.seed != "random"):
@@ -184,12 +211,14 @@ def post_run():
                         log["uvm_error"] = words[i+2]
 
                 if "TXN_Total" in word:
-                    if words[i-1] == "[I_CPU_SCORE]":
-                        log["i_cpu_txns"] = words[i+1]
-                    if words[i-1] == "[D_CPU_SCORE]":
-                        log["d_cpu_txns"] = words[i+1]
-                    elif words[i-1] == "[MEM_SCORE]":
+                    if words[i-1] == "[MEM_SCORE]":
                         log["mem_txns"] = words[i+1]
+                    elif words[i-1] == "[I_CPU_SCORE]":
+                        log["i_cpu_txns"] = words[i+1]
+                    elif words[i-1] == "[D_CPU_SCORE]":
+                        log["d_cpu_txns"] = words[i+1]
+                    elif words[i-1] == "[CPU_SCORE]":
+                        log["cpu_txns"] = words[i+1]
                 
                 if len(log) == len(keys):
                     break # ignore the rest of the file

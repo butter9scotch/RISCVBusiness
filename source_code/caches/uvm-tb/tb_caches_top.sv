@@ -79,6 +79,28 @@ module tb_caches_top ();
   );
 
   /********************** Instantiate the DUT **********************/
+
+
+`ifdef TB_L1_CONFIG
+  // L1 Cache
+  l1_cache #(
+    .CACHE_SIZE(`L1_CACHE_SIZE),
+    .BLOCK_SIZE(`L1_BLOCK_SIZE),
+    .ASSOC(`L1_ASSOC),
+    .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  ) l1 (
+    .CLK(d_cif.CLK),
+    .nRST(d_cif.nRST),
+    .clear(d_cif.clear),
+    .flush(d_cif.flush),
+    .clear_done(d_cif.clear_done),
+    .flush_done(d_cif.flush_done),
+    .proc_gen_bus_if(d_cpu_bus_if.generic_bus),
+    .mem_gen_bus_if(l2_bus_if.cpu)
+  );
+`endif 
+
+`ifdef TB_L2_CONFIG
   // Data L1
   l1_cache #(
     .CACHE_SIZE(`L1_CACHE_SIZE),
@@ -95,10 +117,9 @@ module tb_caches_top ();
     .proc_gen_bus_if(d_cpu_bus_if.generic_bus),
     .mem_gen_bus_if(d_l1_arb_bus_if.cpu)
   );
-
   assign i_cif.nRST = d_cif.nRST;
 
-	// Instruction L1
+  // Instruction L1
   l1_cache #(
     .CACHE_SIZE(`L1_CACHE_SIZE),
     .BLOCK_SIZE(`L1_BLOCK_SIZE),
@@ -144,6 +165,7 @@ module tb_caches_top ();
     .proc_gen_bus_if(arb_l2_bus_if.generic_bus),
     .mem_gen_bus_if(l2_bus_if.cpu)
   );
+`endif
 
   initial begin
     uvm_config_db#(virtual cache_if)::set( null, "", "i_cif", i_cif);

@@ -52,6 +52,7 @@ class memory_bfm extends uvm_component;
     endfunction
 
     virtual function void build_phase(uvm_phase phase);
+        string bus_if_str;
         super.build_phase(phase);
         
         // get config from database
@@ -65,13 +66,20 @@ class memory_bfm extends uvm_component;
 		end
         `uvm_info(this.get_name(), "pulled <d_cif> from db", UVM_FULL)
 
-        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", "l2_bus_if", bus_if) ) begin
-            `uvm_fatal($sformatf("%s/l2_bus_if", this.get_name()), "No virtual interface specified for this test instance");
-		end
-        `uvm_info(this.get_name(), "pulled <l2_bus_cif> from db", UVM_FULL)
+`ifdef TB_L1_CONFIG
+        `uvm_info(this.get_name(), "Using L1 Configuration", UVM_FULL)
+        bus_if_str = "d_cpu_bus_if";
+`endif
 
-        $display(`MEMORY_BFM_CONFIG);
+`ifdef TB_L2_CONFIG
+        `uvm_info(this.get_name(), "Using L2 Configuration", UVM_FULL)
+        bus_if_str = "l2_bus_if";
+`endif
 
+        if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, bus_if) ) begin
+            `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str), "No virtual interface specified for this test instance");
+        end
+        `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", bus_if_str), UVM_FULL)
     endfunction: build_phase
 
 
