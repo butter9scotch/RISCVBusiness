@@ -37,7 +37,7 @@ module mask_unit (
 
   // assign first_element = mu_if.mask_bit_set ? encoder_out : '1; // Return -1 when no mask bit is set
   assign first_element = encoder_out; // Return -1 when no mask bit is set
-  assign anded         = mu_if.vs2_data & mu_if.mask_32bit;
+  assign anded         = mu_if.is_masked ? mu_if.vs2_data & mu_if.mask_32bit : mu_if.vs2_data;
   assign add_out       = add_out0 + add_out1 + add_out2 + add_out3;
   assign constant      = '1;
   always @(posedge CLK, negedge nRST) begin

@@ -198,10 +198,14 @@ module rv32v_reg_file # (
   //                   WORD OF MASK BITS
   //=====================================================
   always_comb begin : MASK_32BIT
-    rfv_if.mask_32bit_lane0 = registers[0] [vs2_outer_offset[0] +:4];
-    rfv_if.mask_32bit_lane1 = registers[0][(vs2_outer_offset[0] + 1) +:4];
+//    rfv_if.mask_32bit_lane0 = {registers[0][vs2_outer_offset[0]],
+//                              registers[0][vs2_outer_offset[0] + 1],
+//                              registers[0][vs2_outer_offset[0] + 2],
+//      registers[0][vs2_outer_offset[0] + 3]};
+//    rfv_if.mask_32bit_lane1 = registers[0][(vs2_outer_offset[0] + 1) +:4];
   end
 
-
+  assign rfv_if.mask_32bit_lane0 = registers[0][vs2_outer_offset[0][0]+:4];
+  assign rfv_if.mask_32bit_lane1 = registers[0][vs2_outer_offset[0][1]+:4];
 
 endmodule

@@ -55,7 +55,7 @@ interface vector_lane_if;
   );
 
   modport mask_unit (
-    input   vs1_data, vs2_data, start_ma, mask_type, mask_32bit, iota_res, offset,
+    input   vs1_data, vs2_data, start_ma, mask_type, mask_32bit, iota_res, offset, is_masked,
     output  wdata_m, wdata_m_ff1, busy_m, exception_m, mask_bit_set, mask_bit_set_ff1
   );
 

@@ -10,9 +10,10 @@ interface rv32v_hazard_unit_if;
   logic v_decode_done;
   logic exception_v;
   logic v_busy; // This is the latch in the v decode stage that will act as the vector stall signal
+  logic v_done; // This is the done signal from rob that is propagated from element counter
 
   modport hazard_unit (
-    input csr_update, busy_dec, busy_ex, busy_mem, decode_ena, execute_ena, memory_ena, writeback_ena, v_busy, 
+    input csr_update, busy_dec, busy_ex, busy_mem, decode_ena, execute_ena, memory_ena, writeback_ena, v_busy, v_done,
     output stall_dec, flush_dec, stall_ex, flush_ex, stall_mem, flush_mem,
     flush_f1, stall_f1, flush_f2, stall_f2
   );
@@ -44,6 +45,9 @@ interface rv32v_hazard_unit_if;
 
   modport writeback (
     output writeback_ena
+  );
+  modport rob (
+    output v_done
   );
 
 endinterface

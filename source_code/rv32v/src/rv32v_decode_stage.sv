@@ -248,6 +248,15 @@ module rv32v_decode_stage (
   assign ele_if.clear[ZERO]     = hu_if.flush_dec | rob_if.v_done;
   assign ele_if.busy_ex[ZERO]   = hu_if.busy_ex | hu_if.busy_mem;
 
+  logic counter_done_ff1;
+  always_ff @(posedge CLK, negedge nRST) begin : DELAY_DONE_SIGNAL
+    if (~nRST) begin
+      counter_done_ff1 <= 0;
+    end else begin
+      counter_done_ff1 <= decode_execute_if.counter_done;
+    end
+  end
+
   logic [31:0] sign_ext_imm5, zero_ext_imm5;
   assign sign_ext_imm5 = {{27{vcu_if.imm_5[4]}}, vcu_if.imm_5};
   assign zero_ext_imm5 = {27'd0, vcu_if.imm_5};
@@ -500,7 +509,8 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= '0;
       decode_execute_if.counter_done      <= '0;
 
-    end else if(hu_if.flush_dec | (ele_if.done[ZERO] & ~hu_if.stall_dec)) begin
+    end else if(hu_if.flush_dec) begin
+//    end else if(hu_if.flush_dec | (counter_done_ff1 & ~hu_if.stall_dec)) begin
       decode_execute_if.stride_type       <= '0;
       decode_execute_if.rd_wen            <= '0;
       decode_execute_if.config_type       <= '0;
@@ -590,8 +600,8 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= scalar_vector_if.index;
       decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
-    end else if (~hu_if.stall_dec & ~ele_if.done[ZERO]) begin
-      decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src; //write to scalar regs
+    end else if (~hu_if.stall_dec) begin
+      decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src & ~counter_done_ff1; //write to scalar regs
       decode_execute_if.rd_sel            <= vcu_if.vd;
       decode_execute_if.rd_data           <= vcu_if.rd_scalar_src ? rfv_if.vs2_data[ZERO][0] : 32'hDEAD;
 
@@ -638,8 +648,8 @@ module rv32v_decode_stage (
       decode_execute_if.woffset1          <=  woffset1; 
       decode_execute_if.vd                <= vcu_if.vd;
       decode_execute_if.single_bit_write  <= vcu_if.single_bit_op;
-      decode_execute_if.wen[0]            <= vcu_if.merge_ena | wen0;
-      decode_execute_if.wen[1]            <= vcu_if.merge_ena | wen1;
+      decode_execute_if.wen[0]            <= (vcu_if.merge_ena | wen0) & ~counter_done_ff1;
+      decode_execute_if.wen[1]            <= (vcu_if.merge_ena | wen1) & ~counter_done_ff1;
       decode_execute_if.vd_widen          <= vcu_if.vd_widen;
       decode_execute_if.vd_narrow         <= vcu_if.vd_narrow;
 
