@@ -36,11 +36,14 @@ import uvm_pkg::*;
 `include "bus_agent.svh"
 `include "cpu_sequencer.svh"
 
-typedef bus_monitor#(1, "d_cif", "d_cpu_bus_if") d_cpu_monitor;
+class d_cpu_driver extends cpu_driver#("d_cif", "d_cpu_bus_if");
+  `uvm_component_utils(d_cpu_driver)
+  function new(string name, uvm_component parent = null);
+    super.new(name, parent);
+  endfunction
+endclass
 
-typedef cpu_driver#("d_cif", "d_cpu_bus_if") d_cpu_driver;
-
-class d_cpu_agent extends bus_agent#(d_cpu_monitor, d_cpu_driver);
+class d_cpu_agent extends bus_agent#(d_cpu_driver);
   `uvm_component_utils(d_cpu_agent)
 
   function new(string name, uvm_component parent = null);
@@ -50,7 +53,11 @@ class d_cpu_agent extends bus_agent#(d_cpu_monitor, d_cpu_driver);
   virtual function void build_phase(uvm_phase phase);   
     sqr = cpu_sequencer::type_id::create("D_CPU_SQR", this);
     drv = d_cpu_driver::type_id::create("D_CPU_DRV", this);
-    mon = d_cpu_monitor::type_id::create("D_CPU_MON", this);
+    mon = bus_monitor::type_id::create("D_CPU_MON", this);
+      mon.set_precedence(1);
+      mon.set_cif_str("d_cif");
+      mon.set_bus_if_str("d_cpu_bus_if");
+
     `uvm_info(this.get_name(), $sformatf("Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_FULL)
   endfunction
 

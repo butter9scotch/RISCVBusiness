@@ -126,7 +126,7 @@ def build():
     ))
 
     if (res == 0):
-        cprint("Build Finsihed", bcolors.SUCCESS)
+        cprint("Build Finished", bcolors.SUCCESS)
     else:
         cprint("Build Failed", bcolors.FAIL)
         exit()
@@ -178,7 +178,7 @@ def run():
         ).replace("\n", " "))
 
     if (res == 0):
-        cprint("Run Finsihed", bcolors.SUCCESS)
+        cprint("Run Finished", bcolors.SUCCESS)
     else:
         cprint("Run Failed", bcolors.FAIL)
 

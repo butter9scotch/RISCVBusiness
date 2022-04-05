@@ -29,9 +29,9 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "bus_monitor.svh"
 
-typedef bus_monitor#(0, "l2_cif", "arb_l2_bus_if") l2_monitor;
+// typedef bus_monitor#(0, "l2_cif", "arb_l2_bus_if") l2_monitor;
 
-class l2_agent extends bus_agent#(l2_monitor);
+class l2_agent extends bus_agent;
   `uvm_component_utils(l2_agent)
 
   function new(string name, uvm_component parent = null);
@@ -39,7 +39,11 @@ class l2_agent extends bus_agent#(l2_monitor);
   endfunction
 
   virtual function void build_phase(uvm_phase phase);   
-    mon = l2_monitor::type_id::create("L2_MON", this);
+    mon = bus_monitor::type_id::create("L2_MON", this);
+      mon.set_precedence(0);
+      mon.set_cif_str("l2_cif");
+      mon.set_bus_if_str("arb_l2_bus_if");
+
     `uvm_info(this.get_name(), $sformatf("Created <%s>", mon.get_name()), UVM_FULL)
   endfunction
 

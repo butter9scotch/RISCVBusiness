@@ -32,9 +32,9 @@ import uvm_pkg::*;
 `include "cache_if.svh"
 `include "dut_params.svh"
 
-class bus_monitor#(int precedence, string cif_str, string bus_if_str) extends uvm_monitor;
+class bus_monitor extends uvm_monitor;
   // precedence breaks ties for transactions that come during the same tick (lower is higher precedence)
-  `uvm_component_utils(bus_monitor#(precedence, cif_str, bus_if_str))
+  `uvm_component_utils(bus_monitor)
 
   virtual cache_if cif;
   virtual generic_bus_if bus_if;
@@ -45,12 +45,31 @@ class bus_monitor#(int precedence, string cif_str, string bus_if_str) extends uv
   uvm_analysis_port #(cpu_transaction) resp_ap;
 
   int cycle; // number of clock cycles that have elapsed
+
+  int precedence;
+  string cif_str;
+  string bus_if_str;
   
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
     req_ap = new("req_ap", this);
     resp_ap = new("resp_ap", this);
+    precedence = 0;
+    cif_str = "";
+    bus_if_str = "";
   endfunction: new
+
+  function void set_cif_str(string str);
+    this.cif_str = str;
+  endfunction: set_cif_str
+
+  function void set_bus_if_str(string str);
+    this.bus_if_str = str;
+  endfunction: set_bus_if_str
+
+  function void set_precedence(int p);
+    this.precedence = p;
+  endfunction: set_precedence
 
   // Build Phase - Get handle to virtual if from config_db
   virtual function void build_phase(uvm_phase phase);

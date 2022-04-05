@@ -34,7 +34,7 @@ import rv32i_types_pkg::*;
 `include "cache_if.svh"
 
 class cpu_driver #(string cif_str, string bus_if_str) extends uvm_driver#(cpu_transaction);
-  `uvm_component_utils(cpu_driver#(cif_str, bus_if_str))
+  `uvm_component_param_utils(cpu_driver#(cif_str, bus_if_str))
 
   virtual cache_if cif;
   virtual generic_bus_if cpu_bus_if;

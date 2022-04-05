@@ -35,15 +35,14 @@ import uvm_pkg::*;
 `include "bus_monitor.svh"
 `include "cpu_sequencer.svh"
 
-typedef bus_monitor#(0, "", "") generic_bus_monitor;
 class null_driver;
-endclass: null_driver
+endclass
 
-class bus_agent #(type monitor = generic_bus_monitor, type driver = null_driver) extends uvm_agent;
-  `uvm_component_utils(bus_agent#(monitor, driver))
+class bus_agent #(type driver = null_driver) extends uvm_agent;
+  `uvm_component_param_utils(bus_agent#(driver))
   cpu_sequencer sqr;
   driver drv;
-  monitor mon;
+  bus_monitor mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);

@@ -43,6 +43,8 @@ import uvm_pkg::*;
 
 `include "end2end.svh" // uvm_scoreboard
 
+typedef uvm_analysis_port #(cpu_transaction) cpu_ap;
+
 class cache_env extends uvm_env;
   `uvm_component_utils(cache_env)
 
