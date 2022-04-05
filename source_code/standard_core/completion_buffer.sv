@@ -151,7 +151,7 @@ module completion_buffer # (
       next_cb[head_sel] = '0;
     end
     if (move_tail) begin
-      next_cb[tail].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
+      next_cb[tail_sel].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
     end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin
