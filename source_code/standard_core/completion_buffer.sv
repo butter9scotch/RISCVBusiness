@@ -57,7 +57,7 @@ module completion_buffer # (
   integer i;
 
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
-  assign tail_sel = head[$clog2(NUM_ENTRY)-1:0];
+  assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
   //assign hazard_if.brj_addr = cb[head_sel].address;
   // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
 
@@ -151,7 +151,7 @@ module completion_buffer # (
       next_cb[head_sel] = '0;
     end
     if (move_tail) begin
-      next_cb[tail].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
+      next_cb[tail_sel].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
     end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin

@@ -52,7 +52,7 @@ module rv32v_reorder_buffer # (
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
   logic [$clog2(NUM_ENTRY)-1:0] head_sel, tail_sel;
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
-  assign tail_sel = head[$clog2(NUM_ENTRY)-1:0];
+  assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
 
   rob_entry rob [0:NUM_ENTRY-1]; 
   rob_entry next_rob [0:NUM_ENTRY-1]; 
