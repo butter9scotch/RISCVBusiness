@@ -371,6 +371,12 @@ module l2_cache #(
                     proc_gen_bus_if.busy                                    = 1'b0;
 		     proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
                 end // if (proc_gen_bus_if.wen && hit
+		else if (proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+		       next_read_address     =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+		    end 
+		else if (proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+		       next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+		    end
 		       
 		       
             end
