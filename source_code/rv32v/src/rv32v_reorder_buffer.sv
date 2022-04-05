@@ -254,7 +254,11 @@ module rv32v_reorder_buffer # (
       if (rob_if.single_bit_write) begin
         next_rob[rob_if.a_sigs.index].single_bit_write = 1; 
         next_rob[rob_if.a_sigs.index].vd = rob_if.a_sigs.vd;
-        next_rob[rob_if.a_sigs.index].data[rob_if.a_sigs.woffset+:2] = {rob_if.a_sigs.wdata[32], rob_if.a_sigs.wdata[0]};
+        if (rob_if.a_sigs.woffset == (rob_if.a_sigs.vl - 1)) begin
+          next_rob[rob_if.a_sigs.index].data[rob_if.a_sigs.woffset+:2] = {1'b0, rob_if.a_sigs.wdata[0]};
+        end else begin
+          next_rob[rob_if.a_sigs.index].data[rob_if.a_sigs.woffset+:2] = {rob_if.a_sigs.wdata[32], rob_if.a_sigs.wdata[0]};
+        end
         next_rob[rob_if.a_sigs.index].wen = '1; // TODO: Corner case: Masked single bit write. 
         next_rob[rob_if.a_sigs.index].valid = (rob_if.a_sigs.woffset == VLEN - 1) | (rob_if.a_sigs.woffset == VLEN - 2) | reached_max_a;
         next_rob[rob_if.a_sigs.index].commit_ack = reached_max_a;

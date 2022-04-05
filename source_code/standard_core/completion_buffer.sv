@@ -57,7 +57,7 @@ module completion_buffer # (
   integer i;
 
   assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
-  assign tail_sel = head[$clog2(NUM_ENTRY)-1:0];
+  assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
   //assign hazard_if.brj_addr = cb[head_sel].address;
   // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
 

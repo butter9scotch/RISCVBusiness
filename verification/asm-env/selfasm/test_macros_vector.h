@@ -9,12 +9,16 @@
 
 # VSEW temporarily hard-coded to 32 bits
 #define RVTEST_VSET vsetivli x31, 1, e32, tu, mu;
+#define RVTEST_VSET_HALF vsetivli x31, 1, e16, tu, mu;
+#define __riscv_half_vsew 16
 #define __riscv_vsew 32
 #define __riscv_double_vsew 64
-#define VSEW_MASK_BITS 0x00000000ffffffff
+#define HALF_VSEW_MASK_BITS 0x0000ffff
+#define VSEW_MASK_BITS 0xffffffff
 #define DOUBLE_VSEW_MASK_BITS 0xffffffffffffffff
 #define VSET_VSEW vsetivli x31, 1, e32, tu, mu;
 #define VSET_VSEW_4AVL vsetivli x31, 4, e32, tu, mu;
+#define VSET_HALF_VSEW vsetivli x31, 1, e16, tu, mu;
 #define VSET_DOUBLE_VSEW vsetivli x31, 1, e64, tu, mu;
 
 // #define RVTEST_VSET vsetivli x31, 1, e64, tu, mu;
@@ -59,7 +63,7 @@
 
 #define VMVXS_AND_MASK_DOUBLEVSEW( targetreg, testreg ) \
     vmv.x.s targetreg, testreg; \
-    li x2, DOUBLE_VSEW_MASK_BITS; \
+    li x2, VSEW_MASK_BITS; \
     and targetreg, targetreg, x2; \
 
 #define TEST_CASE( testnum, testreg, correctval, code... ) \
@@ -73,11 +77,11 @@ test_ ## testnum: \
 #define TEST_CASE_W( testnum, testreg, correctval, code... ) \
 test_ ## testnum: \
     code; \
-    li x7, MASK_DOUBLE_VSEW(correctval); \
+    li x7, MASK_VSEW(correctval); \
     li TESTNUM, testnum; \
-    VSET_DOUBLE_VSEW \
-    VMVXS_AND_MASK_DOUBLEVSEW(x14, testreg) \
     VSET_VSEW \
+    VMVXS_AND_MASK_DOUBLEVSEW(x14, testreg) \
+    VSET_HALF_VSEW \
     bne x14, x7, fail;
 
 #define TEST_CASE_MASK( testnum, testreg, correctval, code... ) \
@@ -617,7 +621,7 @@ test_ ## testnum: \
 #define TEST_W_VV_OP_WITH_INIT( testnum, inst, result, val1, val2 ) \
   TEST_CASE_W( testnum, v14, result, \
     li x7, 0; \
-    VSET_DOUBLE_VSEW \
+    VSET_HALF_VSEW \
     vmv.v.x v14, x7; \
     VSET_VSEW \
     li x7, MASK_VSEW(val1); \
@@ -854,6 +858,8 @@ test_ ## testnum: \
 
 #define TEST_VVM_OP( testnum, inst, result, val1, val2 ) \
   TEST_CASE_MASK( testnum, v14, result, \
+    li x7, 0xFF; \
+    vmv.v.x v0, x7; \
     li x7, MASK_VSEW(val1); \
     vmv.v.x v1, x7; \
     li x7, MASK_VSEW(val2); \
@@ -863,6 +869,8 @@ test_ ## testnum: \
 
 #define TEST_VXM_OP( testnum, inst, result, val1, val2 ) \
   TEST_CASE_MASK( testnum, v14, result, \
+    li x7, 0xFF; \
+    vmv.v.x v0, x7; \
     li x7, MASK_VSEW(val1); \
     vmv.v.x v1, x7; \
     li x1, MASK_XLEN(val2); \
@@ -871,6 +879,8 @@ test_ ## testnum: \
 
 #define TEST_VIM_OP( testnum, inst, result, val1, val2 ) \
   TEST_CASE_MASK( testnum, v14, result, \
+    li x7, 0xFF; \
+    vmv.v.x v0, x7; \
     li x7, MASK_VSEW(val1); \
     vmv.v.x v1, x7; \
     inst v14, v1, SEXT_IMM(val2); \
@@ -1445,6 +1455,8 @@ test_ ## testnum: \
 
 #define TEST_VPOPC_OP( testnum, inst, result, vm_addr ) \
     VSET_VSEW_4AVL \
+    li x7, 0xffff; \
+    vmv.v.x v0, x7; \
     la  x2, vm_addr; \
     vle32.v v14, (x2); \
     li x7, result; \
