@@ -303,6 +303,9 @@ module l2_cache #(
                 else if(flush) begin
                     next_state 	= FLUSH_CACHE;
                 end
+		 else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && hit && ~pass_through) begin
+                    next_state 	= IDLE2;
+                end
             end 
             FETCH: begin
                 if(finish_word) begin
@@ -319,7 +322,11 @@ module l2_cache #(
             end
             default: begin
                 nextstate = ERROR;
-            end
+	     end
+	    IDLE2: begin
+		       nextstate = IDLE;
+		    end
+		       
         endcase //casez (state) 
     end // end state machine always_comb
     ///////////////////////////////////////////////////////////////////////////////
@@ -368,7 +375,7 @@ module l2_cache #(
 		       
             end
             FETCH: begin
-              /*  mem_gen_bus_if.ren   = 1'b1;
+                mem_gen_bus_if.ren   = 1'b1;
                 mem_gen_bus_if.addr  = read_addr;
                 
                 if(finish_word) begin
@@ -381,9 +388,7 @@ module l2_cache #(
                     en_word_ctr 						   = 1'b1;
                     next_read_addr 						   = read_addr + 4;
                     next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
-                    end*/ // case: FETCH
-		       proc_gen_bus_if. busy                                   = 1'b0;
-		       proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits];
+                    end // case: FETCH
             end
             WB: begin
                 mem_gen_bus_if.wen    = 1'b1;
@@ -402,7 +407,11 @@ module l2_cache #(
                     en_word_ctr     = 1'b1;
                     next_read_addr  = read_addr + 4;
                 end
-            end
+		       end // case: WB
+	    IDLE2: begin
+		 proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
+                 proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
+		end//        
         endcase
 
     end // end output combinational logic
