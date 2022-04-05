@@ -509,7 +509,7 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= '0;
       decode_execute_if.counter_done      <= '0;
 
-    end else if(hu_if.flush_dec) begin
+    end else if(hu_if.flush_dec | rob_if.v_done) begin
 //    end else if(hu_if.flush_dec | (counter_done_ff1 & ~hu_if.stall_dec)) begin
       decode_execute_if.stride_type       <= '0;
       decode_execute_if.rd_wen            <= '0;

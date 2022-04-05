@@ -105,7 +105,17 @@ module rv32v_memory_stage (
     assign next_a_sigs.ready = execute_memory_if.valid & ~execute_memory_if.rd_wen;
     //assign rob_if.counter_done = execute_memory_if.counter_done;
 
-    assign next_mu_sigs = '0;
+    assign next_mu_sigs.index = execute_memory_if.index;
+    assign next_mu_sigs.vl = execute_memory_if.vl;
+    assign next_mu_sigs.sew = execute_memory_if.eew;
+    assign next_mu_sigs.woffset = execute_memory_if.woffset0;
+    assign next_mu_sigs.exception_index = execute_memory_if.index;
+    assign next_mu_sigs.exception = 0;
+    assign next_mu_sigs.wdata = {wdat1, wdat0};
+    assign next_mu_sigs.vd = execute_memory_if.vd;
+    assign next_mu_sigs.wen = execute_memory_if.wen;
+    assign next_mu_sigs.ready = execute_memory_if.mul_done & ~execute_memory_if.rd_wen;
+
     assign next_du_sigs = '0;
     assign next_m_sigs = '0;
     assign next_p_sigs = '0;

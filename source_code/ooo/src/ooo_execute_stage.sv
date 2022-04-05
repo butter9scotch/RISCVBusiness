@@ -79,6 +79,7 @@ module ooo_execute_stage(
   assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
   assign hazard_if.ret         = decode_execute_if.exception_sigs.ret_insn;
   assign hazard_if.pc_ex       = decode_execute_if.pc;
+  assign hazard_if.v_decode_done = rob_if.v_done;
   
   /*******************************************************
   *** Arithmetic Unit

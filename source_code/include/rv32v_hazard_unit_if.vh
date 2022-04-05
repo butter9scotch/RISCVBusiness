@@ -15,7 +15,7 @@ interface rv32v_hazard_unit_if;
   modport hazard_unit (
     input csr_update, busy_dec, busy_ex, busy_mem, decode_ena, execute_ena, memory_ena, writeback_ena, v_busy, v_done,
     output stall_dec, flush_dec, stall_ex, flush_ex, stall_mem, flush_mem,
-    flush_f1, stall_f1, flush_f2, stall_f2
+    flush_f1, stall_f1, flush_f2, stall_f2, v_decode_done
   );
 
   modport fetch1 (

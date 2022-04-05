@@ -31,7 +31,8 @@ module rv32v_execute_stage (
   input logic CLK, nRST,
   rv32v_hazard_unit_if.execute hu_if,
   rv32v_decode_execute_if.execute decode_execute_if,
-  rv32v_execute_memory_if.execute execute_memory_if
+  rv32v_execute_memory_if.execute execute_memory_if,
+  rv32v_reorder_buffer_if.execute rob_if
 );
 
   import rv32i_types_pkg::*;
@@ -47,6 +48,7 @@ module rv32v_execute_stage (
   logic mlu_ff0, mlu_ff1, mlu_ff2;
   sew_t eew_ff0, eew_ff1, eew_ff2;
   logic [4:0] vd_ff0, vd_ff1, vd_ff2;
+  rob_index_t index_ff0, index_ff1, index_ff2;
   logic iota_or_id;
   logic load_ena, store_ena;
 
@@ -210,6 +212,7 @@ module rv32v_execute_stage (
   assign vif0.mask_type       = decode_execute_if.mask_type;
   assign vif0.mask_32bit      = decode_execute_if.mask_32bit_lane0;
   assign vif0.iota_res        = iif.res0;
+  assign vif0.stop_flush      = rob_if.v_done;
 
   // Vector Lane 1
   //assign vif1.stride          = decode_execute_if.stride;
@@ -238,6 +241,7 @@ module rv32v_execute_stage (
   assign vif1.mask_type       = decode_execute_if.mask_type;
   assign vif1.mask_32bit      = decode_execute_if.mask_32bit_lane1;
   assign vif1.iota_res        = iif.res1;
+  assign vif1.stop_flush      = rob_if.v_done;
 
 
   //missing signals
@@ -370,6 +374,9 @@ module rv32v_execute_stage (
       vd_ff0  <= 0;
       vd_ff1  <= 0;
       vd_ff2  <= 0;
+      index_ff0 <= 0;
+      index_ff1 <= 0;
+      index_ff2 <= 0;
 
 
       // mul_done_ff3 <= 0;
@@ -395,6 +402,9 @@ module rv32v_execute_stage (
       vd_ff0  <= 0;
       vd_ff1  <= 0;
       vd_ff2  <= 0;
+      index_ff0 <= 0;
+      index_ff1 <= 0;
+      index_ff2 <= 0;
 
 
       // mul_done_ff3 <= 0;
@@ -420,12 +430,15 @@ module rv32v_execute_stage (
       vd_ff0  <= decode_execute_if.vd;
       vd_ff1  <= vd_ff0;
       vd_ff2  <= vd_ff1;
+      index_ff0 <= decode_execute_if.index;
+      index_ff1 <= index_ff0;
+      index_ff2 <= index_ff1;
 
       // mul_done_ff3 <= mul_done_ff2;
     end
   end
 
-  assign vif0.mul_wait =  mlu_ff0 | mlu_ff1 | mlu_ff2;
+  assign vif0.mul_wait =  mlu_ff0 | mlu_ff1 | mlu_ff2 | decode_execute_if.fu_type == MUL;
   assign vif1.mul_wait = mlu_ff0 | mlu_ff1 | mlu_ff2;
 
   // Pipeline Latch
@@ -470,6 +483,7 @@ module rv32v_execute_stage (
       execute_memory_if.lmul    <= '0;
       execute_memory_if.valid   <= '0;
       execute_memory_if.counter_done <= '0;
+      execute_memory_if.mul_done <= '0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -501,6 +515,7 @@ module rv32v_execute_stage (
       execute_memory_if.lmul  <= '0;
       execute_memory_if.valid <= '0;
       execute_memory_if.counter_done <= '0;
+      execute_memory_if.mul_done <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -543,10 +558,11 @@ module rv32v_execute_stage (
 
       execute_memory_if.done         <= decode_execute_if.decode_done;
       execute_memory_if.ena          <= decode_execute_if.ena;
-      execute_memory_if.index        <= decode_execute_if.index;
+      execute_memory_if.index        <= vif0.mul_wait ? index_ff2 : decode_execute_if.index;
       execute_memory_if.lmul         <= decode_execute_if.lmul;
-      execute_memory_if.valid        <= decode_execute_if.valid;
+      execute_memory_if.valid        <= decode_execute_if.valid & ~vif0.mul_wait;
       execute_memory_if.counter_done <= decode_execute_if.counter_done ;
+      execute_memory_if.mul_done <= vif0.done_mu;
 
     end
   end

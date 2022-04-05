@@ -39,6 +39,8 @@ module vmultiply_unit (
   logic [15:0] product_high_sew16, product_low_sew16;
   logic [7:0] product_high_sew8, product_low_sew8;
   logic [31:0] multiplicand;
+  logic mul_decode_done_flush;
+  logic stop_flush;
 
   rv32v_multiplier MULU (
     .CLK(CLK),
@@ -119,10 +121,21 @@ module vmultiply_unit (
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) begin
       start_reg <= '0;
-    end else if (mif.decode_done) begin
+    end else if (mif.decode_done | mul_decode_done_flush) begin
       start_reg <= 0;
     end else if (mif.start_mu) begin
       start_reg <= 1;
+    end
+  end
+
+  assign stop_flush = mif.stop_flush;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      mul_decode_done_flush <= '0;
+    end else if (stop_flush) begin
+      mul_decode_done_flush <= 0;
+    end else if (mif.decode_done) begin
+      mul_decode_done_flush <= 1;
     end
   end
 

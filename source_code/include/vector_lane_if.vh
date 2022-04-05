@@ -32,9 +32,10 @@ interface vector_lane_if;
   logic decode_done; // decode done 3 cycles delayed
   logic mul_wait;
   logic mask_bit_set, mask_bit_set_ff1;
+  logic stop_flush;
 
   modport vector_lane (
-    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, mask_type, 
+    input   vs1_data, vs2_data, vs3_data, stride, fu_type, load_store_type, result_type, offset, aluop, SEW_f8, mask, stall_e_m, reduction_ena, is_signed_mul, multiply_type, multiply_pos_neg, mul_widen_ena, div_type, is_signed_div, win, woutu, zext_w, mask_type, stop_flush,
     mask_32bit_lane0, mask_32bit_lane1, vd_widen, is_masked, vd_narrow, decode_done, mul_wait,
     output  lane_result, busy, next_busy, exception, done_mu, mul_on
   );
@@ -45,7 +46,7 @@ interface vector_lane_if;
   );
 
   modport vmultiply_unit (
-    input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, decode_done, is_signed,
+    input   vs1_data, vs2_data, vs3_data, sew, is_signed_mul, start_mu, multiply_type, multiply_pos_neg, mul_widen_ena, high_low, decode_done, is_signed, stop_flush,
     output  wdata_mu, busy_mu, exception_mu, next_busy_mu, done_mu
   );
 

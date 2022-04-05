@@ -51,6 +51,10 @@ interface rv32v_reorder_buffer_if;
     output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, single_wen, single_wen_vl,
            counter_done, rd_wen
   );
+
+  modport execute (
+    input v_done
+  );
   
   // Alloc_ena comes from scalar decode stage. 
   modport decode (
