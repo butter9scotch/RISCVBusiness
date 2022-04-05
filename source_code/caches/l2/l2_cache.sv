@@ -67,7 +67,7 @@ module l2_cache #(
 
     // FSM type
     typedef enum { 
-       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, /*for debugging*/ERROR                     //NEED TO UPDATE
+       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, /*for debugging*/ERROR, IDLE2                     //NEED TO UPDATE
     } fsm_t;
     
     // Cache address decode type
