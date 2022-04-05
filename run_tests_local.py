@@ -139,7 +139,7 @@ def compile_asm_for_self(file_name):
     abi   =  'ilp32'
 
 
-    cmd_arr = ['/home/asicfab/a/socet49/opt/riscv/bin/riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
+    cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
                 '-static', '-mcmodel=medany', '-fvisibility=hidden',
                 '-nostdlib', '-nostartfiles',
                 '-T./verification/asm-env/link.ld',
@@ -259,7 +259,7 @@ def clean_init_hex(file_name):
         # add the EOL record to the file
         cleaned_file.write(":00000001FF")
         cleaned_file.close()
-    subprocess.call(['rm', init_output])
+    subprocess.call(['mv', init_output, init_output+"_dirty"])
     subprocess.call(['mv', cleaned_location, init_output])
     if not os.path.exists(os.path.dirname(build_dir)):
         os.makedirs(os.path.dirname(build_dir))
@@ -300,7 +300,7 @@ def clean_init_hex_for_self(file_name):
         # add the EOL record to the file
         cleaned_file.write(":00000001FF")
         cleaned_file.close()
-    subprocess.call(['rm', init_output])
+    subprocess.call(['mv', init_output, init_output+"_dirty"])
     subprocess.call(['mv', cleaned_location, init_output])
     if not os.path.exists(os.path.dirname(build_dir)):
         os.makedirs(os.path.dirname(build_dir))

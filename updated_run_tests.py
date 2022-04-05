@@ -26,38 +26,28 @@
 
 ######## Library Imports ########
 import argparse
+from asyncio.log import logger
 import sys
 import os
 import re
-from tkinter import TOP
 from typing import List, Type
 import logging
 import subprocess
 import pathlib
-import configparser
 import glob
 import json
+import itertools
 
 
 ######## Globals ########
 END_COLOR = "\033[0m"
 GREEN = "\033[92m"
 RED = "\033[31m"
-
-TOP_LEVEL = "RISCVBusiness"
-BUILD_DIR = "./build"
-VERIF_DIR = "./verification"
-SIM_OUT_DIR = "./sim_out"
-ASM_ENV = VERIF_DIR+"/asm-env/selfasm"
-TEST_FILE = None
 #WAF_LOGFILE = "waf_output.log"
 #BUILD_LOGFILE = "build_log.log"
-ARCH = "rv64uv"
-XLEN = "rv32imv"
-ABI = "ilp32"
-TEST_TYPE = "self_test"
-SUPPORTED_TEST_TYPES = ['asm', 'c', 'selfasm', "sparce", ""]
-CACHE_FILE = "run_tests_cache.json"
+DEFAULT_CONFIG_FILE = "run_tests_config.json"
+MEMINIT_HEX_FILE = "meminit.hex"
+ELF2HEX_COMAND = "/home/ecegrid/a/socpub/Public/riscv_dev/riscv_installs/RV_current/bin/elf2hex"
 FAILED = "Failed"
 PASSED = "Passed"
 
@@ -69,34 +59,63 @@ class Error(Exception):
     def __str__(self) -> str:
         return self.error_string
 
+class run_config():
+    def __init__(self, config_json:dict):
+        # top level info
+        self.arch = str(config_json["arch"])
+        self.abi = str(config_json["abi"])
+        self.xlen = str(config_json["xlen"])
+        self.test_type = str(config_json["test_type"])
+        self.top_level = str(config_json["top_level"])
+        # read directory definitions
+        self.build_dir = pathlib.Path(config_json["build_dir"])
+        self.verif_dir = pathlib.Path(config_json["verif_dir"])
+        self.asm_env = pathlib.Path(config_json["asm_env"])
+        # directory of all where the test files are
+        self.test_dir = self.verif_dir/self.test_type/self.arch
+
+        # output directories
+        self.sim_dir = pathlib.Path(config_json["sim_dir"])
+        self.out_dir = self.sim_dir/self.arch
+
+        # file definitions
+        self.link_file = self.asm_env/config_json["link_file"]
+        # the cache file name, expects it in same as run directory
+        self.cache_file = pathlib.Path(config_json["cache_file"])
+        # location of the test files
+        if(not self.test_dir.exists()):
+            raise Error(f"Test Directory: {self.test_dir} does not exists")
+        # init for apending later 
+        self.test_filepaths = []
+        self.test_filenames = config_json["test_filenames"]
+        return
+
 ######## Bulk Work Functions ########
-def run_self_test() -> List[str]:
+def run_tests(config: Type[run_config]) -> List[str]:
     """
     Should return the list of tests that were failed
     """
-    # search for all the self asm tests| TODO: Change this to be better later
-    if(TEST_FILE is None):
-        test_files = glob.glob(VERIF_DIR + "/self-tests/"+ARCH+"/*.S")
-    else:
-        test_files = glob.glob(VERIF_DIR + "/self-tests/"+ARCH+"/"+TEST_FILE+".S")
-
+    print(f"Running Strings: {config.test_filepaths}")
     # setup the sim out directory
-    output_dir = pathlib.Path(SIM_OUT_DIR+"/"+ARCH)
-    if(not output_dir.exists()):
-        os.makedirs(output_dir)
+    if(not config.out_dir.exists()):
+        os.makedirs(config.out_dir)
 
-    # compile asm - basic done
-    build_logger = setup_logger("build_logger", pathlib.Path("./builld_log.log"))
-    waf_logger = setup_logger("waf_logger", pathlib.Path("./builld_log.log"))
+    # setup the loggers
+    # the log names don't matter as they will be replaced in the for loop
+    build_logger = setup_logger("build_logger", pathlib.Path("./build_log.log"))
+    waf_logger = setup_logger("waf_logger", pathlib.Path("./waf_log.log"))
+
+    # setup caching dict mechanism 
     test_status = dict()
     # read in the cached results if possible
-    if(pathlib.Path(CACHE_FILE).exists()):
-        with open(CACHE_FILE, "r") as cache_fp:
+    if(pathlib.Path(config.cache_file).exists()):
+        with open(config.cache_file, "r") as cache_fp:
             test_status = json.load(cache_fp)
+
+    # run the tests
     try: 
-        for file in test_files:
+        for file in config.test_filepaths:
             filepath = pathlib.Path(file)
-            # TODO: possibly make this more general
             # check if there is a cached result 
             test_cached_result = FAILED
             if(filepath.stem in test_status):
@@ -109,51 +128,56 @@ def run_self_test() -> List[str]:
                 continue
             print(f"-----------------------------")
             print(f"Running Test: {filepath.name}")
-        # setup the test output directory if it is not there
-            test_out_dir = output_dir/filepath.stem
-        # setup the sim out folder
+            # setup the test output directory if it is not there
+            test_out_dir = config.out_dir/filepath.stem
+            # setup the sim out folder
             if(not test_out_dir.exists()):
                 os.makedirs(test_out_dir)
-        # update the loggers
+            # update the loggers
             build_log_filepath = test_out_dir/str(filepath.stem+"_build.log")
             build_logger = change_logger_file_handlers(build_logger, build_log_filepath)
             waf_log_filepath = test_out_dir/str(filepath.stem+"_waf.log")
             waf_logger = change_logger_file_handlers(waf_logger, waf_log_filepath)
-        # compule the assembly file
+
+            # compile the assembly file
             print(f"    - Compiling...")
             outpath = test_out_dir/str(filepath.stem+".elf")
-            hex_filepath = compile_asm(filepath, outpath, XLEN, ABI, pathlib.Path(ASM_ENV), build_logger)
-        # clean up the hex file - needs writting
+            hex_filepath = compile_asm(filepath, outpath, config, build_logger)
+            # clean up the hex file - needs writting
             clean_init_hex(hex_filepath)
             print(f"    - Running Waf...")
-        # run self sim - basic done
-            run_sim(TOP_LEVEL+"_self_test", waf_logger)
+            # run self sim - basic done
+            run_sim(config.top_level, waf_logger)
             waf_log_filepath = pathlib.Path(waf_logger.handlers[0].baseFilename)
             print(f"    - Checking Results...")
-        # check results - 
+            # check results - 
             result = check_self_results(waf_log_filepath, build_logger)
-        # cache the result in the dict
+            # cache the result in the dict
             test_status[filepath.stem] = result
             #print(test_status)
+    # catch keyboard interrupts to flush the cache file
     except KeyboardInterrupt:
-        with open(CACHE_FILE, "w") as cache_fp:
-            json.dump(test_status, cache_fp)
+        pass # yes I know that this is not the pest practice
+
+    with open(config.cache_file, "w") as cache_fp:
+        json.dump(test_status, cache_fp)
+
     return
 
 
 # compile the assembly file - done
 def compile_asm(filepath: Type[pathlib.Path], outpath: Type[pathlib.Path],\
-    xlen: str, abi:str, asm_env: Type[pathlib.Path],\
-    logger: Type[logging.Logger]) -> Type[pathlib.Path]:
+    config: Type[run_config], logger: Type[logging.Logger])\
+    -> Type[pathlib.Path]:
     # main compile arguments
     # notes: need to parameratize the .T, .I, abi, and xlen flags
     # also probably pass the filepath too
     compile_cmd_arr = ["riscv64-unknown-elf-gcc", 
-                "-march=" + xlen, "-mabi=" + abi,
+                "-march=" + config.xlen, "-mabi=" + config.abi,
                 "-static", "-mcmodel=medany", "-fvisibility=hidden",
                 "-nostdlib", "-nostartfiles",
-                "-T"+str(asm_env/"link.ld"),
-                "-I"+str(asm_env), str(filepath), "-o",
+                "-T"+str(config.link_file),
+                "-I"+str(config.asm_env), str(filepath), "-o",
                 str(outpath)]
 
     log_header("riscv64-unknown-elf-gcc", logger)
@@ -166,9 +190,10 @@ def compile_asm(filepath: Type[pathlib.Path], outpath: Type[pathlib.Path],\
 
 
     # create the mem init file
-    elf_2_hex_cmd_arr = ["/home/ecegrid/a/socpub/Public/riscv_dev/riscv_installs/RV_current/bin/elf2hex", "8", "65536", str(outpath), "2147483648"]
+    # NOTE: Hard coded values here that I am too lazy to config
+    elf_2_hex_cmd_arr = [ELF2HEX_COMAND, "8", "65536", str(outpath), "2147483648"]
     # hex file return this for cleaning
-    hex_filepath = outpath.parent / "meminit.hex"
+    hex_filepath = outpath.parent/MEMINIT_HEX_FILE
 
     log_header("elf2hex", logger)
     elf_2_hex_process: Type[subprocess.CompletedProcess] = subprocess.run(elf_2_hex_cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -177,6 +202,7 @@ def compile_asm(filepath: Type[pathlib.Path], outpath: Type[pathlib.Path],\
         hex_file.write(str(elf_2_hex_process.stdout, encoding="utf-8"))
 
     logger.info(f"Finished {filepath.name} Compilation")
+
     return hex_filepath
 
 # run the simulation
@@ -351,12 +377,59 @@ def change_logger_file_handlers(logger: Type[logging.Logger],\
 def main():
     return
 
+def parse_args()-> Type[run_config]:
+    parser = argparse.ArgumentParser(description="Run various processor tests at the top level of RISCVBusisness")
+    parser.add_argument("--config_file", "-c", dest="config_file",
+        type=str, default=DEFAULT_CONFIG_FILE, 
+        help="Specify the config file path")
+    parser.add_argument("--arch", "-a", dest="arch",
+        type=str, default=None, 
+        help="Specify the architecture targeted. Option(s): RV32I Default: RV32I")
+    parser.add_argument("--test_type", "-t", dest="test_type",
+        type=str, default=None, 
+        help="Specify what type of tests to run. Option(s): asm, selfasm,c Default: selfasm")
+    parser.add_argument("file_names", metavar="file_names",
+        type=str, nargs="+", 
+        help="Run all tests that begin with this string. Optional")
+    parser.add_argument("--clean", action="store_true", dest="clean",
+        help="Clean the cache file before running")
+    args = parser.parse_args()
+
+    conf_dict = dict()
+    with open(args.config_file, "r") as conf_fp:
+        conf_dict = json.load(conf_fp)
+
+    config = run_config(conf_dict)
+    if(args.arch):
+        config.arch = args.arch
+    if(args.test_type):
+        config.test_type = args.test_type
+    if(args.file_names):
+        # find all the files that match the pattern
+        print(args.file_names)
+        config.test_filenames = args.file_names
+    # get the list of test files
+    test_files =[]
+    for filename in config.test_filenames:
+        test_files.append(glob.glob(str(config.test_dir/filename)))
+    config.test_filepaths = list(itertools.chain(*test_files))
+
+    # process the clean flag, remove the cache file if want a clean run
+    if(args.clean):
+        try:
+            os.remove(config.cache_file)
+        except FileNotFoundError:
+            pass # ignore if the file is not there
+
+
+    return config
 
 ######## Main Function ########
 if __name__ == "__main__":
     print("Running Main...")
     # setup the logfile
     #logging.basicConfig(filename=log_filepath, mode="w", level=logging.DEBUG)
-    run_self_test()
+    config = parse_args()
+    run_tests(config)
     # shutdown any remaining loggers
     logging.shutdown()
