@@ -1,37 +1,14 @@
 # Caches UVM Testbench Setup Guide
 
-## Makefile:
-- make: builds and runs tb in terminal only mode
-- make gui: build and runs tb in gui mode
-- make build: build tb
-- make run: runs QuestaSim in terminal only mode
-- make help: prints the available commands
-- make clean: remove build outputs from file structure
-
-### Makefile Params
-- TESTCASE: selects which test to run from the `tests/` folder
-- VERBOSITY: selects UVM verbosity for prints 
-    - NONE
-      - only error messages shown
-    - LOW
-      - actual and expected values for scoreboard errors
-      - success msg for data matches
-      - master sequence parameters
-    - MEDIUM
-      - actual and expected values for all scoreboard checks
-      - predictor default values for non-initialized memory
-      - end2end transaction/propagation details
-    - HIGH
-      - all uvm transactions detected in monitors, predictors, scoreboards 
-      - predictor memory before:after
-    - FULL
-      - all connections between analysis ports
-      - all agent sub-object instantiations
-      - all virtual interface accesses to uvm db
-    - DEBUG
-- RAND_SEED: this seeds the random number generator for the UVM .randomize() calls
-  - value of `random` will use vsim to randomize test cases automatically
-
+### Build/Run Params
+Everything related to building and running the uvm testbench is handled by the run.py script. To view the parameters:
+```bash
+run.py -h
+```
+`Note:` you may need to change permissions of the run.py file:
+```bash
+chmod u+x run.py
+```
 ## TB Hierarchy:
 //TODO: THIS NEEDS TO BE UPDATED
 ```

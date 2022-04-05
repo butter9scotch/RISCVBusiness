@@ -70,6 +70,8 @@ class memory_bfm extends uvm_component;
 		end
         `uvm_info(this.get_name(), "pulled <l2_bus_cif> from db", UVM_FULL)
 
+        $display(`MEMORY_BFM_CONFIG);
+
     endfunction: build_phase
 
 
