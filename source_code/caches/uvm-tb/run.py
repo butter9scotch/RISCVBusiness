@@ -161,10 +161,11 @@ def run():
         res = os.system('''
             vsim -i
             {RUN_COMMON}
-            -do "do scripts/wave.do"
+            -do "do scripts/{WAVE}.do"
 	        -do "run -all"
         '''.format(
             RUN_COMMON=RUN_COMMON,
+            WAVE=params.config
         ).replace("\n", " "))
     else: 
         cprint("Running with Terminal...", bcolors.LOG)
@@ -246,6 +247,7 @@ def post_run():
 
         msg += "test: {}, ".format(params.testcase)
         msg += "seed: {}, ".format(log["seed"])
+        msg += "config: {}, ".format(params.config)
         msg += "iterations: {}, ".format(params.iterations)
         msg += "mem_timeout: {}, ".format(params.mem_timeout)
         msg += "mem_latency: {}, ".format(params.mem_latency)
@@ -279,8 +281,9 @@ if __name__ == '__main__':
     cprint("Running Post Run Script...", bcolors.LOG)
 
     # print parameters
+    skip = ["verbosity", "gui", "clean", "seed"]
     for arg in vars(params):
-        if arg == "verbosity" or arg == "gui":
+        if arg in skip:
             continue #skip showing in info
         cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), bcolors.INFO)
 

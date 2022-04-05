@@ -66,15 +66,9 @@ class memory_bfm extends uvm_component;
 		end
         `uvm_info(this.get_name(), "pulled <d_cif> from db", UVM_FULL)
 
-`ifdef TB_L1_CONFIG
-        `uvm_info(this.get_name(), "Using L1 Configuration", UVM_FULL)
-        bus_if_str = "d_cpu_bus_if";
-`endif
 
-`ifdef TB_L2_CONFIG
         `uvm_info(this.get_name(), "Using L2 Configuration", UVM_FULL)
         bus_if_str = "l2_bus_if";
-`endif
 
         if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, bus_if) ) begin
             `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str), "No virtual interface specified for this test instance");
