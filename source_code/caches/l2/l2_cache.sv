@@ -112,7 +112,7 @@ module l2_cache #(
     // Cache Hit signals
     logic hit, pass_through;
     word_t [BLOCK_SIZE - 1:0] hit_data;
-    logic [(ASSOC/2)-1] hit_idx;
+    logic [(ASSOC/2)-1:0] hit_idx;
 
 
     //Replacement Signals // I think victim/nextvictim (pseudo LRU) policy is best
@@ -356,61 +356,19 @@ module l2_cache #(
 	        next_read_addr = decoded_addr;       
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
-                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
+                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits - 1]; //
+		  //  next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] = 
 		            //next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy                                    = 1'b0;
-		  /*  casez (proc_gen_bus_if.byte_en)
-                        4'b0001:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFFFF00)|{24'd0,proc_gen_bus_if.wdata[7:0]};
-                        4'b0010:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFF00FF)|{16'd0,proc_gen_bus_if.wdata[15:8], 8'd0};
-                        4'b0100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFF00FFFF)|{8'd0, proc_gen_bus_if.wdata[23:16], 16'd0};
-                        4'b1000:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'h00FFFFFF)|{proc_gen_bus_if.wdata[31:24], 24'd0};
-		        4'b0011:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFF0000)|{16'd0,proc_gen_bus_if.wdata[15:0]};
-		        4'b1100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'h0000FFFF)|{proc_gen_bus_if.wdata[31:16],16'd0};
-                        default:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-                    endcase	*/													   				   
-                    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-		    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
-		          //  next_last_used[decoded_addr.set_bits] 				        = hit_idx;
-                end // if (proc_gen_bus_if.wen && hit)
-                else if(pass_through)begin // Passthrough data logic
-                    if(proc_gen_bus_if.ren)begin
-                        //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
-                        mem_gen_bus_if.ren      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
-                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
-                    end
-                    else if(proc_gen_bus_if.wen)begin
-                        //mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata; //non byte enable
-                        mem_gen_bus_if.wen      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
-                        casez (proc_gen_bus_if.byte_en) // Case statement for byte enable
-                            4'b0001:    mem_gen_bus_if.wdata  = {24'd0, proc_gen_bus_if.wdata[7:0]};
-                            4'b0010:    mem_gen_bus_if.wdata  = {16'd0,proc_gen_bus_if.wdata[15:8],8'd0};
-                            4'b0100:    mem_gen_bus_if.wdata  = {8'd0, proc_gen_bus_if.wdata[23:16], 16'd0};
-                            4'b1000:    mem_gen_bus_if.wdata  = {proc_gen_bus_if.wdata[31:24], 24'd0};
-                            4'b0011:    mem_gen_bus_if.wdata  = {16'd0, proc_gen_bus_if.wdata[15:0]};
-                            4'b1100:    mem_gen_bus_if.wdata  = {proc_gen_bus_if.wdata[31:16],16'd0};
-                            default:    mem_gen_bus_if.wdata  = proc_gen_bus_if.wdata;
-                        endcase
-                    end
-                end // if (pass_through)
-		       else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-		       next_read_addr = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-		       end
-
-		       else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-		       next_read_addr = {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-		       end
-
+		     proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
+                end // if (proc_gen_bus_if.wen && hit
 		       
 		       
             end
             FETCH: begin
-                mem_gen_bus_if.ren   = 1'b1;
+              /*  mem_gen_bus_if.ren   = 1'b1;
                 mem_gen_bus_if.addr  = read_addr;
                 
                 if(finish_word) begin
@@ -423,7 +381,9 @@ module l2_cache #(
                     en_word_ctr 						   = 1'b1;
                     next_read_addr 						   = read_addr + 4;
                     next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
-                end
+                    end*/ // case: FETCH
+		       proc_gen_bus_if. busy                                   = 1'b0;
+		       proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits];
             end
             WB: begin
                 mem_gen_bus_if.wen    = 1'b1;
