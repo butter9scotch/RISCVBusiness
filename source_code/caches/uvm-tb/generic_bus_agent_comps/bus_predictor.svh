@@ -22,7 +22,6 @@
 *   Description:  UVM subscriber class for predicting the operation of a generic_bus_if
 */
 
-
 `ifndef BUS_PREDICTOR_SHV
 `define BUS_PREDICTOR_SHV
 
@@ -72,11 +71,9 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
       if (pred_tx.addr < `NONCACHE_START_ADDR) begin
         word_t mask = Utils::byte_mask(pred_tx.byte_en);
         if (cache.exists(pred_tx.addr)) begin
-          cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en); //FIXME: VERIFY CORRECTNESS
-          // cache[pred_tx.addr] = (mask & pred_tx.data) | (~mask & cache[pred_tx.addr]);
+          cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
         end else begin
-          cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en); //FIXME: VERIFY CORRECTNESS
-          // cache[pred_tx.addr] = (mask & pred_tx.data) | (~mask & read_mem(pred_tx.addr));
+          cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
         end
       end // else don't cache
     end else begin
