@@ -41,6 +41,7 @@ module vmultiply_unit (
   logic [31:0] multiplicand;
   logic mul_decode_done_flush;
   logic stop_flush;
+  logic multiply_pos_neg_ff0, multiply_pos_neg_ff1, multiply_pos_neg_ff2; 
 
   rv32v_multiplier MULU (
     .CLK(CLK),
@@ -48,7 +49,7 @@ module vmultiply_unit (
     .multiplicand(multiplicand),
     .multiplier(vs1_data),
     .is_signed(mif.is_signed_mul),
-    .start(start_reg),
+    .start(mif.start_mu & ~mul_decode_done_flush & ~mif.decode_done),
     .finished(done),
     .next_finished(next_done),
     .product(product)
@@ -59,7 +60,7 @@ module vmultiply_unit (
   // assign final_product    = mif.mul_widen_ena ? product[31:0] : selected_product;
   assign final_product    =  selected_product;
   // assign product_mod      = mif.multiply_pos_neg ? final_product : (0-final_product);
-  assign product_mod      = mif.multiply_pos_neg ? (0 - final_product) : final_product;
+  assign product_mod      = multiply_pos_neg_ff2 ? (0 - final_product) : final_product;
   // assign mif.wdata_mu     = mif.multiply_type == MACC ? product_mod + mif.vs3_data : final_product;
   assign mif.exception_mu = 0; // TODO
   assign mif.done_mu      = done; 
@@ -84,6 +85,10 @@ module vmultiply_unit (
       mul_widen_ena_ff1 <= 0;
       mul_widen_ena_ff2 <= 0;
 
+      multiply_pos_neg_ff0 <= 0;
+      multiply_pos_neg_ff1 <= 0;
+      multiply_pos_neg_ff2 <= 0;
+
     end else begin
       addend_ff0 <= (mif.multiply_type == MADD) | (mif.multiply_type == MSUB) ? vs2_data : vs3_data;
       addend_ff1 <= addend_ff0;
@@ -97,15 +102,16 @@ module vmultiply_unit (
       mul_widen_ena_ff1 <= mul_widen_ena_ff0;
       mul_widen_ena_ff2 <= mul_widen_ena_ff1;
 
+      multiply_pos_neg_ff0 <= mif.multiply_pos_neg;
+      multiply_pos_neg_ff1 <= multiply_pos_neg_ff0;
+      multiply_pos_neg_ff2 <= multiply_pos_neg_ff1;
+
     end
   end
 
   always_comb begin
     case (multiply_type_ff2) 
-      MACC: mif.wdata_mu = product_mod + addend_ff2;
-      MADD: mif.wdata_mu = product_mod + addend_ff2;
-      MSAC: mif.wdata_mu = addend_ff2 - product_mod;
-      MSUB: mif.wdata_mu = addend_ff2 - product_mod;
+      MACC, MADD, MSAC, MSUB: mif.wdata_mu = product_mod + addend_ff2;
       default: mif.wdata_mu = final_product;
     endcase
   end

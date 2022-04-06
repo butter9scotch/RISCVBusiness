@@ -604,7 +604,7 @@ module vector_control_unit
   //multiply_pos_neg;
   always_comb begin
     case (op_decoded)
-      OP_VMADD, OP_VMACC, OP_VWMACCU, OP_VWMACC: vcu_if.multiply_pos_neg = 1 ;
+      OP_VNMSUB, OP_VNMSAC: vcu_if.multiply_pos_neg = 1 ;
       default: vcu_if.multiply_pos_neg = 0;
     endcase
   end
