@@ -279,6 +279,8 @@ module l1_cache #(
         proc_gen_bus_if.busy    = 1'b1;
         mem_gen_bus_if.ren      = 1'b0;
         mem_gen_bus_if.wen      = 1'b0;
+        mem_gen_bus_if.addr     = '0; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
+        mem_gen_bus_if.wdata    = '0; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
         mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
         next_read_addr          = read_addr;               //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
         en_set_ctr 	            = 1'b0;
@@ -291,11 +293,11 @@ module l1_cache #(
         // flush_done 	            = 1'b0; //Duplicated?
 
        	if(ASSOC == 1) begin
-	    ridx  = 1'b0;
-	end
-	else if (ASSOC == 2) begin
-	    ridx  = ~last_used[decoded_addr.set_bits];
-	end
+	        ridx  = 1'b0;
+	    end
+	    else if (ASSOC == 2) begin
+	        ridx  = ~last_used[decoded_addr.set_bits];
+	    end
        
         for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
             for(int j = 0; j < ASSOC; j++) begin

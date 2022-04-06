@@ -51,7 +51,7 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
   virtual generic_bus_if i_l1_arb_bus_if;  
   
   virtual generic_bus_if arb_l2_bus_if;  
-  virtual generic_bus_if l2_bus_if;  
+  virtual generic_bus_if mem_bus_if;  
 
   function new(string name = "", uvm_component parent);
 		super.new(name, parent);
@@ -107,9 +107,9 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
 		  `uvm_fatal("Base/arb_l2_bus_if", "No virtual interface specified for this test instance")
 	  end
 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "l2_bus_if", l2_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_bus_if", mem_bus_if)) begin 
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/l2_bus_if", "No virtual interface specified for this test instance")
+		  `uvm_fatal("Base/mem_bus_if", "No virtual interface specified for this test instance")
 	  end 
 
     // send the interfaces down
@@ -128,7 +128,7 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
 
     uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "arb_l2_bus_if", arb_l2_bus_if);
 
-    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "l2_bus_if", l2_bus_if);
+    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "mem_bus_if", mem_bus_if);
   endfunction: build_phase
 
   task run_phase(uvm_phase phase);

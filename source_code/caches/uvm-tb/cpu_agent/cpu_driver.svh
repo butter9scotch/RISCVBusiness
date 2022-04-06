@@ -85,10 +85,20 @@ class cpu_driver #(string cif_str, string bus_if_str) extends uvm_driver#(cpu_tr
   endtask: run_phase
 
   task DUT_reset();
-    @(posedge cif.CLK);
-    cif.nRST = 1;
+    // reset all cpu bus signals
+    cpu_bus_if.addr     = '0;
+    cpu_bus_if.wdata    = '0;
+    cpu_bus_if.ren      = '0;
+    cpu_bus_if.wen      = '0;
+    cpu_bus_if.byte_en  = '0;
+
+    // reset all cpu cif request signals
+    cif.nRST = 0;
     cif.clear = 0;
     cif.flush = 0;
+
+    @(posedge cif.CLK);
+    cif.nRST = 1;
     @(posedge cif.CLK);
     cif.nRST = 0;
     @(posedge cif.CLK);

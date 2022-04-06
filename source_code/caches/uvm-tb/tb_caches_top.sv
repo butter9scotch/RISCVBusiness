@@ -66,7 +66,7 @@ module tb_caches_top ();
   generic_bus_if i_l1_arb_bus_if(); // from instruction l1 cache to memory arbiter
   generic_bus_if d_l1_arb_bus_if(); // from data l1 cache to memory arbiter
   generic_bus_if arb_l2_bus_if(); // from memory arbiter to l2 cache
-  generic_bus_if l2_bus_if();     // from l2 cache to memory bus
+  generic_bus_if mem_bus_if();     // from l2 cache to memory bus
   
   cache_if i_cif(clk);  // holds flush, clear signals for i cache
   cache_if d_cif(clk);  // holds flush, clear signals for d cache
@@ -96,7 +96,7 @@ module tb_caches_top ();
     .clear_done(d_cif.clear_done),
     .flush_done(d_cif.flush_done),
     .proc_gen_bus_if(d_cpu_bus_if.generic_bus),
-    .mem_gen_bus_if(l2_bus_if.cpu)
+    .mem_gen_bus_if(mem_bus_if.cpu)
   );
 `endif 
 
@@ -117,6 +117,7 @@ module tb_caches_top ();
     .proc_gen_bus_if(d_cpu_bus_if.generic_bus),
     .mem_gen_bus_if(d_l1_arb_bus_if.cpu)
   );
+
   assign i_cif.nRST = d_cif.nRST;
 
   // Instruction L1
@@ -136,12 +137,34 @@ module tb_caches_top ();
     .mem_gen_bus_if(i_l1_arb_bus_if.cpu)
   );
 
+  //FIXME: NOT WORKING WITHOUT THIS FOR SOME REASON
+  generic_bus_if i_temp();
+  generic_bus_if d_temp();
+
+  always_comb begin     
+    d_temp.addr             = d_l1_arb_bus_if.addr     ;
+    d_temp.wdata            = d_l1_arb_bus_if.wdata    ;
+    d_temp.ren              = d_l1_arb_bus_if.ren      ;
+    d_temp.wen              = d_l1_arb_bus_if.wen      ;
+    d_temp.byte_en          = d_l1_arb_bus_if.byte_en  ;
+    d_l1_arb_bus_if.rdata   = d_temp.rdata    ;
+    d_l1_arb_bus_if.busy    = d_temp.busy     ;
+
+    i_temp.addr             = i_l1_arb_bus_if.addr     ;
+    i_temp.wdata            = i_l1_arb_bus_if.wdata    ;
+    i_temp.ren              = i_l1_arb_bus_if.ren      ;
+    i_temp.wen              = i_l1_arb_bus_if.wen      ;
+    i_temp.byte_en          = i_l1_arb_bus_if.byte_en  ;
+    i_l1_arb_bus_if.rdata   = i_temp.rdata    ;
+    i_l1_arb_bus_if.busy    = i_temp.busy     ;
+  end
+
   // Memory Arbiter
   memory_arbiter mem_arb (
     .CLK(d_cif.CLK),
     .nRST(d_cif.nRST),
-    .icache_if(i_l1_arb_bus_if.generic_bus),
-    .dcache_if(d_l1_arb_bus_if.generic_bus),
+    .icache_if(i_temp.generic_bus),
+    .dcache_if(d_temp.generic_bus),
     .mem_arb_if(arb_l2_bus_if.cpu)
   );
 
@@ -163,7 +186,7 @@ module tb_caches_top ();
     .clear_done(l2_cif.clear_done),
     .flush_done(l2_cif.flush_done),
     .proc_gen_bus_if(arb_l2_bus_if.generic_bus),
-    .mem_gen_bus_if(l2_bus_if.cpu)
+    .mem_gen_bus_if(mem_bus_if.cpu)
   );
 `endif
 
@@ -180,7 +203,7 @@ module tb_caches_top ();
     
     uvm_config_db#(virtual generic_bus_if)::set( null, "", "arb_l2_bus_if", arb_l2_bus_if);
 
-    uvm_config_db#(virtual generic_bus_if)::set( null, "", "l2_bus_if", l2_bus_if);
+    uvm_config_db#(virtual generic_bus_if)::set( null, "", "mem_bus_if", mem_bus_if);
 
     run_test();
   end

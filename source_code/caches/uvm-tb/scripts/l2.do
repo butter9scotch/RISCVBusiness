@@ -37,13 +37,13 @@ add wave -noupdate -expand -group arb_l2_bus_if -color Cyan /tb_caches_top/arb_l
 add wave -noupdate -expand -group arb_l2_bus_if -color Violet /tb_caches_top/arb_l2_bus_if/wen
 add wave -noupdate -expand -group arb_l2_bus_if -color Orange /tb_caches_top/arb_l2_bus_if/busy
 add wave -noupdate -expand -group arb_l2_bus_if /tb_caches_top/arb_l2_bus_if/byte_en
-add wave -noupdate -expand -group l2_bus_if /tb_caches_top/l2_bus_if/addr
-add wave -noupdate -expand -group l2_bus_if -color Salmon /tb_caches_top/l2_bus_if/wdata
-add wave -noupdate -expand -group l2_bus_if /tb_caches_top/l2_bus_if/rdata
-add wave -noupdate -expand -group l2_bus_if -color Cyan /tb_caches_top/l2_bus_if/ren
-add wave -noupdate -expand -group l2_bus_if -color Violet /tb_caches_top/l2_bus_if/wen
-add wave -noupdate -expand -group l2_bus_if -color Orange /tb_caches_top/l2_bus_if/busy
-add wave -noupdate -expand -group l2_bus_if /tb_caches_top/l2_bus_if/byte_en
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/addr
+add wave -noupdate -expand -group mem_bus_if -color Salmon /tb_caches_top/mem_bus_if/wdata
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/rdata
+add wave -noupdate -expand -group mem_bus_if -color Cyan /tb_caches_top/mem_bus_if/ren
+add wave -noupdate -expand -group mem_bus_if -color Violet /tb_caches_top/mem_bus_if/wen
+add wave -noupdate -expand -group mem_bus_if -color Orange /tb_caches_top/mem_bus_if/busy
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/byte_en
 add wave -noupdate -group i_l1 /tb_caches_top/i_l1/CLK
 add wave -noupdate -group i_l1 /tb_caches_top/i_l1/nRST
 add wave -noupdate -group i_l1 /tb_caches_top/i_l1/clear

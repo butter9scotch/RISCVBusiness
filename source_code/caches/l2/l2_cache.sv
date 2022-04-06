@@ -43,25 +43,25 @@ module l2_cache #(
 
 );
 
-    // always_ff @(posedge CLK, negedge nRST) begin
-    //     if (!nRST) begin
-    //         mem_gen_bus_if.addr     <= '0;
-    //         mem_gen_bus_if.wdata    <= '0;
-    //         mem_gen_bus_if.ren      <= '0;
-    //         mem_gen_bus_if.wen      <= '0;
-    //         mem_gen_bus_if.byte_en  <= '0;
-    //         proc_gen_bus_if.rdata   <= '0;
-    //         proc_gen_bus_if.busy    <= '0;
-    //     end else begin
-    //         mem_gen_bus_if.addr     <= proc_gen_bus_if.addr     ;
-    //         mem_gen_bus_if.wdata    <= proc_gen_bus_if.wdata    ;
-    //         mem_gen_bus_if.ren      <= proc_gen_bus_if.ren      ;
-    //         mem_gen_bus_if.wen      <= proc_gen_bus_if.wen      ;
-    //         mem_gen_bus_if.byte_en  <= proc_gen_bus_if.byte_en  ;
-    //         proc_gen_bus_if.busy    <= mem_gen_bus_if.busy     ;
-    //         proc_gen_bus_if.rdata   <= mem_gen_bus_if.rdata    ;
-    //     end
-    // end
+    always_ff @(posedge CLK, negedge nRST) begin
+        if (!nRST) begin
+            mem_gen_bus_if.addr     <= '0;
+            mem_gen_bus_if.wdata    <= '0;
+            mem_gen_bus_if.ren      <= '0;
+            mem_gen_bus_if.wen      <= '0;
+            mem_gen_bus_if.byte_en  <= '0;
+            proc_gen_bus_if.rdata   <= '0;
+            proc_gen_bus_if.busy    <= '0;
+        end else begin
+            mem_gen_bus_if.addr     <= proc_gen_bus_if.addr     ;
+            mem_gen_bus_if.wdata    <= proc_gen_bus_if.wdata    ;
+            mem_gen_bus_if.ren      <= proc_gen_bus_if.ren      ;
+            mem_gen_bus_if.wen      <= proc_gen_bus_if.wen      ;
+            mem_gen_bus_if.byte_en  <= proc_gen_bus_if.byte_en  ;
+            proc_gen_bus_if.rdata   <= mem_gen_bus_if.rdata    ;
+            proc_gen_bus_if.busy    <= mem_gen_bus_if.busy     ;
+        end
+    end
 
     // always_comb begin
     //     mem_gen_bus_if.addr     <= proc_gen_bus_if.addr     ;

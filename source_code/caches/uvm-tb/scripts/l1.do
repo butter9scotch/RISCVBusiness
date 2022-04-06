@@ -9,13 +9,13 @@ add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/d_cpu_bus_if/ren
 add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/d_cpu_bus_if/wen
 add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/d_cpu_bus_if/busy
 add wave -noupdate -expand -group cpu_bus_if /tb_caches_top/d_cpu_bus_if/byte_en
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/addr
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/wdata
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/rdata
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/ren
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/wen
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/busy
-add wave -noupdate -expand -group mem_bus_if /tb_caches_top/l2_bus_if/byte_en
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/addr
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/wdata
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/rdata
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/ren
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/wen
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/busy
+add wave -noupdate -expand -group mem_bus_if /tb_caches_top/mem_bus_if/byte_en
 add wave -noupdate -group cif /tb_caches_top/d_cif/clear
 add wave -noupdate -group cif /tb_caches_top/d_cif/flush
 add wave -noupdate -group cif /tb_caches_top/d_cif/clear_done
