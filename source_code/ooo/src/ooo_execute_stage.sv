@@ -62,6 +62,8 @@ module ooo_execute_stage(
   //import ooo_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
 
+  rv32v_hazard_unit_if rv32v_hazard_if();
+
   logic csr_reg, csr_pulse;
   word_t csr_rdata;
   logic [1:0] byte_offset;
@@ -74,11 +76,13 @@ module ooo_execute_stage(
   logic [4:0] reg_rd_mu_ff0, reg_rd_mu_ff1, reg_rd_mu_ff2;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu_ff0, index_mu_ff1, index_mu_ff2; 
   logic branch_mispredict;
+  logic v_ex_decode_done;
 
   assign hazard_if.breakpoint  = decode_execute_if.exception_sigs.breakpoint;
   assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
   assign hazard_if.ret         = decode_execute_if.exception_sigs.ret_insn;
   assign hazard_if.pc_ex       = decode_execute_if.pc;
+  //assign hazard_if.v_decode_done = v_ex_decode_done;
   assign hazard_if.v_decode_done = rob_if.v_done;
   
   /*******************************************************
@@ -197,7 +201,6 @@ module ooo_execute_stage(
   *** Vector Unit
   *******************************************************/ 
   //scalar_vector_decode_if  rv32v_decode_if();
-  rv32v_hazard_unit_if rv32v_hazard_if();
   cache_model_if cif();
   rv32v_top_level_if rv32v_if();
 
@@ -249,7 +252,8 @@ module ooo_execute_stage(
     .hu_if(rv32v_hazard_if),
     .prv_if(prv_pipe_if),
     .rv32v_if,
-    .rob_if
+    .rob_if,
+    .v_ex_decode_done(v_ex_decode_done)
   );
 
   

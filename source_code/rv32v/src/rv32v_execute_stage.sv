@@ -55,6 +55,8 @@ module rv32v_execute_stage (
   assign load_ena  = decode_execute_if.fu_type == LOAD_UNIT;
   assign store_ena = decode_execute_if.fu_type == STORE_UNIT;
 
+  assign hu_if.v_decode_done = decode_execute_if.decode_done;
+
   vector_lane_if vif0 ();
   vector_lane_if vif1 ();
   iota_logic_if iif ();
@@ -484,6 +486,7 @@ module rv32v_execute_stage (
       execute_memory_if.valid   <= '0;
       execute_memory_if.counter_done <= '0;
       execute_memory_if.mul_done <= '0;
+      execute_memory_if.div_done <= '0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -516,6 +519,7 @@ module rv32v_execute_stage (
       execute_memory_if.valid <= '0;
       execute_memory_if.counter_done <= '0;
       execute_memory_if.mul_done <= '0;
+      execute_memory_if.div_done <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -560,9 +564,10 @@ module rv32v_execute_stage (
       execute_memory_if.ena          <= decode_execute_if.ena;
       execute_memory_if.index        <= vif0.mul_wait ? index_ff2 : decode_execute_if.index;
       execute_memory_if.lmul         <= decode_execute_if.lmul;
-      execute_memory_if.valid        <= decode_execute_if.valid & ~vif0.mul_wait;
+      execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV) ? 1'b0 : decode_execute_if.valid;
       execute_memory_if.counter_done <= decode_execute_if.counter_done ;
       execute_memory_if.mul_done <= vif0.done_mu;
+      execute_memory_if.div_done <= vif0.done_du;
 
     end
   end

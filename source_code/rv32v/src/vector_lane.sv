@@ -89,7 +89,7 @@ module vector_lane (
       done_reg <= vif.done_du; 
     end
   end 
-  assign vif.start_div = (dv ^ start_reg) | (done_reg & dv);
+  assign vif.start_div = ((dv ^ start_reg) | (done_reg & dv)) & dv;
 
   // Connecting signals
   assign au  = vif.fu_type == ARITH;

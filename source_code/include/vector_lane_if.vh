@@ -51,7 +51,7 @@ interface vector_lane_if;
   );
 
   modport vdivide_unit (
-    input   vs1_data, vs2_data, start_div, div_type, is_signed_div, is_signed,
+    input   vs1_data, vs2_data, start_div, div_type, is_signed_div, is_signed, decode_done, stop_flush,
     output  wdata_du, busy_du, exception_du, done_du
   );
 

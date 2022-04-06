@@ -30,12 +30,12 @@ interface rv32v_hazard_unit_if;
 
   modport decode (
     input exception_v, stall_dec, flush_dec, busy_ex, busy_mem, next_busy_ex, csr_update, v_busy,
-    output busy_dec, decode_ena, v_decode_done
+    output busy_dec, decode_ena
   );
 
   modport execute (
     input stall_ex, flush_ex, 
-    output busy_ex, next_busy_ex, execute_ena
+    output busy_ex, next_busy_ex, execute_ena, v_decode_done
   );
 
   modport memory (

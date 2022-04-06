@@ -6,7 +6,8 @@ module rv32v_top_level(
   rv32v_hazard_unit_if hu_if,
   prv_pipeline_if prv_if,
   rv32v_top_level_if.rv32v rv32v_if,
-  rv32v_reorder_buffer_if rob_if
+  rv32v_reorder_buffer_if rob_if,
+  output logic v_ex_decode_done
 );
 
   // Outputs
@@ -57,5 +58,7 @@ module rv32v_top_level(
   assign scalar_vector_if.index = rv32v_if.index;
   assign scalar_vector_if.v_single_bit_op = rv32v_if.v_single_bit_op;
   assign scalar_vector_if.v_start = rv32v_if.v_start;
+
+  assign v_ex_decode_done = hu_if.v_decode_done;
 
 endmodule
