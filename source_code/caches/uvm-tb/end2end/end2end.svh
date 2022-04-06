@@ -56,7 +56,6 @@ class end2end extends uvm_component;
     src_req_export = new("src_req_ap", this);
     src_resp_export = new("src_resp_ap", this);
     dest_resp_export = new("dest_resp_ap", this);
-    cache = new("e2e_cache");
   endfunction: new
 
   function void write_src_req(cpu_transaction t);
@@ -113,7 +112,7 @@ class end2end extends uvm_component;
 
     if (tx.rw) begin
       // update cache on PrWr
-      cache.update(tx.addr, tx.data);
+      cache.update(tx.addr, tx.data, tx.byte_en);
     end
   end else begin
       // memory mapped io request
@@ -122,7 +121,7 @@ class end2end extends uvm_component;
         cpu_transaction mapped = history.pop_front();
         //FIXME:CHECK THAT THIS IS PROPER WAY TO DEAL WITH THIS
         if (tx.rw) begin
-          tx.data = Utils::byte_mask(tx.byte_sel) & tx.data;
+          tx.data = Utils::byte_mask(tx.byte_en) & tx.data;
         end
         if (mapped.compare(tx)) begin
           successes++;
@@ -160,7 +159,7 @@ class end2end extends uvm_component;
       cache.remove(mem_tx.addr, mem_tx.data);
     end else begin
       // read
-      cache.insert(mem_tx.addr, mem_tx.data);
+      cache.insert(mem_tx.addr, mem_tx.data, mem_tx.byte_en);
     end
   endfunction: handle_mem_tx
 

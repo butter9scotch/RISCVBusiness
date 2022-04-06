@@ -37,7 +37,7 @@ class cpu_transaction extends uvm_sequence_item;
   rand word_t addr;
   rand word_t data;
   
-  rand logic [3:0] byte_sel;
+  rand logic [3:0] byte_en;
 
   //TODO: ADD CLEAR
   //TODO: ADD FLUSH
@@ -46,12 +46,12 @@ class cpu_transaction extends uvm_sequence_item;
       `uvm_field_int(rw, UVM_ALL_ON)
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
-      `uvm_field_int(byte_sel, UVM_ALL_ON)
+      `uvm_field_int(byte_en, UVM_ALL_ON)
   `uvm_object_utils_end
 
   constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[1:0] == '0; }
 
-  constraint usable_byte_en { byte_sel inside {4'b0001, 4'b0010, 4'b0100, 4'b1000, 4'b0011, 4'b1100, 4'b1111}; }
+  constraint usable_byte_en { byte_en inside {4'b0001, 4'b0010, 4'b0100, 4'b1000, 4'b0011, 4'b1100, 4'b1111}; }
 
   function new(string name = "cpu_transaction");
     super.new(name);

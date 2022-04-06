@@ -25,8 +25,15 @@
 `ifndef CACHE_MODEL_SVH
 `define CACHE_MODEL_SVH
 
+`include "dut_params.svh"
+`include "cache_env_config.svh"
+`include "Utils.svh"
+
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
+
+
+/****************** Cache Block Model **********************/
 
 class cache_block;
     word_t words[word_t]; // key -> value :: addr -> data
@@ -57,11 +64,16 @@ class cache_block;
     endfunction: sprint
 endclass
 
+/******************** Cache Model *************************/
+
 class cache_model extends uvm_object;
     cache_block blocks[word_t]; // key -> value :: base addr -> block
 
-    function new(string name = "cache_model");
+    cache_env_config env_config;
+
+    function new(string name = "cache_model", cache_env_config env_config);
         super.new(name);
+        this.env_config = env_config;
     endfunction
 
     function word_t get_base_addr(word_t addr);
@@ -69,37 +81,52 @@ class cache_model extends uvm_object;
         return base;
     endfunction: get_base_addr
 
-    function void insert(word_t addr, word_t data);
+    function void insert(word_t addr, word_t data, logic[3:0] byte_en);
         word_t base = get_base_addr(addr);
 
         if (exists(addr)) begin
             // cache block formation started
             `uvm_error(this.get_name(), $sformatf("Attempted to insert item from cache that already exists:\ncache[%h]=%h", addr, data))
         end else begin
+            word_t mask = Utils::byte_mask(byte_en);
+            word_t m_data = (mask & data) | (~mask & read(addr));
             if (!blocks.exists(base)) begin
                 blocks[base] = new();
             end
-            blocks[base].insert(addr, data);
+            blocks[base].insert(addr, m_data);
         end
     endfunction: insert
 
     function void remove(word_t addr, word_t data);
-        word_t base = get_base_addr(addr);
         if (exists(addr)) begin
+            word_t base = get_base_addr(addr);
             blocks[base].words.delete(addr);
         end else begin
             `uvm_error(this.get_name(), $sformatf("Attempted to remove item from cache that DNE:\ncache[%h]=%h", addr, data))
         end
     endfunction: remove
 
-    function void update(word_t addr, word_t data);
-        word_t base = get_base_addr(addr);
+    function void update(word_t addr, word_t data, logic[3:0] byte_en);
         if (exists(addr)) begin
-            blocks[base].words[addr] = data;
+            word_t base = get_base_addr(addr);
+            word_t mask = Utils::byte_mask(byte_en);
+            word_t m_data = (mask & data) | (~mask & read(addr));
+            blocks[base].words[addr] = m_data;
         end else begin
             `uvm_error(this.get_name(), $sformatf("Attempted to update item from cache that DNE:\ncache[%h]=%h", addr, data))
         end
     endfunction: update
+
+    function word_t read(word_t addr);
+        if (this.exists(addr)) begin
+            word_t base = get_base_addr(addr);
+            return blocks[base].words[addr];
+        end else begin
+            word_t default_val = {env_config.mem_tag, addr[15:0]};
+            `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Memory, Defaulting to value <%h>", default_val), UVM_MEDIUM)
+            return default_val; 
+        end
+    endfunction: read
 
     function bit exists(word_t addr);
         word_t base = get_base_addr(addr);

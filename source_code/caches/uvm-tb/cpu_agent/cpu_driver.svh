@@ -71,7 +71,7 @@ class cpu_driver #(string cif_str, string bus_if_str) extends uvm_driver#(cpu_tr
       cpu_bus_if.ren = ~req_item.rw;  // read = 0
       cpu_bus_if.wen = req_item.rw;   // write = 1
 
-      cpu_bus_if.byte_en = req_item.byte_sel; 
+      cpu_bus_if.byte_en = req_item.byte_en; 
       //FIXME: NEED TO ADD CLEAR/FLUSH FUNCTIONALITY
       cif.clear = '0; 
       cif.flush = '0;

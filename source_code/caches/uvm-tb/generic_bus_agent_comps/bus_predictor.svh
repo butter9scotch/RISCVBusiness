@@ -31,7 +31,7 @@ import rv32i_types_pkg::*;
 
 `include "uvm_macros.svh"
 `include "cpu_transaction.svh"
-`include "Utils.svh"
+`include "cache_model.svh"
 
 class bus_predictor extends uvm_subscriber #(cpu_transaction);
   `uvm_component_utils(bus_predictor) 
@@ -41,7 +41,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
   cache_env_config env_config;
 
-  word_t memory [word_t]; //software cache
+  cache_model cache; //software cache
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -65,48 +65,37 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
     `uvm_info(this.get_name(), $sformatf("Recevied Transaction:\n%s", pred_tx.sprint()), UVM_HIGH)
 
-    `uvm_info(this.get_name(), $sformatf("memory before:\n%p", memory), UVM_HIGH)
+    `uvm_info(this.get_name(), $sformatf("cache before:\n%p", cache), UVM_HIGH)
 
     if (pred_tx.rw) begin
       // 1 -> write
       if (pred_tx.addr < `NONCACHE_START_ADDR) begin
-        word_t mask = Utils::byte_mask(pred_tx.byte_sel);
-        if (memory.exists(pred_tx.addr)) begin
-          memory[pred_tx.addr] = (mask & pred_tx.data) | (~mask & memory[pred_tx.addr]);
+        word_t mask = Utils::byte_mask(pred_tx.byte_en);
+        if (cache.exists(pred_tx.addr)) begin
+          cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en); //FIXME: VERIFY CORRECTNESS
+          // cache[pred_tx.addr] = (mask & pred_tx.data) | (~mask & cache[pred_tx.addr]);
         end else begin
-          memory[pred_tx.addr] = (mask & pred_tx.data) | (~mask & read_mem(pred_tx.addr));
+          cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en); //FIXME: VERIFY CORRECTNESS
+          // cache[pred_tx.addr] = (mask & pred_tx.data) | (~mask & read_mem(pred_tx.addr));
         end
       end // else don't cache
     end else begin
       // 0 -> read
-      pred_tx.data = read_mem(pred_tx.addr);
+      if (pred_tx.addr < `NONCACHE_START_ADDR) begin
+        // cache/cache responds
+        pred_tx.data = cache.read(pred_tx.addr);
+      end else begin
+        // mmio responds
+        pred_tx.data = {env_config.mmio_tag, pred_tx.addr[15:0]};
+        `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", pred_tx.data), UVM_MEDIUM)
+      end
     end
 
-    `uvm_info(this.get_name(), $sformatf("memory after:\n%p", memory), UVM_HIGH)
+    `uvm_info(this.get_name(), $sformatf("cache after:\n%s", cache.sprint()), UVM_HIGH)
 
     // after prediction, the expected output send to the scoreboard 
     pred_ap.write(pred_tx);
   endfunction: write
-
-  virtual function word_t read_mem(word_t addr);
-    // `uvm_info(this.get_name(), "Using Bus Predictor read_mem()", UVM_FULL)
-    if (addr < `NONCACHE_START_ADDR) begin
-      // expect memory to return
-      if (this.memory.exists(addr)) begin
-        // block[addr] is already cached
-        return this.memory[addr];
-      end else begin
-        word_t default_val = {env_config.mem_tag, addr[15:0]};
-        `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Memory, Defaulting to value <%h>", default_val), UVM_MEDIUM)
-        return default_val; 
-      end
-    end else begin
-      // expect mmio to respond
-      word_t default_val = {env_config.mmio_tag, addr[15:0]};
-      `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", default_val), UVM_MEDIUM)
-      return default_val;
-    end
-  endfunction: read_mem
 
 endclass: bus_predictor
 

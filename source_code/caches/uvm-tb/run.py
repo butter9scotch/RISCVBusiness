@@ -102,7 +102,7 @@ def build():
 	    +incdir+{L2} \
 	    +incdir+{INCLUDE} \
 	    +incdir+{PACKAGES} \
-	    +incdir+utils \
+	    +incdir+models \
 	    +incdir+cpu_agent \
 	    +incdir+bus_agents \
 	    +incdir+end2end \
