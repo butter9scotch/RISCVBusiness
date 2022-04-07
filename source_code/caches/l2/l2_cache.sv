@@ -393,7 +393,6 @@ module l2_cache #(
                     cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
                 end
             end
-            cache <= next_cache; // update cache frames
         end
     end // end next cache always_ff
 
@@ -412,6 +411,15 @@ module l2_cache #(
         next_cache              = cache;
         next_read_addr          = read_addr;   
 
+        for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
+            for(int j = 0; j < ASSOC; j++) begin
+                next_cache[i].frames[j].data   = cache[i].frames[j].data;
+                next_cache[i].frames[j].tag    = cache[i].frames[j].tag;
+                next_cache[i].frames[j].valid  = cache[i].frames[j].valid;
+                next_cache[i].frames[j].dirty  = cache[i].frames[j].dirty;
+            end // for (int j = 0; j < ASSOC; j++)
+        end
+
         casez(state)
             IDLE: begin
 	            next_read_addr = decoded_addr;       
@@ -420,8 +428,9 @@ module l2_cache #(
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits - 1]; //
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
-                    proc_gen_bus_if.busy                                    = 1'b0;
-		            proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
+                    proc_gen_bus_if.busy = 1'b0;
+                    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
+		            // proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
                 end // if (proc_gen_bus_if.wen && hit
 		        else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
