@@ -138,6 +138,7 @@ module tb_l2_cache;
 		l1_gen_bus_if.wen = 1'b0;
 		l1_gen_bus_if.wdata = '0;
 		l1_gen_bus_if.byte_en = 1'b0;
+		l1_gen_bus_if.addr = 32'h0000_0000;
 
 		// TEST 00: Power-On and Reset Test
 		test_number = 0;
@@ -151,18 +152,28 @@ module tb_l2_cache;
 		reset_dut();
 		
 
+		@(negedge tb_CLK);
+		tb_nRST 		       = 1'b1;
+		l1_gen_bus_if.ren    = 1'b1;
+		l1_gen_bus_if.wen    = 1'b0;
+		l1_gen_bus_if.addr   = '0; // miss
+		mem_gen_bus_if.rdata  = 32'hbeef0000;
+		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
-		for(int i = 0; i < 4; i++)begin
-			mem_gen_bus_if.busy   = 1'b1;
-			l1_gen_bus_if.addr = 32'h0000_0000;
-			l1_gen_bus_if.ren = 1'b1;
-			wait(mem_gen_bus_if.ren);
-			mem_gen_bus_if.busy   = 1'b0;
-			mem_gen_bus_if.rdata = 32'hbeef_beef;
-			@(posedge tb_CLK);
-			wait(~l1_gen_bus_if.busy);
-			mem_gen_bus_if.busy   = 1'b1;
-		end
+		mem_gen_bus_if.rdata  = 32'h0beef0000;
+		@(posedge tb_CLK);
+		mem_gen_bus_if.rdata  = 32'h00beef000;
+		@(posedge tb_CLK);
+		mem_gen_bus_if.rdata  = 32'h000beef00;
+		wait(~l1_gen_bus_if.busy);
+		mem_gen_bus_if.busy  = 1'b1;
+		@(posedge tb_CLK);
+		l1_gen_bus_if.wen  = 1'b0;
+
+
+
+
+
 		l1_gen_bus_if.ren = 1'b1;
 		
 		@(posedge tb_CLK);
