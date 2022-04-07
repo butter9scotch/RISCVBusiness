@@ -626,7 +626,8 @@ module vector_control_unit
     case(op_decoded)
     OP_VADC, OP_VSBC:   vcu_if.carryin_ena = 1;
     //VMADC, VMSBC: ONLY USES mask as a carry-in if mask bit is 1
-    OP_VMADC, OP_VMSBC: vcu_if.carryin_ena = (vcu_if.instr[25] == 1) ?  1 : 0;
+    //OP_VMADC, OP_VMSBC: vcu_if.carryin_ena = (vcu_if.instr[25] == 1) ?  1 : 0;
+    OP_VMADC, OP_VMSBC: vcu_if.carryin_ena = ~vcu_if.instr[25];
     default: vcu_if.carryin_ena = 0;
     endcase
   end

@@ -328,24 +328,34 @@ module rv32v_execute_stage (
   assign next_woffset1 = vif1.mul_on | mul_done_ff0 | mul_done_ff1 | mul_done_ff2  ? woffset1_ff2 : decode_execute_if.woffset1;
   assign next_wen      = vif0.mul_on | mul_done_ff0 | mul_done_ff1 | mul_done_ff2  ? wen_ff2 : decode_execute_if.wen;
 
+  word_t aluresult1_prev, final_aluresult1;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      aluresult1_prev <= '0;
+    end else begin
+      aluresult1_prev <= aluresult1;
+    end
+  end
+  assign final_aluresult1 = decode_execute_if.vl[0] ? aluresult1_prev : aluresult1; // when vl is odd, take previous aluresult1
+
   logic [31:0] reduction_alu_result;
   logic sltu, slt;
   always_comb begin
     sltu = aluresult1 < aluresult0;
-    slt  =  decode_execute_if.sew == SEW8  ? $signed(aluresult1[7:0])  < $signed(aluresult0[7:0]) : 
-            decode_execute_if.sew == SEW16 ? $signed(aluresult1[15:0]) < $signed(aluresult0[15:0]) : 
-                                              $signed(aluresult1)       < $signed(aluresult0);
+    slt  =  decode_execute_if.sew == SEW8  ? $signed(final_aluresult1[7:0])  < $signed(aluresult0[7:0]) : 
+            decode_execute_if.sew == SEW16 ? $signed(final_aluresult1[15:0]) < $signed(aluresult0[15:0]) : 
+                                              $signed(final_aluresult1)       < $signed(aluresult0);
     case (decode_execute_if.aluop)
-      VALU_ADD   : reduction_alu_result = aluresult0 + aluresult1;
-      VALU_AND   : reduction_alu_result = aluresult0 & aluresult1;
-      VALU_OR    : reduction_alu_result = aluresult0 | aluresult1;
-      VALU_XOR   : reduction_alu_result = aluresult0 ^ aluresult1;
+      VALU_ADD   : reduction_alu_result = aluresult0 + final_aluresult1;
+      VALU_AND   : reduction_alu_result = aluresult0 & final_aluresult1;
+      VALU_OR    : reduction_alu_result = aluresult0 | final_aluresult1;
+      VALU_XOR   : reduction_alu_result = aluresult0 ^ final_aluresult1;
       VALU_MM    : begin
         case (decode_execute_if.minmax_type)
-          MIN  : reduction_alu_result = slt  ? aluresult1 : aluresult0;
-          MINU : reduction_alu_result = sltu ? aluresult1 : aluresult0;
-          MAX  : reduction_alu_result = slt  ? aluresult0 : aluresult1;
-          MAXU : reduction_alu_result = sltu ? aluresult0 : aluresult1;
+          MIN  : reduction_alu_result = slt  ? final_aluresult1 : aluresult0;
+          MINU : reduction_alu_result = sltu ? final_aluresult1 : aluresult0;
+          MAX  : reduction_alu_result = slt  ? aluresult0 : final_aluresult1;
+          MAXU : reduction_alu_result = sltu ? aluresult0 : final_aluresult1;
         endcase
       end  
       default: reduction_alu_result = 32'hbad0bad0;
@@ -528,7 +538,7 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
-                                        decode_execute_if.reduction_ena & ~decode_execute_if.vl[0] ? reduction_alu_result : // only when even number of element
+                                        decode_execute_if.reduction_ena & (decode_execute_if.vl != 1) ? reduction_alu_result :
                                         decode_execute_if.vmv_type == S_X ? decode_execute_if.vs1_lane0 :
                                         move_sel ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 
