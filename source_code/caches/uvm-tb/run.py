@@ -138,7 +138,6 @@ def run():
         tb_caches_top -L
 	    {QUESTA_HOME}/uvm-1.2
 	    -voptargs=+acc
-	    -coverage
 	    -sv_seed {SEED}
 	    +UVM_TESTNAME={TESTCASE}_test
 	    +UVM_VERBOSITY=UVM_{VERBOSITY}

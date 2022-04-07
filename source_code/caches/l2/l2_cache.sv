@@ -208,7 +208,7 @@ module l2_cache #(
     ///////////////////////////////////////////////////////////////////////////////
     always_ff @(posedge CLK, negedge nRST ) begin :  LRU_FF
         if(~nRST)begin
-            for(int i = 0; i < ASSOC; i ++)begin
+            for(int i = 0; i < N_SETS; i ++)begin
                     lru[i].v <= 2'b00; // Victim init
                     lru[i].nv <= 2'b01; // Next Victim init
                     lru[i].o[0] <= 2'b10; // Ordinary init [0]
@@ -379,6 +379,7 @@ module l2_cache #(
         clr_word_ctr 	        = 1'b0;
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
+        clear_done 	            = 1'b0;
 
         next_cache = cache;
 
