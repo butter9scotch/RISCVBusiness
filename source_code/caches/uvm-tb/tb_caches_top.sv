@@ -137,34 +137,12 @@ module tb_caches_top ();
     .mem_gen_bus_if(i_l1_arb_bus_if.cpu)
   );
 
-  //FIXME: NOT WORKING WITHOUT THIS FOR SOME REASON
-  generic_bus_if i_temp();
-  generic_bus_if d_temp();
-
-  always_comb begin     
-    d_temp.addr             = d_l1_arb_bus_if.addr     ;
-    d_temp.wdata            = d_l1_arb_bus_if.wdata    ;
-    d_temp.ren              = d_l1_arb_bus_if.ren      ;
-    d_temp.wen              = d_l1_arb_bus_if.wen      ;
-    d_temp.byte_en          = d_l1_arb_bus_if.byte_en  ;
-    d_l1_arb_bus_if.rdata   = d_temp.rdata    ;
-    d_l1_arb_bus_if.busy    = d_temp.busy     ;
-
-    i_temp.addr             = i_l1_arb_bus_if.addr     ;
-    i_temp.wdata            = i_l1_arb_bus_if.wdata    ;
-    i_temp.ren              = i_l1_arb_bus_if.ren      ;
-    i_temp.wen              = i_l1_arb_bus_if.wen      ;
-    i_temp.byte_en          = i_l1_arb_bus_if.byte_en  ;
-    i_l1_arb_bus_if.rdata   = i_temp.rdata    ;
-    i_l1_arb_bus_if.busy    = i_temp.busy     ;
-  end
-
   // Memory Arbiter
   memory_arbiter mem_arb (
     .CLK(d_cif.CLK),
     .nRST(d_cif.nRST),
-    .icache_if(i_temp.generic_bus),
-    .dcache_if(d_temp.generic_bus),
+    .icache_if(i_l1_arb_bus_if.generic_bus),
+    .dcache_if(d_l1_arb_bus_if.generic_bus),
     .mem_arb_if(arb_l2_bus_if.cpu)
   );
 

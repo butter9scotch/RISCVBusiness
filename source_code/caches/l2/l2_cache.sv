@@ -136,6 +136,8 @@ module l2_cache #(
     always_comb begin : Hit_Pass_comb
         hit 	      = 1'b0;
         pass_through  = 1'b0;
+        hit_data        = '0;
+        hit_idx         = '0;
 
         if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin
             pass_through = 1'b1;
@@ -281,6 +283,9 @@ module l2_cache #(
                 end
             end // output always_comb end
         end
+        else begin
+            $error("invalid associativity specified for l2");
+        end
     endgenerate // hit logic and replacement policy logic for different associativities.
     ///////////////////////////////////////////////////////////////////////////////
    
@@ -343,6 +348,7 @@ module l2_cache #(
     ///////////////////////////////////////////////////////////////////////////////
     always_ff @ (posedge CLK, negedge nRST) begin : Next_Cache_FF
         if(~nRST)begin
+            read_addr   = '0;
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
                     cache[i].frames[j].data  <= '0;
@@ -353,6 +359,7 @@ module l2_cache #(
             end
         end
         else begin
+            read_addr   <= next_read_addr;
             cache <= next_cache; // update cache frames
         end
     end // end next cache always_ff
@@ -360,7 +367,10 @@ module l2_cache #(
 
     always_comb begin : output_comb
         proc_gen_bus_if.busy    = 1'b1;
+        proc_gen_bus_if.rdata   = '0;
         mem_gen_bus_if.ren      = 1'b0;
+        mem_gen_bus_if.addr     = '0;
+        mem_gen_bus_if.byte_en  = '1;
         mem_gen_bus_if.wen      = 1'b0;
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;

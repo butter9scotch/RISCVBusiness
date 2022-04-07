@@ -59,6 +59,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Build and Run the UVM Testbench for the cache hierarchy")
     parser.add_argument('--clean', action="store_true",
                         help="Remove build artifacts")
+    parser.add_argument('--build', action="store_true",
+                        help="Build project without run")
     parser.add_argument('--testcase', '-t', type=str, default="random",
                         help="Specify name of the uvm test")
     parser.add_argument('--gui', '-g', action='store_true',
@@ -276,12 +278,15 @@ if __name__ == '__main__':
 
     build()
 
+    if (params.build):
+        exit() # stop after build
+
     run()
 
     cprint("Running Post Run Script...", bcolors.LOG)
 
     # print parameters
-    skip = ["verbosity", "gui", "clean", "seed"]
+    skip = ["verbosity", "gui", "clean", "seed", "build"]
     for arg in vars(params):
         if arg in skip:
             continue #skip showing in info

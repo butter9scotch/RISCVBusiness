@@ -110,8 +110,39 @@ add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/CLK
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/nRST
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/state
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/next_state
+add wave -noupdate -group l2 /tb_caches_top/l2/CLK
+add wave -noupdate -group l2 /tb_caches_top/l2/nRST
+add wave -noupdate -group l2 /tb_caches_top/l2/clear
+add wave -noupdate -group l2 /tb_caches_top/l2/flush
+add wave -noupdate -group l2 /tb_caches_top/l2/clear_done
+add wave -noupdate -group l2 /tb_caches_top/l2/flush_done
+add wave -noupdate -group l2 /tb_caches_top/l2/set_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_set_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_set_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_set_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/frame_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_frame_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_frame_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_frame_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/word_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_word_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_word_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_word_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_word
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_frame
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_set
+add wave -noupdate -group l2 /tb_caches_top/l2/state
+add wave -noupdate -group l2 /tb_caches_top/l2/next_state
+add wave -noupdate -group l2 /tb_caches_top/l2/decoded_addr
+add wave -noupdate -group l2 /tb_caches_top/l2/hit
+add wave -noupdate -group l2 /tb_caches_top/l2/pass_through
+add wave -noupdate -group l2 /tb_caches_top/l2/hit_data
+add wave -noupdate -group l2 /tb_caches_top/l2/hit_idx
+add wave -noupdate -group l2 /tb_caches_top/l2/ridx
+add wave -noupdate -group l2 /tb_caches_top/l2/read_addr
+add wave -noupdate -group l2 /tb_caches_top/l2/next_read_addr
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {319289 ps} 0}
+WaveRestoreCursors {{Cursor 1} {75040 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -127,4 +158,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {115500 ps}
+WaveRestoreZoom {0 ps} {1165500 ps}
