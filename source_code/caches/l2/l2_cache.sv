@@ -107,7 +107,7 @@ module l2_cache #(
 
     // cache blocks, indexing cache chooses a set
     cache_sets cache [N_SETS - 1:0];
-    cache_sets nextcache [N_SETS - 1:0];
+    cache_sets next_cache [N_SETS - 1:0];
 
     //Decode incoming addr
     decoded_addr_t decoded_addr;
@@ -206,7 +206,7 @@ module l2_cache #(
     ///////////////////////////////////////////////////////////////////////////////
     always_ff @(posedge CLK, negedge nRST ) begin :  LRU_FF
         if(~nRST)begin
-            for(int i = 0; i < ASSOC; i ++)begin
+            for(int i = 0; i < N_SETS; i ++)begin
                     lru[i].v <= 2'b00; // Victim init
                     lru[i].nv <= 2'b01; // Next Victim init
                     lru[i].o[0] <= 2'b10; // Ordinary init [0]
@@ -214,7 +214,12 @@ module l2_cache #(
             end
         end
         else begin
-            lru <= nextlru; //update LRU
+            for(int i = 0; i < N_SETS; i ++)begin
+                    lru[i].v <= nextlru[i].v; // Victim 
+                    lru[i].nv <= nextlru[i].nv; // Next Victim
+                    lru[i].o[0] <= nextlru[i].o[0]; // Ordinary [0]
+                    lru[i].o[1] <= nextlru[i].o[1]; // Ordinary [1]
+            end
         end
     end
 
@@ -222,7 +227,6 @@ module l2_cache #(
         if(ASSOC == 2)begin
             always_comb begin // output always_comb
                 nextlru = lru;
-                ridx = lru[decoded_addr.set_bits].v; // set replacement index
                 if(!(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)) begin : two_way_replacement
                     if(hit)begin //hit
                         if(hit_idx == lru[decoded_addr.set_bits].v) begin // hit set was in v
@@ -244,7 +248,6 @@ module l2_cache #(
         else if(ASSOC == 4)begin
             always_comb begin // output always_comb
                 nextlru = lru;
-                ridx = lru[decoded_addr.set_bits].v;
                 if(!(proc_gen_bus_if.addr >= NONCACHE_START_ADDR))  begin : four_way_replacement
                     if(hit)begin //hit
                         if(hit_idx == lru[decoded_addr.set_bits].v)begin // hit set was in v
@@ -301,6 +304,7 @@ module l2_cache #(
         next_state = state;
         casez(state)
             IDLE: begin
+                ridx = lru[decoded_addr.set_bits].v; // set replacement index
                 if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
                     next_state 	= WB;
                 end
@@ -353,7 +357,15 @@ module l2_cache #(
             end
         end
         else begin
-            cache <= nextcache; // update cache frames
+            for(int i = 0; i < N_SETS; i++) begin
+                for(int j = 0; j < ASSOC; j++) begin
+                    cache[i].frames[j].data  <= next_cache[i].frames[j].data;
+                    cache[i].frames[j].tag   <= next_cache[i].frames[j].tag;
+                    cache[i].frames[j].valid <= next_cache[i].frames[j].valid;
+                    cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
+                end
+            end
+            cache <= next_cache; // update cache frames
         end
     end // end next cache always_ff
 
@@ -370,22 +382,22 @@ module l2_cache #(
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
 
-        nextcache = cache;
+        next_cache = cache;
 
         casez(state)
             IDLE: begin
-	        next_read_addr = decoded_addr;       
+	            next_read_addr = decoded_addr;       
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits - 1]; //
-		  //  next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] = 
+		            //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] = 
 		            //next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy                                    = 1'b0;
-		     proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
+		            proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
                 end // if (proc_gen_bus_if.wen && hit
-		else if(pass_through)begin // Passthrough data logic
+		        else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
                         //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
                         mem_gen_bus_if.ren      = 1'b1;
@@ -409,12 +421,12 @@ module l2_cache #(
                         endcase
                     end 
                 end
-		else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-		       next_read_addr     =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-		    end 
-		else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-		       next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-		    end
+                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                    next_read_addr     =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                end 
+                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                    next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                end
 		       
 		       
             end
@@ -432,8 +444,8 @@ module l2_cache #(
                     en_word_ctr 						   = 1'b1;
                     next_read_addr 						   = read_addr + 4;
                     next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
-                    end // case: FETCH
-            end
+                end 
+            end// end FETCH
             WB: begin
                 mem_gen_bus_if.wen    = 1'b1;
 		        //next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
@@ -451,11 +463,11 @@ module l2_cache #(
                     en_word_ctr     = 1'b1;
                     next_read_addr  = read_addr + 4;
                 end
-		       end // case: WB
-	    IDLE2: begin
-		 proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
-                 proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
-		end//        
+		    end // case: WB
+            IDLE2: begin
+                    proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
+                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
+            end // IDLE2        
         endcase
 
     end // end output combinational logic
