@@ -341,7 +341,7 @@ module l2_cache #(
                 else if(flush) begin
                     next_state 	= FLUSH_CACHE;
                 end
-		    else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && hit && ~pass_through) begin
+		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && hit && ~pass_through) begin
                     next_state 	= IDLE;
                 end
             end 
@@ -410,7 +410,7 @@ module l2_cache #(
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
         next_cache              = cache;
-        next_read_addr = read_addr;   
+        next_read_addr          = read_addr;   
 
         casez(state)
             IDLE: begin
@@ -418,8 +418,6 @@ module l2_cache #(
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits - 1]; //
-		            //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] = 
-		            //next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy                                    = 1'b0;
@@ -427,7 +425,6 @@ module l2_cache #(
                 end // if (proc_gen_bus_if.wen && hit
 		        else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
-                        //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
                         mem_gen_bus_if.ren      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
                         proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
@@ -449,11 +446,11 @@ module l2_cache #(
                         endcase
                     end 
                 end
-                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-                    next_read_addr     =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // FETCH
+                    next_read_addr = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
                 end 
-                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
-                    next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // WB
+                    next_read_addr = {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
                 end		       
             end
             FETCH: begin
@@ -481,7 +478,7 @@ module l2_cache #(
  
                 if(finish_word) begin
                     clr_word_ctr 					  = 1'b1;
-                    next_read_addr 					  = decoded_addr;
+                    next_read_addr 					  = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; //TODO: CHECK THIS, ADDED BY VERIFICATION
                     next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
                     mem_gen_bus_if.wen 					  = 1'b0;
                 end

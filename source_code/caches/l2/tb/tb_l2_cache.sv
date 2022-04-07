@@ -146,41 +146,27 @@ module tb_l2_cache;
 		
 		reset_dut();
 
-		// TEST 01: Read to L1 Cache
+		// TEST 01: Read miss in L2 to L1 Cache
 		test_number++;
-		test_case = "Write Miss to L1 Cache";
+		test_case = "Read Miss in L2 to L1 Cache";
 		reset_dut();
 		
-
-		@(negedge tb_CLK);
-		tb_nRST 		       = 1'b1;
+		@(posedge tb_CLK);
 		l1_gen_bus_if.ren    = 1'b1;
-		l1_gen_bus_if.wen    = 1'b0;
-		l1_gen_bus_if.addr   = '0; // miss
-		mem_gen_bus_if.rdata  = 32'hbeef0000;
-		mem_gen_bus_if.busy   = 1'b0;
-		@(posedge tb_CLK);
-		mem_gen_bus_if.rdata  = 32'h0beef0000;
-		@(posedge tb_CLK);
-		mem_gen_bus_if.rdata  = 32'h00beef000;
-		@(posedge tb_CLK);
-		mem_gen_bus_if.rdata  = 32'h000beef00;
-		wait(~l1_gen_bus_if.busy);
-		mem_gen_bus_if.busy  = 1'b1;
-		@(posedge tb_CLK);
-		l1_gen_bus_if.wen  = 1'b0;
+		l1_gen_bus_if.wdata  = '0;
+		mem_gen_bus_if.busy    = 1'b1;
+		mem_gen_bus_if.rdata   = 32'hbeefbeef;
+		// Write twice to each word
+		for(integer i = 0; i < 16; i = i + 4) begin
+			mem_gen_bus_if.busy    = 1'b0;
+			l1_gen_bus_if.addr  = 32'h00000000; #1;
+			@(posedge tb_CLK);
+			mem_gen_bus_if.rdata++;
+		end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
+		l1_gen_bus_if.wen 	  = 1'b0;
+		l1_gen_bus_if.ren 	  = 1'b0;
 
-
-
-
-
-		l1_gen_bus_if.ren = 1'b1;
-		
-		@(posedge tb_CLK);
-		#(PROPAGATION_DELAY);
-		l1_gen_bus_if.ren = 1'b0;
-		l1_gen_bus_if.addr = '0;
-
+	#(10* CLK_PERIOD);
 	
 	$finish;
 	end
