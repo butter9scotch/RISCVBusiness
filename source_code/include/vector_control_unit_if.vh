@@ -101,6 +101,8 @@ interface vector_control_unit_if();
   logic [7:0] vtype;
   vmv_type_t vmv_type;
 
+  logic vmv_v_x;
+
   logic merge_ena;
   modport vcu (
     input instr, vtype,
@@ -172,7 +174,8 @@ interface vector_control_unit_if();
     lmul,
     eew,
     eew_loadstore,
-    lumop
+    lumop,
+    vmv_v_x
   );
 
 

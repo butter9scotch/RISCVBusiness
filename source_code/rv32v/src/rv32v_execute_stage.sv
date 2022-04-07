@@ -528,7 +528,7 @@ module rv32v_execute_stage (
       execute_memory_if.storedata1  <= decode_execute_if.storedata1;
       execute_memory_if.aluresult0  <= ones_aluresult0 ? 32'hFFFF_FFFF : 
                                         mask_bit_found & (decode_execute_if.fu_type == MASK) ? 0 : 
-                                        decode_execute_if.reduction_ena ? reduction_alu_result : 
+                                        decode_execute_if.reduction_ena & ~decode_execute_if.vl[0] ? reduction_alu_result : // only when even number of element
                                         decode_execute_if.vmv_type == S_X ? decode_execute_if.vs1_lane0 :
                                         move_sel ? decode_execute_if.vs2_lane0 : aluresult0;
       execute_memory_if.aluresult1  <= ones_aluresult1 & (decode_execute_if.fu_type == MASK)? 32'hFFFF_FFFF : 

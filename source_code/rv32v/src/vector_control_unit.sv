@@ -103,6 +103,8 @@ module vector_control_unit
   assign is_vopi   = (vcu_if.opcode == VECTOR)  && (( vfunct3 == OPIVV) || (vfunct3 == OPIVX) || (vfunct3 == OPIVI));
   assign is_vopm   = (vcu_if.opcode == VECTOR)  && ( (vfunct3 == OPMVV) || (vfunct3 == OPMVX));
 
+  assign vcu_if.vmv_v_x = (funct6_opi == VMERGE && vfunct3 == OPIVX);
+
   
   // Assign memory read/write enables
   //enable counter
