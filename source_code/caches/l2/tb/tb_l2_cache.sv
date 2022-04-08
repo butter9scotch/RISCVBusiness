@@ -434,7 +434,7 @@ module tb_l2_cache;
 		mem_gen_bus_if.rdata  = 32'h000c_ecaf;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
-		mem_gen_bus_if.rdata  = 32'h070d_ecaf;
+		mem_gen_bus_if.rdata  = 32'h000d_ecaf;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
 		mem_gen_bus_if.busy   = 1'b1;
