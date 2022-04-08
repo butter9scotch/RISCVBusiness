@@ -1,5 +1,5 @@
 irun(64): 15.20-s030: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
-TOOL:	irun(64)	15.20-s030: Started on Apr 08, 2022 at 04:17:29 EDT
+TOOL:	irun(64)	15.20-s030: Started on Apr 08, 2022 at 04:49:02 EDT
 irun
 	-gui
 	-access +rwc
@@ -13,8 +13,8 @@ irun
 	tb/tb_l2_cache.sv
 	../l1/l1_cache.sv
 Recompiling... reason: file './tb/tb_l2_cache.sv' is newer than expected.
-	expected: Fri Apr  8 03:58:44 2022
-	actual:   Fri Apr  8 04:17:13 2022
+	expected: Fri Apr  8 04:42:31 2022
+	actual:   Fri Apr  8 04:48:58 2022
 file: tb/tb_l2_cache.sv
 	module worklib.tb_l2_cache:sv
 		errors: 0, warnings: 0
@@ -43,8 +43,10 @@ ncelab: *W,COVFHT: FSM hold transitions (transitions to the current state) are n
 	Enabling instrumentation for coverage types: block expression FSM toggle functional
 ncelab: *W,COVDCL: By default expression coverage is scored only for Verilog logical operators (|| and &&) and VHDL logical operators (OR, AND, NOR, and NAND), and is scored only in condition expressions. To score coverage for other operators and for expressions in other statements, use the "set_expr_coverable_operators" and "set_expr_coverable_statements" coverage configuration file commands with suitable options at elaboration.
 	Generating native compiled code:
-		worklib.tb_l2_cache:sv <0x4a9ec10c>
-			streams:  13, words: 121284
+		worklib.l2_cache:sv <0x44fd9f9a>
+			streams:  20, words: 77246
+		worklib.tb_l2_cache:sv <0x378ed947>
+			streams:  13, words: 151583
 ncelab: *W,COVNOEN: By default, toggle coverage is not supported for systemverilog enumerated nets and variables. To enable toggle coverage of these objects, specify the 'set_toggle_scoring -sv_enum' command in the coverage configuration file.
 	integer test_number;
 	                  |
@@ -59,7 +61,7 @@ ncelab: *W,COVMDD (../l1/l1_cache.sv,115|19): Toggle coverage for bit, logic, re
 		Modules:                  4       4
 		Interfaces:               4       1
 		Verilog packages:         1       1
-		Registers:              123     102
+		Registers:              124     103
 		Scalar wires:            24       -
 		Vectored wires:           2       -
 		Always blocks:           23      24
@@ -80,6 +82,6 @@ Created default SHM database waves
 ncsim> probe -create -shm tb_l2_cache.test_number tb_l2_cache.test_case tb_l2_cache.sub_test_case tb_l2_cache.l2.nRST tb_l2_cache.l2.state tb_l2_cache.l2.next_state tb_l2_cache.l2.hit tb_l2_cache.l2.decoded_addr tb_l2_cache.l2.ridx tb_l2_cache.l2.lru[0] tb_l2_cache.l2.cache tb_l2_cache.l1.ridx tb_l2_cache.l1.next_state tb_l2_cache.l1.state tb_l2_cache.l1.hit tb_l2_cache.cache_gen_bus_if.addr tb_l2_cache.cache_gen_bus_if.busy tb_l2_cache.cache_gen_bus_if.byte_en tb_l2_cache.cache_gen_bus_if.rdata tb_l2_cache.cache_gen_bus_if.ren tb_l2_cache.cache_gen_bus_if.wdata tb_l2_cache.cache_gen_bus_if.wen tb_l2_cache.proc_gen_bus_if.addr tb_l2_cache.proc_gen_bus_if.busy tb_l2_cache.proc_gen_bus_if.byte_en tb_l2_cache.proc_gen_bus_if.rdata tb_l2_cache.proc_gen_bus_if.ren tb_l2_cache.proc_gen_bus_if.wdata tb_l2_cache.proc_gen_bus_if.wen tb_l2_cache.mem_gen_bus_if.addr tb_l2_cache.mem_gen_bus_if.busy tb_l2_cache.mem_gen_bus_if.byte_en tb_l2_cache.mem_gen_bus_if.rdata tb_l2_cache.mem_gen_bus_if.ren tb_l2_cache.mem_gen_bus_if.wdata tb_l2_cache.mem_gen_bus_if.wen tb_l2_cache.l1.cache
 Created probe 1
 ncsim> run
-Simulation complete via $finish(1) at time 1250 NS + 0
-./tb/tb_l2_cache.sv:455 		$finish;
+Simulation complete via $finish(1) at time 1980 NS + 0
+./tb/tb_l2_cache.sv:538 		$finish;
 ncsim> 
