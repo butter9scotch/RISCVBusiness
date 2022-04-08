@@ -1,0 +1,271 @@
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-sendToIndago-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set savedlg-simulator ppe
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 730x500+307+147}] != ""} {
+    window geometry "Design Browser 1" 730x500+307+147
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope  simulator::tb_l1_cache.DUT 
+browser set \
+    -signalsort name
+browser yview see  simulator::tb_l1_cache.DUT 
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 998x954+912+20}] != ""} {
+    window geometry "Waveform 1" 998x954+912+20
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ns \
+    -valuewidth 75
+waveform baseline set -time 0
+
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.ASSOC
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.BLOCK_SIZE
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.CACHE_SIZE
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.CLK
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.FRAME_SIZE
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.NONCACHE_START_ADDR
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_BLOCK_BITS
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_FRAME_BITS
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_SETS
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_SET_BITS
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_TAG_BITS
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.N_TOTAL_FRAMES
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.cache[63:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.cache_frame
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.cache_sets
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.clear
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.clear_done
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.clr_frame_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.clr_set_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.clr_word_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.decoded_addr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.decoded_addr_t
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.en_frame_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.en_set_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.en_word_ctr
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.finish_frame
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.finish_set
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.finish_word
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.flush
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.flush_done
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.frame_num[1:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.fsm_t
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.hit
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.hit_data[1:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.hit_idx
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.last_used[63:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.nRST
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_cache[63:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_frame_num[1:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_last_used[63:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_read_addr[31:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_set_num[12:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.next_word_num[3:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.pass_through
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.read_addr[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.ridx
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.set_num[12:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.state
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.DUT.next_state
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.DUT.word_num[3:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.mem_gen_bus_if.cpu.addr[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.mem_gen_bus_if.cpu.busy
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.mem_gen_bus_if.cpu.byte_en[3:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.mem_gen_bus_if.cpu.rdata[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.mem_gen_bus_if.cpu.ren
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.mem_gen_bus_if.cpu.wdata[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.mem_gen_bus_if.cpu.wen
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.addr[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.busy
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.byte_en[3:0]}
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.rdata[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.ren
+	} ]
+set id [waveform add -signals  {
+	{simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.wdata[31:0]}
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l1_cache.proc_gen_bus_if.generic_bus.wen
+	} ]
+
+waveform xview limits 0 64ns
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 730x250+951+556
+
+#
+# Layout selection
+#

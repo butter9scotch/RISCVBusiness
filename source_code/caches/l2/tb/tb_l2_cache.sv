@@ -37,16 +37,24 @@ module tb_l2_cache;
 	// Testbench Signals
 	integer test_number;
 	string test_case;
+	string sub_test_case;
 	logic tb_CLK;
 	logic tb_nRST;
 
-	//L1 side signals
-	logic clear;
-	logic clear_done;
-	logic flush;
-	logic flush_done;
+	//L2 signals
+	logic l1_clear;
+	logic l1_clear_done;
+	logic l1_flush;
+	logic l1_flush_done;
 
-	generic_bus_if l1_gen_bus_if(); // To L1 side.
+	//L2 signals
+	logic l2_clear;
+	logic l2_clear_done;
+	logic l2_flush;
+	logic l2_flush_done;
+
+	generic_bus_if proc_gen_bus_if(); //To processor
+	generic_bus_if cache_gen_bus_if(); // Between Caches.
 	generic_bus_if mem_gen_bus_if(); // To Memory Controller
 
 	// Clock generation block	
@@ -57,6 +65,22 @@ module tb_l2_cache;
 		#(CLK_PERIOD/2.0);
   	end
 	
+	// L1 Cache Portmap
+	l1_cache #(.CACHE_SIZE(1024), 
+			   .BLOCK_SIZE(2), 
+			   .ASSOC(2), 
+			   .NONCACHE_START_ADDR(32'h8000_0000)) 
+	l1 (.CLK(tb_CLK),
+		.nRST(tb_nRST),
+		.clear(l1_clear),
+		.clear_done(l1_clear_done),
+		.flush(l1_flush),
+		.flush_done(l1_flush_done),
+		.mem_gen_bus_if(cache_gen_bus_if),
+		.proc_gen_bus_if(proc_gen_bus_if)
+		);
+
+
 	// L2 Cache Portmap
 	l2_cache  #(.CACHE_SIZE(4096),
 				.BLOCK_SIZE(4),
@@ -65,12 +89,12 @@ module tb_l2_cache;
 				)
 	l2 (.CLK(tb_CLK),
 		.nRST(tb_nRST),
-		.clear(clear),
-		.clear_done(clear_done),
-		.flush(flush),
-		.flush_done(flush_done),
+		.clear(l2_clear),
+		.clear_done(l2_clear_done),
+		.flush(l2_flush),
+		.flush_done(l2_flush_done),
 		.mem_gen_bus_if(mem_gen_bus_if),
-		.proc_gen_bus_if(l1_gen_bus_if)
+		.proc_gen_bus_if(cache_gen_bus_if)
 		);
 
 
@@ -78,6 +102,22 @@ module tb_l2_cache;
 	task reset_dut;
 		begin
 		tb_nRST = 1'b0;
+		l1_clear = 1'b0;
+		l1_flush = 1'b0;
+		l2_clear = 1'b0;
+		l2_flush = 1'b0;
+		mem_gen_bus_if.busy = 1'b1;
+
+		proc_gen_bus_if.rdata = '0;
+		proc_gen_bus_if.ren = 1'b0;
+		proc_gen_bus_if.wen = 1'b0;
+		proc_gen_bus_if.wdata = '0;
+		proc_gen_bus_if.byte_en = 4'hf;
+		proc_gen_bus_if.addr = 32'h0000_0000;
+		
+		mem_gen_bus_if.busy 	 = 1'b1;
+		mem_gen_bus_if.rdata 	 = '0;
+
 		@(posedge tb_CLK);
 		@(posedge tb_CLK);
 		@(negedge tb_CLK);
@@ -87,88 +127,147 @@ module tb_l2_cache;
 		end
 	endtask
 
-
-	//Task to simulate data write by CPU
-	// task l1_read;
-	// 	input logic [ADDR_WIDTH-1:0] addr;
-	// 	input logic []
-	// begin
-	// 	@(posedge tb_CLK);
-	// 	for(int i = 0; i < 2; i++)begin
-	// 		l1_gen_bus_if.ren = 1'b1;
-	// 		l1_gen_bus_if.addr = {addr[31:3], 3'd0 + (4*i)};
-	// 		wait(mem_gen_bus_if.busy);
-	// 	end
-		
-	// 	@(posedge tb_CLK);
-	// 	#(PROPAGATION_DELAY);
-	// 	l1_gen_bus_if.ren = 1'b0;
-	// 	l1_gen_bus_if._if.addr = '0;
-	// end
-	// endtask
-
-	// task l1_wb;
-	// 	input logic [ADDR_WIDTH-1:0] addr;
-	// 	input logic [RAM_WIDTH-1:0] data;
-	// begin
-	// 	@(posedge tb_CLK);
-	// 	#(PROPAGATION_DELAY);
-	// 	l1_gen_bus_if.wen = 1'b1;
-	// 	l1_gen_bus_if.wdata = data;
-	// 	l1_gen_bus_if..addr = addr;
-
-	// 	@(posedge tb_CLK);
-	// 	#(PROPAGATION_DELAY);
-	// 	l1_gen_bus_if.wen = 1'b0;
-	// 	l1_gen_bus_if._if.wdata = '0;
-	// 	l1_gen_bus_if._if.addr = '0;
-	// end
-	// endtask
-
 	// Testbench Process
 	initial begin
 		test_number = 0;
 		test_case = "";
 
-		clear = 1'b0;
-		flush = 1'b0;
-		mem_gen_bus_if.busy = 1'b1;
-		mem_gen_bus_if.rdata = '0;
-		l1_gen_bus_if.ren = 1'b0;
-		l1_gen_bus_if.wen = 1'b0;
-		l1_gen_bus_if.wdata = '0;
-		l1_gen_bus_if.byte_en = 1'b0;
-		l1_gen_bus_if.addr = 32'h0000_0000;
+		
 
+
+
+		/////////////////////////////////////////////////////////////////////////////////////
 		// TEST 00: Power-On and Reset Test
+		/////////////////////////////////////////////////////////////////////////////////////
 		test_number = 0;
 		test_case = "Power-On and Reset";
-		
+		sub_test_case = "";
 		reset_dut();
+		/////////////////////////////////////////////////////////////////////////////////////
 
-		// TEST 01: Read miss in L2 to L1 Cache
+		/////////////////////////////////////////////////////////////////////////////////////
+		// TEST 01: L1 Write Miss
+		/////////////////////////////////////////////////////////////////////////////////////
 		test_number++;
-		test_case = "Read Miss in L2 to L1 Cache";
-		reset_dut();
-		
+		test_case 	       		= "L1 Write miss";
+		sub_test_case 			= "Begin";
+		@(negedge tb_CLK);
+		sub_test_case 			= "Write Signals Activated";
+		tb_nRST 		       = 1'b1;
+		proc_gen_bus_if.ren    = 1'b0;
+		proc_gen_bus_if.wen    = 1'b1;
+		proc_gen_bus_if.addr   = '0; // miss
+		proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
+		wait(mem_gen_bus_if.ren);
+		sub_test_case 			= "Go Memory";
+		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
+		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
-		l1_gen_bus_if.ren    = 1'b1;
-		l1_gen_bus_if.wdata  = '0;
-		mem_gen_bus_if.busy    = 1'b1;
-		mem_gen_bus_if.rdata   = 32'hbeefbeef;
-		// Write twice to each word
-		for(integer i = 0; i < 16; i = i + 4) begin
-			mem_gen_bus_if.busy    = 1'b0;
-			l1_gen_bus_if.addr  = 32'h00000000; #1;
-			@(posedge tb_CLK);
-			mem_gen_bus_if.rdata++;
-		end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
-		l1_gen_bus_if.wen 	  = 1'b0;
-		l1_gen_bus_if.ren 	  = 1'b0;
+		sub_test_case 			= "Read First Block into L2";
+		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Second Block into L2";
+		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Third Block into L2";
+		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Fourth Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
+		wait(~mem_gen_bus_if.ren);
+		sub_test_case 			= "Read Blocks to L1";
+		mem_gen_bus_if.busy   = 1'b1;
+		mem_gen_bus_if.rdata  = 32'hBADD_BADD;
+		wait(~proc_gen_bus_if.busy);
+		sub_test_case 			= "Write to L1";
+		mem_gen_bus_if.busy  = 1'b1;
+		@(posedge tb_CLK); #1;
+		sub_test_case 			= "Finish";
+		proc_gen_bus_if.wen    = 1'b0;
 
-	#(10* CLK_PERIOD);
-	
-	$finish;
+		reset_dut();
+		/////////////////////////////////////////////////////////////////////////////////////
+
+		/////////////////////////////////////////////////////////////////////////////////////
+		// TEST 02: L1 Write Miss Fill Set 0
+		/////////////////////////////////////////////////////////////////////////////////////
+		
+		test_number++;
+		test_case 	       		= "L1 Write miss";
+		sub_test_case 			= "Begin";
+		@(negedge tb_CLK);
+		sub_test_case 			= "Write Signals Activated";
+		proc_gen_bus_if.ren    = 1'b0;
+		proc_gen_bus_if.wen    = 1'b1;
+		proc_gen_bus_if.addr   = '0; // miss
+		proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
+		wait(mem_gen_bus_if.ren);
+		sub_test_case 			= "Go Memory";
+		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
+		mem_gen_bus_if.busy   = 1'b0;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read First Block into L2";
+		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Second Block into L2";
+		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Third Block into L2";
+		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Fourth Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
+		wait(~mem_gen_bus_if.ren);
+		sub_test_case 			= "Read Blocks to L1";
+		mem_gen_bus_if.busy   = 1'b1;
+		mem_gen_bus_if.rdata  = 32'hBADD_BADD;
+		wait(~proc_gen_bus_if.busy);
+		sub_test_case 			= "Write to L1";
+		mem_gen_bus_if.busy  = 1'b1;
+		@(posedge tb_CLK); #1;
+		sub_test_case 			= " Finish 1";
+		proc_gen_bus_if.wen    = 1'b0;
+
+		@(posedge tb_CLK);
+		sub_test_case 			= "Write Signals Activated";
+		proc_gen_bus_if.ren    = 1'b0;
+		proc_gen_bus_if.wen    = 1'b1;
+		proc_gen_bus_if.addr   = 32'h1000_0000; // miss
+		proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
+		wait(mem_gen_bus_if.ren);
+		sub_test_case 			= "Go Memory";
+		mem_gen_bus_if.rdata  = 32'h4444_4444;
+		mem_gen_bus_if.busy   = 1'b0;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read First Block into L2";
+		mem_gen_bus_if.rdata  = 32'h4444_4444;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Second Block into L2";
+		mem_gen_bus_if.rdata  = 32'h5555_5555;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Third Block into L2";
+		mem_gen_bus_if.rdata  = 32'h6666_6666;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Fourth Block into L2";
+		mem_gen_bus_if.rdata  = 32'h7777_7777;
+		wait(~mem_gen_bus_if.ren);
+		sub_test_case 			= "Read Blocks to L1";
+		mem_gen_bus_if.busy   = 1'b1;
+		mem_gen_bus_if.rdata  = 32'hBADD_BADD;
+		wait(~proc_gen_bus_if.busy);
+		sub_test_case 			= "Write to L1";
+		mem_gen_bus_if.busy  = 1'b1;
+		@(posedge tb_CLK); #1;
+		sub_test_case 			= " Finish 2";
+		proc_gen_bus_if.wen    = 1'b0;
+
+		reset_dut();
+		/////////////////////////////////////////////////////////////////////////////////////
+
+		test_case 				= "END END END END";
+		sub_test_case 			= "END END END END";
+		#(CLK_PERIOD* 10);
+		$finish;
 	end
 
 endmodule

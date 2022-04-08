@@ -1,0 +1,23 @@
+*** Message Type: info ***
+When: Thu Apr 07 12:07:48 AM EDT 2022
+Delete waveform window: "Waveform 1"
+ 
+*** Message Type: info ***
+When: Thu Apr 07 12:07:58 AM EDT 2022
+Exit NC-Sim: user
+      Design: worklib.memory_arbiter:sv
+   Languages: verilog
+   Simulator: NC-Sim
+     Version: TOOL:  ncsim(64)       15.20-s030
+        User: socet52
+        Host: asicfab.ecn.purdue.edu
+Time Started: Wed Apr 06 11:41:37 PM EDT 2022
+  Process ID: 37459
+   Directory: /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2
+     Command: irun -gui -access +rwc +nctimescale+1ns/1ns -coverage all -covoverwrite -incdir /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/include/ /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv l2_cache.sv ../memory_arbiter.sv tb/tb_l2_cache.sv
+
+ 
+*** Message Type: info ***
+When: Thu Apr 07 12:07:58 AM EDT 2022
+SimVision Exit.
+ 

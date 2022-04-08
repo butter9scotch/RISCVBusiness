@@ -8,9 +8,10 @@
 -INCDIR
 /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/include/
 /home/asicfab/a/socet52/AFTx06/RISCVBusiness/source_code/packages/rv32i_types_pkg.sv
-l1_cache.sv
+l2_cache.sv
 ../memory_arbiter.sv
-tb/tb_l1_cache.sv
+tb/tb_l2_cache.sv
+../l1/l1_cache.sv
 -CDSLIB
 ./INCA_libs/irun.lnx8664.15.20.nc/cdsrun.lib
 -HDLVAR
