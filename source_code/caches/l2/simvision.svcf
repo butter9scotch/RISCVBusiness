@@ -1,4 +1,4 @@
-# SimVision Command Script (Fri Apr 08 02:53:55 AM EDT 2022)
+# SimVision Command Script (Fri Apr 08 11:51:40 AM EDT 2022)
 #
 # Version 15.20.s030
 #
@@ -34,8 +34,8 @@ preferences set plugin-enable-waveformfrequencyplot 0
 #
 array set dbNames ""
 set dbNames(realName1) [database require waves -hints {
-	file ./waves.shm/waves-2.trn
-	file /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2/waves.shm/waves-2.trn
+	file ./waves.shm/waves.trn
+	file /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2/waves.shm/waves.trn
 }]
 
 #
@@ -106,7 +106,6 @@ group clear 0 end
 group insert \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.state}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.next_state}]} ] \
-    [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.hit}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.decoded_addr}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.ridx[1:0]}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l2.lru[0]}]} ] \
@@ -117,7 +116,7 @@ group set -comment {}
 group clear 0 end
 
 group insert \
-    [subst  {[format {L1}]} ] \
+    [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1.cache[7:0]}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1.ridx}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1.next_state}]} ] \
     [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1.state}]} ] \
@@ -155,10 +154,10 @@ if {[catch {window new WatchList -name "Design Browser 1" -geometry 739x977+1135
 }
 window target "Design Browser 1" on
 browser using {Design Browser 1}
-browser set -scope [subst  {$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if}]} ]
+browser set -scope [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1}]} ]
 browser set \
     -signalsort name
-browser yview see [subst  {$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if}]} ]
+browser yview see [subst  {$dbNames(realName1)::[format {tb_l2_cache.l1}]} ]
 browser timecontrol set -lock 0
 
 #
@@ -175,7 +174,7 @@ waveform set \
     -signalnames name \
     -signalwidth 175 \
     -units ps \
-    -valuewidth 311
+    -valuewidth 114
 waveform baseline set -time 0
 
 set id [waveform add -signals [subst  {
@@ -194,6 +193,9 @@ set id [waveform add -cdivider divider]
 
 set groupId0 [waveform add -groups {{L2 Signals}}]
 
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.hit}]}
+	} ]]
 set id [waveform add -cdivider divider]
 
 set groupId0 [waveform add -groups {{L1 Signals}}]
@@ -208,7 +210,7 @@ set groupId1 [waveform find -name Mem_gen_bus]
 
 
 
-waveform xview limits 181070ps 520000ps
+waveform xview limits 0 990000ps
 
 #
 # Waveform Window Links

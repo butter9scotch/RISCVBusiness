@@ -1,0 +1,185 @@
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-sendToIndago-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set savedlg-simulator ppe
+#
+# Groups
+#
+catch {group new -name Proc_gen_bus -overlay 0}
+catch {group new -name Cache_gen_bus -overlay 0}
+catch {group new -name {L2 Signals} -overlay 0}
+catch {group new -name {L1 Signals} -overlay 0}
+catch {group new -name Mem_gen_bus -overlay 0}
+group using Proc_gen_bus
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    simulator::tb_l2_cache.proc_gen_bus_if.addr[31:0] \
+    simulator::tb_l2_cache.proc_gen_bus_if.busy \
+    simulator::tb_l2_cache.proc_gen_bus_if.byte_en[3:0] \
+    simulator::tb_l2_cache.proc_gen_bus_if.rdata[31:0] \
+    simulator::tb_l2_cache.proc_gen_bus_if.ren \
+    simulator::tb_l2_cache.proc_gen_bus_if.wdata[31:0] \
+    simulator::tb_l2_cache.proc_gen_bus_if.wen \
+    {### cdivider} \
+    Mem_gen_bus
+group using Cache_gen_bus
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    simulator::tb_l2_cache.cache_gen_bus_if.addr[31:0] \
+    simulator::tb_l2_cache.cache_gen_bus_if.busy \
+    simulator::tb_l2_cache.cache_gen_bus_if.byte_en[3:0] \
+    simulator::tb_l2_cache.cache_gen_bus_if.rdata[31:0] \
+    simulator::tb_l2_cache.cache_gen_bus_if.ren \
+    simulator::tb_l2_cache.cache_gen_bus_if.wdata[31:0] \
+    simulator::tb_l2_cache.cache_gen_bus_if.wen \
+    {### cdivider}
+group using {L2 Signals}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    simulator::tb_l2_cache.l2.state \
+    simulator::tb_l2_cache.l2.next_state \
+    simulator::tb_l2_cache.l2.decoded_addr \
+    simulator::tb_l2_cache.l2.ridx[1:0] \
+    simulator::tb_l2_cache.l2.lru[0] \
+    simulator::tb_l2_cache.l2.cache[7:0]
+group using {L1 Signals}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    simulator::tb_l2_cache.l1.cache[7:0] \
+    simulator::tb_l2_cache.l1.ridx \
+    simulator::tb_l2_cache.l1.next_state \
+    simulator::tb_l2_cache.l1.state \
+    simulator::tb_l2_cache.l1.hit \
+    {### cdivider}
+group using Mem_gen_bus
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    simulator::tb_l2_cache.mem_gen_bus_if.addr[31:0] \
+    simulator::tb_l2_cache.mem_gen_bus_if.busy \
+    simulator::tb_l2_cache.mem_gen_bus_if.byte_en[3:0] \
+    simulator::tb_l2_cache.mem_gen_bus_if.rdata[31:0] \
+    simulator::tb_l2_cache.mem_gen_bus_if.ren \
+    simulator::tb_l2_cache.mem_gen_bus_if.wdata[31:0] \
+    simulator::tb_l2_cache.mem_gen_bus_if.wen
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 739x977+1135+357}] != ""} {
+    window geometry "Design Browser 1" 739x977+1135+357
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope  simulator::tb_l2_cache.l1 
+browser set \
+    -signalsort name
+browser yview see  simulator::tb_l2_cache.l1 
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1920x977+-1+27}] != ""} {
+    window geometry "Waveform 1" 1920x977+-1+27
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ps \
+    -valuewidth 347
+waveform baseline set -time 0
+
+set id [waveform add -signals  {
+	simulator::tb_l2_cache.test_number
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l2_cache.test_case
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l2_cache.sub_test_case
+	} ]
+set id [waveform add -signals  {
+	simulator::tb_l2_cache.l2.nRST
+	} ]
+set id [waveform add -cdivider divider]
+
+set groupId0 [waveform add -groups {{L2 Signals}}]
+
+set id [waveform add -signals  {
+	simulator::tb_l2_cache.l2.hit
+	} ]
+set id [waveform add -cdivider divider]
+
+set groupId0 [waveform add -groups {{L1 Signals}}]
+
+
+set groupId0 [waveform add -groups Cache_gen_bus]
+
+
+set groupId0 [waveform add -groups Proc_gen_bus]
+
+set groupId1 [waveform find -name Mem_gen_bus]
+
+
+
+waveform xview limits 1165130ps 1913890ps
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 730x250+261+564
+
+#
+# Layout selection
+#

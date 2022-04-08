@@ -164,15 +164,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd0) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd4) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0004, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd8) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0008, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd12) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_000C, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -207,15 +211,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd0) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd4) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0004, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd8) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0008, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd12) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_000C, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -240,15 +248,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0000) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h4444_4444;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0004) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0004, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'h5555_5555;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0008) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0008, but it requested data from address %h",test_number, mem_gen_bus_if.addr);
 		mem_gen_bus_if.rdata  = 32'h6666_6666;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_000c) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_000C, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'h7777_7777;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -265,83 +277,7 @@ module tb_l2_cache;
 		/////////////////////////////////////////////////////////////////////////////////////
 
 		/////////////////////////////////////////////////////////////////////////////////////
-		// TEST 03: L1 Write Miss Fill Set 0
-		/////////////////////////////////////////////////////////////////////////////////////
-		
-		test_number++;
-		test_case 	       		= " L1 Write Miss Fill Set 0";
-		sub_test_case 			= "Begin";
-		@(negedge tb_CLK);
-		sub_test_case 			= "Write Signals Activated";
-		proc_gen_bus_if.ren    = 1'b0;
-		proc_gen_bus_if.wen    = 1'b1;
-		proc_gen_bus_if.addr   = '0; // miss
-		proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
-		wait(mem_gen_bus_if.ren);
-		sub_test_case 			= "Go Memory";
-		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
-		mem_gen_bus_if.busy   = 1'b0;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read First Block into L2";
-		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Second Block into L2";
-		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Third Block into L2";
-		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Fourth Block into L2";
-		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
-		wait(~mem_gen_bus_if.ren);
-		sub_test_case 			= "Read Blocks to L1";
-		mem_gen_bus_if.busy   = 1'b1;
-		mem_gen_bus_if.rdata  = 32'hBADD_BADD;
-		wait(~proc_gen_bus_if.busy);
-		sub_test_case 			= "Write to L1";
-		mem_gen_bus_if.busy  = 1'b1;
-		@(posedge tb_CLK); #1;
-		sub_test_case 			= " Finish 1";
-		proc_gen_bus_if.wen    = 1'b0;
-
-		@(posedge tb_CLK);
-		sub_test_case 			= "Write Signals Activated";
-		proc_gen_bus_if.ren    = 1'b0;
-		proc_gen_bus_if.wen    = 1'b1;
-		proc_gen_bus_if.addr   = 32'h1000_0000; // miss
-		proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
-		wait(mem_gen_bus_if.ren);
-		sub_test_case 			= "Go Memory";
-		mem_gen_bus_if.rdata  = 32'h4444_4444;
-		mem_gen_bus_if.busy   = 1'b0;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read First Block into L2";
-		mem_gen_bus_if.rdata  = 32'h4444_4444;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Second Block into L2";
-		mem_gen_bus_if.rdata  = 32'h5555_5555;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Third Block into L2";
-		mem_gen_bus_if.rdata  = 32'h6666_6666;
-		@(posedge tb_CLK);
-		sub_test_case 			= "Read Fourth Block into L2";
-		mem_gen_bus_if.rdata  = 32'h7777_7777;
-		wait(~mem_gen_bus_if.ren);
-		sub_test_case 			= "Read Blocks to L1";
-		mem_gen_bus_if.busy   = 1'b1;
-		mem_gen_bus_if.rdata  = 32'hBADD_BADD;
-		wait(~proc_gen_bus_if.busy);
-		sub_test_case 			= "Write to L1";
-		mem_gen_bus_if.busy  = 1'b1;
-		@(posedge tb_CLK); #1;
-		sub_test_case 			= " Finish 2";
-		proc_gen_bus_if.wen    = 1'b0;
-
-		reset_dut();
-		/////////////////////////////////////////////////////////////////////////////////////
-
-		/////////////////////////////////////////////////////////////////////////////////////
-		// TEST 04: L1 Write Back to L2 from Full Set 0
+		// TEST 03: L1 Write Back to L2 from Full Set 0
 		/////////////////////////////////////////////////////////////////////////////////////
 		
 		test_number++;
@@ -359,15 +295,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd0) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd4) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hBBBB_BBBB;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd08) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hCCCC_CCCC;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'd12) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h0000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'hDDDD_DDDD;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -392,15 +332,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0000) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h4444_4444;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0004) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0004, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'h5555_5555;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_0008) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_0008, but it requested data from address %h",test_number, mem_gen_bus_if.addr);
 		mem_gen_bus_if.rdata  = 32'h6666_6666;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h1000_000c) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h1000_000C, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 
 		mem_gen_bus_if.rdata  = 32'h7777_7777;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -425,15 +369,19 @@ module tb_l2_cache;
 		mem_gen_bus_if.busy   = 1'b0;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read First Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h2000_0000) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h2000_0000, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h000a_ecaf;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Second Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h2000_0004) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h2000_0004, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h000b_ecaf;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Third Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h2000_0008) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h2000_0008, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h000c_ecaf;
 		@(posedge tb_CLK);
 		sub_test_case 			= "Read Fourth Block into L2";
+		assert(mem_gen_bus_if.addr == 32'h2000_000c) else $error("Test Case %d:\nExpected L2 cache to read from address 32'h2000_000C, but it requested data from address %h",test_number, mem_gen_bus_if.addr); 	
 		mem_gen_bus_if.rdata  = 32'h000d_ecaf;
 		wait(~mem_gen_bus_if.ren);
 		sub_test_case 			= "Read Blocks to L1";
@@ -450,7 +398,7 @@ module tb_l2_cache;
 		/////////////////////////////////////////////////////////////////////////////////////
 
 		/////////////////////////////////////////////////////////////////////////////////////
-		// TEST 05: L1 Write Back to L2 WB to memory from Full Sets 0
+		// TEST 04: L1 Write Back to L2 WB to memory from Full Sets 0
 		/////////////////////////////////////////////////////////////////////////////////////
 		
 		test_number++;
@@ -491,46 +439,94 @@ module tb_l2_cache;
 			sub_test_case 			= {"Finish ", 8'(i)};
 			proc_gen_bus_if.wen    = 1'b0;
 		end
-			@(posedge tb_CLK);
-			sub_test_case 			= "Write Signals Activated";
-			proc_gen_bus_if.ren    = 1'b0;
-			proc_gen_bus_if.wen    = 1'b1;
-			proc_gen_bus_if.addr   = 32'h5000_0000; // miss
-			proc_gen_bus_if.wdata  = 32'h0007_0a57;
-			mem_gen_bus_if.busy   = 1'b0;
-			wait(mem_gen_bus_if.wen);
-			sub_test_case 			= "L2 WB initiated";			
-			wait(~mem_gen_bus_if.wen);
-			sub_test_case 			= "L2 WB Finished";			
-			mem_gen_bus_if.busy   = 1'b1;
-			wait(mem_gen_bus_if.ren);
-			sub_test_case 			= "Go Memory";
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			mem_gen_bus_if.busy   = 1'b0;
-			@(posedge tb_CLK);
-			sub_test_case 			= "Read First Block into L2";
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			@(posedge tb_CLK);
-			sub_test_case 			= "Read Second Block into L2";
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			@(posedge tb_CLK);
-			sub_test_case 			= "Read Third Block into L2";
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			@(posedge tb_CLK);
-			sub_test_case 			= "Read Fourth Block into L2";
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			wait(~mem_gen_bus_if.ren);
-			sub_test_case 			= "Read Blocks to L1";
-			mem_gen_bus_if.busy   = 1'b1;
-			mem_gen_bus_if.rdata  = 32'hDEADBEEF;
-			wait(~proc_gen_bus_if.busy);
-			sub_test_case 			= "Write to L1";
-			mem_gen_bus_if.busy  = 1'b1;
-			@(posedge tb_CLK); #1;
-			sub_test_case 			= "Finished";
-			proc_gen_bus_if.wen    = 1'b0;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Write Signals Activated";
+		proc_gen_bus_if.ren    = 1'b0;
+		proc_gen_bus_if.wen    = 1'b1;
+		proc_gen_bus_if.addr   = 32'h5000_0000; // miss
+		proc_gen_bus_if.wdata  = 32'h0007_0a57;
+		mem_gen_bus_if.busy   = 1'b0;
+		wait(mem_gen_bus_if.wen);
+		sub_test_case 			= "L2 WB initiated";			
+		wait(~mem_gen_bus_if.wen);
+		sub_test_case 			= "L2 WB Finished";			
+		mem_gen_bus_if.busy   = 1'b1;
+		wait(mem_gen_bus_if.ren);
+		sub_test_case 			= "Go Memory";
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		mem_gen_bus_if.busy   = 1'b0;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read First Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Second Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Third Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		@(posedge tb_CLK);
+		sub_test_case 			= "Read Fourth Block into L2";
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		wait(~mem_gen_bus_if.ren);
+		sub_test_case 			= "Read Blocks to L1";
+		mem_gen_bus_if.busy   = 1'b1;
+		mem_gen_bus_if.rdata  = 32'hDEADBEEF;
+		wait(~proc_gen_bus_if.busy);
+		sub_test_case 			= "Write to L1";
+		mem_gen_bus_if.busy  = 1'b1;
+		@(posedge tb_CLK); #1;
+		sub_test_case 			= "Finished";
+		proc_gen_bus_if.wen    = 1'b0;
 		reset_dut();
 		/////////////////////////////////////////////////////////////////////////////////////
+
+		/////////////////////////////////////////////////////////////////////////////////////
+		// TEST 05: Fill all of cache
+		/////////////////////////////////////////////////////////////////////////////////////
+		
+		test_number++;
+		test_case 	       		= "Fill all of cache";
+		sub_test_case 			= "Begin";
+
+		for(integer j=0; j<8; j++)begin
+			for(integer i = 0; i < 16; i+=4)begin
+				@(posedge tb_CLK);
+				$sformat(sub_test_case,"Write Signals Activated L1 Set %d",j);
+				proc_gen_bus_if.ren    = 1'b0;
+				proc_gen_bus_if.wen    = 1'b1;
+				proc_gen_bus_if.addr   = {4'(i/4), 21'd0, 3'(j), 2'b00, 2'b00}; // miss
+				proc_gen_bus_if.wdata  = 32'hbeef_0000 + 32'(i);
+				wait(mem_gen_bus_if.ren);
+				sub_test_case 			= "Go Memory";
+				mem_gen_bus_if.rdata  = 32'hda7a_0000 + 32'(i);
+				mem_gen_bus_if.busy   = 1'b0;
+				@(posedge tb_CLK);
+				sub_test_case 			= "Read First Block into L2";
+				mem_gen_bus_if.rdata  = 32'hda7a_0000 + 32'(i);
+				@(posedge tb_CLK);
+				sub_test_case 			= "Read Second Block into L2";
+				mem_gen_bus_if.rdata  = 32'hda7a_0000 + 32'(i+1);
+				@(posedge tb_CLK);
+				sub_test_case 			= "Read Third Block into L2";
+				mem_gen_bus_if.rdata  = 32'hda7a_0000 + 32'(i+2);
+				@(posedge tb_CLK);
+				sub_test_case 			= "Read Fourth Block into L2";
+				mem_gen_bus_if.rdata  = 32'hda7a_0000 + 32'(i+3);
+				wait(~mem_gen_bus_if.ren);
+				sub_test_case 			= "Read Blocks to L1";
+				mem_gen_bus_if.busy   = 1'b1;
+				mem_gen_bus_if.rdata  = 32'hBADD_BADD;
+				wait(~proc_gen_bus_if.busy);
+				sub_test_case 			= "Write to L1";
+				mem_gen_bus_if.busy  = 1'b1;
+				@(posedge tb_CLK); #1;
+				sub_test_case 			= {"Finish ", 8'(i)};
+				proc_gen_bus_if.wen    = 1'b0;
+			end
+		end
+		reset_dut();
+		/////////////////////////////////////////////////////////////////////////////////////
+
 
 		test_case 				= "END END END END";
 		sub_test_case 			= "END END END END";
