@@ -443,7 +443,8 @@ module l2_cache #(
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
                     proc_gen_bus_if.busy = 1'b0;
                     next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
-		            proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits - 1];
+                    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]      =proc_gen_bus_if.wdata;
+		            proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits];
                 end // if (proc_gen_bus_if.wen && hit
 		        else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
