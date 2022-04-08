@@ -43,16 +43,18 @@ module l2_cache #(
 
 );
     import rv32i_types_pkg::*;
-
+    
     // local parameters
-    localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8); // Default 32
-    localparam N_SETS             = N_TOTAL_FRAMES / ASSOC; //Default 8
-    localparam N_FRAME_BITS       = $clog2(ASSOC); 
-    localparam N_SET_BITS         = $clog2(N_SETS);
-    localparam N_BLOCK_BITS       = $clog2(BLOCK_SIZE);
-    localparam N_TAG_BITS         = WORD_SIZE - N_SET_BITS - N_BLOCK_BITS - 2;
-    localparam FRAME_SIZE         = WORD_SIZE * BLOCK_SIZE + N_TAG_BITS + 2; // in bits
-    localparam L1_BLOCK_SIZE      = 2;
+    localparam N_TOTAL_BYTES    = CACHE_SIZE / 8; //Number of bytes the cache holds
+    localparam N_TOTAL_WORDS    = N_TOTAL_BYTES / 4;  // Number of words the cache holds 
+    localparam N_TOTAL_FRAMES   = N_TOTAL_WORDS / BLOCK_SIZE; // Numer of blocks the cache holds // Default 32
+    localparam N_SETS           = N_TOTAL_FRAMES / ASSOC; // Number of Sets // Default 8
+    localparam N_FRAME_BITS     = $clog2(ASSOC); 
+    localparam N_SET_BITS       = $clog2(N_SETS);
+    localparam N_BLOCK_BITS     = $clog2(BLOCK_SIZE);
+    localparam N_TAG_BITS       = WORD_SIZE - N_SET_BITS - N_BLOCK_BITS - 2;
+    localparam FRAME_SIZE       = WORD_SIZE * BLOCK_SIZE + N_TAG_BITS + 2; // in bits
+    localparam L1_BLOCK_SIZE    = 2;
 
 
     // cache frame type
@@ -334,6 +336,7 @@ module l2_cache #(
 
     always_comb begin // state machine comb
         next_state = state;
+        
         casez(state)
             IDLE: begin
                 ridx = lru[decoded_addr.set_bits].v; // set replacement index
