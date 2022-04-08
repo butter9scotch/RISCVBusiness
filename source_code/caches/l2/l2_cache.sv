@@ -153,6 +153,9 @@ module l2_cache #(
     always_comb begin : Hit_Pass_comb
         hit 	      = 1'b0;
         pass_through  = 1'b0;
+        hit_data        = '0;
+        hit_idx         = '0;
+
         hit_data  = {32'h00badbad};
         if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin
             pass_through = 1'b1;
@@ -310,6 +313,8 @@ module l2_cache #(
                     end
                 end
             end // output always_comb end
+        end else begin
+            $error("invalid associativity specified for l2");
         end
     endgenerate // hit logic and replacement policy logic for different associativities.
     ///////////////////////////////////////////////////////////////////////////////
@@ -399,8 +404,11 @@ module l2_cache #(
 
     always_comb begin : output_comb
         proc_gen_bus_if.busy    = 1'b1;
+        proc_gen_bus_if.rdata   = '0;
         mem_gen_bus_if.ren      = 1'b0;
         mem_gen_bus_if.wen      = 1'b0;
+        mem_gen_bus_if.addr     = '0;
+        mem_gen_bus_if.byte_en  = '1;
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
@@ -408,6 +416,7 @@ module l2_cache #(
         clr_word_ctr 	        = 1'b0;
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
+        clear_done 	            = 1'b0;
         next_cache              = cache;
         next_read_addr          = read_addr;   
 
