@@ -68,10 +68,10 @@ module memory_arbiter (
 
        	case(state)
 			IDLE: begin
-				if(dcache_if.wen || dcache_if.ren) begin
+				if((dcache_if.wen || dcache_if.ren) && mem_arb_if.busy) begin
 					next_state  = DREQUEST;
 				end
-				else if(icache_if.wen || icache_if.ren) begin
+				else if((icache_if.wen || icache_if.ren) && mem_arb_if.busy) begin
 					next_state  = IREQUEST;
 				end
 			end
