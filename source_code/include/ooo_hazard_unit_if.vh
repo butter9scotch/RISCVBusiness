@@ -92,6 +92,7 @@ interface ooo_hazard_unit_if();
   logic stall_cb;
   logic instr_wait_ihit;
   logic update_pc_wait_ihit;
+  word_t resolved_pc;
 
 
   modport decode (
@@ -105,7 +106,7 @@ interface ooo_hazard_unit_if();
     input loadstore_flush, pc_en, execute_commit_flush, dmem_access, intr, intr_taken, stall_commit, update_pc_wait_ihit,
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
-           busy_mu, busy_du, busy_ls, brj_addr, csr_pc, 
+           busy_mu, busy_du, busy_ls, brj_addr, csr_pc, resolved_pc,
            epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, d_mem_busy, dren, dwen, csr_ready, instr_wait_ihit
   );
 
@@ -125,7 +126,7 @@ interface ooo_hazard_unit_if();
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
            rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode, pc_ex, wb_port_conflict, pc_fe, csr_ready,
+          busy_decode, pc_ex, wb_port_conflict, pc_fe, csr_ready, resolved_pc,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
            loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 

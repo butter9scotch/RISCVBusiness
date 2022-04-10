@@ -86,6 +86,7 @@ module ooo_execute_stage(
   assign illegal_insn           = decode_execute_if.exception_sigs.illegal_insn | prv_pipe_if.invalid_csr;
   assign hazard_if.illegal_insn = cb_if.illegal_insn;
   assign hazard_if.mal_insn     = cb_if.mal_insn;
+  assign hazard_if.resolved_pc   = resolved_addr + 4;
   
   /*******************************************************
   *** Arithmetic Unit
@@ -520,7 +521,7 @@ module ooo_execute_stage(
       end
       cb_if.index_sfu     = index_a; 
       cb_if.vd_sfu        = vd_a; 
-      cb_if.ready_sfu     = 1; 
+      cb_if.ready_sfu     = ready_a; 
       cb_if.wen_sfu       = wen_a & (cb_if.exception_type_sfu == NO_EXCEPTION); 
     end else if (ready_mu) begin
       cb_if.index_sfu          = index_mu; 
@@ -560,7 +561,7 @@ module ooo_execute_stage(
         hazard_if.badaddr_d <= '0;
         mal_found <= 0;
         mal_type <= 0;
-    end else if (clear_mal) begin
+    end else if (clear_mal & ihit) begin
         hazard_if.badaddr_d <= '0;
         mal_found <= '0;
         mal_type <= 0;
