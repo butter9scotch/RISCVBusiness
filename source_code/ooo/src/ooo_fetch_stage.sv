@@ -42,6 +42,8 @@ module ooo_fetch_stage (
   word_t program_counter_pc;
   word_t next_pc;
   logic take_new_pc; // any special events not pc + 4
+
+  assign hazard_if.pc_fe       = program_counter_pc;
   
   //Get the current PC from fetch stage
   assign pc4 = program_counter_pc + 4;

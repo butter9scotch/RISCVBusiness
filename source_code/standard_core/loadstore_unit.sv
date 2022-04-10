@@ -32,7 +32,7 @@
 module loadstore_unit (
   input logic CLK, nRST, halt,
   generic_bus_if.cpu dgen_bus_if,
-  ooo_hazard_unit_if.memory hazard_if,
+  ooo_hazard_unit_if.execute hazard_if,
   loadstore_unit_if.execute lsif
 );
 

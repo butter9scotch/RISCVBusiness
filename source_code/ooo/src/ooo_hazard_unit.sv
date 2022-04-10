@@ -15,6 +15,7 @@ module ooo_hazard_unit (
   logic e_fetch_stage, e_decode_stage, e_execute_stage;
   logic intr_e_flush, intr_exception;
   logic structural_hazard;
+  logic exception_from_cb;
 
   //Incrementing PC only when instruction has been fetched
   assign wait_for_imem = hazard_if.iren & hazard_if.i_mem_busy;
@@ -34,7 +35,7 @@ module ooo_hazard_unit (
   assign store = hazard_if.fu_type == LOADSTORE_S && hazard_if.source_a_sel == 2'd1;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  assign hazard_if.stall_fetch_decode = hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | hazard_if.mispredict_ff; //ifence logic where zero
+  assign hazard_if.stall_fetch_decode = hazard_if.intr | hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | hazard_if.mispredict_ff; 
   assign hazard_if.hazard = hazard_if.data_hazard | structural_hazard;
   //assign hazard_if.decode_execute_flush  = 0;
 
@@ -59,7 +60,7 @@ module ooo_hazard_unit (
   assign rd_busy = hazard_if.rd_busy & hazard_if.wen;
 
   //assign structural_hazard = hazard_if.stall_au |  hazard_if.stall_du | hazard_if.stall_mu |  hazard_if.stall_ls;
-  assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls); 
+  assign structural_hazard = ((hazard_if.fu_type == DIV_S) & hazard_if.busy_du) || ((hazard_if.fu_type == LOADSTORE_S) & hazard_if.busy_ls) || hazard_if.wb_port_conflict; 
 
   assign hazard_if.stall_au = hazard_if.csr;
   assign hazard_if.stall_du = hazard_if.busy_du;
@@ -96,6 +97,8 @@ module ooo_hazard_unit (
                               hazard_if.fault_s | hazard_if.illegal_insn | hazard_if.breakpoint | 
                               hazard_if.env_m | hazard_if.mal_l | hazard_if.mal_s;
 
+  assign exception_from_cb = hazard_if.mal_insn | hazard_if.illegal_insn | hazard_if.mal_l | hazard_if.mal_s;
+
   /* Send Exception notifications to Prv Block */
   assign prv_pipe_if.wb_enable    = ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel; 
   assign prv_pipe_if.fault_insn   = hazard_if.fault_insn;
@@ -110,8 +113,10 @@ module ooo_hazard_unit (
   assign prv_pipe_if.ret          = hazard_if.ret;
   assign prv_pipe_if.ex_rmgmt     = 1'b0;
   
-  assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m) ? hazard_if.pc_ex : cb_if.epc;
-  assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? hazard_if.badaddr_i : 
+  assign prv_pipe_if.epc     =   (hazard_if.breakpoint || hazard_if.env_m) ? hazard_if.pc_ex :
+                                 exception_from_cb ? cb_if.epc : 
+                                 hazard_if.pc_fe;
+  assign prv_pipe_if.badaddr = (hazard_if.mal_insn | hazard_if.fault_insn) ? cb_if.epc : 
                                hazard_if.badaddr_d;  
   
   assign hazard_if.intr = ~e_commit_stage & prv_pipe_if.intr;
@@ -122,7 +127,8 @@ module ooo_hazard_unit (
   assign hazard_if.loadstore_flush = cb_if.flush;
 
 
-  assign prv_pipe_if.pipe_clear   =   cb_if.flush| hazard_if.intr_taken | hazard_if.breakpoint | hazard_if.env_m;
+  assign prv_pipe_if.pipe_clear   =   hazard_if.intr ? hazard_if.rob_empty : cb_if.flush | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret;
+  assign hazard_if.intr_taken = hazard_if.intr & hazard_if.rob_empty;
 
   // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
   // assign intr_e_flush = intr_exception;

@@ -41,6 +41,7 @@
 `include "predictor_pipeline_if.vh"
 `include "generic_bus_if.vh"
 `include "prv_pipeline_if.vh"
+`include "ooo_bypass_unit_if.vh"
 
 module RISCVBusiness (
   input logic CLK, nRST,
@@ -76,6 +77,7 @@ module RISCVBusiness (
   jump_calc_if jump_if();
   branch_res_if branch_if();
   completion_buffer_if cb_if();
+  ooo_bypass_unit_if bypass_if();
   logic halt;    //JOHN CHANGED THIS
 
 //   ooo_fetch1_stage fetch1_stage (
@@ -124,6 +126,7 @@ module RISCVBusiness (
        ,.hazard_if(hazard_if)
        ,.cc_if(cc_if)
        ,.cb_if(cb_if)
+       ,.bypass_if(bypass_if)
       );
 
    ooo_execute_stage execute_stage (
@@ -138,6 +141,8 @@ module RISCVBusiness (
        ,.cc_if(cc_if)
        ,.prv_pipe_if(prv_pipe_if)
        ,.dgen_bus_if(dcache_gen_bus_if)
+       ,.bypass_if(bypass_if)
+       ,.cb_if(cb_if)
       );
 
    ooo_commit_stage commit_stage (
@@ -157,7 +162,10 @@ module RISCVBusiness (
      ,.cb_if
      ,.prv_pipe_if
      ,.rf_if
+     ,.hazard_if(hazard_if)
     );
+
+   ooo_bypass_unit bypass_unit (bypass_if);
 
     assign cb_if.rv32v_commit_done  = 0;
     assign cb_if.rv32v_exception  = 0;

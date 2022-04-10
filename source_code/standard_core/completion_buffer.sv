@@ -24,6 +24,7 @@
 
 `include "completion_buffer_if.vh"
 `include "prv_pipeline_if.vh"
+`include "ooo_hazard_unit_if.vh"
 
 module completion_buffer # (
   parameter NUM_ENTRY = 16
@@ -32,7 +33,8 @@ module completion_buffer # (
   input CLK, nRST,
   completion_buffer_if.cb cb_if,
   prv_pipeline_if.cb  prv_pipe_if, 
-  rv32i_reg_file_if.writeback rf_if
+  rv32i_reg_file_if.writeback rf_if,
+  ooo_hazard_unit_if.cb hazard_if
 );
 
   import rv32i_types_pkg::*;
@@ -41,8 +43,7 @@ module completion_buffer # (
     word_t data;
     logic [4:0] vd;
     logic valid;
-    logic exception;
-    logic mal;
+    cb_exception_t exception_type;
     logic wen;
     logic rv32v;
     logic rv32f;
@@ -50,48 +51,43 @@ module completion_buffer # (
   } cb_entry;
 
   logic [$clog2(NUM_ENTRY):0] head, tail, next_head, next_tail;
-  logic [$clog2(NUM_ENTRY) - 1:0] head_sel;
+  logic [$clog2(NUM_ENTRY) - 1:0] head_sel, tail_sel;
   cb_entry cb [0:NUM_ENTRY-1]; 
   cb_entry next_cb [0:NUM_ENTRY-1]; 
   logic move_head, move_tail, flush_cb;
   integer i;
 
-  assign head_sel = head[$clog2(NUM_ENTRY)-1:0];
-  //assign hazard_if.brj_addr = cb[head_sel].address;
-  // assign tail_sel = tail[$clog2(NUM_ENTRY)-1:0];
-
-  assign cb_if.cur_tail          = tail[$clog2(NUM_ENTRY)-1:0]; 
   //Register file signals here... this is just to stay consistent with the vector unit
   assign rf_if.w_data            = cb[head_sel].data; 
   assign rf_if.rd                = cb[head_sel].vd; 
-  //assign rf_if.wen               = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen; 
   assign rf_if.wen               = cb[head_sel].valid & cb[head_sel].wen; 
-  // assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush & cb[head_sel].wen;
+
+  assign cb_if.cur_tail          = tail[$clog2(NUM_ENTRY)-1:0]; 
   assign cb_if.vd_final          = cb[head_sel].vd; 
   assign cb_if.wdata_final       = cb[head_sel].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
-  assign cb_if.flush             = cb[head_sel].exception;
-  assign cb_if.exception         = cb[head_sel].exception | cb_if.rv32v_exception; // WEN to epc register
-  //assign cb_if.scalar_commit_ena = cb[head_sel].valid & ~cb_if.flush;
+  assign cb_if.flush             = cb[head_sel].exception_type != 2'b00;
+  assign cb_if.exception         = cb_if.flush | cb_if.rv32v_exception; // WEN to epc register
   assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
   assign cb_if.tb_read           = move_head;
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
+  assign cb_if.branch_mispredict_ena = 0;
+  assign cb_if.mal_ls             = cb[head_sel].exception_type == MAL_LOADSTORE;
+  assign cb_if.illegal_insn       = cb[head_sel].exception_type == ILLEGAL; 
+  assign cb_if.mal_insn           = cb[head_sel].exception_type == MAL_NORMAL; 
+  assign cb_if.epc                = cb[head_sel].data;
+
+  assign tail_sel                = tail[$clog2(NUM_ENTRY)-1:0];
+  assign head_sel                = head[$clog2(NUM_ENTRY)-1:0];
   assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
   assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 
-  //assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;
   assign prv_pipe_if.instr = move_head;
 
-  //assign cb_if.branch_mispredict_ena = cb[head_sel].branch_mispredict_mal & ~cb[head_sel].exception;
-  //assign cb_if.mal_priv = cb[head_sel].branch_mispredict_mal & cb[head_sel].exception;
-  assign cb_if.branch_mispredict_ena = 0;
-  assign cb_if.mal_priv = cb[head_sel].mal;
-  assign cb_if.epc = cb[head_sel].data;
- 
-  //Hazard unit logic
+   //Hazard unit logic
   assign hazard_if.rob_full = cb_if.full;
   assign hazard_if.rob_empty = cb_if.empty;
 
@@ -149,7 +145,7 @@ module completion_buffer # (
       next_cb[head_sel] = '0;
     end
     if (move_tail) begin
-      next_cb[tail].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
+      next_cb[tail_sel].CPU_TRACKER = cb_if.CPU_TRACKER_decode;
     end
     // Illegal instr
     /*if (cb_if.alloc_ena) begin
@@ -159,71 +155,41 @@ module completion_buffer # (
       end 
     end */
     // Allocate entry for vector instr
-    if (cb_if.alloc_ena & cb_if.rv32v_instr) begin
-      next_cb[tail].rv32v = 1;
+    if (move_tail & cb_if.rv32v_instr) begin
+      next_cb[tail_sel].rv32v = 1;
       if (cb_if.rv32v_wb_scalar_ena) begin
-        next_cb[tail].wen = 1;
+        next_cb[tail_sel].wen = 1;
       end else begin
-        next_cb[tail].wen = 0;
+        next_cb[tail_sel].wen = 0;
       end
     end
-    // Next state for arithemtic unit result
-    if (cb_if.ready_a) begin
-      next_cb[cb_if.index_a].data = cb_if.wdata_a;
-      next_cb[cb_if.index_a].vd = cb_if.vd_a;
-      next_cb[cb_if.index_a].valid = ~cb_if.exception_a; 
-      next_cb[cb_if.index_a].exception = cb_if.exception_a;
-      next_cb[cb_if.index_a].mal = 0;
-      next_cb[cb_if.index_a].wen = cb_if.wen_a; // if branch or exception, wen = 0 : else, wen = 1
-      next_cb[cb_if.index_a].rv32v = 0;
-      next_cb[cb_if.index_a].rv32f = 0;
-      //next_cb[cb_if.index_a].CPU_TRACKER = cb_if.CPU_TRACKER;
-    end
-    // Next state for multiply unit result
-    if (cb_if.ready_mu) begin
-      next_cb[cb_if.index_mu].data = cb_if.wdata_mu;
-      next_cb[cb_if.index_mu].vd = cb_if.vd_mu;
-      next_cb[cb_if.index_mu].valid = ~cb_if.exception_mu;
-      next_cb[cb_if.index_mu].exception = cb_if.exception_mu;
-      next_cb[cb_if.index_mu].mal = 0;
-      next_cb[cb_if.index_mu].wen = ~cb_if.exception_mu;
-      next_cb[cb_if.index_mu].rv32v = 0;
-      next_cb[cb_if.index_mu].rv32f = 0;
-      //next_cb[cb_if.index_mu].CPU_TRACKER = cb_if.CPU_TRACKER;
-    end
-    // Next state for divide unit result
-    if (cb_if.ready_du) begin
-      next_cb[cb_if.index_du].data = cb_if.wdata_du;
-      next_cb[cb_if.index_du].vd = cb_if.vd_du;
-      next_cb[cb_if.index_du].valid = ~cb_if.exception_du;
-      next_cb[cb_if.index_du].exception = cb_if.exception_du;
-      next_cb[cb_if.index_du].mal = 0;
-      next_cb[cb_if.index_du].wen = ~cb_if.exception_du;
-      next_cb[cb_if.index_du].rv32v = 0;
-      next_cb[cb_if.index_du].rv32f = 0;
-      //next_cb[cb_if.index_du].CPU_TRACKER = cb_if.CPU_TRACKER;
+    // Next state for arithemtic/multiply/divide unit result
+    if (cb_if.ready_sfu) begin
+      next_cb[cb_if.index_sfu].data = cb_if.wdata_sfu;
+      next_cb[cb_if.index_sfu].vd = cb_if.vd_sfu;
+      next_cb[cb_if.index_sfu].valid = cb_if.exception_type_sfu == NO_EXCEPTION; 
+      next_cb[cb_if.index_sfu].exception_type = cb_if.exception_type_sfu;
+      next_cb[cb_if.index_sfu].wen = cb_if.wen_sfu; 
+      next_cb[cb_if.index_sfu].rv32v = 0;
+      next_cb[cb_if.index_sfu].rv32f = 0;
     end
     // Next state for loadstore unit result
     if (cb_if.ready_ls) begin
       next_cb[cb_if.index_ls].data = cb_if.wdata_ls;
       next_cb[cb_if.index_ls].vd = cb_if.vd_ls;
-      next_cb[cb_if.index_ls].valid = ~cb_if.exception_ls;
-      next_cb[cb_if.index_ls].exception = cb_if.exception_ls;
-      next_cb[cb_if.index_ls].mal = cb_if.mal_ls;
-      next_cb[cb_if.index_ls].wen = cb_if.wen_ls & ~cb_if.exception_ls; 
+      next_cb[cb_if.index_ls].valid = cb_if.exception_type_ls == NO_EXCEPTION;
+      next_cb[cb_if.index_ls].exception_type = cb_if.exception_type_ls;
+      next_cb[cb_if.index_ls].wen = cb_if.wen_ls & cb_if.exception_type_ls == NO_EXCEPTION; 
       next_cb[cb_if.index_ls].rv32v = 0;
       next_cb[cb_if.index_ls].rv32f = 0;
-      //next_cb[cb_if.index_ls].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // Next state for vector unit result
     if (cb_if.rv32v_wb_scalar_ready) begin
       next_cb[cb_if.rv32v_wb_scalar_index].data = cb_if.rv32v_wb_scalar_data;
       next_cb[cb_if.rv32v_wb_scalar_index].vd = cb_if.rv32v_wb_vd; 
       next_cb[cb_if.rv32v_wb_scalar_index].valid = 1;
-      next_cb[cb_if.rv32v_wb_scalar_index].exception = cb_if.rv32v_wb_exception;
-      next_cb[cb_if.rv32v_wb_scalar_index].mal = 0;
+      next_cb[cb_if.rv32v_wb_scalar_index].exception_type = cb_if.rv32v_wb_exception;
       next_cb[cb_if.rv32v_wb_scalar_index].rv32f = 0;
-      //next_cb[cb_if.index_wb_scalar_index].CPU_TRACKER = cb_if.CPU_TRACKER;
     end
     // TODO: Add floating point signals when integrating FPU
   end

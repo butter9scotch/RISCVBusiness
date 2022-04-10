@@ -164,6 +164,13 @@ package rv32i_types_pkg;
     ALU_SLTU  = 4'b1001
   } aluop_t;
 
+  typedef enum logic [1:0] {
+    NO_EXCEPTION = 2'b00,
+    MAL_NORMAL = 2'b01,
+    MAL_LOADSTORE = 2'b10,
+    ILLEGAL = 2'b11
+  } cb_exception_t;
+
   typedef struct packed {
     logic [6:0] funct7;
     logic [4:0] rs2;
