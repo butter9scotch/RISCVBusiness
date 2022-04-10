@@ -1,12 +1,12 @@
 /*
 *   Copyright 2016 Purdue University
-*
+*   
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*
+*   
 *       http://www.apache.org/licenses/LICENSE-2.0
-*
+*   
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,7 @@
 *   Email:        steven69@purdue.edu
 *   Date Created: 06/09/2016
 *   Description:  The control unit combinationally sets all of the control
-*                 signals used in the processor based on the incoming instruction.
+*                 signals used in the processor based on the incoming instruction. 
 */
 
 `include "control_unit_if.vh"
@@ -29,7 +29,7 @@
 `include "decompressor_if.vh"
 `include "component_selection_defines.vh"
 
-module control_unit
+module control_unit 
 (
   control_unit_if.control_unit  cu_if
 );
@@ -39,7 +39,7 @@ module control_unit
 
   import rv32m_pkg::*;
 
-
+  
   // Some vector CSR constants
   //typedef enum logic [6:0] {7'b1000000} vsetvl_const_t;
 
@@ -52,7 +52,7 @@ module control_unit
   ujtype_t        instr_uj;
 
   rv32m_insn_t    instr_m;
-
+  
   // intermediates for ALU decoding
   logic sr, aluop_srl, aluop_sra, aluop_add, aluop_sub, aluop_and, aluop_or;
   logic aluop_sll, aluop_xor, aluop_slt, aluop_sltu, add_sub;
@@ -88,7 +88,7 @@ module control_unit
   assign cu_if.reg_rs1  = cu_if.instr[19:15];
   assign cu_if.reg_rs2  = cu_if.instr[24:20];
   // reg dest
-  assign cu_if.reg_rd   = cu_if.instr[11:7];
+  assign cu_if.reg_rd   = cu_if.instr[11:7]; 
   assign cu_if.shamt = cu_if.instr[24:20];
   assign cu_if.arith_sigs.reg_rd = cu_if.reg_rd;
   assign cu_if.arith_sigs.wen    = cu_if.wen;
@@ -106,8 +106,8 @@ module control_unit
   // Assign register write enable
 
     //config instructions
-//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI :
-//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI :
+//  assign vcu_if.cfgsel = (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31] == 0) ? VSETVLI : 
+//                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b11) ? VSETIVLI : 
 //                         (vcu_if.opcode == VECTOR) && (vfunct3 == OPCFG) && (vcu_if.instr[31:30] == 2'b10) ? VSETVL  : NOT_CFG;
   always_comb begin
     case(cu_if.opcode)
@@ -172,7 +172,7 @@ module control_unit
   assign cu_if.lsu_sigs.opcode = cu_if.opcode;
 
 
-  // common signals
+  // common signals 
   assign cu_if.lsu_sigs.reg_rd = cu_if.reg_rd;
   assign cu_if.lsu_sigs.wen = cu_if.wen;
 
@@ -187,13 +187,13 @@ module control_unit
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.j_sel      = (cu_if.opcode == JAL);
-
+  
 
   // Alu op code decoding
   assign sr = ((cu_if.opcode == IMMED && instr_i.funct3 == SRI) ||
                 (cu_if.opcode == REGREG && instr_r.funct3 == SR));
   assign add_sub = (cu_if.opcode == REGREG && instr_r.funct3 == ADDSUB);
-
+  
   assign aluop_sll = ((cu_if.opcode == IMMED && instr_i.funct3 == SLLI) ||
                       (cu_if.opcode == REGREG && instr_r.funct3 == SLL));
   assign aluop_sra = sr && cu_if.instr[30];
@@ -240,26 +240,13 @@ module control_unit
       cu_if.arith_sigs.alu_op = ALU_ADD;
   end
 
-
+  
   /***** MULTIPLY CONTROL SIGNALS *****/
   // mult specific signals
   //assign cu_if.mult_sigs.ena = cu_if.sfu_type == MUL_S;
   //upper is 1, lower is 0
-  assign cu_if.mult_sigs.high_low_sel = (|instr_r.funct3[1:0]);
+  assign cu_if.mult_sigs.high_low_sel = (|instr_r.funct3[1:0]); 
   assign cu_if.mult_sigs.is_signed = cu_if.sign_type; // decoded below
-
-  // HALT HACK. Just looking for j + 0x0 (infinite loop)
-  // Halt required for unit testing, but not useful in tapeout context
-  // Due to presence of interrupts, infinite loops are valid
-  generate
-    if(INFINITE_LOOP_HALTS == "true") begin
-      assign cu_if.halt = (cu_if.instr == 32'h0000006f);
-    end else begin
-      assign cu_if.halt = '0;
-    end
-  endgenerate
-  // Privilege Control Signals
-  assign cu_if.fault_insn = '0;
 
   always_comb begin
     case(instr_r.funct3)
@@ -278,7 +265,7 @@ module control_unit
 
   /***** DIVIDE CONTROL SIGNALS *****/
   // div_type selects between remainder and divide. div_type == 1 means divide, 0 = remainder
-  assign cu_if.div_sigs.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0;
+  assign cu_if.div_sigs.div_type = (cu_if.sfu_type == DIV_S) && ~instr_r.funct3[1] ? 1 : 0; 
   //assign cu_if.div_sigs.ena = cu_if.sfu_type == DIV_S;
   assign cu_if.div_sigs.is_signed = cu_if.sign_type;
 
@@ -288,7 +275,7 @@ module control_unit
 
 
   /***** FLOATING POINT CONTROL SIGNALS *****/
-  // TODO: The top level signals for the floating point decoding here
+  // TODO: The top level signals for the floating point decoding here 
   // if there are any
 
   /***** PRIV CONTROL SIGNALS *****/
@@ -318,7 +305,7 @@ module control_unit
 
   /***** CSR CONTROL SIGNALS *****/
   //CSR Insns
-
+  
   always_comb begin
     cu_if.csr_swap  = 1'b0;
     cu_if.csr_clr   = 1'b0;
@@ -333,7 +320,7 @@ module control_unit
       end  else
       if (rv32i_system_t'(instr_r.funct3) == CSRRS) begin
         cu_if.csr_set   = 1'b1;
-      end else if (rv32i_system_t'(instr_r.funct3) == CSRRC) begin
+      end else if (rv32i_system_t'(instr_r.funct3) == CSRRC) begin 
         cu_if.csr_clr = 1'b1;
       end else if (rv32i_system_t'(instr_r.funct3) == CSRRWI) begin
         cu_if.csr_swap  = 1'b1;
@@ -355,7 +342,7 @@ module control_unit
         cu_if.csr_swap  = 1'b1;
         //rd, new vl
         // rs1, AVL
-        // zimm11
+        // zimm11 
       end else if (cu_if.instr[31:30] == 2'b11) begin
         //vsetivli
         cu_if.csr_set            = 1'b1;
@@ -394,13 +381,13 @@ module control_unit
       end
     end
   end
-
+  
   // TODO: if vector, then vtype CSR
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   // assign cu_if.zimm     = cu_if.instr[19:15];
-
+  
   assign cu_if.csr_sigs.vector_csr_instr = (cu_if.opcode == VECTOR) & (~cu_if.instr[31] || (cu_if.instr[31:30] == 2'b11) || (cu_if.instr[31:25] == 7'b1000000));
-
+  
   // new struct refactor
   // TODO: remove intermediaries from part of the interface
   assign cu_if.csr_sigs.csr_instr = (cu_if.opcode == SYSTEM) || cu_if.csr_sigs.vector_csr_instr;
@@ -409,7 +396,7 @@ module control_unit
   assign cu_if.csr_sigs.csr_set = cu_if.csr_set;
   assign cu_if.csr_sigs.csr_imm = cu_if.csr_imm;
 
-  assign cu_if.csr_sigs.csr_addr = cu_if.csr_sigs.vector_csr_instr ? VTYPE_ADDR :
+  assign cu_if.csr_sigs.csr_addr = cu_if.csr_sigs.vector_csr_instr ? VTYPE_ADDR : 
                                                       cu_if.csr_addr;
   // TODO: Edit immediate value
   assign cu_if.csr_sigs.csr_imm_value = zimm;
@@ -418,7 +405,7 @@ module control_unit
   /***** IFENCE CONTROL SIGNALS *****/
   assign cu_if.ifence = (cu_if.opcode == MISCMEM) && (rv32i_miscmem_t'(instr_r.funct3) == FENCEI);
 
-  /***** ILLEGAL INSTRUCTION DETECTION *****/
+  /***** ILLEGAL INSTRUCTION DETECTION *****/ 
   always_comb begin
     case(cu_if.opcode)
       REGREG: cu_if.illegal_insn = instr_r.funct7[0] && (instr_r.funct7 != 7'b000_0001);

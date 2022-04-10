@@ -21,7 +21,7 @@
 *   Date Created: 07/18/2021
 *   Description:  Testbench for parametrizable L1 Cache.
 */
-
+/*
 `timescale 1ns / 10ps
 `include "generic_bus_if.vh"
 
@@ -220,4 +220,4 @@ module tb_l1_cache.sv
 
 	end
 
-endmodule
+endmodule */
