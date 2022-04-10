@@ -33,6 +33,7 @@ module priv_1_12_csr # (
 
 
   import machine_mode_types_1_12_pkg::*;
+  import pma_types_1_12_pkg::*;
   import rv32i_types_pkg::*;
 
   /* Machine Information */
@@ -62,6 +63,8 @@ module priv_1_12_csr # (
   csr_reg_t         minstreth;
   long_csr_t        cycles_full, cf_next;
   long_csr_t        instret_full, if_next;
+  /* PMA configuration */
+  pma_reg_t [5:0] pmacfg;
 
   csr_reg_t nxt_csr_val;
 
@@ -200,6 +203,9 @@ module priv_1_12_csr # (
       /* mcause reset */
       mcause <= '0;
 
+      /* pmacfg reset */
+      pmacfg <= '0;
+
     end else begin
       // Only write if it is a valid write and no perm error
       if ((prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear) && ~prv_intern_if.invalid_csr) begin
@@ -239,6 +245,22 @@ module priv_1_12_csr # (
           end
           MCAUSE_ADDR: begin
             mcause <= nxt_csr_val;
+          end
+          MCYCLE_ADDR: begin
+            cycles_full <= {cycles_full[63:32], nxt_csr_val};
+          end
+          MCYCLEH_ADDR: begin
+            cycles_full <= {nxt_csr_val, cycles_full[31:0]};
+          end
+          MINSTRET_ADDR: begin
+            inst_ret <= {cycles_full[63:32], nxt_csr_val};
+          end
+          MINSTRETH_ADDR: begin
+            inst_ret <= {nxt_csr_val, cycles_full[31:0]};
+          end
+          /* Catch all PMA */
+          12'b101111zzzzzz: begin
+            pmacfg[prv_intern_if.csr_addr[5:0]] <= nxt_csr_val;
           end
         endcase
       end
@@ -327,6 +349,7 @@ module priv_1_12_csr # (
       MINSTRET_ADDR: prv_intern_if.old_csr_val = minstret;
       MCYCLEH_ADDR: prv_intern_if.old_csr_val = mcycleh;
       MINSTRETH_ADDR: prv_intern_if.old_csr_val = minstreth;
+      12'b101111zzzzzz: prv_intern_if.old_csr_val = pmacfg[prv_intern_if.csr_addr [5:0]];
     endcase
   end
 

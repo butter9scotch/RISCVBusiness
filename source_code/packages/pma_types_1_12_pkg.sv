@@ -27,11 +27,6 @@
 
 package pma_types_1_12_pkg;
 
-  /* PMA CSR Addresses */
-  typedef enum logic [11:0] {
-
-  } pma_addr_t;
-
   /* pmacfg types */
 
   typedef enum logic [1:0] {
@@ -53,9 +48,9 @@ package pma_types_1_12_pkg;
     HWLower = 3'b001,
     HWUpper = 3'b010,
     WordAcc = 3'b011,
-    2WBurst = 3'b100,
-    4WBurst = 3'b101,
-    8WBurst = 3'b110,
+    Burst2w = 3'b100,
+    Burst4W = 3'b101,
+    Burst8W = 3'b110,
     Reserved = 3'b111
   } pma_accwidth_t;
 
@@ -75,7 +70,7 @@ package pma_types_1_12_pkg;
 
   typedef struct packed {
     pma_cfg_t pma_cfg_1;
-    pma_cfg_1 pma_cfg0;
+    pma_cfg_t pma_cfg_0;
   } pma_reg_t;
 
 endpackage

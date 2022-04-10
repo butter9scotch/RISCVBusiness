@@ -26,6 +26,8 @@
 
 `include "rv32i_types_pkg.sv"
 `include "machine_mode_types_1_12_pkg.sv"
+`include "pma_types_1_12_pkg.sv"
+
 `include "prv_pipeline_if.vh"
 `include "priv_1_12_internal_if.vh"
 `include "core_interrupt_if.vh"
@@ -56,6 +58,7 @@ module tb_priv_1_12_block ();
 
   // Package Instantiations
   import machine_mode_types_1_12_pkg::*;
+  import pma_types_1_12_pkg::*;
 
   //Module Instantiations
   priv_1_12_block DUT (

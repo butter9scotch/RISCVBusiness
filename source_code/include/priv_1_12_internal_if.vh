@@ -28,19 +28,32 @@
 `include "component_selection_defines.vh"
 
 interface priv_1_12_internal_if;
-    import machine_mode_types_1_12_pkg::*;
+    import priv_types_1_12_pkg::*;
+    import pma_types_1_12_pkg::*;
     import rv32i_types_pkg::*;
 
-    mcsr_addr_t csr_addr; // CSR address to read
+    csr_addr_t csr_addr; // CSR address to read
     priv_level_t curr_priv; // Current process privilege
     logic csr_write, csr_set, csr_clear; // Is the CSR currently being modified?
     logic invalid_csr; // Bad CSR address
     logic inst_ret; // signal when an instruction is retired
     word_t new_csr_val, old_csr_val; // new and old CSR values (atomically swapped)
 
+    logic [RAM_ADDR_SIZE-1:0] addr; // Address to check
+    logic ren, wen, xen; // RWX access type (xen is always high for i-fetches)
+    pma_accwidth_t acc_width_type; // What is the memory trying to access
+
+    pma_reg_t [5:0] pma_cfg_regs;
+    logic pma_i_fault, pma_l_fault, pma_s_fault; // instruction, load, store -access fault
+
     modport csr (
         input csr_addr, curr_priv, csr_write, csr_set, csr_clear, new_csr_val, inst_ret,
-        output old_csr_val, invalid_csr
+        output old_csr_val, invalid_csr, pma_cfg_regs
+    );
+
+    modport pma (
+        input addr, ren, wen, xen, pma_cfg_regs,
+        output pma_i_fault, pma_l_fault, pma_s_fault
     );
 
 endinterface

@@ -14,18 +14,18 @@
 *   limitations under the License.
 *
 *
-*   Filename:     machine_mode_types_1_12_pkg.sv
+*   Filename:     priv_types_1_12_pkg.sv
 *
 *   Created by:   Hadi Ahmed
 *   Email:        ahmed138@purdue.edu
 *   Date Created: 03/08/2022
-*   Description:  Types needed to implement machine mode priv. isa 1.12
+*   Description:  Types needed to implement priv. isa 1.12
 */
 
-`ifndef MACHINE_MODE_TYPES_1_12_PKG_SV
-`define MACHINE_MODE_TYPES_1_12_PKG_SV
+`ifndef PRIV_TYPES_1_12_PKG_SV
+`define PRIV_TYPES_1_12_PKG_SV
 
-package machine_mode_types_1_12_pkg;
+package priv_types_1_12_pkg;
 
   /* Machine Mode Addresses */
   typedef enum logic [11:0] {
@@ -159,7 +159,7 @@ package machine_mode_types_1_12_pkg;
     MHPMEVENT29_ADDR   = 12'h33D,
     MHPMEVENT30_ADDR   = 12'h33E,
     MHPMEVENT31_ADDR   = 12'h33F
-  } mcsr_addr_t;
+  } csr_addr_t;
 
 
   /* Machine Mode Register Types */
@@ -435,4 +435,4 @@ package machine_mode_types_1_12_pkg;
 
 endpackage
 
-`endif //MACHINE_MODE_TYPES_1_12_PKG_SV
+`endif //PRIV_TYPES_1_12_PKG_SV
