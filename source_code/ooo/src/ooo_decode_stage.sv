@@ -33,7 +33,7 @@
 `include "ooo_bypass_unit_if.vh"
 
 module ooo_decode_stage (
-  input logic CLK, nRST, halt,
+  input logic CLK, nRST, halt, ihit,
   ooo_fetch_decode_if.decode fetch_decode_if,
   ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
@@ -122,7 +122,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.hazard & ~hazard_if.npc_sel & ~stall_csr & ~ebreak_ecall; 
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.stall_fetch_decode & ~hazard_if.npc_sel & ~stall_csr & ~ebreak_ecall; 
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -296,7 +296,8 @@ module ooo_decode_stage (
   assign vcsr.vtype = cu_if.csr_sigs.vtype_imm ? cu_if.csr_sigs.csr_imm_value[7:0] : rf_if.rs2_data;
   assign vcsr.vl    = cu_if.csr_sigs.vl_imm ? {3'd0, cu_if.reg_rs1} : rf_if.rs1_data[7:0];
   
-  assign stall_csr = (cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty);
+  assign stall_csr = cu_if.csr_sigs.csr_instr & ~hazard_if.rob_empty & ~hazard_if.csr_flush;
+  assign hazard_if.stall_csr = stall_csr;
 //  assign decode_execute_if.next_vtype_csr    <= (vcu_if.cfgsel == VSETIVLI) || (vcu_if.cfgsel == VSETVLI) ? {24'd0, vop_c.vma, vop_c.vta, vop_c.sew, vop_c.lmul} : decode_execute_if.xs2;
 //  assign decode_execute_if.next_avl_csr      <= (vcu_if.cfgsel == VSETIVLI) ? vcu_if.imm_5 : decode_execute_if.xs1;
 
@@ -304,9 +305,9 @@ module ooo_decode_stage (
     if (~nRST) begin
       decode_execute_if.csr_sigs <= '0;
     end else begin
-      if (hazard_if.decode_execute_flush | stall_csr) begin 
+      if (hazard_if.decode_execute_flush | stall_csr | hazard_if.csr_ready | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex)) begin 
         decode_execute_if.csr_sigs <= '0;
-      end else if (hazard_if.rob_empty & ~hazard_if.stall_au) begin
+      end else if (hazard_if.rob_empty & ~hazard_if.stall_au & ~hazard_if.csr_flush) begin
         // Control signals 
         decode_execute_if.csr_sigs.csr_swap      <= cu_if.csr_sigs.csr_swap;
         decode_execute_if.csr_sigs.csr_clr       <= cu_if.csr_sigs.csr_clr;
@@ -356,7 +357,7 @@ module ooo_decode_stage (
         //MULTIPLY
         if(~cu_if.mult_sigs.ena) begin
           decode_execute_if.mult_sigs <= '0;
-        end else if(~(hazard_if.stall_mu)) begin
+        end else if(~(hazard_if.stall_mu) & ~hazard_if.stall_ex) begin
           decode_execute_if.mult_sigs.ena <= cu_if.mult_sigs.ena;
           decode_execute_if.mult_sigs.high_low_sel <= cu_if.mult_sigs.high_low_sel;
           decode_execute_if.mult_sigs.is_signed <= cu_if.mult_sigs.is_signed;
@@ -370,7 +371,7 @@ module ooo_decode_stage (
         //DIVIDE
         if(~cu_if.div_sigs.ena) begin
           decode_execute_if.div_sigs <= '0;
-        end else if(~(hazard_if.stall_du)) begin
+        end else if(~(hazard_if.stall_du) & ~hazard_if.stall_ex) begin
         //if(~(hazard_if.stall_du)) begin
           decode_execute_if.div_sigs.ena <= cu_if.div_sigs.ena;
           decode_execute_if.div_sigs.div_type <= cu_if.div_sigs.div_type;
@@ -384,7 +385,7 @@ module ooo_decode_stage (
         // LOADSTORE
         if(~cu_if.lsu_sigs.ena) begin
           decode_execute_if.lsu_sigs <= '0;
-        end else if(~(hazard_if.stall_ls)) begin
+        end else if(~(hazard_if.stall_ls) & ~hazard_if.stall_ex) begin
           decode_execute_if.lsu_sigs.load_type <= cu_if.lsu_sigs.load_type;
           //decode_execute_if.lsu_sigs.byte_en <= cu_if.lsu_sigs.byte_en;
           decode_execute_if.lsu_sigs.dren <= cu_if.lsu_sigs.dren;
@@ -442,7 +443,7 @@ module ooo_decode_stage (
       decode_execute_if.exception_sigs <= '0;
         
     end else begin
-      if (hazard_if.decode_execute_flush | (~hazard_if.stall_au & hazard_if.stall_fetch_decode) | halt) begin
+      if (hazard_if.decode_execute_flush | (~hazard_if.stall_ex & hazard_if.stall_fetch_decode) | halt) begin
         decode_execute_if.arith_sigs <= '0;
         decode_execute_if.reg_file_wdata <= '0;
         //JUMP
@@ -452,7 +453,7 @@ module ooo_decode_stage (
         //Exceptions
         decode_execute_if.exception_sigs <= '0;
 
-      end else if(~cu_if.arith_sigs.ena) begin
+      end else if(~cu_if.arith_sigs.ena & ~hazard_if.stall_ex) begin
         decode_execute_if.arith_sigs <= '0;
         decode_execute_if.reg_file_wdata <= next_reg_file_wdata;
         decode_execute_if.jump_sigs <= '0;
@@ -470,7 +471,7 @@ module ooo_decode_stage (
         decode_execute_if.exception_sigs.fault_insn   <= fetch_decode_if.fault_insn;
         decode_execute_if.exception_sigs.wfi          <= cu_if.wfi;
         decode_execute_if.exception_sigs.w_src        <= cu_if.arith_sigs.w_src;
-      end else if(~hazard_if.stall_au) begin
+      end else if(~hazard_if.stall_au & ~hazard_if.stall_ex) begin
         decode_execute_if.arith_sigs.ena <= cu_if.arith_sigs.ena;
         decode_execute_if.arith_sigs.alu_op <= cu_if.arith_sigs.alu_op;
         decode_execute_if.arith_sigs.w_src <= cu_if.arith_sigs.w_src;
@@ -506,6 +507,9 @@ module ooo_decode_stage (
       end
     end
   end
+
+  //assign hazard_if.instr_wait_ihit = cu_if.branch | cu_if.jump | cu_if.csr_sigs.csr_instr;
+  //assign hazard_if.instr_wait_ihit = 1;
 
   logic [18:0] write_conflict_reg, next_write_conflict_reg;
   logic div_write_conflict_stall;

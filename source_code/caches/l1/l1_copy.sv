@@ -25,7 +25,7 @@
 *                   - Block Size | max 8
 *	            - ASSOC | either 1 or 2
 */
-
+/*
 `include "generic_bus_if.vh"
 
 module l1_cache #(
@@ -426,5 +426,5 @@ module l1_cache #(
 	end // else: !if(~nRST)
     end // always_ff @
         
-endmodule // l1_cache
+endmodule // l1_cache */
 

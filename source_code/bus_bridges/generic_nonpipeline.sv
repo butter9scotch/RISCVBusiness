@@ -57,7 +57,8 @@ module generic_nonpipeline (
   end 
 
 
-  assign pipeline_trans_if.busy = (out_gen_bus_if.addr == 0) ? 1 : out_gen_bus_if.busy; 
+  //assign pipeline_trans_if.busy = (out_gen_bus_if.addr == 0) ? 1 : out_gen_bus_if.busy; 
+  assign pipeline_trans_if.busy = out_gen_bus_if.busy; // printtest (in c test) store to address 0  
   assign pipeline_trans_if.rdata = out_gen_bus_if.rdata;
   assign next_wdata = pipeline_trans_if.wdata;
 

@@ -2,6 +2,7 @@
 `include "completion_buffer_if.vh"
 
 module ooo_hazard_unit (
+  input logic ihit, dhit,
   ooo_hazard_unit_if.hazard_unit hazard_if,
   prv_pipeline_if.hazard  prv_pipe_if,
   completion_buffer_if.hu cb_if
@@ -16,6 +17,7 @@ module ooo_hazard_unit (
   logic intr_e_flush, intr_exception;
   logic structural_hazard;
   logic exception_from_cb;
+  logic update_pc_wait_ihit;
 
   //Incrementing PC only when instruction has been fetched
   assign wait_for_imem = hazard_if.iren & hazard_if.i_mem_busy;
@@ -35,7 +37,7 @@ module ooo_hazard_unit (
   assign store = hazard_if.fu_type == LOADSTORE_S && hazard_if.source_a_sel == 2'd1;
   assign pc_stall = wait_for_imem | hazard_if.stall_fetch_decode | hazard_if.data_hazard;
   assign hazard_if.pc_en =  ~pc_stall;
-  assign hazard_if.stall_fetch_decode = hazard_if.intr | hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty) | hazard_if.mispredict_ff; 
+  assign hazard_if.stall_fetch_decode = hazard_if.intr | hazard_if.stall_au | hazard_if.stall_ex | hazard_if.data_hazard | hazard_if.busy_decode | structural_hazard | (store && ~hazard_if.rob_empty); 
   assign hazard_if.hazard = hazard_if.data_hazard | structural_hazard;
   //assign hazard_if.decode_execute_flush  = 0;
 
@@ -66,11 +68,12 @@ module ooo_hazard_unit (
   assign hazard_if.stall_du = hazard_if.busy_du;
   assign hazard_if.stall_mu = 0;
   assign hazard_if.stall_ls = hazard_if.busy_ls;
+  assign hazard_if.stall_cb = ~ihit;
 
-  assign hazard_if.stall_ex = hazard_if.rob_full;
+  assign hazard_if.stall_ex = hazard_if.rob_full | hazard_if.update_pc_wait_ihit;
   assign hazard_if.stall_commit = 0;
   assign hazard_if.fetch_decode_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.ifence_flush | hazard_if.csr_flush | cb_if.flush;
-  assign hazard_if.decode_execute_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc | cb_if.flush ;
+  assign hazard_if.decode_execute_flush = (hazard_if.npc_sel | hazard_if.insert_priv_pc | cb_if.flush) & ihit;
 
   
   //Branch jump 
@@ -143,6 +146,8 @@ module ooo_hazard_unit (
   //assign hazard_if.csr_flush = 0;
   assign hazard_if.ifence_flush = 0;
   assign hazard_if.execute_commit_flush  = hazard_if.csr_flush | cb_if.flush;
+
+  assign hazard_if.update_pc_wait_ihit = (hazard_if.npc_sel | hazard_if.csr_flush | hazard_if.insert_priv_pc | hazard_if.intr_taken) & ~ihit;
 
 
 

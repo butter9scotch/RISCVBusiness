@@ -37,7 +37,7 @@ module l1_cache #(
 (
     input logic CLK, nRST,
     input logic clear, flush,
-    output logic clear_done, flush_done,
+    output logic clear_done, flush_done, hit,
     generic_bus_if.cpu mem_gen_bus_if,
     generic_bus_if.generic_bus proc_gen_bus_if
 
@@ -235,7 +235,7 @@ module l1_cache #(
     assign decoded_addr = proc_gen_bus_if.addr;
 
     // Cache Hit
-    logic hit, pass_through;
+    logic pass_through;
     word_t [BLOCK_SIZE - 1:0] hit_data;
     logic hit_idx;
 

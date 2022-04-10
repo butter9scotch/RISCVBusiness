@@ -79,6 +79,8 @@ module RISCVBusiness (
   completion_buffer_if cb_if();
   ooo_bypass_unit_if bypass_if();
   logic halt;    //JOHN CHANGED THIS
+  logic halt_pipe;
+  logic ihit, dhit;
 
 //   ooo_fetch1_stage fetch1_stage (
 //        .CLK(CLK)
@@ -109,7 +111,8 @@ module RISCVBusiness (
   ooo_fetch_stage fetch_stage (
       .CLK(CLK)
     ,.nRST(nRST)
-    ,.halt(halt)
+    ,.halt(halt_pipe)
+    ,.ihit(ihit)
     ,.fetch_decode_if(fetch_decode_if)
     ,.predict_if(predict_if)
     ,.hazard_if(hazard_if)
@@ -119,7 +122,8 @@ module RISCVBusiness (
    ooo_decode_stage decode_stage (
         .CLK(CLK)
        ,.nRST(nRST)
-       ,.halt(halt)
+       ,.ihit(ihit)
+       ,.halt(halt_pipe)
        ,.fetch_decode_if(fetch_decode_if)
        ,.decode_execute_if(decode_execute_if)
        ,.rf_if(rf_if)
@@ -132,7 +136,8 @@ module RISCVBusiness (
    ooo_execute_stage execute_stage (
         .CLK(CLK)
        ,.nRST(nRST)
-       ,.halt(halt)
+       ,.halt(halt_pipe)
+       ,.ihit(ihit)
        ,.decode_execute_if(decode_execute_if)
        ,.execute_commit_if(execute_commit_if)
        //,.jump_if(jump_if)
@@ -148,7 +153,7 @@ module RISCVBusiness (
    ooo_commit_stage commit_stage (
         .CLK(CLK)
        ,.nRST(nRST)
-       ,.halt(halt)
+       ,.halt(halt_pipe)
        ,.decode_execute_if(decode_execute_if)
        ,.execute_commit_if(execute_commit_if)
        ,.hazard_if(hazard_if)
@@ -181,16 +186,22 @@ module RISCVBusiness (
        .hazard_if(hazard_if)
        ,.prv_pipe_if(prv_pipe_if)
        ,.cb_if(cb_if)
+       ,.ihit(ihit)
+       ,.dhit(dhit)
      );
    
    always @(posedge CLK, negedge nRST)
    begin
        if (!nRST)
-           halt <= 1'b0;
+           halt_pipe <= 1'b0;
        else if (cb_if.halt_instr)
-           halt <= 1'b1;
+           halt_pipe <= 1'b1;
 
    end
+
+  logic halt_flush;
+  assign halt_flush = halt_pipe;
+  assign halt = halt_flush & cc_if.dflush_done;
 
   branch_predictor_wrapper branch_predictor_i (
     .CLK(CLK),
@@ -212,14 +223,18 @@ module RISCVBusiness (
     .rm_if(rm_if)
   );*/
 
+
   separate_caches sep_caches (
     .CLK(CLK),
     .nRST(nRST),
+    .ihit(ihit),
+    .dhit(dhit),
     .icache_proc_gen_bus_if(icache_gen_bus_if),
     .icache_mem_gen_bus_if(icache_mc_if),
     .dcache_proc_gen_bus_if(dcache_gen_bus_if),
     .dcache_mem_gen_bus_if(dcache_mc_if),
-    .cc_if(cc_if)
+    .cc_if(cc_if),
+    .halt_flush(halt_flush)
   );
 
   memory_controller mc (

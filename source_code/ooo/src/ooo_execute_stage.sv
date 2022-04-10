@@ -39,7 +39,7 @@
 `include "completion_buffer_if.vh"
 
 module ooo_execute_stage(
-  input logic CLK, nRST,halt,
+  input logic CLK, nRST,halt, ihit,
   ooo_decode_execute_if.execute decode_execute_if,
   ooo_execute_commit_if.execute execute_commit_if,
   //jump_calc_if.execute jump_if,
@@ -72,11 +72,13 @@ module ooo_execute_stage(
   logic illegal_braddr, illegal_jaddr;
   logic mal_insn;
   logic illegal_insn;
+  logic system_no_alloc;
 
   assign hazard_if.breakpoint  = decode_execute_if.exception_sigs.breakpoint;
   assign hazard_if.env_m       = decode_execute_if.exception_sigs.ecall_insn;
   assign hazard_if.ret         = decode_execute_if.exception_sigs.ret_insn;
   assign hazard_if.pc_ex       = decode_execute_if.pc;
+  assign system_no_alloc       = hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret;
 
   assign illegal_jaddr          = (decode_execute_if.jump_sigs.jump_instr & (jump_if.jump_addr[1:0] != 2'b00));
   assign illegal_braddr         = (decode_execute_if.branch_sigs.branch_instr & (resolved_addr[1:0] != 2'b00));
@@ -239,7 +241,7 @@ module ooo_execute_stage(
   /*******************************************************
   *** CSR / Priv Interface Logic 
   *******************************************************/ 
-  assign hazard_if.csr     = csr_pulse;
+  assign hazard_if.csr     = decode_execute_if.csr_sigs.csr_instr;
   assign prv_pipe_if.swap  = decode_execute_if.csr_sigs.csr_swap;
   assign prv_pipe_if.clr   = decode_execute_if.csr_sigs.csr_clr;
   assign prv_pipe_if.set   = decode_execute_if.csr_sigs.csr_set;
@@ -251,11 +253,12 @@ module ooo_execute_stage(
   assign hazard_if.csr_pc = decode_execute_if.pc;
 
   logic csr_pulse_reg;
+  assign hazard_if.csr_ready = csr_pulse_reg;
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
       csr_reg <= 1'b0;
       csr_pulse_reg <= 1'b0;
-    end else begin
+    end else if (ihit) begin
       csr_reg <= decode_execute_if.csr_sigs.csr_instr;
       csr_pulse_reg <= csr_pulse;
     end
@@ -263,12 +266,36 @@ module ooo_execute_stage(
 
   assign csr_pulse = decode_execute_if.csr_sigs.csr_instr && ~csr_reg;
 
+  logic csr_wb_ready_pulse, csr_wb_ready, csr_wb_ready_reg;
+  logic [4:0] csr_vd;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] csr_index;
+  logic csr_swap_reg;
+
   always_ff @ (posedge CLK, negedge nRST) begin
-    if (~nRST)
+    if (~nRST) begin
       csr_rdata <= 'h0;
-    else if (csr_pulse)
+      csr_index <= 'h0;
+      csr_vd <= 'h0;
+      csr_swap_reg <= '0;
+    end else if (csr_wb_ready_pulse) begin
       csr_rdata <= prv_pipe_if.rdata;
+      csr_index <= auif.index_a;
+      csr_vd <= auif.reg_rd_au;
+      csr_swap_reg <= decode_execute_if.csr_sigs.csr_swap;
+    end
   end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      csr_wb_ready_reg <= 1'b0;
+      csr_wb_ready <= 1'b0;
+    end else begin
+      csr_wb_ready_reg <= decode_execute_if.csr_sigs.csr_instr & ~system_no_alloc;
+      csr_wb_ready <= csr_wb_ready_pulse & ~system_no_alloc;
+    end
+  end
+
+  assign csr_wb_ready_pulse = decode_execute_if.csr_sigs.csr_instr && ~csr_wb_ready_reg && ~system_no_alloc;
 
 
   //Forwading logic
@@ -341,6 +368,8 @@ module ooo_execute_stage(
     end
   end
 
+  assign hazard_if.instr_wait_ihit = decode_execute_if.branch_sigs.branch_instr | decode_execute_if.jump_sigs.jump_instr | decode_execute_if.csr_sigs.csr_instr;
+
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_du;
@@ -370,6 +399,10 @@ module ooo_execute_stage(
   logic mal_reg;
   logic [4:0] reg_rd_du_reg;
   logic [4:0] index_du_reg;
+  logic ready_a_pulse;
+  logic ready_a_reg;
+  logic ready_a_temp;
+  logic update_pc_wait_ihit_reg;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
@@ -396,15 +429,31 @@ module ooo_execute_stage(
       mal_reg <= lsif.mal_addr;
   end
 
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST)
+      ready_a_reg <= 1'b0;
+    else 
+      ready_a_reg <= ready_a_temp;
+  end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST)
+      update_pc_wait_ihit_reg <= 1'b0;
+    else 
+      update_pc_wait_ihit_reg <= hazard_if.update_pc_wait_ihit;
+  end
+
   assign mal_pulse = lsif.mal_addr & ~mal_reg;
+  assign ready_a_pulse = ready_a_temp & ~ready_a_reg;
   assign valid_pc  = decode_execute_if.lsu_sigs.opcode != opcode_t'('h0);
 
-  assign index_a   = auif.index_a;
+  //assign index_a   = auif.index_a;
+  assign index_a   = csr_wb_ready ? csr_index : auif.index_a;
   assign index_mu  = index_mu_ff2;
   assign index_du  = (dif.start_div & dif.done_du) ? dif.index_du : index_du_reg;
   assign index_ls  = lsif.index_ls;
 
-  assign vd_a  = auif.reg_rd_au;
+  assign vd_a  = csr_wb_ready ? csr_vd : auif.reg_rd_au;
   assign vd_mu = reg_rd_mu_ff2;
   assign vd_du = (dif.start_div & dif.done_du) ? dif.reg_rd_du : reg_rd_du_reg;
   assign vd_ls = lsif.reg_rd_ls;
@@ -414,12 +463,13 @@ module ooo_execute_stage(
   assign exception_du = 0;
   assign exception_ls = mal_pulse; 
 
-  assign ready_a  = decode_execute_if.csr_sigs.csr_instr ? csr_pulse_reg : (auif.wen_au | decode_execute_if.branch_sigs.branch_instr | decode_execute_if.jump_sigs.jump_instr & valid_pc) & decode_execute_if.arith_sigs.ena; 
+  assign ready_a_temp  = decode_execute_if.csr_sigs.csr_instr ? csr_wb_ready : (auif.wen_au | decode_execute_if.branch_sigs.branch_instr | decode_execute_if.jump_sigs.jump_instr & valid_pc) & decode_execute_if.arith_sigs.ena; 
+  assign ready_a = (ready_a_temp & ~update_pc_wait_ihit_reg) | csr_wb_ready;
   assign ready_mu = mif.done_mu;
   assign ready_du = dif.done_du;
   assign ready_ls = lsif.done_ls | exception_ls;
 
-  assign wdata_a   = decode_execute_if.jump_sigs.jump_instr ? decode_execute_if.pc + 4 : decode_execute_if.csr_sigs.csr_swap ? csr_rdata : auif.wdata_au;
+  assign wdata_a   = csr_wb_ready ? csr_rdata : decode_execute_if.jump_sigs.jump_instr ? decode_execute_if.pc + 4 : auif.wdata_au;
   assign wdata_mu  = mif.wdata_mu;  
   assign wdata_du  = dif.wdata_du;
   assign wdata_ls  = exception_ls ? pc_ls_reg : lsif.wdata_ls; 

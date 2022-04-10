@@ -67,7 +67,7 @@ module completion_buffer # (
   assign cb_if.wdata_final       = cb[head_sel].data; 
   assign cb_if.full              = head[$clog2(NUM_ENTRY)-1:0] == tail[$clog2(NUM_ENTRY)-1:0] && head[$clog2(NUM_ENTRY)] != tail[$clog2(NUM_ENTRY)]; 
   assign cb_if.empty             = head == tail; 
-  assign cb_if.flush             = cb[head_sel].exception_type != 2'b00;
+  assign cb_if.flush             = cb[head_sel].exception_type != 2'b00 & ~hazard_if.stall_cb;
   assign cb_if.exception         = cb_if.flush | cb_if.rv32v_exception; // WEN to epc register
   assign cb_if.rv32v_commit_ena  = cb[head_sel].rv32v & ~cb[head_sel].wen; // For vector instr that is not writing back to scalar reg
   assign cb_if.rv32f_commit_ena  = cb[head_sel].rv32f & cb[head_sel].valid & ~cb_if.flush & ~cb[head_sel].wen; 
@@ -81,7 +81,7 @@ module completion_buffer # (
 
   assign tail_sel                = tail[$clog2(NUM_ENTRY)-1:0];
   assign head_sel                = head[$clog2(NUM_ENTRY)-1:0];
-  assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & ~cb_if.flush;
+  assign move_head               = cb_if.rv32v_commit_ena ? cb_if.rv32v_commit_done : cb[head_sel].valid & cb[head_sel].exception_type == 2'b00;
   assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
   assign flush_cb                = cb_if.flush | cb_if.rv32v_exception;
 

@@ -146,7 +146,7 @@ module loadstore_unit (
   assign lsif.opcode_ls  = opcode_ff1;
   assign lsif.mal_addr = mal_addr_ff1;
   assign lsif.memory_addr = address_ff1;
-  assign lsif.done_ls = stall_mem_ff1 & ~stall_mem; 
+  assign lsif.done_ls = hazard_if.dmem_access & ~hazard_if.d_mem_busy; 
   assign lsif.index_ls = index_ff1;
 
 
@@ -204,7 +204,7 @@ module loadstore_unit (
   *******************************************************/
   assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr_ff1;
   assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr_ff1;
-  assign dgen_bus_if.byte_en = byte_en;
+  assign dgen_bus_if.byte_en = halt ? 4'b1111 : byte_en;
   assign dgen_bus_if.addr    = address_ff1;
   always_comb begin
     dgen_bus_if.wdata = '0;
