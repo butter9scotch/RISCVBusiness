@@ -36,7 +36,7 @@ module ooo_fetch_stage (
 );
   import rv32i_types_pkg::*;
 
-  parameter RESET_PC = 32'h80000000;
+  parameter RESET_PC = 32'h200; //32'h80000000;
   word_t pc, pc4, instr;
   logic mal_addr;
   word_t program_counter_pc;
