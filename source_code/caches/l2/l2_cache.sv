@@ -29,7 +29,7 @@
 `include "generic_bus_if.vh"
 
 module l2_cache #(
-    parameter CACHE_SIZE          = 4096, // in bits
+    parameter CACHE_SIZE          = 16384, // in bits
     parameter BLOCK_SIZE          = 4, // in words (must be power of 2)
     parameter ASSOC               = 4, // 2 or 4 so far
     parameter NONCACHE_START_ADDR = 32'h8000_0000

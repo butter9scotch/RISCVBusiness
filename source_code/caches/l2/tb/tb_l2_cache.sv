@@ -82,7 +82,7 @@ module tb_l2_cache;
 
 
 	// L2 Cache Portmap
-	l2_cache  #(.CACHE_SIZE(4096),
+	l2_cache  #(.CACHE_SIZE(16384),
 				.BLOCK_SIZE(4),
 				.ASSOC(4),
 				.NONCACHE_START_ADDR(32'h8000_0000)
