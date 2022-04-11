@@ -46,6 +46,7 @@ module tb_RISCVBusiness_self_test ();
   integer fptr, stats_ptr;
   integer clk_count;
   integer test_count;
+  integer i;
 
   //Interface Instantiations
   generic_bus_if gen_bus_if();
@@ -62,6 +63,38 @@ module tb_RISCVBusiness_self_test ();
 
     assign test_count = ((DUT.reg_file.registers[28]-1)/2);
 
+  task display_reg;
+    input logic [4:0] rs;
+
+    automatic int i;
+    automatic int sum;
+    sum = 0;
+    for (i = VLENB - 1; i >= 0; i--) begin
+      sum += DUT.execute_stage.RVV.reg_file.registers[rs][i];
+    end
+    if (sum != 0) begin
+      $write("register[%d]: ", rs);
+      for (i = VLENB - 1; i >= 0; i--) begin
+        if (i % 4 == 3 && (i != 15)) begin
+          $write(" --- [%x]", DUT.execute_stage.RVV.reg_file.registers[rs][i]);
+        end else begin
+          $write(" [%x]", DUT.execute_stage.RVV.reg_file.registers[rs][i]);
+        end
+      end
+      $write("\n");
+    end
+  endtask
+
+  task display_reg_file;
+    automatic int i;
+    $write("\n");
+    for (i = 0; i < 32; i++) begin
+      display_reg(i);
+    end
+    $write("\n");
+
+  endtask
+  
   //Module Instantiations
 
   RISCVBusiness DUT (
@@ -175,11 +208,15 @@ module tb_RISCVBusiness_self_test ();
     // Check Register 28 to see if test passed or failed
     if (clk_count == `RVBSELF_CLK_TIMEOUT)
       $display("ERROR: Test timed out");
-    else if(DUT.reg_file.registers[28] != 32'h1)
+    else if(DUT.reg_file.registers[28] != 32'h1) begin
       $display("ERROR: Test %0d did not pass",
                 (DUT.reg_file.registers[28] - 1)/2);
-    else 
+      for (i = 0; i < 32; i++) begin
+        $write("[%2d] - %8h\n", i, DUT.reg_file.registers[i]);
+      end
+    end else begin
       $display("SUCCESS");
+    end
     $finish;
 
   end : CORE_RUN

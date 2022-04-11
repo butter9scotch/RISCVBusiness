@@ -69,8 +69,8 @@ module rv32v_memory_stage (
   //assign asif.sew        = memory_writeback_if.eew_loadstore; // TODO: From CSR
   assign asif.sew        = execute_memory_if.eew; // TODO: From CSR
   assign asif.eew_loadstore  = execute_memory_if.eew_loadstore; 
-  assign asif.load_ena       = execute_memory_if.load_ena;
-  assign asif.store_ena      = execute_memory_if.store_ena;
+  assign asif.load_ena       = execute_memory_if.load_ena &  ~hu_if.next_v_done & ~hu_if.v_done;
+  assign asif.store_ena      = execute_memory_if.store_ena & ~hu_if.next_v_done & ~hu_if.v_done;
   assign asif.dhit       = cif.dhit;
   assign asif.returnex   = returnex;
   assign asif.woffset1   = execute_memory_if.woffset1;

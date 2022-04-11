@@ -744,8 +744,12 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= scalar_vector_if.index;
       decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
-    end else if (vcu_if.fu_type == DIV) begin 
+    end else if ((vcu_if.fu_type == DIV) || (vcu_if.fu_type == LOAD_UNIT) || (vcu_if.fu_type == STORE_UNIT)) begin 
       decode_execute_if.decode_done       <= ele_if.done[ZERO];
+      decode_execute_if.counter_done      <= ele_if.done[ZERO];
+    end
+    if (hu_if.stall_dec && decode_execute_if.load_ena && ele_if.done[ZERO]) begin
+      decode_execute_if.load_ena <= 0;
     end
   end
 
