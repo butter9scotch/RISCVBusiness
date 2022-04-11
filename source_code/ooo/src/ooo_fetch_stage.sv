@@ -53,11 +53,10 @@ module ooo_fetch_stage (
   //Instruction Access logic
   assign hazard_if.i_mem_busy     = igen_bus_if.busy;
   assign igen_bus_if.addr         = program_counter_pc;
-  assign igen_bus_if.ren          = ~halt; // do this because the read transaction wasn't halting on a new address unless ren went low
+  assign igen_bus_if.ren          = ~halt & ~hazard_if.ifence_cache_flushing; // do this because the read transaction wasn't halting on a new address unless ren went low
   assign igen_bus_if.wen          = 1'b0;
   assign igen_bus_if.byte_en      = 4'b1111;
   assign igen_bus_if.wdata        = '0;
-
 
   // program counter main flop
   always_ff @ (posedge CLK, negedge nRST) begin

@@ -97,6 +97,7 @@ interface ooo_decode_execute_if();
     pc,
     immediate,
     pc4,
+    ifence,
     prediction,
     instr,
     opcode,

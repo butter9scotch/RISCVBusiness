@@ -92,14 +92,17 @@ interface ooo_hazard_unit_if();
   logic stall_cb;
   logic instr_wait_ihit;
   logic update_pc_wait_ihit;
+  logic ifence_decode;
+  logic ifence_ex;
+  logic ifence_cache_flushing;
   word_t resolved_pc;
 
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, csr_flush,
            stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty, csr_ready,
-    output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, wb_port_conflict, stall_csr, instr_wait_ihit
+    output halt, dflushed, iflushed, fu_type, ifence, rd_busy, ifence_ex,
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, wb_port_conflict, stall_csr, instr_wait_ihit, ifence_decode
   );
 
   modport execute (
@@ -107,13 +110,13 @@ interface ooo_hazard_unit_if();
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, resolved_pc,
-           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, d_mem_busy, dren, dwen, csr_ready, instr_wait_ihit
+           epc, pc_ex, mal_l, mal_s, badaddr_d, mal_insn, d_mem_busy, dren, dwen, csr_ready, instr_wait_ihit, ifence_ex, ifence_cache_flushing, ifence_flush, ifence_pc
   );
 
   modport fetch (
     input pc_en, npc_sel, halt, ifence_flush, csr_flush, 
            insert_priv_pc, intr, intr_taken, brj_addr, ifence_pc, csr_pc, stall_csr,
-           priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode, pc_fe, update_pc_wait_ihit,
+           priv_pc, fetch_decode_flush, iren, stall_fetch_decode, busy_decode, pc_fe, update_pc_wait_ihit, ifence_cache_flushing,
     output i_mem_busy 
   );
 
@@ -125,10 +128,10 @@ interface ooo_hazard_unit_if();
            mul_e, busy_au, busy_mu, busy_du, busy_ls, busy_all, 
            badaddr_d, badaddr_i, epc,  fu_type,  busy_div,
            busy_mul, rob_full, rob_empty, data_hazard, hazard, dflushed, iflushed,
-           rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen,
-          busy_decode, pc_ex, wb_port_conflict, pc_fe, csr_ready, resolved_pc,
+           rs1_busy, rs2_busy, rd_busy, source_a_sel, source_b_sel, wen, ifence_ex, ifence_flush, ifence_cache_flushing,
+          busy_decode, pc_ex, wb_port_conflict, pc_fe, csr_ready, resolved_pc, ifence_decode,
     output pc_en, if_if_flush, fetch_decode_flush, decode_execute_flush, csr, iren, 
-           loadstore_flush, npc_sel, dmem_access, ifence_flush, csr_flush, 
+           loadstore_flush, npc_sel, dmem_access, csr_flush, 
            insert_priv_pc, intr, stall_au, stall_mu, stall_du, stall_ls, 
            stall_all, priv_pc, execute_commit_flush, stall_commit, stall_ex, stall_de,
           stall_fetch_decode, intr_taken, stall_cb, update_pc_wait_ihit

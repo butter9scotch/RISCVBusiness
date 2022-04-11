@@ -40,6 +40,7 @@
 
 module ooo_execute_stage(
   input logic CLK, nRST,halt, ihit,
+  output logic flushing_icache, flushing_dcache,
   ooo_decode_execute_if.execute decode_execute_if,
   ooo_execute_commit_if.execute execute_commit_if,
   //jump_calc_if.execute jump_if,
@@ -87,6 +88,41 @@ module ooo_execute_stage(
   assign hazard_if.illegal_insn = cb_if.illegal_insn;
   assign hazard_if.mal_insn     = cb_if.mal_insn;
   assign hazard_if.resolved_pc   = resolved_addr + 4;
+
+  /*******************************************************
+  *** Fence
+  *******************************************************/ 
+  assign hazard_if.ifence_ex = decode_execute_if.ifence;
+  assign hazard_if.ifence_cache_flushing = flushing_icache | flushing_dcache | decode_execute_if.ifence;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) 
+      flushing_icache <= 1'b0;
+    else if (cc_if.iflush_done) 
+      flushing_icache <= 1'b0;
+    else if (decode_execute_if.ifence)
+      flushing_icache <= 1'b1;
+  end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST)
+      flushing_dcache <= 1'b0;
+    else if (cc_if.dflush_done)
+      flushing_dcache <= 1'b0;
+    else if (decode_execute_if.ifence)
+      flushing_dcache <= 1'b1;
+  end
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      hazard_if.ifence_pc <= '0;
+      hazard_if.ifence_flush <= 1'b0;
+    end else if (decode_execute_if.ifence) begin
+      hazard_if.ifence_pc <= decode_execute_if.pc;
+      hazard_if.ifence_flush <= 1'b1;
+    end else if (~flushing_dcache & ~flushing_icache) begin
+      hazard_if.ifence_flush <= 1'b0;
+    end
+  end
   
   /*******************************************************
   *** Arithmetic Unit
@@ -195,6 +231,7 @@ module ooo_execute_stage(
     .CLK(CLK),
     .nRST(nRST),
     .halt(halt), // halt should no longer be resolved here 
+    .fence(hazard_if.ifence_flush),
     .dgen_bus_if(dgen_bus_if),
     .hazard_if(hazard_if), 
     .lsif(lsif)
@@ -432,20 +469,12 @@ module ooo_execute_stage(
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
-      ready_a_reg <= 1'b0;
-    else 
-      ready_a_reg <= ready_a_temp;
-  end
-
-  always_ff @ (posedge CLK, negedge nRST) begin
-    if (~nRST)
       update_pc_wait_ihit_reg <= 1'b0;
     else 
       update_pc_wait_ihit_reg <= hazard_if.update_pc_wait_ihit;
   end
 
   assign mal_pulse = lsif.mal_addr & ~mal_reg;
-  assign ready_a_pulse = ready_a_temp & ~ready_a_reg;
   assign valid_pc  = decode_execute_if.lsu_sigs.opcode != opcode_t'('h0);
 
   //assign index_a   = auif.index_a;

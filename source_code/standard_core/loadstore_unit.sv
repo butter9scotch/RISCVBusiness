@@ -30,7 +30,7 @@
 
 
 module loadstore_unit (
-  input logic CLK, nRST, halt,
+  input logic CLK, nRST, halt, fence,
   generic_bus_if.cpu dgen_bus_if,
   ooo_hazard_unit_if.execute hazard_if,
   loadstore_unit_if.execute lsif
@@ -102,7 +102,7 @@ module loadstore_unit (
       index_ff1     <= '0;
     end else begin
       //if (hazard_if.ex_mem_flush | (hazard_if.stall_ls & ~stall_mem) | halt ) begin
-      if (hazard_if.loadstore_flush | halt ) begin
+      if (hazard_if.loadstore_flush | halt | fence) begin
         store_data_ff1 <= '0;
         dren_ff1       <= '0;
         dwen_ff1       <= '0;
@@ -204,7 +204,7 @@ module loadstore_unit (
   *******************************************************/
   assign dgen_bus_if.ren     = dren_ff1 & ~mal_addr_ff1;
   assign dgen_bus_if.wen     = dwen_ff1 & ~mal_addr_ff1;
-  assign dgen_bus_if.byte_en = halt ? 4'b1111 : byte_en;
+  assign dgen_bus_if.byte_en = halt | fence ? 4'b1111 : byte_en;
   assign dgen_bus_if.addr    = address_ff1;
   always_comb begin
     dgen_bus_if.wdata = '0;
