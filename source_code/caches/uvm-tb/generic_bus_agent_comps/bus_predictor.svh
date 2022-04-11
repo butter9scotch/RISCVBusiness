@@ -64,12 +64,11 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
     `uvm_info(this.get_name(), $sformatf("Recevied Transaction:\n%s", pred_tx.sprint()), UVM_HIGH)
 
-    `uvm_info(this.get_name(), $sformatf("cache before:\n%p", cache), UVM_HIGH)
+    `uvm_info(this.get_name(), $sformatf("cache before:\n%s", cache.sprint()), UVM_HIGH)
 
     if (pred_tx.rw) begin
       // 1 -> write
       if (pred_tx.addr < `NONCACHE_START_ADDR) begin
-        word_t mask = Utils::byte_mask(pred_tx.byte_en);
         if (cache.exists(pred_tx.addr)) begin
           cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
         end else begin

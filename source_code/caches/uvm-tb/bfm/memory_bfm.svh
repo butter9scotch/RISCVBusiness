@@ -127,12 +127,8 @@ class memory_bfm extends uvm_component;
             count++;
         end
 
-        if (mem.exists(bus_if.addr)) begin
-            word_t mask = Utils::byte_mask(bus_if.byte_en);
-            mem[bus_if.addr] = (bus_if.wdata & mask) | (mem[bus_if.addr] & ~mask);
-        end else begin
-            mem[bus_if.addr] = bus_if.wdata & Utils::byte_mask(bus_if.byte_en);
-        end
+        mem[bus_if.addr] = bus_if.wdata;
+
         bus_if.busy = '0;
     endtask: mem_write
 

@@ -29,6 +29,8 @@
 `define CLK_PERIOD 10
 // time in ps
 `define PROPAGATION_DELAY #(2000);
+// time in ps
+`define MONITOR_DELAY #(3000);
 
 `define NONCACHE_START_ADDR 32'h8000_0000
 

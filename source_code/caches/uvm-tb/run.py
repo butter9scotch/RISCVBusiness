@@ -66,7 +66,7 @@ def parse_arguments():
     parser.add_argument('--gui', '-g', action='store_true',
                         help="Specify whether to run with gui or terminal only")
     parser.add_argument('--verbosity', '-v', type=str, default="low",
-                        choices=["none", "low", "medium", "high", "debug"],
+                        choices=["none", "low", "medium", "high", "full", "debug"],
                         help="Specify the verbosity level to be used for UVM Logging")
     parser.add_argument('--seed', '-s', type=seed_type, default="random",
                         help="Specify starter seed for uvm randomization")
