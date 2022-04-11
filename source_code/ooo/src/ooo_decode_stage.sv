@@ -33,7 +33,7 @@
 `include "ooo_bypass_unit_if.vh"
 
 module ooo_decode_stage (
-  input logic CLK, nRST, halt, ihit,
+  input logic CLK, nRST, halt,
   ooo_fetch_decode_if.decode fetch_decode_if,
   ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
@@ -512,9 +512,6 @@ module ooo_decode_stage (
       end
     end
   end
-
-  //assign hazard_if.instr_wait_ihit = cu_if.branch | cu_if.jump | cu_if.csr_sigs.csr_instr;
-  //assign hazard_if.instr_wait_ihit = 1;
 
   logic [18:0] write_conflict_reg, next_write_conflict_reg;
   logic div_write_conflict_stall;

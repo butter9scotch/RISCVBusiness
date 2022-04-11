@@ -37,7 +37,7 @@ module l1_cache #(
 (
     input logic CLK, nRST,
     input logic clear, flush,
-    output logic clear_done, flush_done, hit,
+    output logic clear_done, flush_done,
     generic_bus_if.cpu mem_gen_bus_if,
     generic_bus_if.generic_bus proc_gen_bus_if
 
@@ -235,7 +235,7 @@ module l1_cache #(
     assign decoded_addr = proc_gen_bus_if.addr;
 
     // Cache Hit
-    logic pass_through;
+    logic hit, pass_through;
     word_t [BLOCK_SIZE - 1:0] hit_data;
     logic hit_idx;
 
@@ -414,6 +414,7 @@ module l1_cache #(
             // therefore, just checking ASSOC in FLUSH_FRAME, and deciding whether to go back to
             // FLUSH_CACHE or stay for cleaning of the another frame is sufficient
             FLUSH_SET: begin 
+                next_cache[set_num].frames[frame_num].valid  = 1'b0;
                 if(finish_frame) begin
                     clr_frame_ctr  = 1'b1;
                     en_set_ctr 	   = 1'b1;
@@ -427,6 +428,7 @@ module l1_cache #(
                 mem_gen_bus_if.wen    = 1'b1;
                 mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
                 mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
+                next_cache[set_num].frames[frame_num].valid  = 1'b0;
                 
                 if(finish_word) begin
                     clr_word_ctr 				 = 1'b1;

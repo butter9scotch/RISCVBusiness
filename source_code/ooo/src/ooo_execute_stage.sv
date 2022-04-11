@@ -39,7 +39,7 @@
 `include "completion_buffer_if.vh"
 
 module ooo_execute_stage(
-  input logic CLK, nRST,halt, ihit,
+  input logic CLK, nRST,halt,
   output logic flushing_icache, flushing_dcache,
   ooo_decode_execute_if.execute decode_execute_if,
   ooo_execute_commit_if.execute execute_commit_if,
@@ -296,7 +296,7 @@ module ooo_execute_stage(
     if (~nRST) begin
       csr_reg <= 1'b0;
       csr_pulse_reg <= 1'b0;
-    end else if (ihit) begin
+    end else if (~hazard_if.i_mem_busy) begin
       csr_reg <= decode_execute_if.csr_sigs.csr_instr;
       csr_pulse_reg <= csr_pulse;
     end
@@ -405,8 +405,6 @@ module ooo_execute_stage(
       end
     end
   end
-
-  assign hazard_if.instr_wait_ihit = decode_execute_if.branch_sigs.branch_instr | decode_execute_if.jump_sigs.jump_instr | decode_execute_if.csr_sigs.csr_instr;
 
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_a;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index_mu;
@@ -590,7 +588,7 @@ module ooo_execute_stage(
         hazard_if.badaddr_d <= '0;
         mal_found <= 0;
         mal_type <= 0;
-    end else if (clear_mal & ihit) begin
+    end else if (clear_mal & ~hazard_if.i_mem_busy) begin
         hazard_if.badaddr_d <= '0;
         mal_found <= '0;
         mal_type <= 0;

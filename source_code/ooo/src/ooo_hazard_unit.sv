@@ -2,7 +2,6 @@
 `include "completion_buffer_if.vh"
 
 module ooo_hazard_unit (
-  input logic ihit, dhit,
   ooo_hazard_unit_if.hazard_unit hazard_if,
   prv_pipeline_if.hazard  prv_pipe_if,
   completion_buffer_if.hu cb_if
@@ -68,12 +67,12 @@ module ooo_hazard_unit (
   assign hazard_if.stall_du = hazard_if.busy_du;
   assign hazard_if.stall_mu = 0;
   assign hazard_if.stall_ls = hazard_if.busy_ls;
-  assign hazard_if.stall_cb = ~ihit;
+  assign hazard_if.stall_cb = hazard_if.i_mem_busy;
 
   assign hazard_if.stall_ex = hazard_if.rob_full | hazard_if.update_pc_wait_ihit;
   assign hazard_if.stall_commit = 0;
   assign hazard_if.fetch_decode_flush = hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.csr_flush | cb_if.flush | hazard_if.ifence_cache_flushing;
-  assign hazard_if.decode_execute_flush = hazard_if.ifence_cache_flushing | ((hazard_if.npc_sel | hazard_if.insert_priv_pc | cb_if.flush) & ihit);
+  assign hazard_if.decode_execute_flush = hazard_if.ifence_cache_flushing | ((hazard_if.npc_sel | hazard_if.insert_priv_pc | cb_if.flush) & ~hazard_if.i_mem_busy);
 
   
   //Branch jump 
@@ -131,7 +130,7 @@ module ooo_hazard_unit (
   assign hazard_if.loadstore_flush = cb_if.flush;
 
 
-  assign prv_pipe_if.pipe_clear   =   hazard_if.intr ? (hazard_if.rob_empty & ihit) : (cb_if.flush | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret) & ihit;
+  assign prv_pipe_if.pipe_clear   =   hazard_if.intr ? (hazard_if.rob_empty & ~hazard_if.i_mem_busy) : (cb_if.flush | hazard_if.breakpoint | hazard_if.env_m | hazard_if.ret) & ~hazard_if.i_mem_busy;
   assign hazard_if.intr_taken = hazard_if.intr & hazard_if.rob_empty;
 
   // assign intr_exception = hazard_if.intr_taken | prv_pipe_if.ret; //TODO÷
@@ -148,7 +147,7 @@ module ooo_hazard_unit (
   //assign hazard_if.ifence_flush = 0;
   assign hazard_if.execute_commit_flush  = hazard_if.csr_flush | cb_if.flush;
 
-  assign hazard_if.update_pc_wait_ihit = (hazard_if.npc_sel | hazard_if.csr_flush | hazard_if.insert_priv_pc | hazard_if.intr_taken) & ~ihit;
+  assign hazard_if.update_pc_wait_ihit = (hazard_if.npc_sel | hazard_if.csr_flush | hazard_if.insert_priv_pc | hazard_if.intr_taken) & hazard_if.i_mem_busy;
 
 
 

@@ -106,7 +106,7 @@ interface ooo_hazard_unit_if();
   );
 
   modport execute (
-    input loadstore_flush, pc_en, execute_commit_flush, dmem_access, intr, intr_taken, stall_commit, update_pc_wait_ihit,
+    input loadstore_flush, pc_en, execute_commit_flush, dmem_access, intr, intr_taken, stall_commit, update_pc_wait_ihit, i_mem_busy,
     output load, stall_ex, jump, branch, mispredict, mispredict_ff, csr, 
            illegal_insn, breakpoint, env_m, ret, token, busy_au, 
            busy_mu, busy_du, busy_ls, brj_addr, csr_pc, resolved_pc,
