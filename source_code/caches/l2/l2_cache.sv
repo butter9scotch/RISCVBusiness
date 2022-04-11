@@ -450,15 +450,14 @@ module l2_cache #(
                     if(proc_gen_bus_if.ren)begin
                         mem_gen_bus_if.ren      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
+                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
                         proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
                     end
                     else if(proc_gen_bus_if.wen)begin
                         mem_gen_bus_if.wen      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
+                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
                         mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
-
                     end 
                 end
                 else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // FETCH
