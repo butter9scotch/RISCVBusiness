@@ -98,9 +98,9 @@ module rv32v_decode_stage (
   // Load store vl calculation to allow parallelism
   assign ls_vl = vcu_if.lumop == LUMOP_UNIT_FULLREG ? total_vl_for_lsreg :
                  vcu_if.nf != '0 ? prv_if.vl :
-                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 2 :
-                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH16 ? prv_if.vl >> 1 :
-                 sew == SEW16 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl >> 1 :
+                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl :
+                 sew == SEW32 && vcu_if.eew_loadstore == WIDTH16 ? prv_if.vl :
+                 sew == SEW16 && vcu_if.eew_loadstore == WIDTH8 ? prv_if.vl :
                  prv_if.vl;
   assign num_ele_each_reg = VLEN >> 5;
   assign num_ele_each_reg1 = num_ele_each_reg + num_ele_each_reg;

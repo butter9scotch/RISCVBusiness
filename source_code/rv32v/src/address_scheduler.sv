@@ -61,14 +61,14 @@ module address_scheduler (
     case(state)
       IDLE:
       begin
-        if (misalign0 & ~asif.segment_type) next_state = EX;
-        else if (asif.load_ena) next_state = LOAD0;
+        //if (misalign0 & ~asif.segment_type) next_state = EX;
+        if (asif.load_ena) next_state = LOAD0;
         else if (asif.store_ena) next_state = STORE0;
       end 
       LOAD0:
       begin
-        if (asif.dhit & misalign1 & ~asif.segment_type) next_state = EX;
-        else if (asif.dhit) next_state = LOAD1;
+        //if (asif.dhit & misalign1 & ~asif.segment_type) next_state = EX;
+        if (asif.dhit) next_state = LOAD1;
       end 
       LOAD1:
       begin
@@ -76,8 +76,9 @@ module address_scheduler (
       end 
       STORE0:
       begin
-        if (asif.dhit & misalign1 & ~asif.segment_type) next_state = EX;
-        else if (asif.dhit) next_state = STORE1;
+        //if (asif.dhit & misalign1 & ~asif.segment_type) next_state = EX;
+        if (asif.dhit && (asif.vl != asif.woffset1)) next_state = STORE1;
+        if (asif.vl == asif.woffset1) next_state = IDLE;
       end 
       STORE1:
       begin
@@ -118,6 +119,9 @@ module address_scheduler (
         asif.final_addr = asif.addr0;
         asif.final_storedata = asif.storedata0; 
         asif.wen = 1;
+        if (asif.vl == asif.woffset1) begin
+          asif.busy = ~asif.dhit;
+        end
       end 
       STORE1:
       begin

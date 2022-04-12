@@ -58,9 +58,59 @@ module rv32v_memory_stage (
                        data0; 
   assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> addr1_shifted :
                        cif.dmemload; 
-  assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
-  assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
-
+//  assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
+//  assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
+  always_comb begin
+    if (execute_memory_if.load_ena) begin
+      case(cif.byte_ena) 
+        4'b1111: begin wdat0 = final_wdat0;  end
+        4'b0011: begin 
+          case(asif.addr0[1:0])
+            2'd0: wdat0 = {16'd0, final_wdat0[15:0]};  
+            2'd2: wdat0 = {16'd0, final_wdat0[31:16]};  
+          endcase
+        end
+        4'b0001: begin 
+          case(asif.addr0[1:0])
+            2'd0: wdat0 = final_wdat0[7:0]; 
+            2'd1: wdat0 = final_wdat0[15:8]; 
+            2'd2: wdat0 = final_wdat0[23:16]; 
+            2'd3: wdat0 = final_wdat0[31:24]; 
+          endcase
+        end
+        default: begin wdat0 = final_wdat0;  end
+      endcase
+    end else begin
+      wdat0 = execute_memory_if.aluresult0;
+    end
+  end
+  
+  always_comb begin
+    if (execute_memory_if.load_ena) begin
+      case(cif.byte_ena) 
+        4'b1111: begin 
+          wdat1 = final_wdat1; 
+          end
+        4'b0011: begin 
+          case (asif.addr1[1:0])
+            2'd0: wdat1 = {16'd0, final_wdat1[15:0]}; 
+            2'd2: wdat1 = {16'd0, final_wdat1[31:16]}; 
+          endcase
+          end
+        4'b0001: begin 
+          case (asif.addr1[1:0])
+            2'd0: wdat1 = final_wdat1[7:0]; 
+            2'd1: wdat1 = final_wdat1[15:8]; 
+            2'd2: wdat1 = final_wdat1[23:16]; 
+            2'd3: wdat1 = final_wdat1[31:24]; 
+          endcase
+          end
+        default: begin wdat1 = final_wdat1; end
+      endcase
+    end else begin
+      wdat1 = execute_memory_if.aluresult1;
+    end
+  end
   // To address scheduler
   assign asif.addr0      = execute_memory_if.aluresult0;
   assign asif.addr1      = execute_memory_if.aluresult1;

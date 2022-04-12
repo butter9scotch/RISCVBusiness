@@ -107,7 +107,7 @@ module rv32v_reorder_buffer # (
   assign ls_em_if.sew     = rob_if.ls_sigs.sew;
 
   assign hu_if.v_done         = rob_if.v_done;
-  assign hu_if.next_v_done    = reached_max_a;
+  assign hu_if.next_v_done    = reached_max_a & rob_if.a_sigs.ready;
   assign flush                = rob_if.branch_mispredict | rob_if.scalar_exception;
   assign head_exception_index = rob[head_sel].exception_index;
   assign head_sew             = rob[head_sel].sew;
@@ -273,15 +273,32 @@ module rv32v_reorder_buffer # (
         case(rob_if.a_sigs.sew)
           SEW32: begin
             next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:64] = rob_if.a_sigs.wdata;
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:8] = {{4{rob_if.a_sigs.wen[1]}}, {4{rob_if.a_sigs.wen[0]}}};
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:4] = {4{rob_if.a_sigs.wen[0]}};
+            if (rob_if.a_sigs.woffset == (rob_if.a_sigs.vl - 1)) begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+4+:4] = 4'd0;
+            end else begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+4+:4] = {4{rob_if.a_sigs.wen[1]}};
+            end
           end
           SEW16: begin 
             next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:32] = {rob_if.a_sigs.wdata[47:32], rob_if.a_sigs.wdata[15:0]};
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:4] = {{2{rob_if.a_sigs.wen[1]}}, {2{rob_if.a_sigs.wen[0]}}};
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:2] = {2{rob_if.a_sigs.wen[0]}};
+            if (rob_if.a_sigs.woffset == (rob_if.a_sigs.vl - 1)) begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+2] = 1'd0;
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+3] = 1'd0;
+            end else begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+2] = rob_if.a_sigs.wen[1];
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+3] = rob_if.a_sigs.wen[1];
+            end
           end
           default: begin
             next_rob[a_em_if.final_index].data[a_em_if.vd_outer_offset+:16] = {rob_if.a_sigs.wdata[39:32], rob_if.a_sigs.wdata[7:0]};
-            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+:2] = rob_if.a_sigs.wen;
+            next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset] = rob_if.a_sigs.wen[0];
+            if (rob_if.a_sigs.woffset == (rob_if.a_sigs.vl - 1)) begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+1] = 1'b0;
+            end else begin
+              next_rob[a_em_if.final_index].wen[a_em_if.vd_wen_offset+1] = rob_if.a_sigs.wen[1];
+            end
           end
         endcase
       end

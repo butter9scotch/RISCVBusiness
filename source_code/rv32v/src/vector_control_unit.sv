@@ -125,7 +125,8 @@ module vector_control_unit
         SEW32 : vcu_if.eew = SEW16;
         SEW16, SEW8: vcu_if.eew = SEW8;
       endcase
-    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED || (vcu_if.mop == MOP_UNIT && vcu_if.nf != '0))) begin
+    //end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED || (vcu_if.mop == MOP_UNIT && vcu_if.nf != '0))) begin
+    end else if ((vcu_if.is_store || vcu_if.is_load) && (vcu_if.mop == MOP_STRIDED || (vcu_if.mop == MOP_UNIT && vcu_if.nf == '0))) begin
       case(vcu_if.eew_loadstore)
         WIDTH32: vcu_if.eew = SEW32;
         WIDTH16: vcu_if.eew = SEW16;
@@ -374,7 +375,7 @@ module vector_control_unit
                             imm_op ? I : V;
 
   
-  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.lumop == LUMOP_UNIT) && (vcu_if.nf != '0) ? 2 : // Segment unit stride
+  assign vcu_if.stride_type =  (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.lumop == LUMOP_UNIT) && (vcu_if.nf == '0) ? 2 : // Segment unit stride
                                (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_STRIDED) ? 1 : // Normal strided or Segment strided
                                 0;
 

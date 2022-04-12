@@ -62,6 +62,7 @@ module tb_RISCVBusiness_self_test ();
     assign interrupt_if.soft_int_clear = '0;
 
     assign test_count = ((DUT.reg_file.registers[28]-1)/2);
+  parameter VLENB = 16;
 
   task display_reg;
     input logic [4:0] rs;
