@@ -1,12 +1,12 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
 *   Created by:   Jacob R. Stevens
 *   Email:        steven69@purdue.edu
 *   Date Created: 11/08/2016
-*   Description: Caches consisting of separate I$ and D$ 
+*   Description: Caches consisting of separate I$ and D$
 */
 
 `include "generic_bus_if.vh"
@@ -27,7 +27,7 @@
 `include "component_selection_defines.vh"
 
 module separate_caches (
-  input logic CLK, nRST, halt_flush, 
+  input logic CLK, nRST, halt_flush,
   output logic ihit, dhit,
   generic_bus_if.cpu icache_mem_gen_bus_if,
   generic_bus_if.cpu dcache_mem_gen_bus_if,
@@ -39,14 +39,16 @@ module separate_caches (
   // ICACHE CONFIG
   parameter ICACHE_SIZE                = 1024;
   parameter ICACHE_BLOCK_SIZE          = 2;
-  parameter ICACHE_ASSOC               = 2; 
+  parameter ICACHE_ASSOC               = 2;
   parameter ICACHE_NONCACHE_START_ADDR = 32'h8FFFFFFF;
 
   // DCACHE CONFIG
   parameter DCACHE_SIZE                = 1024;
   parameter DCACHE_BLOCK_SIZE          = 2;
-  parameter DCACHE_ASSOC               = 2; 
-  parameter DCACHE_NONCACHE_START_ADDR = 32'h8FFFFFFF;
+  parameter DCACHE_ASSOC               = 2;
+  parameter DCACHE_NONCACHE_START_ADDR = 32'h20000; //32'h8FFFFFFF;
+  // NOTE: 0x20000 is made the base of the not cachable address space
+  // so that embench can print the cycles for reporting the  benchmark info
 
   generate
     case (DCACHE_TYPE)
