@@ -98,6 +98,48 @@ class cache_env extends uvm_env;
 `endif
 
 `ifdef TB_L2_CONFIG
+  d_cpu_agent mem_arb_agt; // contains monitor and driver
+  bus_predictor mem_arb_pred; // a reference model to check the result
+  bus_scoreboard mem_arb_score; // scoreboard
+
+  mem_agent mem_agt; // contains monitor
+  bus_predictor mem_pred; // a reference model to check the result
+  bus_scoreboard mem_score; // scoreboard
+
+  end2end e2e; //end to end checker from l2 cache to memory bus
+
+  function void build_phase(uvm_phase phase);
+    mem_arb_agt = d_cpu_agent::type_id::create("MEM_ARB_AGT", this);
+    mem_arb_pred = bus_predictor::type_id::create("MEM_ARB_PRED", this);
+    mem_arb_pred.cache = new("MEM_ARB_PRED_CACHE", env_config, 0);
+    mem_arb_score = bus_scoreboard::type_id::create("MEM_ARB_SCORE", this);
+
+    mem_agt = mem_agent::type_id::create("MEM_AGT", this);
+    mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
+    mem_pred.cache = new("MEM_PRED_CACHE", env_config, 1);
+    mem_score = bus_scoreboard::type_id::create("MEM_SCORE", this);
+
+    e2e = end2end::type_id::create("E2E", this);
+    e2e.cache = new("E2E_CACHE", env_config, 1);
+
+    mem_bfm = memory_bfm::type_id::create("MEM_BFM", this);
+  endfunction
+
+  function void connect_phase(uvm_phase phase);
+    // L1 CACHE AGENT
+    bus_connect(mem_arb_agt, mem_arb_pred, mem_arb_score);
+
+    // MEMORY AGENT
+    bus_connect(mem_agt, mem_pred, mem_score);
+
+    // L1 CACHE <-> MEMORY :: END TO END CHECKER
+    mem_arb_agt.mon.req_ap.connect(e2e.src_req_export);
+    mem_arb_agt.mon.resp_ap.connect(e2e.src_resp_export);
+    mem_agt.mon.resp_ap.connect(e2e.dest_resp_export);
+  endfunction: connect_phase
+`endif
+
+`ifdef TB_FULL_CONFIG
   d_cpu_agent d_cpu_agt; // contains monitor and driver
   bus_predictor d_cpu_pred; // a reference model to check the result
   bus_scoreboard d_cpu_score; // scoreboard

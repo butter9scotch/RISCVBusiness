@@ -78,8 +78,8 @@ def parse_arguments():
                         help="Specify the number of clock cycles before memory returns")
     parser.add_argument('--mmio_latency', type=int, default=2,
                         help="Specify the number of clock cycles before memory mapped IO returns")
-    parser.add_argument('--config', type=str, default="l2",
-                        choices=["l1", "l2"],
+    parser.add_argument('--config', type=str, default="full",
+                        choices=["l1", "l2", "full"],
                         help="Specify the configuration of the testbench to determine which agents and modules are activated")
 
     args = parser.parse_args()
@@ -93,6 +93,8 @@ def build():
         TB_GLOBAL_CONFIG = "TB_L1_CONFIG"
     elif params.config == "l2":
         TB_GLOBAL_CONFIG = "TB_L2_CONFIG"
+    elif params.config == "full":
+        TB_GLOBAL_CONFIG = "TB_FULL_CONFIG"
     else:
         cprint("Invalid testbench configuration: {}".format(params.config), bcolors.FAIL)
         exit()
@@ -113,7 +115,7 @@ def build():
 	    +incdir+env \
 	    +incdir+sequences \
 	    +incdir+tests \
-	    +define+{TB_GLOBAL_CONFIG} \
+	    +define+TB_{TB_GLOBAL_CONFIG}_CONFIG \
 	    +acc \
 	    +cover \
 	    -L {QUESTA_HOME}/uvm-1.2 tb_caches_top.sv 
@@ -124,7 +126,7 @@ def build():
         INCLUDE=SRC + "include",
         PACKAGES=SRC + "packages",
         QUESTA_HOME=os.getenv('QUESTA_HOME'),
-        TB_GLOBAL_CONFIG=TB_GLOBAL_CONFIG
+        TB_GLOBAL_CONFIG=params.config.upper()
     ))
 
     if (res == 0):
@@ -187,6 +189,8 @@ def post_run():
     if params.config == "l1":
         keys = ["seed", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
     elif params.config == "l2":
+        keys = ["seed", "mem_arb_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
+    elif params.config == "full":
         keys = ["seed", "d_cpu_txns", "i_cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
 
     log = {}
@@ -221,6 +225,8 @@ def post_run():
                         log["d_cpu_txns"] = words[i+1]
                     elif words[i-1] == "[CPU_SCORE]":
                         log["cpu_txns"] = words[i+1]
+                    elif words[i-1] == "[MEM_ARB_SCORE]":
+                        log["mem_arb_txns"] = words[i+1]
                 
                 if len(log) == len(keys):
                     break # ignore the rest of the file

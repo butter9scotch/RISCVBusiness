@@ -148,6 +148,10 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
 `endif
 
 `ifdef TB_L2_CONFIG
+ 		seq.start(env.mem_arb_agt.sqr);
+`endif
+
+`ifdef TB_FULL_CONFIG
  		seq.start(env.d_cpu_agt.sqr);
 `endif
 		#5ns;
