@@ -33,7 +33,7 @@
 `include "ooo_bypass_unit_if.vh"
 
 module ooo_decode_stage (
-  input logic CLK, nRST, halt, ihit,
+  input logic CLK, nRST, halt,
   ooo_fetch_decode_if.decode fetch_decode_if,
   ooo_decode_execute_if.decode decode_execute_if,
   rv32i_reg_file_if.decode rf_if,
@@ -49,6 +49,7 @@ module ooo_decode_stage (
   import machine_mode_types_1_11_pkg::*;
 
   logic ebreak_ecall;
+  logic stall_csr;
   assign ebreak_ecall = cu_if.breakpoint | cu_if.ecall_insn | cu_if.ret_insn;
 
   // Interface declarations
@@ -71,9 +72,8 @@ module ooo_decode_stage (
   *******************************************************/
   // posedge detector for ifence
   // subsequent ifences will have same effect as a single fence
-  logic ifence_reg;
+  /*logic ifence_reg;
   logic ifence_pulse;
-  logic stall_csr;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
@@ -86,10 +86,12 @@ module ooo_decode_stage (
   assign cc_if.icache_flush = ifence_pulse;
   assign cc_if.icache_clear = 1'b0;
   assign cc_if.dcache_flush = ifence_pulse;
-  assign cc_if.dcache_clear = 1'b0;
+  assign cc_if.dcache_clear = 1'b0; */
+
+  assign hazard_if.ifence_decode = cu_if.ifence;
 
   //regs to detect flush completion
-  logic dflushed, iflushed;
+  /*logic dflushed, iflushed;
 
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST)
@@ -112,7 +114,7 @@ module ooo_decode_stage (
   assign hazard_if.dflushed = dflushed;
   assign hazard_if.iflushed = iflushed;
   assign hazard_if.ifence = decode_execute_if.ifence;
-  assign hazard_if.ifence_pc = decode_execute_if.pc;
+  assign hazard_if.ifence_pc = decode_execute_if.pc; */
 
 
   /*******************************************************
@@ -122,7 +124,7 @@ module ooo_decode_stage (
   assign rf_if.rs2 = cu_if.reg_rs2;
 
   assign rf_if.rd_decode = cu_if.reg_rd;
-  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.stall_fetch_decode & ~hazard_if.npc_sel & ~stall_csr & ~ebreak_ecall; 
+  assign rf_if.rden = cu_if.wen & ~cu_if.branch & ~hazard_if.stall_fetch_decode & ~hazard_if.npc_sel & ~stall_csr & ~ebreak_ecall & ~hazard_if.ifence_ex; 
   assign rf_if.clear_status = hazard_if.decode_execute_flush;
   
   /*******************************************************
@@ -262,7 +264,7 @@ module ooo_decode_stage (
   *** Completion buffer signals
   *********************************************************/
   logic TODO = 0;
-  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
+  assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall & ~hazard_if.ifence_ex;
   assign cb_if.rv32v_wb_scalar_ena  = TODO;
   assign cb_if.rv32v_instr  = TODO;
   assign cb_if.opcode = cu_if.opcode;
@@ -411,6 +413,7 @@ module ooo_decode_stage (
       decode_execute_if.port_a <= '0; 
       decode_execute_if.port_b <= '0; 
       decode_execute_if.lsu_sigs.opcode <= '0;    
+      decode_execute_if.ifence <= '0;    
     end else begin 
       if(hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex) | halt) begin
         decode_execute_if.pc <= '0;
@@ -419,6 +422,7 @@ module ooo_decode_stage (
         decode_execute_if.port_a <= '0; 
         decode_execute_if.port_b <= '0; 
         decode_execute_if.lsu_sigs.opcode <= '0;
+        decode_execute_if.ifence <= '0;    
       end else if(~hazard_if.stall_ex) begin
         decode_execute_if.pc <= fetch_decode_if.pc;
         decode_execute_if.pc4 <= fetch_decode_if.pc4;
@@ -426,6 +430,7 @@ module ooo_decode_stage (
         decode_execute_if.port_a <= fu_source_a; 
         decode_execute_if.port_b <= fu_source_b; 
         decode_execute_if.lsu_sigs.opcode <= cu_if.opcode;
+        decode_execute_if.ifence <= cu_if.ifence;    
       end
     end
   end
@@ -507,9 +512,6 @@ module ooo_decode_stage (
       end
     end
   end
-
-  //assign hazard_if.instr_wait_ihit = cu_if.branch | cu_if.jump | cu_if.csr_sigs.csr_instr;
-  //assign hazard_if.instr_wait_ihit = 1;
 
   logic [18:0] write_conflict_reg, next_write_conflict_reg;
   logic div_write_conflict_stall;

@@ -28,7 +28,7 @@
 `include "ooo_hazard_unit_if.vh"
 
 module ooo_fetch_stage (
-  input logic CLK, nRST,halt, ihit,
+  input logic CLK, nRST,halt,
   ooo_fetch_decode_if.fetch fetch_decode_if,
   predictor_pipeline_if.access predict_if,
   ooo_hazard_unit_if.fetch hazard_if,
@@ -48,16 +48,15 @@ module ooo_fetch_stage (
   //Get the current PC from fetch stage
   assign pc4 = program_counter_pc + 4;
   assign mal_addr  = (igen_bus_if.addr[1:0] != 2'b00);
-  assign take_new_pc = (predict_if.predict_taken | hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.ifence_flush | hazard_if.csr_flush) & ihit;
+  assign take_new_pc = (predict_if.predict_taken | hazard_if.npc_sel | hazard_if.insert_priv_pc | hazard_if.ifence_flush | hazard_if.csr_flush) & ~(igen_bus_if.busy & igen_bus_if.ren);
 
   //Instruction Access logic
   assign hazard_if.i_mem_busy     = igen_bus_if.busy;
   assign igen_bus_if.addr         = program_counter_pc;
-  assign igen_bus_if.ren          = ~halt; // do this because the read transaction wasn't halting on a new address unless ren went low
+  assign igen_bus_if.ren          = ~halt & ~hazard_if.ifence_cache_flushing; // do this because the read transaction wasn't halting on a new address unless ren went low
   assign igen_bus_if.wen          = 1'b0;
   assign igen_bus_if.byte_en      = 4'b1111;
   assign igen_bus_if.wdata        = '0;
-
 
   // program counter main flop
   always_ff @ (posedge CLK, negedge nRST) begin

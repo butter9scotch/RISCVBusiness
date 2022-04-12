@@ -27,8 +27,7 @@
 `include "component_selection_defines.vh"
 
 module separate_caches (
-  input logic CLK, nRST, halt_flush,
-  output logic ihit, dhit,
+  input logic CLK, nRST, halt_flush, flushing_icache, flushing_dcache,
   generic_bus_if.cpu icache_mem_gen_bus_if,
   generic_bus_if.cpu dcache_mem_gen_bus_if,
   generic_bus_if.generic_bus icache_proc_gen_bus_if,
@@ -57,8 +56,7 @@ module separate_caches (
                           .CLK(CLK),
                           .nRST(nRST),
                           .clear(0),
-                          .flush(halt_flush),
-                          .hit(dhit),
+                          .flush((halt_flush | flushing_dcache) & ~cc_if.dflush_done),
                           .clear_done(cc_if.dclear_done),
                           .flush_done(cc_if.dflush_done),
                           .mem_gen_bus_if(dcache_mem_gen_bus_if),
@@ -95,8 +93,7 @@ module separate_caches (
                           .CLK(CLK),
                           .nRST(nRST),
                           .clear(0),
-                          .flush(0),
-                          .hit(ihit),
+                          .flush(flushing_icache & ~cc_if.iflush_done),
                           .clear_done(cc_if.iclear_done),
                           .flush_done(cc_if.iflush_done),
                           .mem_gen_bus_if(icache_mem_gen_bus_if),

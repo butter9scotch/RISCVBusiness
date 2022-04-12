@@ -80,7 +80,7 @@ module RISCVBusiness (
   ooo_bypass_unit_if bypass_if();
   logic halt;    //JOHN CHANGED THIS
   logic halt_pipe;
-  logic ihit, dhit;
+  logic flushing_icache, flushing_dcache;  
 
 //   ooo_fetch1_stage fetch1_stage (
 //        .CLK(CLK)
@@ -112,7 +112,6 @@ module RISCVBusiness (
       .CLK(CLK)
     ,.nRST(nRST)
     ,.halt(halt_pipe)
-    ,.ihit(ihit)
     ,.fetch_decode_if(fetch_decode_if)
     ,.predict_if(predict_if)
     ,.hazard_if(hazard_if)
@@ -122,7 +121,6 @@ module RISCVBusiness (
    ooo_decode_stage decode_stage (
         .CLK(CLK)
        ,.nRST(nRST)
-       ,.ihit(ihit)
        ,.halt(halt_pipe)
        ,.fetch_decode_if(fetch_decode_if)
        ,.decode_execute_if(decode_execute_if)
@@ -137,7 +135,8 @@ module RISCVBusiness (
         .CLK(CLK)
        ,.nRST(nRST)
        ,.halt(halt_pipe)
-       ,.ihit(ihit)
+       ,.flushing_icache(flushing_icache)
+       ,.flushing_dcache(flushing_dcache)
        ,.decode_execute_if(decode_execute_if)
        ,.execute_commit_if(execute_commit_if)
        //,.jump_if(jump_if)
@@ -186,8 +185,6 @@ module RISCVBusiness (
        .hazard_if(hazard_if)
        ,.prv_pipe_if(prv_pipe_if)
        ,.cb_if(cb_if)
-       ,.ihit(ihit)
-       ,.dhit(dhit)
      );
    
    always @(posedge CLK, negedge nRST)
@@ -227,8 +224,8 @@ module RISCVBusiness (
   separate_caches sep_caches (
     .CLK(CLK),
     .nRST(nRST),
-    .ihit(ihit),
-    .dhit(dhit),
+    .flushing_icache(flushing_icache),
+    .flushing_dcache(flushing_dcache),
     .icache_proc_gen_bus_if(icache_gen_bus_if),
     .icache_mem_gen_bus_if(icache_mc_if),
     .dcache_proc_gen_bus_if(dcache_gen_bus_if),
