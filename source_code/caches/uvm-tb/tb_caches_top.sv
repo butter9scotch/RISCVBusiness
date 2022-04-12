@@ -101,6 +101,25 @@ module tb_caches_top ();
 `endif 
 
 `ifdef TB_L2_CONFIG
+  // L2
+  l2_cache #(
+    .CACHE_SIZE(`L2_CACHE_SIZE),
+    .BLOCK_SIZE(`L2_BLOCK_SIZE),
+    .ASSOC(`L2_ASSOC),
+    .NONCACHE_START_ADDR(`NONCACHE_START_ADDR)
+  ) l2 (
+    .CLK(l2_cif.CLK),
+    .nRST(l2_cif.nRST),
+    .clear(l2_cif.clear),
+    .flush(l2_cif.flush),
+    .clear_done(l2_cif.clear_done),
+    .flush_done(l2_cif.flush_done),
+    .proc_gen_bus_if(arb_l2_bus_if.generic_bus),
+    .mem_gen_bus_if(mem_bus_if.cpu)
+  );
+`endif 
+
+`ifdef TB_FULL_CONFIG
   // Data L1
   l1_cache #(
     .CACHE_SIZE(`L1_CACHE_SIZE),

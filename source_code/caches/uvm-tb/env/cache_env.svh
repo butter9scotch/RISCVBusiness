@@ -36,10 +36,13 @@ import uvm_pkg::*;
 
 `include "d_cpu_agent.svh"
 `include "i_cpu_agent.svh"
+`include "mem_arb_agent.svh"
+
 `include "cpu_transaction.svh" // uvm_sequence_item
 
 `include "mem_agent.svh"
 `include "l2_agent.svh"
+`include "mem_arb_agent.svh"
 
 `include "end2end.svh" // uvm_scoreboard
 
@@ -98,7 +101,7 @@ class cache_env extends uvm_env;
 `endif
 
 `ifdef TB_L2_CONFIG
-  d_cpu_agent mem_arb_agt; // contains monitor and driver
+  mem_arb_agent mem_arb_agt; // contains monitor and driver
   bus_predictor mem_arb_pred; // a reference model to check the result
   bus_scoreboard mem_arb_score; // scoreboard
 
@@ -109,7 +112,7 @@ class cache_env extends uvm_env;
   end2end e2e; //end to end checker from l2 cache to memory bus
 
   function void build_phase(uvm_phase phase);
-    mem_arb_agt = d_cpu_agent::type_id::create("MEM_ARB_AGT", this);
+    mem_arb_agt = mem_arb_agent::type_id::create("MEM_ARB_AGT", this);
     mem_arb_pred = bus_predictor::type_id::create("MEM_ARB_PRED", this);
     mem_arb_pred.cache = new("MEM_ARB_PRED_CACHE", env_config, 0);
     mem_arb_score = bus_scoreboard::type_id::create("MEM_ARB_SCORE", this);
