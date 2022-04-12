@@ -62,6 +62,7 @@ def parse_arguments():
     parser.add_argument('--build', action="store_true",
                         help="Build project without run")
     parser.add_argument('--testcase', '-t', type=str, default="random",
+                        choices=["nominal", "evict", "index", "mmio", "random"],
                         help="Specify name of the uvm test")
     parser.add_argument('--gui', '-g', action='store_true',
                         help="Specify whether to run with gui or terminal only")
