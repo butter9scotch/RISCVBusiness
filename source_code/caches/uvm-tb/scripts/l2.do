@@ -110,8 +110,54 @@ add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/CLK
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/nRST
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/state
 add wave -noupdate -group mem_arb /tb_caches_top/mem_arb/next_state
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/CACHE_SIZE
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/BLOCK_SIZE
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/ASSOC
+add wave -noupdate -group l2 -group params /tb_caches_top/l2/NONCACHE_START_ADDR
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_TOTAL_FRAMES
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_SETS
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_FRAME_BITS
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_SET_BITS
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_BLOCK_BITS
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/N_TAG_BITS
+add wave -noupdate -group l2 -group params -radix decimal /tb_caches_top/l2/FRAME_SIZE
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/CLK
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/nRST
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/clear
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/flush
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/clear_done
+add wave -noupdate -group l2 -group if /tb_caches_top/l2/flush_done
+add wave -noupdate -group l2 /tb_caches_top/l2/set_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_set_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_set_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_set_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/frame_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_frame_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_frame_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_frame_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/word_num
+add wave -noupdate -group l2 /tb_caches_top/l2/next_word_num
+add wave -noupdate -group l2 /tb_caches_top/l2/en_word_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/clr_word_ctr
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_word
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_frame
+add wave -noupdate -group l2 /tb_caches_top/l2/finish_set
+add wave -noupdate -group l2 /tb_caches_top/l2/state
+add wave -noupdate -group l2 /tb_caches_top/l2/next_state
+add wave -noupdate -group l2 /tb_caches_top/l2/cache
+add wave -noupdate -group l2 /tb_caches_top/l2/next_cache
+add wave -noupdate -group l2 /tb_caches_top/l2/decoded_addr
+add wave -noupdate -group l2 /tb_caches_top/l2/hit
+add wave -noupdate -group l2 /tb_caches_top/l2/pass_through
+add wave -noupdate -group l2 /tb_caches_top/l2/hit_data
+add wave -noupdate -group l2 /tb_caches_top/l2/hit_idx
+add wave -noupdate -group l2 /tb_caches_top/l2/lru
+add wave -noupdate -group l2 /tb_caches_top/l2/nextlru
+add wave -noupdate -group l2 /tb_caches_top/l2/ridx
+add wave -noupdate -group l2 /tb_caches_top/l2/read_addr
+add wave -noupdate -group l2 /tb_caches_top/l2/next_read_addr
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {319289 ps} 0}
+WaveRestoreCursors {{Cursor 1} {198037 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -127,4 +173,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {115500 ps}
+WaveRestoreZoom {0 ps} {220500 ps}

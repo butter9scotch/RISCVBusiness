@@ -71,9 +71,12 @@ class cache_model extends uvm_object;
 
     cache_env_config env_config;
 
-    function new(string name = "cache_model", cache_env_config env_config);
+    bit ignore_mask;
+
+    function new(string name = "cache_model", cache_env_config env_config, bit ignore_mask);
         super.new(name);
         this.env_config = env_config;
+        this.ignore_mask = ignore_mask;
     endfunction
 
     function word_t get_base_addr(word_t addr);
@@ -88,8 +91,13 @@ class cache_model extends uvm_object;
             // cache block formation started
             `uvm_error(this.get_name(), $sformatf("Attempted to insert item from cache that already exists:\ncache[%h]=%h", addr, data))
         end else begin
+            word_t m_data;
             word_t mask = Utils::byte_mask(byte_en);
-            word_t m_data = (mask & data) | (~mask & read(addr));
+            if (ignore_mask) begin
+                m_data = data;
+            end else begin
+                m_data = (mask & data) | (~mask & read(addr));
+            end
             if (!blocks.exists(base)) begin
                 blocks[base] = new();
             end
@@ -108,9 +116,14 @@ class cache_model extends uvm_object;
 
     function void update(word_t addr, word_t data, logic[3:0] byte_en);
         if (exists(addr)) begin
+            word_t m_data;
             word_t base = get_base_addr(addr);
             word_t mask = Utils::byte_mask(byte_en);
-            word_t m_data = (mask & data) | (~mask & read(addr));
+            if (ignore_mask) begin
+                m_data = data;
+            end else begin
+                m_data = (mask & data) | (~mask & read(addr));
+            end
             blocks[base].words[addr] = m_data;
         end else begin
             `uvm_error(this.get_name(), $sformatf("Attempted to update item from cache that DNE:\ncache[%h]=%h", addr, data))

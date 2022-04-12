@@ -99,6 +99,7 @@ class bus_monitor extends uvm_monitor;
       int cycle;
 
       @(posedge cif.CLK);
+      `MONITOR_DELAY // delay to pick up new value from bus
 
       if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
@@ -121,7 +122,8 @@ class bus_monitor extends uvm_monitor;
         cycle = 0; 
         while (bus_if.busy) begin
           @(posedge cif.CLK);
-          cycle++; //wait for memory to return
+          `MONITOR_DELAY // delay to pick up new value from bus
+          cycle++;  //wait for memory to return
           if (cycle > env_config.mem_timeout) begin
             `uvm_fatal(this.get_name(), "memory timeout reached")
           end
@@ -132,7 +134,7 @@ class bus_monitor extends uvm_monitor;
         end
 
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
-        #(precedence); //delay to give precedence
+        // #(precedence); //delay to give precedence
         resp_ap.write(tx);
       end
     end

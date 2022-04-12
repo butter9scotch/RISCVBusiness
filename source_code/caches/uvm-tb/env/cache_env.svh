@@ -69,16 +69,16 @@ class cache_env extends uvm_env;
   function void build_phase(uvm_phase phase);
     cpu_agt = d_cpu_agent::type_id::create("CPU_AGT", this);
     cpu_pred = bus_predictor::type_id::create("CPU_PRED", this);
-    cpu_pred.cache = new("CPU_PRED_CACHE", env_config);
+    cpu_pred.cache = new("CPU_PRED_CACHE", env_config, 0);
     cpu_score = bus_scoreboard::type_id::create("CPU_SCORE", this);
 
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
     mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
-    mem_pred.cache = new("MEM_PRED_CACHE", env_config);
+    mem_pred.cache = new("MEM_PRED_CACHE", env_config, 1);
     mem_score = bus_scoreboard::type_id::create("MEM_SCORE", this);
 
     e2e = end2end::type_id::create("E2E", this);
-    e2e.cache = new("E2E_CACHE", env_config);
+    e2e.cache = new("E2E_CACHE", env_config, 1);
 
     mem_bfm = memory_bfm::type_id::create("MEM_BFM", this);
   endfunction
@@ -98,6 +98,48 @@ class cache_env extends uvm_env;
 `endif
 
 `ifdef TB_L2_CONFIG
+  d_cpu_agent mem_arb_agt; // contains monitor and driver
+  bus_predictor mem_arb_pred; // a reference model to check the result
+  bus_scoreboard mem_arb_score; // scoreboard
+
+  mem_agent mem_agt; // contains monitor
+  bus_predictor mem_pred; // a reference model to check the result
+  bus_scoreboard mem_score; // scoreboard
+
+  end2end e2e; //end to end checker from l2 cache to memory bus
+
+  function void build_phase(uvm_phase phase);
+    mem_arb_agt = d_cpu_agent::type_id::create("MEM_ARB_AGT", this);
+    mem_arb_pred = bus_predictor::type_id::create("MEM_ARB_PRED", this);
+    mem_arb_pred.cache = new("MEM_ARB_PRED_CACHE", env_config, 0);
+    mem_arb_score = bus_scoreboard::type_id::create("MEM_ARB_SCORE", this);
+
+    mem_agt = mem_agent::type_id::create("MEM_AGT", this);
+    mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
+    mem_pred.cache = new("MEM_PRED_CACHE", env_config, 1);
+    mem_score = bus_scoreboard::type_id::create("MEM_SCORE", this);
+
+    e2e = end2end::type_id::create("E2E", this);
+    e2e.cache = new("E2E_CACHE", env_config, 1);
+
+    mem_bfm = memory_bfm::type_id::create("MEM_BFM", this);
+  endfunction
+
+  function void connect_phase(uvm_phase phase);
+    // L1 CACHE AGENT
+    bus_connect(mem_arb_agt, mem_arb_pred, mem_arb_score);
+
+    // MEMORY AGENT
+    bus_connect(mem_agt, mem_pred, mem_score);
+
+    // L1 CACHE <-> MEMORY :: END TO END CHECKER
+    mem_arb_agt.mon.req_ap.connect(e2e.src_req_export);
+    mem_arb_agt.mon.resp_ap.connect(e2e.src_resp_export);
+    mem_agt.mon.resp_ap.connect(e2e.dest_resp_export);
+  endfunction: connect_phase
+`endif
+
+`ifdef TB_FULL_CONFIG
   d_cpu_agent d_cpu_agt; // contains monitor and driver
   bus_predictor d_cpu_pred; // a reference model to check the result
   bus_scoreboard d_cpu_score; // scoreboard
@@ -121,32 +163,32 @@ class cache_env extends uvm_env;
   function void build_phase(uvm_phase phase);
     d_cpu_agt = d_cpu_agent::type_id::create("D_CPU_AGT", this);
     d_cpu_pred = bus_predictor::type_id::create("D_CPU_PRED", this);
-    d_cpu_pred.cache = new("D_CPU_PRED_CACHE", env_config);
+    d_cpu_pred.cache = new("D_CPU_PRED_CACHE", env_config, 0);
     d_cpu_score = bus_scoreboard::type_id::create("D_CPU_SCORE", this);
 
     i_cpu_agt = i_cpu_agent::type_id::create("I_CPU_AGT", this);
     i_cpu_pred = bus_predictor::type_id::create("I_CPU_PRED", this);
-    i_cpu_pred.cache = new("I_CPU_PRED_CACHE", env_config);
+    i_cpu_pred.cache = new("I_CPU_PRED_CACHE", env_config, 0);
     i_cpu_score = bus_scoreboard::type_id::create("I_CPU_SCORE", this);
 
     l2_agt = l2_agent::type_id::create("L2_AGT", this);
     l2_pred = bus_predictor::type_id::create("L2_PRED", this);
-    l2_pred.cache = new("L2_PRED_CACHE", env_config);
+    l2_pred.cache = new("L2_PRED_CACHE", env_config, 1);
     l2_score = bus_scoreboard::type_id::create("L2_SCORE", this);
 
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
     mem_pred = bus_predictor::type_id::create("MEM_PRED", this);
-    mem_pred.cache = new("MEM_PRED_CACHE", env_config);
+    mem_pred.cache = new("MEM_PRED_CACHE", env_config, 1);
     mem_score = bus_scoreboard::type_id::create("MEM_SCORE", this);
 
     dl1_l2_e2e = end2end::type_id::create("DL1_L2_E2E", this);
-    dl1_l2_e2e.cache = new("DL1_L2_E2E_CACHE", env_config);
+    dl1_l2_e2e.cache = new("DL1_L2_E2E_CACHE", env_config, 1);
 
     il1_l2_e2e = end2end::type_id::create("IL1_L2_E2E", this);
-    il1_l2_e2e.cache = new("IL1_L2_E2E_CACHE", env_config);
+    il1_l2_e2e.cache = new("IL1_L2_E2E_CACHE", env_config, 1);
 
     l2_mem_e2e = end2end::type_id::create("L2_MEM_E2E", this);
-    l2_mem_e2e.cache = new("L2_MEM_E2E_CACHE", env_config);
+    l2_mem_e2e.cache = new("L2_MEM_E2E_CACHE", env_config, 1);
 
     mem_bfm = memory_bfm::type_id::create("MEM_BFM", this);
   endfunction

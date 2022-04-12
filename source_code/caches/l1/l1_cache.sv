@@ -241,6 +241,8 @@ module l1_cache #(
 
     always_comb begin
         hit 	      = 1'b0;
+        hit_idx         = '0;
+        hit_data        = '0;
         pass_through  = 1'b0;
 
         if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR) begin
@@ -290,7 +292,7 @@ module l1_cache #(
         clr_word_ctr 	        = 1'b0;
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
-        // flush_done 	            = 1'b0; //Duplicated?
+        clear_done 	            = 1'b0;
 
        	if(ASSOC == 1) begin
 	        ridx  = 1'b0;

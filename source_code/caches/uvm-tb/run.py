@@ -59,12 +59,14 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Build and Run the UVM Testbench for the cache hierarchy")
     parser.add_argument('--clean', action="store_true",
                         help="Remove build artifacts")
+    parser.add_argument('--build', action="store_true",
+                        help="Build project without run")
     parser.add_argument('--testcase', '-t', type=str, default="random",
                         help="Specify name of the uvm test")
     parser.add_argument('--gui', '-g', action='store_true',
                         help="Specify whether to run with gui or terminal only")
     parser.add_argument('--verbosity', '-v', type=str, default="low",
-                        choices=["none", "low", "medium", "high", "debug"],
+                        choices=["none", "low", "medium", "high", "full", "debug"],
                         help="Specify the verbosity level to be used for UVM Logging")
     parser.add_argument('--seed', '-s', type=seed_type, default="random",
                         help="Specify starter seed for uvm randomization")
@@ -76,8 +78,8 @@ def parse_arguments():
                         help="Specify the number of clock cycles before memory returns")
     parser.add_argument('--mmio_latency', type=int, default=2,
                         help="Specify the number of clock cycles before memory mapped IO returns")
-    parser.add_argument('--config', type=str, default="l2",
-                        choices=["l1", "l2"],
+    parser.add_argument('--config', type=str, default="full",
+                        choices=["l1", "l2", "full"],
                         help="Specify the configuration of the testbench to determine which agents and modules are activated")
 
     args = parser.parse_args()
@@ -91,6 +93,8 @@ def build():
         TB_GLOBAL_CONFIG = "TB_L1_CONFIG"
     elif params.config == "l2":
         TB_GLOBAL_CONFIG = "TB_L2_CONFIG"
+    elif params.config == "full":
+        TB_GLOBAL_CONFIG = "TB_FULL_CONFIG"
     else:
         cprint("Invalid testbench configuration: {}".format(params.config), bcolors.FAIL)
         exit()
@@ -111,7 +115,7 @@ def build():
 	    +incdir+env \
 	    +incdir+sequences \
 	    +incdir+tests \
-	    +define+{TB_GLOBAL_CONFIG} \
+	    +define+TB_{TB_GLOBAL_CONFIG}_CONFIG \
 	    +acc \
 	    +cover \
 	    -L {QUESTA_HOME}/uvm-1.2 tb_caches_top.sv 
@@ -122,7 +126,7 @@ def build():
         INCLUDE=SRC + "include",
         PACKAGES=SRC + "packages",
         QUESTA_HOME=os.getenv('QUESTA_HOME'),
-        TB_GLOBAL_CONFIG=TB_GLOBAL_CONFIG
+        TB_GLOBAL_CONFIG=params.config.upper()
     ))
 
     if (res == 0):
@@ -136,7 +140,6 @@ def run():
         tb_caches_top -L
 	    {QUESTA_HOME}/uvm-1.2
 	    -voptargs=+acc
-	    -coverage
 	    -sv_seed {SEED}
 	    +UVM_TESTNAME={TESTCASE}_test
 	    +UVM_VERBOSITY=UVM_{VERBOSITY}
@@ -186,6 +189,8 @@ def post_run():
     if params.config == "l1":
         keys = ["seed", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
     elif params.config == "l2":
+        keys = ["seed", "mem_arb_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
+    elif params.config == "full":
         keys = ["seed", "d_cpu_txns", "i_cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
 
     log = {}
@@ -220,6 +225,8 @@ def post_run():
                         log["d_cpu_txns"] = words[i+1]
                     elif words[i-1] == "[CPU_SCORE]":
                         log["cpu_txns"] = words[i+1]
+                    elif words[i-1] == "[MEM_ARB_SCORE]":
+                        log["mem_arb_txns"] = words[i+1]
                 
                 if len(log) == len(keys):
                     break # ignore the rest of the file
@@ -276,12 +283,15 @@ if __name__ == '__main__':
 
     build()
 
+    if (params.build):
+        exit() # stop after build
+
     run()
 
     cprint("Running Post Run Script...", bcolors.LOG)
 
     # print parameters
-    skip = ["verbosity", "gui", "clean", "seed"]
+    skip = ["verbosity", "gui", "clean", "seed", "build"]
     for arg in vars(params):
         if arg in skip:
             continue #skip showing in info
