@@ -345,7 +345,6 @@ module l1_cache #(
                         proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
                     end
                     else if(proc_gen_bus_if.wen)begin
-                        $display("l1 wen");
                         //mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata; //non byte enable
                         mem_gen_bus_if.wen      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
