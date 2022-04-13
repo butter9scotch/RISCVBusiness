@@ -71,7 +71,7 @@ module l2_cache #(
 
     // FSM type
     typedef enum { 
-       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, /*for debugging*/ERROR, SEND                     //NEED TO UPDATE
+       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, /*for debugging*/ERROR, SEND, PRE_IDLE                     //NEED TO UPDATE
     } fsm_t;
     
     // Cache address decode type
@@ -89,7 +89,29 @@ module l2_cache #(
     } victim_t;
 
     //Declarations
+   logic 		  next_proc_gen_bus_if_busy;
+  
+ word_t 		  next_proc_gen_bus_if_rdata ;
+   
+  word_t  next_mem_gen_bus_if_wdata, fwd_wdata;
+   
+   logic 		  next_mem_gen_bus_if_ren  ;
     
+   logic 		  next_mem_gen_bus_if_wen    ;
+ 
+   logic [RAM_ADDR_SIZE -1 :0] next_mem_gen_bus_if_addr  ;
+ 
+   logic [3:0] 		       next_mem_gen_bus_if_byte_en;
+   logic 		       fwd_ren;
+   logic                       fwd_wen;
+   logic 		       fwd_hit;
+   logic 		       fwd_pass_through;
+   logic 		       fwd_dirty;
+   logic                       fwd_finish_word;
+   logic 		       fwd_mem_busy;
+ 		       
+   
+   
 
     // Set Counter
     logic [12:0] set_num, next_set_num;
@@ -114,7 +136,7 @@ module l2_cache #(
     cache_sets next_cache [N_SETS - 1:0];
 
     //Decode incoming addr
-    decoded_addr_t decoded_addr;
+    decoded_addr_t decoded_addr, fwd_decoded_addr;
     assign decoded_addr = proc_gen_bus_if.addr;
 
     // Cache Hit signals
@@ -327,7 +349,7 @@ module l2_cache #(
     ///////////////////////////////////////////////////////////////////////////////
     always_ff @(posedge CLK, negedge nRST)begin : State_Logic_FF
         if(~nRST)begin
-            state <= IDLE; //Cache state machine reset state
+            state <= PRE_IDLE; //Cache state machine reset state
         end
         else begin
             state <= next_state; //update FSM
@@ -338,28 +360,36 @@ module l2_cache #(
         next_state = state;
         
         casez(state)
+	    PRE_IDLE: begin
+	       if(proc_gen_bus_if.wen || proc_gen_bus_if.ren || pass_through)
+		 next_state = IDLE;
+	       end
             IDLE: begin
                 ridx = lru[decoded_addr.set_bits].v; // set replacement index
-                if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                if((fwd_ren || fwd_wen) && ~fwd_hit && fwd_dirty && ~fwd_pass_through) begin
                     next_state 	= WB;
                 end
-                else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+                else if((fwd_ren || fwd_wen) && ~fwd_hit && ~fwd_dirty && ~fwd_pass_through) begin
                     next_state 	= FETCH;
                 end
                 else if(flush) begin
                     next_state 	= FLUSH_CACHE;
                 end
-		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && hit && ~pass_through) begin
-                    next_state 	= IDLE;
-                end
+		else if((fwd_ren || fwd_wen) && fwd_hit && ~fwd_pass_through) begin
+                    next_state 	= PRE_IDLE;
+		end
+		else
+		  next_state = PRE_IDLE;
+	       
+			  
             end 
             FETCH: begin
-                if(finish_word) begin
-                    next_state 	= IDLE;
+                if(fwd_finish_word) begin
+                    next_state 	= PRE_IDLE;
                 end
             end
             WB: begin
-                if(finish_word) begin
+                if(fwd_finish_word) begin
                     next_state 	= FETCH;
                 end
             end
@@ -404,15 +434,61 @@ module l2_cache #(
         end
     end // end next cache always_ff
 
+    always_ff @(posedge CLK, negedge nRST) begin: Flopped_Outputs
+       if(~nRST) begin
+	  proc_gen_bus_if.busy <= '1;
+	  proc_gen_bus_if.rdata <= '0;
+	  mem_gen_bus_if.ren <= '0;
+	  mem_gen_bus_if.wen <= '0;
+	  mem_gen_bus_if.addr <= '0;
+	  mem_gen_bus_if.byte_en <= '0;
+	  mem_gen_bus_if.wdata <= '0;
+	  fwd_ren <= '0;
+	  fwd_wen <= '0;
+	  fwd_hit <= '0;
+	  fwd_dirty <= '0;
+	  fwd_pass_through <= '0;
+	  fwd_finish_word <= '0;
+	  fwd_mem_busy <= '0;
+	  fwd_decoded_addr <= '0;
+	  fwd_wdata <= '0;
+	  
+	  
+	  
+	  
+       end
+       else begin
+	 proc_gen_bus_if.busy <= next_proc_gen_bus_if_busy;
+	  proc_gen_bus_if.rdata <= next_proc_gen_bus_if_rdata;
+	  mem_gen_bus_if.ren <= next_mem_gen_bus_if_ren;
+	  mem_gen_bus_if.wen <= next_mem_gen_bus_if_wen;
+	  mem_gen_bus_if.addr <= next_mem_gen_bus_if_addr;
+	  mem_gen_bus_if.byte_en <= next_mem_gen_bus_if_byte_en;
+	  mem_gen_bus_if.wdata <= next_mem_gen_bus_if_wdata;
+	  fwd_ren <= proc_gen_bus_if.ren;
+	  fwd_wen <= proc_gen_bus_if.wen;
+	  fwd_hit <= hit;
+	  fwd_dirty <= cache[decoded_addr.set_bits].frames[ridx].dirty;
+	  fwd_pass_through <= pass_through;
+	  fwd_finish_word <= finish_word;
+	  fwd_mem_busy <= mem_gen_bus_if.busy;
+	  fwd_decoded_addr <= decoded_addr;
+	  fwd_wdata <= proc_gen_bus_if.wdata;
+	  
+       end // else: !if(~nRST)
+    end // block: Flopped_Outputs
+   
 
     always_comb begin : output_comb
-        proc_gen_bus_if.busy    = 1'b1;
-        proc_gen_bus_if.rdata   = '0;
-        mem_gen_bus_if.ren      = 1'b0;
-        mem_gen_bus_if.wen      = 1'b0;
-        mem_gen_bus_if.addr     = '0;
-        mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en;
-        next_read_addr          = read_addr;   
+        next_proc_gen_bus_if_busy    = 1'b1;
+        next_proc_gen_bus_if_rdata   = '0;
+        next_mem_gen_bus_if_ren      = 1'b0;
+        next_mem_gen_bus_if_wen      = 1'b0;
+        next_mem_gen_bus_if_addr     = '0;
+        next_mem_gen_bus_if_byte_en  = proc_gen_bus_if.byte_en;
+       next_mem_gen_bus_if_wdata = '0;
+       
+        next_read_addr          = read_addr;  
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
@@ -434,80 +510,119 @@ module l2_cache #(
         end
 
         casez(state)
-            IDLE: begin
-	            next_read_addr = decoded_addr;       
+	    PRE_IDLE: begin
+	          //  next_read_addr = decoded_addr;       
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
-                    proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
-                    proc_gen_bus_if.rdata 		   = hit_data;
+                    next_proc_gen_bus_if_busy 		   = 1'b0; // Set bus to not busy
+                    next_proc_gen_bus_if_rdata 		   = hit_data;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
-                    proc_gen_bus_if.busy = 1'b0;
-                    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
-                    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]      =proc_gen_bus_if.wdata;
-		            proc_gen_bus_if.rdata = hit_data[decoded_addr.block_bits];
+                    next_proc_gen_bus_if_busy = 1'b0;
+                    //next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
+                    //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]      =proc_gen_bus_if.wdata;
+		            next_proc_gen_bus_if_rdata = hit_data[decoded_addr.block_bits];
                 end // if (proc_gen_bus_if.wen && hit
 		        else if(pass_through)begin // Passthrough data logic
                     if(proc_gen_bus_if.ren)begin
-                        mem_gen_bus_if.ren      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
-                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
+                        next_mem_gen_bus_if_ren      = 1'b1;
+                        next_mem_gen_bus_if_addr     = proc_gen_bus_if.addr;
+                        next_proc_gen_bus_if_busy    = mem_gen_bus_if.busy;
+                        next_proc_gen_bus_if_rdata   = mem_gen_bus_if.rdata;
                     end
                     else if(proc_gen_bus_if.wen)begin
-                        mem_gen_bus_if.wen      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
-                        mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
+                        next_mem_gen_bus_if_wen      = 1'b1;
+                        next_mem_gen_bus_if_addr     = proc_gen_bus_if.addr;
+                        next_proc_gen_bus_if_busy    = mem_gen_bus_if.busy;
+                        next_mem_gen_bus_if_wdata    = proc_gen_bus_if.wdata;
                     end 
                 end
                 else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // FETCH
-                    next_read_addr = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-                    proc_gen_bus_if.busy = 1'b1;
+                   // next_read_addr = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                    next_proc_gen_bus_if_busy = 1'b1;
 
                 end 
                 else if ((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // WB
-                    next_read_addr = {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
-                    proc_gen_bus_if.busy = 1'b1;
+                    //next_read_addr = {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                    next_proc_gen_bus_if_busy = 1'b1;
 
                 end		       
+	    end
+	  
+            IDLE: begin
+	            next_read_addr = fwd_decoded_addr;       
+                if(fwd_ren && fwd_hit) begin // if read enable and hit
+                  //  next_proc_gen_bus_if_busy 		   = 1'b0; // Set bus to not busy
+                 //   next_proc_gen_bus_if_rdata 		   = hit_data;
+                end
+                else if(fwd_wen && fwd_hit) begin // if write enable and hit
+                   // next_proc_gen_bus_if_busy = 1'b0;
+                    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
+                    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]      =fwd_wdata;
+		           // next_proc_gen_bus_if_rdata = hit_data[decoded_addr.block_bits];
+                end // if (proc_gen_bus_if.wen && hit
+		     
+                else if ((fwd_ren || fwd_wen) && ~fwd_hit && ~fwd_dirty && ~fwd_pass_through) begin // FETCH
+                    next_read_addr = {fwd_decoded_addr.tag_bits, fwd_decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+		   
+                    next_mem_gen_bus_if_addr  = read_addr;
+                   // next_proc_gen_bus_if_busy = 1'b1;
+		   if (finish_word)
+		      next_mem_gen_bus_if_ren   = 1'b0;
+		   else
+		      next_mem_gen_bus_if_ren   = 1'b1;
+
+                end 
+                else if ((fwd_ren || fwd_wen) && ~fwd_hit && fwd_dirty && ~fwd_pass_through) begin // WB
+                    next_read_addr = {cache[fwd_decoded_addr.set_bits].frames[ridx].tag, fwd_decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
+                next_mem_gen_bus_if_addr   = read_addr; 
+                next_mem_gen_bus_if_wdata  = cache[fwd_decoded_addr.set_bits].frames[ridx].data[word_num];
+		     if (finish_word)
+		      next_mem_gen_bus_if_wen   = 1'b0;
+		   else
+		      next_mem_gen_bus_if_wen   = 1'b1;
+
+                    //next_proc_gen_bus_if_busy = 1'b1;
+
+                end
+	
             end
             FETCH: begin
-                mem_gen_bus_if.ren   = 1'b1;
-                mem_gen_bus_if.addr  = read_addr;
+               // next_mem_gen_bus_if_ren   = 1'b1;
+                //next_mem_gen_bus_if_addr  = read_addr;
                 
-                if(finish_word) begin
+                if(fwd_finish_word) begin
                     clr_word_ctr 					  = 1'b1;
                     next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
                     next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
-                    mem_gen_bus_if.ren 					  = 1'b0;
+                    //next_mem_gen_bus_if_ren 					  = 1'b0;
                 end
-                else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                else if(~fwd_mem_busy && ~fwd_finish_word) begin
                     en_word_ctr 						   = 1'b1;
                     next_read_addr 						   = read_addr + 4;
                     next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
                 end 
             end// end FETCH
             WB: begin
-                mem_gen_bus_if.wen    = 1'b1;
+               // next_mem_gen_bus_if_wen    = 1'b1;
 		        //next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
-                mem_gen_bus_if.addr   = read_addr; 
-                mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+               // next_mem_gen_bus_if_addr   = read_addr; 
+               // next_mem_gen_bus_if_wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
                
  
-                if(finish_word) begin
+                if(fwd_finish_word) begin
                     clr_word_ctr 					  = 1'b1;
                     next_read_addr 					  = {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; //TODO: CHECK THIS, ADDED BY VERIFICATION
                     next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
-                    mem_gen_bus_if.wen 					  = 1'b0;
+                    //next_mem_gen_bus_if_wen 					  = 1'b0;
                 end
-                else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                else if(~fwd_mem_busy && ~fwd_finish_word) begin
                     en_word_ctr     = 1'b1;
                     next_read_addr  = read_addr + 4;
                 end
 		    end // case: WB
             SEND: begin
-                    proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
-                    proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
+                    next_proc_gen_bus_if_busy 		   = 1'b0; // Set bus to not busy
+                    next_proc_gen_bus_if_rdata 		   = hit_data[decoded_addr.block_bits]; //
             end // SEND       
         endcase
 
