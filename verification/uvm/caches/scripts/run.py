@@ -53,18 +53,18 @@ def run(params):
     )
 
     if (params.gui):
-        cprint("Running with GUI...", tags.PURPLE)
+        cprint("Running with GUI...", tags.LOG)
         res = os.system('''
             vsim -i
             {RUN_COMMON}
-            -do "do scripts/{WAVE}.do"
+            -do "do waves/{WAVE}.do"
 	        -do "run -all"
         '''.format(
             RUN_COMMON=RUN_COMMON,
             WAVE=params.config
         ).replace("\n", " "))
     else: 
-        cprint("Running with Terminal...", tags.PURPLE)
+        cprint("Running with Terminal...", tags.LOG)
         res = os.system('''
             vsim -c
             {RUN_COMMON}
@@ -74,6 +74,6 @@ def run(params):
         ).replace("\n", " "))
 
     if (res == 0):
-        cprint("Run Finished", tags.GREEN)
+        cprint("Run Finished", tags.SUCCESS)
     else:
-        cprint("Run Failed", tags.RED)
+        cprint("Run Failed", tags.FAIL)

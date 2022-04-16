@@ -24,6 +24,7 @@
 #   Description:  Script for configuring and running UVM TB for the caches
 
 import argparse
+import os
 from scripts.cprint import cprint
 from scripts.cprint import csprint
 from scripts.cprint import tags, styles
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     params = parse_arguments()
 
     if params.clean:
-        cprint("Cleaning Directory...", tags.PURPLE)
+        cprint("Cleaning Directory...", tags.LOG)
         os.system("rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf coverage/*.ucdb **/*.pyc")
         exit()
 
@@ -110,14 +111,14 @@ if __name__ == '__main__':
 
     run(params)
 
-    cprint("Running Post Run Script...", tags.PURPLE)
+    cprint("Running Post Run Script...", tags.LOG)
 
     # print parameters
     skip = ["verbosity", "gui", "clean", "seed", "build"]
     for arg in vars(params):
         if arg in skip:
             continue #skip showing in info
-        cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.BLUE)
+        cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.INFO)
 
     post_run(params)
                         

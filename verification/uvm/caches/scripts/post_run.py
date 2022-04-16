@@ -79,15 +79,15 @@ def post_run(params):
             if key == "uvm_error" or key == "uvm_fatal":
                 num = int(log[key])
                 if (num != 0):
-                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.RED)
+                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.FAIL)
                 else:
-                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.GREEN)
+                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.SUCCESS)
                 continue
 
-            cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.GREEN)
+            cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.SUCCESS)
         
         except:
-            cprint("{key:<15}-> {val}".format(key=key, val="None"), tags.RED)
+            cprint("{key:<15}-> {val}".format(key=key, val="None"), tags.FAIL)
     
     with open("run_summary.log", "a") as out:
         now = datetime.now()
