@@ -1,5 +1,34 @@
 # Caches UVM Testbench Setup Guide
 
+### .bashrc
+> Note that there may be some env variables listed here that are not required.
+```
+source ~/init_vlsi -p mitll90_Dec2019 -e all
+export MGC_FDI_OA_VERSION=22.50
+export SOCET_FILES="/home/ecegrid/a/socpub/Public"
+# WAF Build System
+export SFF_ADMIN=$SOCET_FILES/SoCFoundationFlow/admin
+source $SFF_ADMIN/setup_env.bash
+export SFF_SIM_ENV="incisive"
+# RISCV Setup
+export TOOLS=$SOCET_FILES/riscv_dev
+export RISCV=$TOOLS/riscv_installs/RV_current
+export PATH=$TOOLS/scripts\:$PATH
+export PATH=$RISCV/bin\:$PATH
+export PATH=/opt/gcc/5.3.0/bin\:$PATH
+export LD_LIBRARY_PATH=$RISCV/lib\:/opt/gcc/5.3.0/lib64
+export LIBRARY_PATH=/opt/gcc/5.3.0/lib64
+export PYTHONPATH=$TOOLS/python_libs/lib64/python
+export PERL5LIB=$TOOLS/perl_libs/installs/Verilog-Perl/lib/perl5
+export PATH=$PATH\:$TOOLS/perl_libs/installs/Verilog-Perl/bin/
+# Various system variables
+export SOCROOT="$HOME/SoCET_Public"
+export PATH=/package/eda/cadence/GENUS191/tools/bin:$PATH
+export QUESTA_HOME=/package/eda/mg/questa10.6b/questasim
+#load newer version of git
+module load git
+```
+
 ### Build/Run Params
 Everything related to building and running the uvm testbench is handled by the run.py script. To view the parameters:
 ```bash
@@ -10,83 +39,53 @@ run.py -h
 chmod u+x run.py
 ```
 
+## How to Debug DUT
+The best way to use this UVM testbench for debugging is to utilize a combination of the `transcript` file and the waveforms.
+
+First run the design with the desired test configuration in gui mode:
+```
+run.py -g --config l2 -s 12345
+```
+`Note`: when debugging it is helpful to have a static/non-random test for consistency.  This is why I have added the `-s 12345` flag here.  This is optional.
+
+This command will invoke the QuestaSim Gui and will auto load the waveforms for the correct config.  Make sure to answer `no` to the `Are you sure you want to finish?` prompt.  You can now search through the `transcript` file for any errors (<kbd>Ctrl</kbd> + <kbd>f</kbd> for "error").  You can now view the error and know the time step where the error occurred on the waveform.
+
+Let's walk through an example:
+```bash
+# 753000: uvm_test_top.ENV.MEM_ARB_SCORE [MEM_ARB_SCORE] Error: Data Mismatch
+# UVM_INFO generic_bus_agent_comps/bus_scoreboard.svh(75) @ 753000: uvm_test_top.ENV.MEM_ARB_SCORE [MEM_ARB_SCORE] 
+# Expected:
+# --------------------------------------------
+# Name       Type             Size  Value     
+# --------------------------------------------
+# pred_tx    cpu_transaction  -     @1297     
+#   rw       integral         1     'h0       
+#   addr     integral         32    'h2dc2bc5c
+#   data     integral         32    'hced4bc5c
+#   byte_en  integral         4     'h3       
+# --------------------------------------------
+# 
+# Received:
+# --------------------------------------------
+# Name       Type             Size  Value     
+# --------------------------------------------
+# tx         cpu_transaction  -     @1289     
+#   rw       integral         1     'h0       
+#   addr     integral         32    'h2dc2bc5c
+#   data     integral         32    'hced8d351
+#   byte_en  integral         4     'h3       
+# --------------------------------------------
+#
+```
+
+We see that the first line gives an error message and the time step, in this case at time 753000 there was a mismatch in data from the memory arbiter (MEM_ARB_SCORE).  We also have the expected and actual values from the test.  Most of the fields of each transaction are straight forward to understand except for `rw`.  This value indicates if the transaction is a read or a write.  If `rw == 1`, it was a `write` request, `otherwise`, it was a `read`.  With this information the design engineering is armed with great information to begin reading through the waveforms to determine the cause of the issue.
+
 ## Design Notes:
 - Need to drive byte_en to memory, at least full word (4'b1000)
 - evicting the right data but wrong address
-
-
-## Responsibilities:
-- CPU Agent
-  - ensure reads after a write (at any time in the past) returns the same data
-  - //TODO: in the future need a way to update memory model on coherence interactions
-- Memory Agent
-  - ensure reads after a write (at any time in the past) returns the same data
-- End to End Checker
-  - keeps track of data in cache
-    - check cpu bus for modifying data in cache
-    - check mem bus for adding data to cache on read
-    - check mem bus for removing data from cache on write
-  - ensure hit doesn't propogate to mem bus
-  - ensure miss propogates with correct addr to mem bus
-    - need to read data from same address
-    - need to write data back to memory on eviction
-  - TODO: ensures that snoops to cache work properly (vague because I still don't really know what this means...)
-  - ensure that no mem bus transactions occur without ren/wen
-    - //TODO: this will probably change if we do prefetching
-      - PrRd A // miss
-        - BusRead A Block
-      - Prefetch B // no cpu req
-        - BusRead B Block
-      - PrRd C (**) //hit
-      - Issues:
-        - if (**) is PrRd B
-          - stall until cpu_ap sees PrRd B
-          - cache_model expected miss
-          - mem_fifo will hold the expected prefetched data
-            - not incorrect but timing is backwards
-        - if (**) is PrRd C
-
 
 ## Extension Ideas:
 - Timing Agent
   - responsible for monitoring both buses like end2end and checking if the correct number of cycles for hits/misses
 - Update Nominal Sequence to have better distribution of reads/writes
-- end to end checker update
-  - all async ap for cpu_tx, mem_tx (req and resp) -> gives us the start and stop time of a transaction
-  - cpu_tx_start()
-    - check words_read to determine if there were prev txns
-      - handle txns if detected
-        - prefecting --> update mem model
-        - coherence --> update mem model, need to check end 2 end for bus -> cache -> bus for snoop resp!
-  - mem_tx() -> no need for start or stop?
-    - words_read++
-    - addr_history.push(new_addr)
-    - update cache model
-      - cache_model.valid_block(base_addr) --> add this to cache model
-  - cpu_tx_end()
-    - check that words_read % block_size == 0 --> valid block size
-    - check that hit/miss --> quiet/loud bus
-    - check addresses map to valid blocks (all four addrs are in same block)
-  - TODO: we can probably get rid of the txn.cycle value if we use this scheme
-  - Summary:
-    - coherence monitor sends snoop transactions out to subscribers
-      - initialially this will be a monitor that never sends out messages (dummy monitor)
-    - memory monitor simply a generic bus monitor
-    - end to end has ap write functions for:
-      - cpu_req -> calls cpu_tx_start()
-      - cpu_resp -> calls cpu_tx_end()
-      - mem_resp -> calls mem_tx()
-      - coherence req? -> for now just have generic coherence ap
-      - coherence resp?
-
-
-## Sequences:
-A = [A1, A2, A3, A4]
-B = [B1, B2, B3, B4]
-
-write A1, 0x1234
-read A2           --> what data do we expect? {0xBAD0, addr[15:0]}? 
-...
-block A is evicted from cache
-...
-read A1           --> expect 0x1234
+  - currently the solver tends to have the writes be front loaded and the reads mostly at the end
