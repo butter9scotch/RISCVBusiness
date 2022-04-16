@@ -38,3 +38,6 @@ system_fpga.summary
 
 # temp files
 *.temp*
+
+# python cache files
+*.pyc
