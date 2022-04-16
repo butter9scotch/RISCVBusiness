@@ -22,18 +22,33 @@
 #   Date Created: 04/16/2022
 #   Description:  Script for colored printing to terminal
 
-class bcolors:
-    LOG         = '\033[95m[{:<7}]:'.format("LOG")
-    INFO        = '\033[94m[{:<7}]:'.format("INFO")
-    SUCCESS     = '\033[92m[{:<7}]:'.format("SUCCESS")
-    WARNING     = '\033[93m[{:<7}]:'.format("WARNING")
-    FAIL        = '\033[91m[{:<7}]:'.format("FAIL")
-    ENDC        = '\033[0m'
+class styles:
+    PURPLE      = '\033[95m'
+    BLUE        = '\033[94m'
+    GREEN       = '\033[92m'
+    YELLOW      = '\033[93m'
+    RED         = '\033[91m'
     BOLD        = '\033[1m'
     UNDERLINE   = '\033[4m'
+    ENDC        = '\033[0m'
+
+class tags:
+    LOG         = '{}[{:<7}]:'.format(styles.PURPLE, "LOG")
+    INFO        = '{}[{:<7}]:'.format(styles.BLUE, "INFO")
+    SUCCESS     = '{}[{:<7}]:'.format(styles.GREEN, "SUCCESS")
+    WARNING     = '{}[{:<7}]:'.format(styles.YELLOW, "WARNING")
+    FAIL        = '{}[{:<7}]:'.format(styles.RED, "FAIL")
+
+def csprint(msg, *formats):
+    res = ""
+    for f in formats:
+        res += f
+    res += msg
+    res += styles.ENDC
+    return res
 
 def cprint(msg, *formats):
     for f in formats:
         print(f),
     print(msg),
-    print(bcolors.ENDC)
+    print(styles.ENDC)

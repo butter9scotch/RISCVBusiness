@@ -26,10 +26,10 @@
 import os
 
 from cprint import cprint
-from cprint import bcolors
+from cprint import tags
 
 def build(params):
-    cprint("Building Sources...", bcolors.LOG)
+    cprint("Building Sources...", tags.LOG)
     SRC = "../../../source_code/"
 
     TB_GLOBAL_CONFIG = "TB_{}_CONFIG".format(params.config)
@@ -65,7 +65,7 @@ def build(params):
     ))
 
     if (res == 0):
-        cprint("Build Finished", bcolors.SUCCESS)
+        cprint("Build Finished", tags.SUCCESS)
     else:
-        cprint("Build Failed", bcolors.FAIL)
+        cprint("Build Failed", tags.FAIL)
         exit()

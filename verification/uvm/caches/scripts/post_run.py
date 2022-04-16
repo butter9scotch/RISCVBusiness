@@ -26,7 +26,7 @@
 from datetime import datetime
 
 from cprint import cprint
-from cprint import bcolors
+from cprint import tags
 
 def post_run(params):
     if params.config == "l1":
@@ -79,15 +79,15 @@ def post_run(params):
             if key == "uvm_error" or key == "uvm_fatal":
                 num = int(log[key])
                 if (num != 0):
-                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), bcolors.FAIL)
+                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.RED)
                 else:
-                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), bcolors.SUCCESS)
+                    cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.GREEN)
                 continue
 
-            cprint("{key:<15}-> {val}".format(key=key, val=log[key]), bcolors.SUCCESS)
+            cprint("{key:<15}-> {val}".format(key=key, val=log[key]), tags.GREEN)
         
         except:
-            cprint("{key:<15}-> {val}".format(key=key, val="None"), bcolors.FAIL)
+            cprint("{key:<15}-> {val}".format(key=key, val="None"), tags.RED)
     
     with open("run_summary.log", "a") as out:
         now = datetime.now()

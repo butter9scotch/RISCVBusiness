@@ -25,7 +25,8 @@
 
 import argparse
 from scripts.cprint import cprint
-from scripts.cprint import bcolors
+from scripts.cprint import csprint
+from scripts.cprint import tags, styles
 from scripts.build import build
 from scripts.run import run
 from scripts.post_run import post_run
@@ -41,25 +42,29 @@ def seed_type(arg):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-                        description="\033[95m\033[1mBuild and Run the UVM Testbench for the cache hierarchy\n"
-                                    "  Note that all runtime parameters are saved in \033[4mrun_summary.log\033[0m")
+                        description=csprint("Build and Run the UVM Testbench for the cache hierarchy\n"
+                            "  Note that all runtime parameters are saved in ",
+                            styles.PURPLE, styles.BOLD) +
+                            csprint("run_summary.log", styles.PURPLE, styles.BOLD, styles.UNDERLINE)
+                        )
     parser.add_argument('--clean', action="store_true",
-                        help="Remove build artifacts")
+                        help=csprint("Remove build artifacts", styles.BLUE))
     parser.add_argument('--build', action="store_true",
-                        help="Build project without run")
+                        help=csprint("Build project without run", styles.BLUE))
     parser.add_argument('--testcase', '-t', type=str, default="random",
                         choices=["nominal", "evict", "index", "mmio", "random"],
-                        help="Specify name of the uvm test:\n"
-                        "  nominal:   read back values previously written to caches\n"
-			            "  evict:     write to same index with different tag bits to force cache eviction\n"
-			            "  index:     read/write to same block of data to ensure proper block indexing\n"
-			            "  mmio:      read/write to memory mapped address space\n"
-			            "  random:    random interleaving of previous test cases")
+                        help=csprint("Specify name of the uvm test:\n", styles.YELLOW) +
+                            "  nominal:   read back values previously written to caches\n"
+                            "  evict:     write to same index with different tag bits to force cache eviction\n"
+                            "  index:     read/write to same block of data to ensure proper block indexing\n"
+                            "  mmio:      read/write to memory mapped address space\n"
+                            "  random:    random interleaving of previous test cases"
+                        )
     parser.add_argument('--gui', '-g', action='store_true',
-                        help="Specify whether to run with gui or terminal only")
+                        help=csprint("Specify whether to run with gui or terminal only", styles.YELLOW))
     parser.add_argument('--verbosity', '-v', type=str, default="low",
                         choices=["none", "low", "medium", "high", "full", "debug"],
-                        help="Specify the verbosity level to be used for UVM Logging, each stage builds on the next\n"
+                        help=csprint("Specify the verbosity level to be used for UVM Logging, each stage builds on the next\n", styles.YELLOW) +
                         "  none:  - only error messages shown\n"
                         "  low:   - actual and expected values for scoreboard errors\n"
                         "         - success msg for data matches\n"
@@ -74,19 +79,19 @@ def parse_arguments():
                         "         - all virtual interface accesses to uvm db\n"
                         "  debug  - all messages")
     parser.add_argument('--seed', '-s', type=seed_type, default="random",
-                        help="Specify starter seed for uvm randomization\n"
+                        help=csprint("Specify starter seed for uvm randomization\n", styles.YELLOW) +
                         "Identical seeds will produce identical runs")
     parser.add_argument('--iterations', '-i', type=int, default=0,
-                        help="Specify the requested number of memory accesses for a test")
+                        help=csprint("Specify the requested number of memory accesses for a test", styles.YELLOW))
     parser.add_argument('--mem_timeout', type=int, default=50,
-                        help="Specify the max memory latency before a fatal timeout error")
+                        help=csprint("Specify the max memory latency before a fatal timeout error", styles.YELLOW))
     parser.add_argument('--mem_latency', type=int, default=1,
-                        help="Specify the number of clock cycles before main memory returns")
+                        help=csprint("Specify the number of clock cycles before main memory returns", styles.YELLOW))
     parser.add_argument('--mmio_latency', type=int, default=2,
-                        help="Specify the number of clock cycles before memory mapped IO returns")
+                        help=csprint("Specify the number of clock cycles before memory mapped IO returns", styles.YELLOW))
     parser.add_argument('--config', type=str, default="full",
                         choices=["l1", "l2", "full"],
-                        help="Specify the configuration of the testbench to determine which agents and modules are activated")
+                        help=csprint("Specify the configuration of the testbench to determine which agents and modules are activated", styles.YELLOW))
     return parser.parse_args()
 
 
@@ -94,7 +99,7 @@ if __name__ == '__main__':
     params = parse_arguments()
 
     if params.clean:
-        cprint("Cleaning Directory...", bcolors.LOG)
+        cprint("Cleaning Directory...", tags.PURPLE)
         os.system("rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf coverage/*.ucdb **/*.pyc")
         exit()
 
@@ -105,14 +110,14 @@ if __name__ == '__main__':
 
     run(params)
 
-    cprint("Running Post Run Script...", bcolors.LOG)
+    cprint("Running Post Run Script...", tags.PURPLE)
 
     # print parameters
     skip = ["verbosity", "gui", "clean", "seed", "build"]
     for arg in vars(params):
         if arg in skip:
             continue #skip showing in info
-        cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), bcolors.INFO)
+        cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.BLUE)
 
     post_run(params)
                         

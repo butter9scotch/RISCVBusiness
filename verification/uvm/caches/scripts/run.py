@@ -26,7 +26,7 @@
 import os
 
 from cprint import cprint
-from cprint import bcolors
+from cprint import tags
 
 def run(params):
     RUN_COMMON = '''
@@ -53,7 +53,7 @@ def run(params):
     )
 
     if (params.gui):
-        cprint("Running with GUI...", bcolors.LOG)
+        cprint("Running with GUI...", tags.PURPLE)
         res = os.system('''
             vsim -i
             {RUN_COMMON}
@@ -64,7 +64,7 @@ def run(params):
             WAVE=params.config
         ).replace("\n", " "))
     else: 
-        cprint("Running with Terminal...", bcolors.LOG)
+        cprint("Running with Terminal...", tags.PURPLE)
         res = os.system('''
             vsim -c
             {RUN_COMMON}
@@ -74,6 +74,6 @@ def run(params):
         ).replace("\n", " "))
 
     if (res == 0):
-        cprint("Run Finished", bcolors.SUCCESS)
+        cprint("Run Finished", tags.GREEN)
     else:
-        cprint("Run Failed", bcolors.FAIL)
+        cprint("Run Failed", tags.RED)
