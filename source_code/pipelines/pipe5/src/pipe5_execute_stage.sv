@@ -43,7 +43,12 @@ module pipe5_execute_stage(
   branch_res_if.execute branch_if
 );
 
+  localparam Inf = 32'h7f800000;
+  localparam NegInf = 32'hff800000;
+  localparam QuietNan = 32'h7fc00000;
+
   import rv32i_types_pkg::*;
+  import rv32f_types_pkg::*;
   import alu_types_pkg::*;
   import pipe5_types_pkg::*;
   import machine_mode_types_1_11_pkg::*;
@@ -65,10 +70,68 @@ module pipe5_execute_stage(
   word_t fpu_out;
   always_comb begin //assign fpu output 
   fpu_out = fpu_if.fpu_out;
-  if (fpu_if.port_a[30:23] == 'hff) begin
+
+  //infinities
+  //subtraction case
+  if (fpu_if.f_funct_7 == FSUB) begin
+      if (fpu_if.port_a == Inf && fpu_if.port_b == Inf) begin
+        fpu_out = QuietNan;
+      end
+      else if (fpu_if.port_a == Inf || fpu_if.port_b == NegInf) begin
+          fpu_out = Inf;
+      end
+      else if (fpu_if.port_a == NegInf || fpu_if.port_b == Inf) begin
+          fpu_out = NegInf;
+      end
+  end
+
+  if (fpu_if.f_funct_7 == FADD) begin
+      if (fpu_if.port_a == Inf && fpu_if.port_b == NegInf) begin
+          fpu_out = QuietNan;
+      end
+      else if (fpu_if.port_a == NegInf && fpu_if.port_b == Inf) begin
+          fpu_out = QuietNan;
+      end
+      else if (fpu_if.port_a == Inf || fpu_if.port_b == Inf) begin
+        fpu_out = Inf;
+      end
+      else if (fpu_if.port_a == NegInf || fpu_if.port_b == NegInf) begin
+        fpu_out = NegInf;
+      end
+  end
+
+  if (fpu_if.f_funct_7 == FMUL) begin
+    if (fpu_if.port_a == 0 && fpu_if.port_b == Inf) begin
+        fpu_out = QuietNan;
+    end
+    if (fpu_if.port_a == 0 && fpu_if.port_b == NegInf) begin
+        fpu_out = QuietNan;
+    end
+    if (fpu_if.port_a == Inf && fpu_if.port_b == 0) begin
+        fpu_out = QuietNan;
+    end
+    if (fpu_if.port_a == NegInf && fpu_if.port_b == 0) begin
+        fpu_out = QuietNan;
+    end
+    else if (fpu_if.port_a == Inf && fpu_if.port_b[31] == 1) begin
+        fpu_out = NegInf;
+    end
+    else if (fpu_if.port_a == Inf && fpu_if.port_b[31] == 0) begin
+        fpu_out = Inf;
+    end
+    else if (fpu_if.port_a == NegInf && fpu_if.port_b[31] == 1) begin
+        fpu_out = Inf;
+    end
+    else if (fpu_if.port_a == NegInf && fpu_if.port_b[31] == 0) begin
+        fpu_out = NegInf;
+    end
+  end
+
+  //nan cases
+  if (fpu_if.port_a[30:23] == 'hff && |fpu_if.port_a[22:0]) begin
      fpu_out = fpu_if.port_a;
   end
-  if (fpu_if.port_b[30:23] == 'hff) begin
+  if (fpu_if.port_b[30:23] == 'hff && |fpu_if.port_b[22:0]) begin
      fpu_out = fpu_if.port_b;
   end
   end
@@ -196,7 +259,7 @@ module pipe5_execute_stage(
     assign alu_port_b = (decode_execute_if.alu_b_sel == 'd0) ? updated_rs1_data 
                                           : (decode_execute_if.alu_b_sel == 'd1) ? updated_rs2_data : decode_execute_if.port_b;
    
-    assign csr_wdata = (decode_execute_if.csr_imm) ? decode_execute_if.csr_imm_value : updated_rs1_data;
+    assign csr_wdata = (decode_execute_if.csr_imm) ? decode_execute_if.csr_imm_value : ((decode_execute_if.f_funct7 === FADD || decode_execute_if.f_funct7 === FSUB || decode_execute_if.f_funct7 === FMUL) ? fpu_if.f_flags : updated_rs1_data);
 
 
     //assign fpu signals
@@ -382,7 +445,7 @@ module pipe5_execute_stage(
           execute_mem_if.halt_instr         <= decode_execute_if.halt_instr;
           //Forwarding
           execute_mem_if.reg_rd             <= decode_execute_if.reg_rd;
-          execute_mem_if.alu_port_out       <= alu_if.port_out;
+          execute_mem_if.alu_port_out       <= decode_execute_if.f_funct7 === FMVXW ? updated_f_rs1_data : alu_if.port_out;
           execute_mem_if.opcode             <= decode_execute_if.opcode;
           execute_mem_if.lui_instr          <= decode_execute_if.lui_instr;
           //CSR
@@ -421,7 +484,7 @@ module pipe5_execute_stage(
           execute_mem_if.f_wen              <= decode_execute_if.f_wen;
           execute_mem_if.f_wdata            <= decode_execute_if.f_wdata;
           execute_mem_if.f_store_wdata      <= updated_f_rs2_data;
-          execute_mem_if.fpu_out            <= fpu_out; 
+          execute_mem_if.fpu_out            <= decode_execute_if.f_funct7 === FMVWX ? updated_rs1_data : fpu_out; 
           execute_mem_if.fpu_flags          <= fpu_if.f_flags;
           execute_mem_if.fsw                <= decode_execute_if.fsw;
          end

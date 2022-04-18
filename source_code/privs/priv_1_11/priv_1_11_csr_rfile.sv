@@ -40,6 +40,7 @@ module priv_1_11_csr_rfile (
   mimpid_t      mimpid;
   mhartid_t     mhartid;
   misaid_t      misaid, misaid_next, misaid_temp, misaid_default;
+  fcsr_t        fcsr, fcsr_next;
 
   assign misaid_default.base        = BASE_RV32;
   assign misaid_default.zero        = '0;
@@ -167,6 +168,7 @@ module priv_1_11_csr_rfile (
       timefull    <= '0;
       cyclefull   <= '0;
       instretfull <= '0;
+      fcsr        <= '0;
     end else begin      
       mstatus.mie  <= mstatus_next.mie;
       mstatus.mpie <= mstatus_next.mpie;
@@ -185,6 +187,7 @@ module priv_1_11_csr_rfile (
       timefull    <= timefull_next;
       cyclefull   <= cyclefull_next;
       instretfull <= instretfull_next;
+      fcsr        <= fcsr_next;
     end
   end
 
@@ -241,9 +244,33 @@ module priv_1_11_csr_rfile (
       end
   end
 
+  //floating point csr write logic
+
+  always_comb begin
+    fcsr_next = fcsr;
+    if (swap) begin
+        casez (prv_intern_if.addr)
+            FFLAGS_ADDR : begin
+                fcsr_next.fflags = rup_data[4:0];
+            end
+            FRM_ADDR    : begin
+                fcsr_next.frm   = rup_data[2:0];
+            end
+            FCSR_ADDR   : begin
+                fcsr_next       = fcsr_t'({24'b0, rup_data[7:0]});
+            end
+        endcase
+    end
+  end
+
   always_comb begin // register to send to pipeline based on the address
     valid_csr_addr = 1'b1;
     casez (prv_intern_if.addr)
+      // Floating point
+      FFLAGS_ADDR     : prv_intern_if.rdata  = fcsr.fflags;
+      FRM_ADDR        : prv_intern_if.rdata  = fcsr.frm;
+      FCSR_ADDR       : prv_intern_if.rdata  = fcsr;
+
       MVENDORID_ADDR  : prv_intern_if.rdata = mvendorid;
       MARCHID_ADDR    : prv_intern_if.rdata = marchid;
       MIMPID_ADDR     : prv_intern_if.rdata = mimpid;
@@ -281,6 +308,6 @@ module priv_1_11_csr_rfile (
   assign prv_intern_if.mstatus   = mstatus;
   assign prv_intern_if.mcause    = mcause;
   assign prv_intern_if.mip       = mip;
-
+  assign prv_intern_if.fcsr      = fcsr;
 
 endmodule

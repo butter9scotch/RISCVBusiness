@@ -27,15 +27,18 @@
 `include "generic_bus_if.vh"
 `include "component_selection_defines.vh"
 `include "pipe5_hazard_unit_if.vh"
+`include "prv_pipeline_if.vh"
 
 module pipe5_fetch2_stage (
   input logic CLK, nRST,halt,
   pipe5_fetch1_fetch2_if.fetch2 fetch1_fetch2_if,
   pipe5_fetch2_decode_if.fetch fetch_decode_if,
   pipe5_hazard_unit_if.fetch2 hazard_if,
-  generic_bus_if.cpu igen_bus_if
+  generic_bus_if.cpu igen_bus_if,
+  prv_pipeline_if.pipe prv_pipe_if
 );
   import rv32i_types_pkg::*;
+  import machine_mode_types_1_11_pkg::*;
 
   word_t pc, pc4, instr;
   logic mal_addr;
@@ -63,6 +66,7 @@ module pipe5_fetch2_stage (
         fetch_decode_if.prediction     <='h0; 
         fetch_decode_if.mal_insn            <='h0;
         fetch_decode_if.fault_insn          <= 1'b0;
+        fetch_decode_if.frm_csr             <= 'h0;
       end
       else begin
         if (halt) begin
@@ -72,6 +76,7 @@ module pipe5_fetch2_stage (
             fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
+            fetch_decode_if.frm_csr             <= 'h0;
         end
         else if (hazard_if.if_id_flush & hazard_if.pc_en) begin
             fetch_decode_if.token               <='h0; 
@@ -79,6 +84,7 @@ module pipe5_fetch2_stage (
             fetch_decode_if.prediction          <='h0; 
             fetch_decode_if.mal_insn            <='h0;
             fetch_decode_if.fault_insn          <= 1'b0;
+            fetch_decode_if.frm_csr             <= 'h0;
         end 
         else if(hazard_if.pc_en & ~ hazard_if.if_id_flush & ~hazard_if.stall) begin
             fetch_decode_if.token               <= 1'b1;
@@ -89,6 +95,7 @@ module pipe5_fetch2_stage (
             //Exceptions
             fetch_decode_if.mal_insn            <= mal_addr;
             fetch_decode_if.fault_insn          <= 1'b0;
+            fetch_decode_if.frm_csr             <= prv_pipe_if.fcsr.frm;
         end
       end
   end

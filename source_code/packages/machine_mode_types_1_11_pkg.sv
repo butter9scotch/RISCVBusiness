@@ -28,6 +28,12 @@
 package machine_mode_types_1_11_pkg;
 
   typedef enum logic [11:0] {
+    /* Floating point addresses */
+    
+    FFLAGS_ADDR          = 12'h001,
+    FRM_ADDR             = 12'h002,
+    FCSR_ADDR            = 12'h003,
+
     /* Machine Mode Addresses */
     MVENDORID_ADDR  = 12'hF11,
     MARCHID_ADDR    = 12'hF12,
@@ -258,7 +264,14 @@ package machine_mode_types_1_11_pkg;
   //Non Standard Extentions 
   typedef logic [31:0] mtohost_t;
   typedef logic [31:0] mfromhost_t;
-  
+
+  /* Floating point register */
+  typedef struct packed {
+      logic [23:0] reserved;
+      logic [2:0] frm;
+      logic [4:0] fflags;
+  } fcsr_t;
+
 endpackage
 
 `endif //MACHINE_MODE_TYPES_1_11_PKG_SV

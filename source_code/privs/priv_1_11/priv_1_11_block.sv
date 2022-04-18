@@ -107,5 +107,6 @@ module priv_1_11_block (
   assign prv_pipe_if.intr        = prv_intern_if.intr;
   assign prv_pipe_if.rdata       = prv_intern_if.rdata;
   assign prv_pipe_if.invalid_csr = prv_intern_if.invalid_csr;
+  assign prv_pipe_if.fcsr        = prv_intern_if.fcsr;
   
 endmodule

@@ -151,6 +151,7 @@ module RISCVBusiness (
        ,.fetch_decode_if(fetch_decode_if)
        ,.igen_bus_if(icache_gen_bus_if)
        ,.hazard_if(hazard_if)
+       ,.prv_pipe_if(prv_pipe_if)
       );
 
    pipe5_decode_stage decode_stage (

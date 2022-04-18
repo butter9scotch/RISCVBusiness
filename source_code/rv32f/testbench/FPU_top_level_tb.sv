@@ -68,15 +68,15 @@ program test(
         
     initial begin
         reset_dut;
-        fpu_if.port_a = 32'h40b4cccd;
-        fpu_if.port_b = 32'hc1865014;
+        fpu_if.port_a = 32'hc49a6333;
+        fpu_if.port_b = 32'h3f8ccccd;
         fpu_if.f_frm_in = 0;
         fpu_if.f_funct_7 = 0;
         test_case_num = 1;
         test_case = "add test case";
         sample_num = 1;
         //wait_for_finish;
-        expected_flags = 0;
+        expected_flags = 1;
         expected_fpu_out = 32'hc13239c2;
         #(3 * PERIOD);
         check_outputs;

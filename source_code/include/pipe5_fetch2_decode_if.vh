@@ -35,15 +35,16 @@ interface pipe5_fetch2_decode_if;
   logic         mal_insn;
   logic         fault_insn;
   logic         prediction;
+  logic [2:0]   frm_csr;
 
   modport fetch(
     output  pc, token, pc4, instr, prediction,
-            mal_insn, fault_insn
+            mal_insn, fault_insn, frm_csr
   );
 
   modport decode(
     input    pc, token, pc4, instr, prediction,
-             mal_insn, fault_insn
+             mal_insn, fault_insn, frm_csr
   );
 
 endinterface

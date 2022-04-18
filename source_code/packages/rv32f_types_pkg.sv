@@ -12,7 +12,9 @@ package rv32f_types_pkg;
     typedef enum logic [F_FUNCT_W-1:0] {
         FADD      = 7'b0,
         FSUB      = 7'b0000100,
-        FMUL      = 7'b0001000
+        FMUL      = 7'b0001000,
+        FMVXW     = 7'b1110000,
+        FMVWX     = 7'b1111000
     } f_funct7_t;
 
 endpackage

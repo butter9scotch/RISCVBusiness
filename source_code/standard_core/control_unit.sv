@@ -118,16 +118,16 @@ module control_unit
   //assign rf_if.rd   = rmgmt_req_reg_w ? rmgmt_rsel_d   : cu_if.instr[11:7]; 
   
   //assign int registers
-  assign cu_if.reg_rs1  = cu_if.opcode | (cu_if.f_opcode == FLW || cu_if.f_opcode == FSW)  ? cu_if.instr[19:15]: 0;
-  assign cu_if.reg_rs2  = cu_if.opcode | cu_if.f_opcode == FSW ? cu_if.instr[24:20]: 0;
-  assign cu_if.reg_rd   = cu_if.opcode ? cu_if.instr[11:7] : 0;
+  assign cu_if.reg_rs1  = cu_if.opcode | (cu_if.f_opcode == FLW || cu_if.f_opcode == FSW || cu_if.f_funct7 === FMVWX)  ? cu_if.instr[19:15]: 0;
+  assign cu_if.reg_rs2  = cu_if.opcode | (cu_if.f_opcode == FSW) ? cu_if.instr[24:20] : 0;
+  assign cu_if.reg_rd   = cu_if.opcode | cu_if.f_funct7 === FMVXW ? cu_if.instr[11:7] : 0;
 
   assign cu_if.shamt = cu_if.instr[24:20];
 
   //assign floating point registers
-  assign cu_if.f_reg_rs1  = cu_if.f_opcode ? cu_if.instr[19:15]: 0;
-  assign cu_if.f_reg_rs2  = cu_if.f_opcode ? cu_if.instr[24:20]: 0;
-  assign cu_if.f_reg_rd   = cu_if.f_opcode ? cu_if.instr[11:7] : 0;
+  assign cu_if.f_reg_rs1  = cu_if.f_opcode & cu_if.f_funct7 !== FMVWX ? cu_if.instr[19:15]: 0;
+  assign cu_if.f_reg_rs2  = cu_if.f_opcode & cu_if.f_funct7 !== FMVWX ? cu_if.instr[24:20]: 0;
+  assign cu_if.f_reg_rd   = cu_if.f_opcode & cu_if.f_funct7 !== FMVXW ? cu_if.instr[11:7] : 0;
   
 
   // Assign the immediate values
@@ -193,6 +193,7 @@ module control_unit
 
   //assign fpu funct code
   always_comb begin
+    cu_if.f_funct7 = f_funct7_t'(7'b1111111);
     if (cu_if.f_opcode == F_RTYPE) begin
         case (instr_r.funct7)
             FADD: begin
@@ -204,7 +205,13 @@ module control_unit
             FMUL: begin
             cu_if.f_funct7 = FMUL;
             end
-            default: cu_if.f_funct7 = f_funct7_t'(0);
+            FMVWX: begin
+            cu_if.f_funct7 = FMVWX;
+            end
+            FMVXW: begin
+            cu_if.f_funct7 = FMVXW;
+            end
+
         endcase
     end
   end
@@ -219,6 +226,9 @@ module control_unit
       SYSTEM                : cu_if.w_sel   = 3'd4;
       default               : cu_if.w_sel   = 3'd0;
     endcase
+    if (cu_if.f_funct7 === FMVXW) begin
+        cu_if.w_sel = 3'd3;
+    end
   end
 
   //floating point write select
@@ -236,17 +246,25 @@ module control_unit
       STORE, BRANCH       : cu_if.wen   = 1'b0;
       IMMED, LUI, AUIPC,
       REGREG, JAL, JALR,
-      LOAD                : cu_if.wen   = 1'b1;
+      LOAD                : cu_if.wen   = 1'b1; 
       SYSTEM              : cu_if.wen   = cu_if.csr_rw_valid;
       default:  cu_if.wen   = 1'b0;
     endcase
+        if (cu_if.f_funct7 === FMVXW) begin
+           cu_if.wen = 1'b1;
+        end
   end
 
   //floating point register write enable
   always_comb begin
      cu_if.f_wen = 1'b0;
     case (cu_if.f_opcode)
-       FLW, F_RTYPE: cu_if.f_wen = 1'b1; 
+       FLW, F_RTYPE: begin
+       cu_if.f_wen = 1'b1; 
+       if (cu_if.f_funct7 === FMVXW) begin
+           cu_if.f_wen = 1'b0;
+       end
+       end
     endcase
   end
 
@@ -359,6 +377,7 @@ module control_unit
     cu_if.csr_clr   = 1'b0;
     cu_if.csr_set   = 1'b0;
     cu_if.csr_imm   = 1'b0;
+    cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
 
     if (cu_if.opcode == SYSTEM) begin
       if (rv32i_system_t'(instr_r.funct3) == CSRRW) begin
@@ -379,10 +398,17 @@ module control_unit
         cu_if.csr_imm   = 1'b1;
       end
     end
+
+    //logic for updating floating point flags
+
+   /* if (cu_if.f_funct7 == FADD || cu_if.f_funct7 == FSUB || cu_if.f_funct7 == FMUL) begin
+        cu_if.csr_addr = FFLAGS_ADDR;
+        cu_if.csr_swap = 1'b1;
+    end*/
   end
   assign cu_if.csr_rw_valid = (cu_if.csr_swap | cu_if.csr_set | cu_if.csr_clr);
 
-  assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
+  //assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
   assign cu_if.zimm     = cu_if.instr[19:15];
 
 endmodule

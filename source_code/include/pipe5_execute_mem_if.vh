@@ -78,6 +78,8 @@ interface pipe5_execute_mem_if;
 
   word_t f_wdata, f_store_wdata, fpu_out;
 
+  logic [6:0] f_funct_7;
+
   modport execute(
      output  reg_file_wdata, w_sel, wen, alu_port_out, pc, pc4, reg_rd,
              dwen, dren, store_wdata, load_type, memory_addr,byte_en_temp,
@@ -92,7 +94,7 @@ interface pipe5_execute_mem_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, rs1, rs2, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw
+             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw, f_funct_7
   );
 
   modport memory(
@@ -109,7 +111,7 @@ interface pipe5_execute_mem_if;
              funct3, funct12, imm_I, imm_S, imm_UJ_ext,
              imm_SB, imm_U, instr_30, rs1, rs2, wfi,
              f_reg_rs1, f_reg_rs2, f_reg_rd, f_wsel, f_wen,
-             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw
+             f_wdata, f_store_wdata, fpu_out, fpu_flags, fsw, f_funct_7
   );
 
 endinterface
