@@ -50,6 +50,7 @@ class mmio_sequence extends base_sequence;
       start_item(req_item);
 
       if(!req_item.randomize() with {
+        flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
         addr >= `NONCACHE_START_ADDR;
       }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")

@@ -56,6 +56,8 @@ class nominal_sequence extends base_sequence;
 
       // writes.shuffle();
       if(!req_item.randomize() with {
+        flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
+        // rw dist { 1:=1, 0:=1 };
         if (write_count > N/2) {
           //only reads allowed
           rw == 0;

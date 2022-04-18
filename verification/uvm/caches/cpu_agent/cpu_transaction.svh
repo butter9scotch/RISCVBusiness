@@ -39,14 +39,15 @@ class cpu_transaction extends uvm_sequence_item;
   
   rand logic [3:0] byte_en;
 
+  rand bit flush;
   //TODO: ADD CLEAR
-  //TODO: ADD FLUSH
 
   `uvm_object_utils_begin(cpu_transaction)
       `uvm_field_int(rw, UVM_ALL_ON)
       `uvm_field_int(addr, UVM_ALL_ON)
       `uvm_field_int(data, UVM_ALL_ON)
       `uvm_field_int(byte_en, UVM_ALL_ON)
+      `uvm_field_int(flush, UVM_ALL_ON)
   `uvm_object_utils_end
 
   constraint valid_addr { addr >= '0; soft addr < `NONCACHE_START_ADDR; addr[1:0] == '0; }

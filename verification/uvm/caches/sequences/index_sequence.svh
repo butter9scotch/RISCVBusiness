@@ -62,6 +62,7 @@ class index_sequence extends base_sequence;
       for (int i = 0; i < `L1_BLOCK_SIZE; i++) begin
         start_item(req_item);
         if(!req_item.randomize() with {
+          flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
           if (i != 0) {
             // first iteration is completely random txn
             addr[31:`L1_ADDR_IDX_END] == index;

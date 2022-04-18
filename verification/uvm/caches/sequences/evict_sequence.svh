@@ -60,6 +60,7 @@ class evict_sequence extends base_sequence;
       for (int i = 0; i < `L1_ASSOC + 1; i++) begin
         start_item(req_item);
         if(!req_item.randomize() with {
+          flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
           if (i != 0) {
             addr[`L1_INDEX_BITS-1:0] == index;
           }
