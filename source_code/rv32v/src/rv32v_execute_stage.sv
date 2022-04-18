@@ -580,7 +580,7 @@ module rv32v_execute_stage (
       execute_memory_if.lmul         <= decode_execute_if.lmul;
       execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV || load_ena) ? 1'b0 : decode_execute_if.valid;
       //execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV || load_ena) ? 1'b0 : decode_execute_if.valid;
-      execute_memory_if.counter_done <= decode_execute_if.counter_done ;
+      execute_memory_if.counter_done <= decode_execute_if.rd_scalar_src && (decode_execute_if.mask_type == VMASK_FIRST) ? decode_execute_if.done_vfirst : decode_execute_if.counter_done ;
       execute_memory_if.mul_done <= vif0.done_mu;
       execute_memory_if.div_done <= vif0.done_du;
       execute_memory_if.vlre_vlse         <= decode_execute_if.vlre_vlse;

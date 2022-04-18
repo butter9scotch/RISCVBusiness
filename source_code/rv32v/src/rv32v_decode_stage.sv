@@ -763,5 +763,7 @@ module rv32v_decode_stage (
     end
   end
 
+  assign decode_execute_if.done_vfirst = ele_if.done[ZERO];
+
 endmodule
 

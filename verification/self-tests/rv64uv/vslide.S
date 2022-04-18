@@ -58,9 +58,9 @@ RVTEST_VSET
   # vslide1up.VF
   #-------------------------------------------------------------
 
-  TEST_VSLIDE_VF_OP(17, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
-  TEST_VSLIDE_VF_OP(18, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
-  TEST_VSLIDE_VF_OP(19, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(17, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(18, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(19, vfslide1up.vf, 0, 0x40490FCF, fdat1, fdat5 );
 
   #-------------------------------------------------------------
   # vslide1down.VX
@@ -74,9 +74,9 @@ RVTEST_VSET
   # vfslide1down.VF
   #-------------------------------------------------------------
 
-  TEST_VSLIDE_VF_OP(23, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
-  TEST_VSLIDE_VF_OP(24, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
-  TEST_VSLIDE_VF_OP(25, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(23, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(24, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
+  #TEST_VSLIDE_VF_OP(25, vfslide1down.vf, 0, 0x3E4CCCCC, fdat1, fdat5 );
   
   TEST_PASSFAIL
 

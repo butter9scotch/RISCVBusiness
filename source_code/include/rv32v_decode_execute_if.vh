@@ -62,7 +62,7 @@ interface rv32v_decode_execute_if;
   logic valid; 
   logic counter_done;
   logic vlre_vlse;
-
+  logic done_vfirst;
 
 
   modport decode (
@@ -87,7 +87,8 @@ interface rv32v_decode_execute_if;
     index,
     valid,
     counter_done,
-    vlre_vlse
+    vlre_vlse,
+    done_vfirst
   );
 
   modport execute (
@@ -111,7 +112,8 @@ interface rv32v_decode_execute_if;
     index,
     valid,
     counter_done,
-    vlre_vlse
+    vlre_vlse,
+    done_vfirst
   );
 
 endinterface
