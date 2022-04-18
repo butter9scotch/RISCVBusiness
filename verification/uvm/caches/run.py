@@ -56,12 +56,13 @@ def parse_arguments():
     parser.add_argument('--repeat', action="store_true",
                         help=csprint("Run with the last (most recent) parameters stored in run_summary.log", styles.BLUE))
     parser.add_argument('--testcase', '-t', type=str, default="random",
-                        choices=["nominal", "evict", "index", "mmio", "random"],
+                        choices=["nominal", "evict", "index", "mmio", "flush", "random"],
                         help=csprint("Specify name of the uvm test:\n", styles.YELLOW) +
                             "  nominal:   read back values previously written to caches\n"
                             "  evict:     write to same index with different tag bits to force cache eviction\n"
                             "  index:     read/write to same block of data to ensure proper block indexing\n"
                             "  mmio:      read/write to memory mapped address space\n"
+                            "  flush:     perform cache flush after nominal read/writes\n"
                             "  random:    random interleaving of previous test cases"
                         )
     parser.add_argument('--gui', '-g', action='store_true',

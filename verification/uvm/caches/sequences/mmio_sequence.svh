@@ -32,7 +32,6 @@ import rv32i_types_pkg::*;
 `include "cpu_transaction.svh"
 `include "dut_params.svh"
 
-/** Sequence to test read after writes to the same location */
 class mmio_sequence extends base_sequence;
   `uvm_object_utils(mmio_sequence)
   function new(string name = "");

@@ -14,16 +14,16 @@
 *   limitations under the License.
 *
 *
-*   Filename:     nominal_sequence.svh
+*   Filename:     flush_sequence.svh
 *
 *   Created by:   Mitch Arndt
 *   Email:        arndt20@purdue.edu
-*   Date Created: 03/27/2022
-*   Description:  Sequence that performs randomized read after writes
+*   Date Created: 04/18/2022
+*   Description:  Sequence that performs randomized flush after read/write
 */
 
-`ifndef NOMINAL_SEQUENCE_SVH
-`define NOMINAL_SEQUENCE_SVH
+`ifndef FLUSH_SEQUENCE_SVH
+`define FLUSH_SEQUENCE_SVH
 
 import uvm_pkg::*;
 import rv32i_types_pkg::*;
@@ -33,20 +33,18 @@ import rv32i_types_pkg::*;
 `include "cpu_transaction.svh"
 `include "base_sequence.svh"
 
-class nominal_sequence extends base_sequence;
-  `uvm_object_utils(nominal_sequence)
+class flush_sequence extends base_sequence;
+  `uvm_object_utils(flush_sequence)
   function new(string name = "");
     super.new(name);
   endfunction: new
 
   task body();
     cpu_transaction req_item;
-    int write_count; // current number of writes
-    word_t writes[word_t]; // queue of write addresses
+    word_t accesses[word_t];  // queue of previous reads/writes
+    word_t flushes[word_t];   // queue of previous flushed addresses that need to be checked
 
     req_item = cpu_transaction::type_id::create("req_item");
-
-    write_count = 0;
 
     `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%0d", N), UVM_LOW)
     
@@ -54,27 +52,30 @@ class nominal_sequence extends base_sequence;
       start_item(req_item);
 
       if(!req_item.randomize() with {
-        flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS IN NOMINAL OPPERATION?
-        rw dist { 1:=1, 0:=1 }; //force a 50/50 distribution of reads/writes
-        if (write_count > N/2) {
-          //only reads allowed
-          rw == 0;
+        flush dist { 1:=25, 0:=75 }; //force a 25%/75% distribution of flushes 
+        rw dist { 1:=50, 0:=50 };   //force a 50%/50% distribution of reads/writes
+        
+        if (flush == 1) {
+          //flush from previously accessed addr
+          addr inside {accesses};
         }
-        if (rw == 0) {
-          //read from previously written addr
-          addr inside {writes};
+        else if (flushes.size() > 0) {
+          addr inside {flushes};
         }
         }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
-      if (req_item.rw) begin
-        // write
-        write_count++;
-        writes[req_item.addr] = req_item.addr;
+      if (req_item.flush == 0) begin
+        accesses[req_item.addr] = req_item.addr;
+
+        if (flushes.exists(req_item.addr)) begin
+          flushes.delete(req_item.addr);
+        end
       end else begin
-        // read
-        writes.delete(req_item.addr);
+        // flush
+        accesses.delete(req_item.addr);
+        flushes[req_item.addr] = req_item.addr;
       end
 
       `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
@@ -82,6 +83,6 @@ class nominal_sequence extends base_sequence;
       finish_item(req_item);
     end
   endtask: body
-endclass: nominal_sequence
+endclass: flush_sequence
 
 `endif

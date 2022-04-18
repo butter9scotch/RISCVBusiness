@@ -42,6 +42,7 @@
 `include "index_test.svh"
 `include "evict_test.svh"
 `include "mmio_test.svh"
+`include "flush_test.svh"
 `include "random_test.svh"
 
 // Device Parameter Build Constants

@@ -33,7 +33,6 @@ import rv32i_types_pkg::*;
 `include "dut_params.svh"
 `include "base_sequence.svh"
 
-/** Sequence to test read after writes to the same location */
 class index_sequence extends base_sequence;
   `uvm_object_utils(index_sequence)
 
