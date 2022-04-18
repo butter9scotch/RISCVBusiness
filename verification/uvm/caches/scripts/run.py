@@ -33,6 +33,8 @@ def run(params):
         tb_caches_top -L
 	    {QUESTA_HOME}/uvm-1.2
 	    -voptargs=+acc
+        +autofindloop
+        -iterationlimit=10k
 	    -sv_seed {SEED}
 	    +UVM_TESTNAME={TESTCASE}_test
 	    +UVM_VERBOSITY=UVM_{VERBOSITY}
@@ -57,8 +59,8 @@ def run(params):
         res = os.system('''
             vsim -i
             {RUN_COMMON}
-            -do "do waves/{WAVE}.do"
-	        -do "run -all"
+            -do "waves/{WAVE}.do"
+	        -do "scripts/run.do"
         '''.format(
             RUN_COMMON=RUN_COMMON,
             WAVE=params.config
@@ -68,7 +70,7 @@ def run(params):
         res = os.system('''
             vsim -c
             {RUN_COMMON}
-	        -do "run -all"
+	        -do "scripts/run.do"
         '''.format(
             RUN_COMMON=RUN_COMMON,
         ).replace("\n", " "))
