@@ -95,7 +95,7 @@ def post_run(params):
         
         msg = "[{date}]: ".format(date=dt_string)
 
-        msg += "test: {}, ".format(params.testcase)
+        msg += "testcase: {}, ".format(params.testcase)
         msg += "seed: {}, ".format(log["seed"])
         msg += "config: {}, ".format(params.config)
         msg += "iterations: {}, ".format(params.iterations)

@@ -31,6 +31,7 @@ from scripts.cprint import tags, styles
 from scripts.build import build
 from scripts.run import run
 from scripts.post_run import post_run
+from scripts.repeat import repeat
 
 def seed_type(arg):
     try:
@@ -52,6 +53,8 @@ def parse_arguments():
                         help=csprint("Remove build artifacts", styles.BLUE))
     parser.add_argument('--build', action="store_true",
                         help=csprint("Build project without run", styles.BLUE))
+    parser.add_argument('--repeat', action="store_true",
+                        help=csprint("Run with the last (most recent) parameters stored in run_summary.log", styles.BLUE))
     parser.add_argument('--testcase', '-t', type=str, default="random",
                         choices=["nominal", "evict", "index", "mmio", "random"],
                         help=csprint("Specify name of the uvm test:\n", styles.YELLOW) +
@@ -84,11 +87,11 @@ def parse_arguments():
                         "Identical seeds will produce identical runs")
     parser.add_argument('--iterations', '-i', type=int, default=0,
                         help=csprint("Specify the requested number of memory accesses for a test", styles.YELLOW))
-    parser.add_argument('--mem_timeout', type=int, default=50,
+    parser.add_argument('--mem-timeout', type=int, default=50,
                         help=csprint("Specify the max memory latency before a fatal timeout error", styles.YELLOW))
-    parser.add_argument('--mem_latency', type=int, default=1,
+    parser.add_argument('--mem-latency', type=int, default=1,
                         help=csprint("Specify the number of clock cycles before main memory returns", styles.YELLOW))
-    parser.add_argument('--mmio_latency', type=int, default=2,
+    parser.add_argument('--mmio-latency', type=int, default=2,
                         help=csprint("Specify the number of clock cycles before memory mapped IO returns", styles.YELLOW))
     parser.add_argument('--config', type=str, default="full",
                         choices=["l1", "l2", "full"],
@@ -103,6 +106,8 @@ if __name__ == '__main__':
         cprint("Cleaning Directory...", tags.LOG)
         os.system("rm -rf *.vstf work mitll90_Dec2019_all covhtmlreport *.log transcript *.wlf coverage/*.ucdb **/*.pyc")
         exit()
+    elif params.repeat:
+        repeat(params)
 
     build(params)
 
