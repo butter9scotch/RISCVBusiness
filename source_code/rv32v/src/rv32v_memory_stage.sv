@@ -117,6 +117,7 @@ module rv32v_memory_stage (
   assign asif.storedata0 = execute_memory_if.storedata0;
   assign asif.storedata1 = execute_memory_if.storedata1;
   //assign asif.sew        = memory_writeback_if.eew_loadstore; // TODO: From CSR
+  assign asif.vlre_vlse    = execute_memory_if.vlre_vlse;
   assign asif.sew        = execute_memory_if.eew; // TODO: From CSR
   assign asif.eew_loadstore  = execute_memory_if.eew_loadstore; 
   assign asif.load_ena       = execute_memory_if.load_ena &  ~hu_if.next_v_done & ~hu_if.v_done;
@@ -145,6 +146,7 @@ module rv32v_memory_stage (
   rob_fu_result_t next_a_sigs, next_mu_sigs, next_du_sigs, next_m_sigs, next_p_sigs, next_ls_sigs;
     assign next_a_sigs.index = execute_memory_if.index;
     assign next_a_sigs.vl = execute_memory_if.vl;
+    //assign next_a_sigs.sew = execute_memory_if.vlre_vlse ? SEW32: execute_memory_if.eew;
     assign next_a_sigs.sew = execute_memory_if.eew;
     assign next_a_sigs.woffset = execute_memory_if.woffset0;
     assign next_a_sigs.exception_index = execute_memory_if.index;
@@ -152,7 +154,7 @@ module rv32v_memory_stage (
     assign next_a_sigs.wdata = {wdat1, wdat0};
     assign next_a_sigs.vd = execute_memory_if.vd;
     assign next_a_sigs.wen = execute_memory_if.wen;
-    assign next_a_sigs.ready = execute_memory_if.valid & ~execute_memory_if.rd_wen;
+    assign next_a_sigs.ready = ~execute_memory_if.store_ena & execute_memory_if.valid & ~execute_memory_if.rd_wen;
     //assign rob_if.counter_done = execute_memory_if.counter_done;
 
     assign next_mu_sigs.index = execute_memory_if.index;
@@ -163,7 +165,7 @@ module rv32v_memory_stage (
     assign next_mu_sigs.exception = 0;
     assign next_mu_sigs.wdata = {wdat1, wdat0};
     assign next_mu_sigs.vd = execute_memory_if.vd;
-    assign next_mu_sigs.wen = execute_memory_if.wen;
+    assign next_mu_sigs.wen = (execute_memory_if.woffset1 == execute_memory_if.vl) ? {1'b0, execute_memory_if.wen[0]} : execute_memory_if.wen;
     assign next_mu_sigs.ready = execute_memory_if.mul_done & ~execute_memory_if.rd_wen;
 
     assign next_du_sigs.index = execute_memory_if.index;
@@ -174,12 +176,23 @@ module rv32v_memory_stage (
     assign next_du_sigs.exception = 0;
     assign next_du_sigs.wdata = {wdat1, wdat0};
     assign next_du_sigs.vd = execute_memory_if.vd;
-    assign next_du_sigs.wen = execute_memory_if.wen;
+    assign next_du_sigs.wen = (execute_memory_if.woffset1 == execute_memory_if.vl) ? {1'b0, execute_memory_if.wen[0]} : execute_memory_if.wen;
     assign next_du_sigs.ready = execute_memory_if.div_done; 
+
+    assign next_ls_sigs.index = execute_memory_if.index;
+    assign next_ls_sigs.vl = execute_memory_if.vl;
+    assign next_ls_sigs.sew = execute_memory_if.vlre_vlse ? SEW32: execute_memory_if.eew;
+    assign next_ls_sigs.woffset = execute_memory_if.woffset0;
+    assign next_ls_sigs.exception_index = execute_memory_if.index;
+    assign next_ls_sigs.exception = 0;
+    assign next_ls_sigs.wdata = {wdat1, wdat0};
+    assign next_ls_sigs.vd = execute_memory_if.vd;
+    assign next_ls_sigs.wen = ~asif.vlre_vlse & (execute_memory_if.woffset1 == execute_memory_if.vl) ? {1'b0, execute_memory_if.wen[0]} : execute_memory_if.wen;
+    assign next_ls_sigs.ready = execute_memory_if.store_ena ? execute_memory_if.valid & ~execute_memory_if.rd_wen & asif.store_done: asif.arrived1;
+    //assign rob_if.counter_done = execute_memory_if.counter_done;
 
     assign next_m_sigs = '0;
     assign next_p_sigs = '0;
-    assign next_ls_sigs = '0;
     
 
   // Pipeline Latch
@@ -203,10 +216,10 @@ module rv32v_memory_stage (
       rob_if.du_sigs      <= '0;
       rob_if.m_sigs       <= '0;
       rob_if.p_sigs       <= '0;
-      rob_if.ls_sigs      <= '0;
+      //rob_if.ls_sigs      <= '0;
 
       rob_if.single_bit_write <= 0;
-      rob_if.lmul         <= '0;
+      //rob_if.lmul         <= '0;
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
       rob_if.rd_wen <= '0;
@@ -229,14 +242,13 @@ module rv32v_memory_stage (
       rob_if.du_sigs      <= '0;
       rob_if.m_sigs       <= '0;
       rob_if.p_sigs       <= '0;
-      rob_if.ls_sigs      <= '0;
+      //rob_if.ls_sigs      <= '0;
 
       rob_if.single_bit_write <= 0;
-      rob_if.lmul         <= '0;
+      //rob_if.lmul         <= '0;
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
       rob_if.rd_wen       <= '0;
-
     end else if (!hu_if.stall_mem) begin
       /*******************************************************
       *** To Scalar Unit
@@ -252,13 +264,29 @@ module rv32v_memory_stage (
       rob_if.m_sigs           <= next_m_sigs ;
       rob_if.mu_sigs          <= next_mu_sigs;
       rob_if.p_sigs           <= next_p_sigs ;
-      rob_if.ls_sigs          <= next_ls_sigs;
+      //rob_if.ls_sigs          <= next_ls_sigs;
       
       rob_if.single_bit_write <= execute_memory_if.single_bit_write;
-      rob_if.lmul             <= execute_memory_if.lmul;
+      //rob_if.lmul             <= execute_memory_if.lmul;
       rob_if.vl               <= execute_memory_if.vl;
       rob_if.counter_done     <= execute_memory_if.counter_done;
       rob_if.rd_wen           <= execute_memory_if.rd_wen;
+    //end else if (~asif.arrived1) begin
+      //rob_if.ls_sigs          <= '0;
+    end
+  end
+
+  // Pipeline Latch
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (nRST == 0) begin
+      rob_if.ls_sigs      <= '0;
+    end else if (hu_if.flush_mem) begin
+      rob_if.ls_sigs      <= '0;
+    //end else if ((execute_memory_if.load_ena & asif.arrived1) | (execute_memory_if.store_ena & ~hu_if.stall_mem)) begin
+    end else if (next_ls_sigs.ready) begin
+      rob_if.ls_sigs          <= next_ls_sigs;
+    end else if (~next_ls_sigs.ready) begin
+      rob_if.ls_sigs          <= '0;
     end
   end
 

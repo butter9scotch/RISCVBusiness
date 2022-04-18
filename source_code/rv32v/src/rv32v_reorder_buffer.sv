@@ -107,7 +107,7 @@ module rv32v_reorder_buffer # (
   assign ls_em_if.sew     = rob_if.ls_sigs.sew;
 
   assign hu_if.v_done         = rob_if.v_done;
-  assign hu_if.next_v_done    = reached_max_a & rob_if.a_sigs.ready;
+  assign hu_if.next_v_done    = reached_max_ls & rob_if.ls_sigs.ready;
   assign flush                = rob_if.branch_mispredict | rob_if.scalar_exception;
   assign head_exception_index = rob[head_sel].exception_index;
   assign head_sew             = rob[head_sel].sew;

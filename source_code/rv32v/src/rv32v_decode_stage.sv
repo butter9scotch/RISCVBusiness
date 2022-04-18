@@ -65,10 +65,15 @@ module rv32v_decode_stage (
   logic wen0, wen1, nf_count_ena, nf_count_ena_ff1, nf_count_ena_ff2, segment_type;
   offset_t woffset0, woffset1, vs1_offset0, vs1_offset1, vs2_offset0, vs2_offset1;
   logic [4:0] new_vd;
+  logic vlre_vlse;
 
   logic mask0, mask1;
 
   sew_t next_decode_execute_if_eew;
+
+  //assign rob_if.lmul = (vcu_if.is_load || vcu_if.is_store) ? emul : lmul;
+
+  assign vlre_vlse = (vcu_if.is_load || vcu_if.is_store) && (vcu_if.mop == MOP_UNIT) && (vcu_if.lumop == LUMOP_UNIT_FULLREG);
 
    
   //======================V_STALL LATCH===========================
@@ -408,7 +413,7 @@ module rv32v_decode_stage (
   assign rfv_if.vs2_offset[ZERO][1]   = vs2_offset1;
   assign rfv_if.vs3_offset[ZERO][0]   = woffset0; // use offset of vd here because same bits in instruction
   assign rfv_if.vs3_offset[ZERO][1]   = woffset1; // use offset of vd here because same bits in instruction
-  assign rfv_if.sew[ZERO] = (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : vcu_if.sew;
+  assign rfv_if.sew[ZERO] = vlre_vlse ? SEW32 : (vcu_if.is_store || vcu_if.is_load) ? vcu_if.eew : vcu_if.sew;
 
   // assign rfv_if.vl = prv_if.vl;
   // assign rfv_if.vs2_sew = vcu_if.vs2_widen ? (prv_if.sew == SEW32) || (prv_if.sew == SEW16) ? SEW32 :
@@ -527,6 +532,8 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= '0;
       decode_execute_if.counter_done      <= '0;
 
+      decode_execute_if.vlre_vlse         <= '0;
+
     end else if(hu_if.flush_dec | rob_if.v_done) begin
 //    end else if(hu_if.flush_dec | (counter_done_ff1 & ~hu_if.stall_dec)) begin
       decode_execute_if.stride_type       <= '0;
@@ -618,6 +625,8 @@ module rv32v_decode_stage (
       decode_execute_if.index             <= scalar_vector_if.index;
       decode_execute_if.counter_done      <= ele_if.done[ZERO];
 
+      decode_execute_if.vlre_vlse         <= '0;
+
     end else if (~hu_if.stall_dec) begin
       decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src & ~counter_done_ff1; //write to scalar regs
       decode_execute_if.rd_sel            <= vcu_if.vd;
@@ -704,6 +713,7 @@ module rv32v_decode_stage (
                                              (vcu_if.vmv_type == NOT_VMV) ? prv_if.vl : 
                                              (vcu_if.vmv_type == X_S) || (vcu_if.vmv_type == S_X) ? 1 : 
                                               (VLENB >> sew) << vcu_if.vmv_type; 
+      decode_execute_if.vlre_vlse         <= vlre_vlse;
       decode_execute_if.vlenb             <= prv_if.vlenb;   
       decode_execute_if.vtype             <= prv_if.vtype;   
       decode_execute_if.vstart            <= prv_if.vstart;

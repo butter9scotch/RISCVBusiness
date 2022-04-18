@@ -47,7 +47,7 @@ interface rv32v_reorder_buffer_if;
   modport memory (
     output a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs,
            single_bit_write,
-           sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl,  single_bit_op,
+           sew, branch_mispredict, scalar_exception, commit_ena, vl,  single_bit_op,
     output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, single_wen, single_wen_vl,
            counter_done, rd_wen
   );

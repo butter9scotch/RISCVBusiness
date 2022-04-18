@@ -57,10 +57,10 @@ RVTEST_VSET
   # vlse64
   #-------------------------------------------------------------
 
-  TEST_VLSE_OP( 26, vlse64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 8, 0  + tdat );
-  TEST_VLSE_OP( 27, vlse64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8, 8  + tdat );
-  TEST_VLSE_OP( 28, vlse64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 8, -12 + tdat4 );
-  TEST_VLSE_OP( 29, vlse64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8, -4  + tdat4 );
+  #TEST_VLSE_OP( 26, vlse64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 8, 0  + tdat );
+  #TEST_VLSE_OP( 27, vlse64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8, 8  + tdat );
+  #TEST_VLSE_OP( 28, vlse64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 8, -12 + tdat4 );
+  #TEST_VLSE_OP( 29, vlse64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8, -4  + tdat4 );
   
   TEST_PASSFAIL
 

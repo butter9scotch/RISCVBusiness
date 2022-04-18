@@ -8,7 +8,7 @@
 #-----------------------------------------------------------------------
 
 # VSEW temporarily hard-coded to 32 bits
-#define RVTEST_VSET vsetivli x31, 4, e32, tu, mu;
+#define RVTEST_VSET vsetivli x31, 1, e32, tu, mu;
 #define RVTEST_VSET_HALF vsetivli x31, 1, e16, tu, mu;
 #define __riscv_half_vsew 16
 #define __riscv_vsew 32

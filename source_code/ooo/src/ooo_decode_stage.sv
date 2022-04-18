@@ -262,6 +262,20 @@ module ooo_decode_stage (
   /*********************************************************
   *** Completion buffer signals
   *********************************************************/
+  logic vector_load_store, vector_reg_load_store_instr;
+  logic [2:0] nf;
+  width_t vector_eew_loadstore;
+  opcode_t vector_opcode;
+  mop_t vector_mop;
+  lumop_t vector_lumop;
+  assign nf                   = fetch_decode_if.instr[31:29];
+  assign vector_eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
+  assign vector_opcode        = opcode_t'(fetch_decode_if.instr[6:0]);
+  assign vector_mop           = mop_t'(fetch_decode_if.instr[27:26]);
+  assign vector_lumop         = lumop_t'(fetch_decode_if.instr[24:20]);
+  assign vector_load_store = (vector_opcode == LOAD_FP || vector_opcode == STORE_FP) && ((vector_eew_loadstore == WIDTH8) || (vector_eew_loadstore == WIDTH16) || (vector_eew_loadstore == WIDTH32));
+  assign vector_reg_load_store_instr = cu_if.sfu_type == VECTOR_S && vector_load_store && (vector_mop == MOP_UNIT) && (vector_lumop == LUMOP_UNIT_FULLREG);
+  assign decode_execute_if.vlre_vlse = vector_reg_load_store_instr;
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
   assign decode_execute_if.v_alloc_ena = cb_if.alloc_ena & cu_if.sfu_type == VECTOR_S & ~cu_if.v_scalar_wen; // This is for the vector completion buffer
   // assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
@@ -269,6 +283,16 @@ module ooo_decode_stage (
   assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
   assign decode_execute_if.v_single_bit_op = cu_if.v_single_bit_op;
+
+  always_comb begin
+    case (nf)
+    3'b000: decode_execute_if.nf_lmul = LMUL1;
+    3'b001: decode_execute_if.nf_lmul = LMUL2;
+    3'b011: decode_execute_if.nf_lmul = LMUL4;
+    3'b111: decode_execute_if.nf_lmul = LMUL8;
+    default: decode_execute_if.nf_lmul = LMUL1;
+    endcase
+  end
   /*********************************************************
   *** Vector Unit signals
   *********************************************************/

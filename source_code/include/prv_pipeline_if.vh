@@ -81,7 +81,7 @@ interface prv_pipeline_if();
   );
 
   modport pipe (
-    input invalid_csr, rdata, 
+    input invalid_csr, rdata, vtype,
     output addr, swap, clr, set, valid_write,
            wdata, vector_csr_instr
   );

@@ -52,6 +52,7 @@ module rv32v_top_level(
   assign scalar_hazard_if_ret = rv32v_if.scalar_hazard_if_ret;
   assign returnex = rv32v_if.returnex;
   assign rob_if.alloc_ena = rv32v_if.alloc_ena;
+  assign rob_if.lmul = rv32v_if.lmul;
   assign rob_if.commit_ena = rv32v_if.v_commit_ena;
 
   assign scalar_vector_if.instr = rv32v_if.instr;

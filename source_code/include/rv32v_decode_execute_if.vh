@@ -61,6 +61,7 @@ interface rv32v_decode_execute_if;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
   logic valid; 
   logic counter_done;
+  logic vlre_vlse;
 
 
 
@@ -85,7 +86,8 @@ interface rv32v_decode_execute_if;
     ena,
     index,
     valid,
-    counter_done
+    counter_done,
+    vlre_vlse
   );
 
   modport execute (
@@ -108,7 +110,8 @@ interface rv32v_decode_execute_if;
     ena,
     index,
     valid,
-    counter_done
+    counter_done,
+    vlre_vlse
   );
 
 endinterface

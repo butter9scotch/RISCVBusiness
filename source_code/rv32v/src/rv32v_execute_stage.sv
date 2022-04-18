@@ -498,6 +498,8 @@ module rv32v_execute_stage (
       execute_memory_if.mul_done <= '0;
       execute_memory_if.div_done <= '0;
 
+      execute_memory_if.vlre_vlse         <= '0;
+
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
       execute_memory_if.store_ena       <= '0;
@@ -530,6 +532,8 @@ module rv32v_execute_stage (
       execute_memory_if.counter_done <= '0;
       execute_memory_if.mul_done <= '0;
       execute_memory_if.div_done <= '0;
+
+      execute_memory_if.vlre_vlse         <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -574,10 +578,12 @@ module rv32v_execute_stage (
       execute_memory_if.ena          <= decode_execute_if.ena;
       execute_memory_if.index        <= vif0.mul_wait ? index_ff2 : decode_execute_if.index;
       execute_memory_if.lmul         <= decode_execute_if.lmul;
-      execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV) ? 1'b0 : decode_execute_if.valid;
+      execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV || load_ena) ? 1'b0 : decode_execute_if.valid;
+      //execute_memory_if.valid        <= (decode_execute_if.fu_type == MUL || decode_execute_if.fu_type == DIV || load_ena) ? 1'b0 : decode_execute_if.valid;
       execute_memory_if.counter_done <= decode_execute_if.counter_done ;
       execute_memory_if.mul_done <= vif0.done_mu;
       execute_memory_if.div_done <= vif0.done_du;
+      execute_memory_if.vlre_vlse         <= decode_execute_if.vlre_vlse;
 
     end
   end

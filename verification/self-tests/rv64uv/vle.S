@@ -57,10 +57,10 @@ RVTEST_VSET
   # vle64
   #-------------------------------------------------------------
 
-  TEST_VLE_OP( 26, vle64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 0 + tdat );
-  TEST_VLE_OP( 27, vle64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8 + tdat );
-  TEST_VLE_OP( 28, vle64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, -12 + tdat4 );
-  TEST_VLE_OP( 29, vle64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, -4  + tdat4 );
+  #TEST_VLE_OP( 26, vle64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, 0 + tdat );
+  #TEST_VLE_OP( 27, vle64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, 8 + tdat );
+  #TEST_VLE_OP( 28, vle64.v, 64, 0xff00ff0000ff00ff, 0xf00ff00f0ff00ff0, -12 + tdat4 );
+  #TEST_VLE_OP( 29, vle64.v, 64, 0xf00ff00f0ff00ff0, 0xff00ff0000ff00ff, -4  + tdat4 );
   
   TEST_PASSFAIL
 

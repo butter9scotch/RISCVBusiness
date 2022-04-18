@@ -41,7 +41,9 @@ module address_scheduler (
   assign misalign1     = (asif.addr1[1:0] != 2'b00) & daccess;
   assign asif.arrived0 = state == LOAD0 & asif.dhit;
   assign asif.arrived1 = state == LOAD1 & asif.dhit;
-  assign asif.byte_ena = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) ? 4'b1111: // choose csr sew for indexed load/store_ena, otherwise choose instr sew
+  assign asif.store_done = (state == STORE1 & asif.dhit) || (state == STORE0 & asif.vl == asif.woffset1 & asif.dhit);
+  //assign asif.arrived1 = (state == LOAD1 & asif.dhit) || (state == STORE1 & asif.dhit) || (state == STORE0 & asif.dhit & (asif.vl == asif.woffset1));
+  assign asif.byte_ena = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) | (asif.vlre_vlse) ? 4'b1111: // choose csr sew for indexed load/store_ena, otherwise choose instr sew
                          (asif.eew_loadstore == WIDTH16 & ~asif.ls_idx) | (asif.sew == SEW16 & asif.ls_idx) ? 4'b0011:
                          4'b0001;
 /*
@@ -78,7 +80,8 @@ module address_scheduler (
       begin
         //if (asif.dhit & misalign1 & ~asif.segment_type) next_state = EX;
         if (asif.dhit && (asif.vl != asif.woffset1)) next_state = STORE1;
-        if (asif.vl == asif.woffset1) next_state = IDLE;
+        if (asif.dhit && asif.vl == asif.woffset1) next_state = IDLE;
+        //if (asif.dhit && (asif.vl == asif.woffset1)) next_state = IDLE;
       end 
       STORE1:
       begin

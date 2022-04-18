@@ -49,8 +49,10 @@ interface ooo_decode_execute_if();
   logic ifence;
   logic prediction; //TEMPORARY
   logic v_alloc_ena; 
+  logic vlre_vlse;
   opcode_t opcode;
   word_t store_data;
+  vlmul_t nf_lmul;
 
   // new structs for the interface
   exception_control_signals_t exception_sigs; //
@@ -91,6 +93,8 @@ interface ooo_decode_execute_if();
     instr,
     opcode,
     store_data,
+    nf_lmul,
+    vlre_vlse,
     v_single_bit_op
   );
 
@@ -112,6 +116,8 @@ interface ooo_decode_execute_if();
     instr,
     opcode,
     store_data,
+    nf_lmul,
+    vlre_vlse,
     v_single_bit_op
   );
 

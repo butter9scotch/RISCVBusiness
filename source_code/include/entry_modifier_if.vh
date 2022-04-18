@@ -9,7 +9,7 @@ interface entry_modifier_if;
   parameter LANES = 2;
 
   sew_t sew;
-  logic [$clog2(NUM)-1:0] index, final_index;
+  logic [$clog2(NUM_CB_ENTRY)-1:0] index, final_index;
   offset_t woffset;
   logic [4:0] vd, final_vd;
   logic [6:0] vd_outer_offset;

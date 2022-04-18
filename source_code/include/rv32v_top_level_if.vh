@@ -15,6 +15,7 @@ interface rv32v_top_level_if;
   logic csr_update;
   logic done;
   logic alloc_ena;
+  vlmul_t lmul;
   logic v_single_bit_op;
   logic v_commit_done;
   logic v_commit_ena;
@@ -36,6 +37,7 @@ interface rv32v_top_level_if;
     input v_commit_ena,
     input index,
     input alloc_ena,
+    input lmul,
     input v_start,
     input instr, rs1_data, rs2_data,
     input scalar_hazard_if_ret,
