@@ -75,7 +75,20 @@ class end2end extends uvm_component;
 
     `uvm_info(this.get_name(), $sformatf("Detected CPU Response @%h", tx.addr), UVM_MEDIUM);
 
-    if (tx.addr < `NONCACHE_START_ADDR) begin
+    if (tx.flush) begin
+      // flush request
+      flush_history();
+
+      if (!cache.empty()) begin
+        errors++;
+        `uvm_error(this.get_name(), "Error: Cache Flush -> Cache Not Empty");
+        `uvm_info(this.get_name(), $sformatf("%s", cache.sprint()), UVM_LOW);
+      end else begin
+        successes++;
+        `uvm_info(this.get_name(), "Success: Cache Flush -> Empty Cache", UVM_LOW);
+      end
+    end
+    else if (tx.addr < `NONCACHE_START_ADDR) begin
       // memory request
       if (history.size() == 0) begin
         // quiet memory bus
@@ -179,10 +192,10 @@ class end2end extends uvm_component;
         // last word of block
         if (cache.is_valid_block(t.addr)) begin
           successes++;
-          `uvm_info(this.get_name(), $sformatf("Valid block read from memory: %h", t.addr), UVM_LOW);
+          `uvm_info(this.get_name(), $sformatf("Valid block txn with memory: %h", t.addr), UVM_LOW);
         end else begin
           errors++;
-          `uvm_error(this.get_name(), $sformatf("Invalid word addresses when fetching block from memory: %h", t.addr));
+          `uvm_error(this.get_name(), $sformatf("Invalid word addresses for block txn with memory: %h", t.addr));
           `uvm_info(this.get_name(), $sformatf("%s", cache.sprint()), UVM_LOW);
         end
       end 

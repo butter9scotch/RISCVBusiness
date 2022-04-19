@@ -25,8 +25,7 @@
 
 from datetime import datetime
 
-from cprint import cprint
-from cprint import tags
+from cprint import cprint, csprint, tags, styles
 
 def post_run(params):
     if params.config == "l1":
@@ -42,6 +41,17 @@ def post_run(params):
 
     with open("transcript", "r") as transcript:
         lines = transcript.readlines()
+        try:
+            sim_err = lines[-1].split(",")[0].split(":")[1].strip()
+            sim_err = int(sim_err)
+            if (sim_err > 0):
+                cprint("Fatal Simulation Error Detected", tags.FAIL)
+                cprint("For more details, view " + csprint("verification/uvm/caches/transcript", styles.UNDERLINE), tags.FAIL)
+                # exit()
+        except Exception as err:
+            cprint("Unable to parse simulator errors from transcript", tags.WARNING)
+            cprint(err, tags.WARNING)
+
         for line in lines:
             words = line.strip().split()
             for i, word in enumerate(words):

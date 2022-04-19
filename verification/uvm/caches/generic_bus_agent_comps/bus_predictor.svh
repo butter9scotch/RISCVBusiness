@@ -66,31 +66,36 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
     `uvm_info(this.get_name(), $sformatf("cache before:\n%s", cache.sprint()), UVM_HIGH)
 
-    if (pred_tx.rw) begin
-      // 1 -> write
-      if (pred_tx.addr < `NONCACHE_START_ADDR) begin
-        if (cache.exists(pred_tx.addr)) begin
-          cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
-        end else begin
-          cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
-        end
-      end // else don't cache
+    if (pred_tx.flush) begin
+      pred_ap.write(pred_tx); // flush doesn't return any data
+      cache.flush();
     end else begin
-      // 0 -> read
-      if (pred_tx.addr < `NONCACHE_START_ADDR) begin
-        // cache/cache responds
-        pred_tx.data = cache.read(pred_tx.addr);
+      // no cache flush
+      if (pred_tx.rw) begin
+        // 1 -> write
+        if (pred_tx.addr < `NONCACHE_START_ADDR) begin
+          if (cache.exists(pred_tx.addr)) begin
+            cache.update(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
+          end else begin
+            cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
+          end
+        end // else don't cache
       end else begin
-        // mmio responds
-        pred_tx.data = {env_config.mmio_tag, pred_tx.addr[15:0]};
-        `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", pred_tx.data), UVM_MEDIUM)
+        // 0 -> read
+        if (pred_tx.addr < `NONCACHE_START_ADDR) begin
+          // cache/cache responds
+          pred_tx.data = cache.read(pred_tx.addr);
+        end else begin
+          // mmio responds
+          pred_tx.data = {env_config.mmio_tag, pred_tx.addr[15:0]};
+          `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", pred_tx.data), UVM_MEDIUM)
+        end
       end
+      // after prediction, the expected output send to the scoreboard 
+      pred_ap.write(pred_tx);
     end
 
     `uvm_info(this.get_name(), $sformatf("cache after:\n%s", cache.sprint()), UVM_HIGH)
-
-    // after prediction, the expected output send to the scoreboard 
-    pred_ap.write(pred_tx);
   endfunction: write
 
 endclass: bus_predictor
