@@ -88,6 +88,8 @@ def parse_arguments():
                         "Identical seeds will produce identical runs")
     parser.add_argument('--iterations', '-i', type=int, default=0,
                         help=csprint("Specify the requested number of memory accesses for a test", styles.YELLOW))
+    parser.add_argument('--no-if-check', action="store_true",
+                        help=csprint("Remove interface checks from test", styles.YELLOW))
     parser.add_argument('--mem-timeout', type=int, default=50,
                         help=csprint("Specify the max memory latency before a fatal timeout error", styles.YELLOW))
     parser.add_argument('--mem-latency', type=int, default=1,
@@ -120,11 +122,9 @@ if __name__ == '__main__':
     cprint("Running Post Run Script...", tags.LOG)
 
     # print parameters
-    skip = ["verbosity", "gui", "clean", "seed", "build"]
+    keep = ["mem_timeout", "iterations", "mem_latency", "testcase", "config", "mmio_latency"]
     for arg in vars(params):
-        if arg in skip:
-            continue #skip showing in info
-        cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.INFO)
+        if arg in keep:
+            cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.INFO)
 
     post_run(params)
-                        
