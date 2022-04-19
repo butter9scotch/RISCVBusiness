@@ -31,7 +31,7 @@
 `include "component_selection_defines.vh"
 
 interface prv_pipeline_if();
-  import machine_mode_types_1_12_pkg::*;
+  import priv_types_1_12_pkg::*;
   import rv32i_types_pkg::*;
 
   // exception signals
@@ -49,7 +49,7 @@ interface prv_pipeline_if();
   // csr rw
   logic       swap, clr, set;
   logic       invalid_csr, valid_write;
-  mcsr_addr_t maddr;
+  csr_addr_t maddr;
   word_t      rdata, wdata;
 
   // performance signals

@@ -22,12 +22,13 @@
 *   Description:  PMA Checker, version 1.12
 */
 
-`include "prv_1_12_internal_if.vh"
+`include "priv_1_12_internal_if.vh"
 
 module priv_1_12_pma (
   input logic CLK, nRST,
-  priv_1_12_internal_if.pma prv_intern_if,
+  priv_1_12_internal_if.pma prv_intern_if
 );
+  import pma_types_1_12_pkg::*;
 
   pma_reg_t pma_reg;
   pma_cfg_t pma_cfg;
@@ -39,7 +40,7 @@ module priv_1_12_pma (
 
     pma_reg = prv_intern_if.pma_cfg_regs[prv_intern_if.addr[31:26]];
 
-    if (~addr[25]) begin
+    if (~prv_intern_if.addr[25]) begin
       pma_cfg = pma_reg.pma_cfg_0;
     end else begin
       pma_cfg = pma_reg.pma_cfg_1;
@@ -53,6 +54,7 @@ module priv_1_12_pma (
       prv_intern_if.pma_i_fault = 1'b1;
     end
 
+    // enable this if variable sized access is allowed
     if (prv_intern_if.acc_width_type > pma_cfg.AccWidth) begin
       if (prv_intern_if.ren) begin
         prv_intern_if.pma_l_fault = 1'b1;

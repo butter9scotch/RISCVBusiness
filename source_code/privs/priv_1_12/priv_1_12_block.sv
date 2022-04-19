@@ -30,11 +30,11 @@ module priv_1_12_block (
     input logic CLK, nRST,
     prv_pipeline_if.priv_block prv_pipe_if,
     core_interrupt_if.core interrupt_if,
-    generic_bus_if.pma pma_icache_if,
-    generic_bus_if.pma pma_dcache_if,
+    generic_bus_if icache_if,
+    generic_bus_if dcache_if
 );
 
-    import machine_mode_types_1_12_pkg::*;
+    import priv_types_1_12_pkg::*;
 
     priv_1_12_internal_if prv_intern_if();
 
@@ -53,9 +53,5 @@ module priv_1_12_block (
     assign prv_pipe_if.rdata = prv_intern_if.old_csr_val;
     assign prv_pipe_if.invalid_csr = prv_intern_if.invalid_csr;
 
-    assign prv_intern_if.addr = pma_if.addr;
-    assign prv_intern_if.ren = pma_if.ren;
-    assign prv_intern_if.wen = pma_if.wen;
-    assign prv_intern_if.xen = pma_if.xen;
 
 endmodule

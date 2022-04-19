@@ -32,7 +32,7 @@ module priv_1_12_csr # (
 );
 
 
-  import machine_mode_types_1_12_pkg::*;
+  import priv_types_1_12_pkg::*;
   import pma_types_1_12_pkg::*;
   import rv32i_types_pkg::*;
 
@@ -253,10 +253,10 @@ module priv_1_12_csr # (
             cycles_full <= {nxt_csr_val, cycles_full[31:0]};
           end
           MINSTRET_ADDR: begin
-            inst_ret <= {cycles_full[63:32], nxt_csr_val};
+            instret_full <= {cycles_full[63:32], nxt_csr_val};
           end
           MINSTRETH_ADDR: begin
-            inst_ret <= {nxt_csr_val, cycles_full[31:0]};
+            instret_full <= {nxt_csr_val, cycles_full[31:0]};
           end
           /* Catch all PMA */
           12'b101111zzzzzz: begin

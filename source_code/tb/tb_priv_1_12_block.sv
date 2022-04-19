@@ -25,12 +25,13 @@
 `timescale 1ns/1ns
 
 `include "rv32i_types_pkg.sv"
-`include "machine_mode_types_1_12_pkg.sv"
+`include "priv_types_1_12_pkg.sv"
 `include "pma_types_1_12_pkg.sv"
 
 `include "prv_pipeline_if.vh"
 `include "priv_1_12_internal_if.vh"
 `include "core_interrupt_if.vh"
+`include "generic_bus_if.vh"
 
 `define OUTPUT_FILE_NAME "cpu.hex"
 `define STATS_FILE_NAME "stats.txt"
@@ -55,9 +56,11 @@ module tb_priv_1_12_block ();
   //Interface Instantiations
   prv_pipeline_if prv_pipeline_if();
   core_interrupt_if core_int_if();
+  generic_bus_if dcache_if();
+  generic_bus_if icache_if();
 
   // Package Instantiations
-  import machine_mode_types_1_12_pkg::*;
+  import priv_types_1_12_pkg::*;
   import pma_types_1_12_pkg::*;
 
   //Module Instantiations
@@ -65,6 +68,8 @@ module tb_priv_1_12_block ();
     .CLK(CLK),
     .nRST(nRST),
     .prv_pipe_if(prv_pipeline_if),
+    .icache_if(icache_if),
+    .dcache_if(dcache_if),
     .interrupt_if(core_int_if)
   );
 

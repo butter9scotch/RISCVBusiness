@@ -52,7 +52,7 @@ interface priv_1_12_internal_if;
     );
 
     modport pma (
-        input addr, ren, wen, xen, pma_cfg_regs,
+        input addr, ren, wen, xen, pma_cfg_regs, acc_width_type,
         output pma_i_fault, pma_l_fault, pma_s_fault
     );
 

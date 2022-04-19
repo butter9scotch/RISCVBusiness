@@ -40,7 +40,7 @@ package pma_types_1_12_pkg;
     RsrvNone = 2'b00,
     RsrvNonEventual = 2'b01,
     RsrvEventual = 2'b10,
-    Reserved = 2'b11
+    RsrvReserved = 2'b11
   } pma_rsrv_t;
 
   typedef enum logic [2:0] {
@@ -51,7 +51,7 @@ package pma_types_1_12_pkg;
     Burst2w = 3'b100,
     Burst4W = 3'b101,
     Burst8W = 3'b110,
-    Reserved = 3'b111
+    AccWidthReserved = 3'b111
   } pma_accwidth_t;
 
   typedef struct packed {

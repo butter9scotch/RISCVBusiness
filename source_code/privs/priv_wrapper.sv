@@ -28,6 +28,8 @@
 module priv_wrapper (
   input logic CLK, nRST,
   prv_pipeline_if.priv_block prv_pipe_if,
+  generic_bus_if icache_if,
+  generic_bus_if dcache_if,
   core_interrupt_if.core interrupt_if
 );
 
