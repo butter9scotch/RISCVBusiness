@@ -33,7 +33,6 @@ def run(params):
         tb_caches_top -L
 	    {QUESTA_HOME}/uvm-1.2
 	    -voptargs=+acc
-        +autofindloop
         -iterationlimit=10k
 	    -sv_seed {SEED}
 	    +UVM_TESTNAME={TESTCASE}_test
