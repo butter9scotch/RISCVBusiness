@@ -77,9 +77,15 @@ class cpu_driver #(string cif_str, string bus_if_str) extends uvm_driver#(cpu_tr
       //FIXME: NEED TO ADD CLEAR FUNCTIONALITY
       cif.clear = '0; 
 
-      do begin
-        @(posedge cif.CLK);  //wait for memory to return
-      end while (cpu_bus_if.busy == 1'b1);
+      if (cif.flush) begin
+        do begin
+          @(posedge cif.CLK);  //wait for flush to complete
+        end while (cif.flush_done == 1'b0);
+      end else begin
+        do begin
+          @(posedge cif.CLK);  //wait for cache operation to complete
+        end while (cpu_bus_if.busy == 1'b1);
+      end
       
       seq_item_port.item_done();
     end

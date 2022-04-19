@@ -51,6 +51,7 @@ def build(params):
 	    +incdir+sequences \
 	    +incdir+tests \
 	    +define+TB_{TB_GLOBAL_CONFIG}_CONFIG \
+        +define+INTERFACE_CHECKER={IF_CHECKER} \
 	    +acc \
 	    +cover \
 	    -L {QUESTA_HOME}/uvm-1.2 tb_caches_top.sv 
@@ -61,7 +62,8 @@ def build(params):
         INCLUDE=SRC + "include",
         PACKAGES=SRC + "packages",
         QUESTA_HOME=os.getenv('QUESTA_HOME'),
-        TB_GLOBAL_CONFIG=params.config.upper()
+        TB_GLOBAL_CONFIG=params.config.upper(),
+        IF_CHECKER="0" if params.no_if_check else "1"
     ))
 
     if (res == 0):

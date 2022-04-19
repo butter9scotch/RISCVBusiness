@@ -96,17 +96,24 @@ class bus_monitor extends uvm_monitor;
 
     forever begin
       cpu_transaction tx;
-      int cycle;
 
       @(posedge cif.CLK);
       `MONITOR_DELAY // delay to pick up new value from bus
 
       if (cif.flush) begin
         tx = cpu_transaction::type_id::create("tx");
-        tx.addr = 'x;
+        tx.addr = bus_if.addr;
         tx.data = 'x;
-        tx.byte_en = 'x;
+        tx.byte_en = bus_if.byte_en;
         tx.flush = cif.flush;
+
+        `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        req_ap.write(tx);
+
+        mem_wait(1'b1, cif.flush_done);
+
+        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        resp_ap.write(tx);
       end
       else if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
@@ -127,26 +134,29 @@ class bus_monitor extends uvm_monitor;
         `uvm_info(this.get_name(), $sformatf("Writing Req AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         req_ap.write(tx);
 
-        cycle = 0; 
-        while (bus_if.busy) begin
-          @(posedge cif.CLK);
-          `MONITOR_DELAY // delay to pick up new value from bus
-          cycle++;  //wait for memory to return
-          if (cycle > env_config.mem_timeout) begin
-            `uvm_fatal(this.get_name(), "memory timeout reached")
-          end
-        end
+        mem_wait(1'b0, bus_if.busy);
 
         if (bus_if.ren) begin
           tx.data = bus_if.rdata;
         end
 
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
-        // #(precedence); //delay to give precedence
         resp_ap.write(tx);
       end
     end
   endtask: run_phase
+
+  task mem_wait(logic clear, const ref logic flag);
+    int cycle = 0; 
+    while (flag != clear) begin
+      @(posedge cif.CLK);
+      `MONITOR_DELAY // delay to pick up new value from bus
+      cycle++;  //wait for memory to return
+      if (cycle > env_config.mem_timeout) begin
+        `uvm_fatal(this.get_name(), "memory timeout reached")
+      end
+    end
+  endtask: mem_wait
 
 endclass: bus_monitor
 
