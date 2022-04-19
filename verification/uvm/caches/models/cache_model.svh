@@ -79,6 +79,10 @@ class cache_model extends uvm_object;
         this.ignore_mask = ignore_mask;
     endfunction
 
+    function bit empty();
+        return blocks.size() == 0;
+    endfunction: empty
+
     function word_t get_base_addr(word_t addr);
         word_t base = {addr[31:`L1_ADDR_IDX_END], {`L1_ADDR_IDX_END{1'b0}}};
         return base;
@@ -160,6 +164,10 @@ class cache_model extends uvm_object;
             return '0;
         end
     endfunction: is_valid_block
+
+    function void flush();
+        blocks.delete();
+    endfunction: flush
 
     function string sprint();
         string str = "cache:\n";

@@ -26,8 +26,8 @@
 `define INTERFACE_CHECKER_SVH
 
 module interface_checker(
-    cache_if.cache i_cif,
-    generic_bus_if.generic_bus cpu_if,
+    cache_if.cache d_cif,
+    generic_bus_if.generic_bus d_cpu_if,
     generic_bus_if.generic_bus mem_if
 );
 
@@ -40,6 +40,9 @@ module interface_checker(
     //     else $fatal(1, "fatal error");
     // assert property (@(posedge mem_if.busy) mem_if.ren || mem_if.wen);
     // assert property(@(posedge i_cif.CLK) cpu_if.byte_en != 32'hff00ff00);
+    assert 
+        property(@(posedge d_cif.CLK) d_cif.flush_done |-> (d_cif.flush))
+        else $fatal(1, "'d_cif.flush_done' should never be asserted without a cpu flush request");
     //TODO: IMPLEMENT CHECK FOR VALID BYTE_EN
 endmodule: interface_checker
 

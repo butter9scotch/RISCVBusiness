@@ -73,11 +73,14 @@ module tb_caches_top ();
   cache_if d_cif(clk);  // holds flush, clear signals for d cache
   cache_if l2_cif(clk);  // holds flush, clear signals for l2 cache
   
-  interface_checker if_check( //FIXME: THIS NEEDS TO BE UPDATED WITH PROPER INTERFACES
-    .i_cif(i_cif.cache),
-	  .cpu_if(i_cpu_bus_if.generic_bus),
-    .mem_if(i_l1_arb_bus_if.generic_bus)
-  );
+  if (`INTERFACE_CHECKER == 1) begin
+    interface_checker if_check( //FIXME: THIS NEEDS TO BE UPDATED WITH PROPER INTERFACES
+      .d_cif(d_cif.cache),
+      .d_cpu_if(d_cpu_bus_if.generic_bus),
+      .mem_if(d_l1_arb_bus_if.generic_bus)
+    );
+  end
+
 
   /********************** Instantiate the DUT **********************/
 
