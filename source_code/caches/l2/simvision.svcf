@@ -1,0 +1,278 @@
+# SimVision Command Script (Tue Apr 19 12:25:38 AM EDT 2022)
+#
+# Version 15.20.s030
+#
+# You can restore this configuration with:
+#
+#     simvision -input /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2/simvision.svcf
+#  or simvision -input /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2/simvision.svcf database1 database2 ...
+#
+
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-sendToIndago-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+
+#
+# PPE data
+#
+array set dbNames ""
+set dbNames(realName1) [database require waves -hints {
+	file ./waves.shm/waves-1.trn
+	file /home/asicfab/a/socet52/Caches/RISCVBusiness/source_code/caches/l2/waves.shm/waves-1.trn
+}]
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 730x500+261+33}] != ""} {
+    window geometry "Design Browser 1" 730x500+261+33
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope [subst  {$dbNames(realName1)::[format {tb_l2_cache}]} ]
+browser set \
+    -signalsort name
+browser yview see [subst  {$dbNames(realName1)::[format {tb_l2_cache}]} ]
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1920x977+-1+27}] != ""} {
+    window geometry "Waveform 1" 1920x977+-1+27
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ps \
+    -valuewidth 184
+waveform baseline set -time 0
+
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.test_case}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.test_number}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.tb_nRST}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.tb_CLK}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.cache[31:0]}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 31]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 3]
+waveform hierarchy expand $id4
+set id5 [lindex [waveform hierarchy content $id4] 3]
+waveform hierarchy expand $id5
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_l2_cache.l2.cache_frame}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_l2_cache.l2.cache_sets}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.clear}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.clear_done}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.clr_frame_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.clr_set_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.clr_word_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.decoded_addr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_l2_cache.l2.decoded_addr_t}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.en_frame_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.en_set_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.en_word_ctr}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.finish_frame}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.finish_set}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.finish_word}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.flush}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.flush_done}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.frame_num[2:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_l2_cache.l2.fsm_t}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.hit}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.hit_data[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.hit_idx[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.lru[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.nRST}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_cache[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_frame_num[2:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_read_addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_set_num[12:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_word_num[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.nextlru[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.pass_through}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.read_addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.ridx[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.set_num[12:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.next_state}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.state}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_l2_cache.l2.victim_t}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.l2.word_num[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.busy}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.byte_en[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.rdata[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.ren}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.wdata[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.mem_gen_bus_if.cpu.wen}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.busy}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.byte_en[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.rdata[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.ren}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.wdata[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {tb_l2_cache.cache_gen_bus_if.generic_bus.wen}]}
+	} ]]
+
+waveform xview limits 0 256000ps
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 730x250+261+564
+
+#
+# Layout selection
+#
+
