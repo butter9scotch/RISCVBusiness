@@ -431,12 +431,20 @@ module l1_cache #(
                 mem_gen_bus_if.wen    = 1'b1;
                 mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
                 mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
+	       //next_cache[set_num].frames[frame_num].data[word_num] = '0;
+	       //next_cache[set_num].frames[frame_num].tag = '0;
+	       
+	       
                 
                 if(finish_word) begin
                     clr_word_ctr 				 = 1'b1;
                     en_frame_ctr 				 = 1'b1;
                     mem_gen_bus_if.wen 				 = 1'b0;
                     next_cache[set_num].frames[frame_num].dirty  = 1'b0;
+		    next_cache[set_num].frames[frame_num].valid = 1'b0;
+		    next_cache[set_num].frames[frame_num].tag = '0;
+		   next_cache[set_num].frames[frame_num].data = '0;
+		   
 		    /*if (finish_frame) begin
 		       clr_frame_ctr                             = 1'b1;
 		       en_set_ctr                                = 1'b1;
