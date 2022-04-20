@@ -77,16 +77,18 @@ class end2end extends uvm_component;
 
     if (tx.flush) begin
       // flush request
-      flush_history();
-
-      if (!cache.empty()) begin
+      flush_history();      // takes care of any dirty data WBs from flush
+      
+      if (cache.dirty()) begin
         errors++;
-        `uvm_error(this.get_name(), "Error: Cache Flush -> Cache Not Empty");
+        `uvm_error(this.get_name(), "Error: Cache Flush -> Cache Contains Dirty Data");
         `uvm_info(this.get_name(), $sformatf("%s", cache.sprint()), UVM_LOW);
       end else begin
         successes++;
-        `uvm_info(this.get_name(), "Success: Cache Flush -> Empty Cache", UVM_LOW);
+        `uvm_info(this.get_name(), "Success: Cache Flush -> No Dirty Data", UVM_LOW);
       end
+
+      cache.flush(); // flush all entries from cache model
     end
     else if (tx.addr < `NONCACHE_START_ADDR) begin
       // memory request

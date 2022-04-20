@@ -33,10 +33,17 @@ import uvm_pkg::*;
 import rv32i_types_pkg::*;
 
 
+typedef enum {
+    CLEAN,
+    DIRTY
+} cache_state;
+
+
 /****************** Cache Block Model **********************/
 
 class cache_block;
     word_t words[word_t]; // key -> value :: addr -> data
+    cache_state state;
 
     function bit size_check();
         if (words.size() >= `L1_BLOCK_SIZE)     return '0;
@@ -54,12 +61,25 @@ class cache_block;
         end
     endfunction: insert
 
+    function void update(word_t addr, word_t data);
+        if (!words.exists(addr)) begin
+            `uvm_error("cache_block", $sformatf("Attempted to update item into cache that DNE:\ncache[%h]=%h", addr, data))
+        end else begin
+            words[addr] = data;
+            state = DIRTY;
+        end
+    endfunction: update
+
+    function bit dirty();
+        return this.state == DIRTY;
+    endfunction: dirty
+
     function string sprint();
         string str = "[";
         foreach(words[w]) begin
             str = {str, $sformatf("%h, ", words[w])};
         end
-        str = {str, "]\n"};
+        str = {str, $sformatf("] - %s\n", this.state.name)};
         return str;
     endfunction: sprint
 endclass
@@ -79,9 +99,15 @@ class cache_model extends uvm_object;
         this.ignore_mask = ignore_mask;
     endfunction
 
-    function bit empty();
-        return blocks.size() == 0;
-    endfunction: empty
+    function bit dirty();
+        foreach (blocks[addr]) begin
+            if (blocks[addr].dirty()) begin
+                return 1'b1;
+            end
+        end
+
+        return 1'b0;
+    endfunction: dirty
 
     function word_t get_base_addr(word_t addr);
         word_t base = {addr[31:`L1_ADDR_IDX_END], {`L1_ADDR_IDX_END{1'b0}}};
@@ -128,7 +154,7 @@ class cache_model extends uvm_object;
             end else begin
                 m_data = (mask & data) | (~mask & read(addr));
             end
-            blocks[base].words[addr] = m_data;
+            blocks[base].update(addr, m_data);
         end else begin
             `uvm_error(this.get_name(), $sformatf("Attempted to update item from cache that DNE:\ncache[%h]=%h", addr, data))
         end
@@ -166,7 +192,7 @@ class cache_model extends uvm_object;
     endfunction: is_valid_block
 
     function void flush();
-        blocks.delete();
+        blocks.delete(); // clear all data in cache
     endfunction: flush
 
     function string sprint();
