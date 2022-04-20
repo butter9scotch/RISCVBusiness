@@ -68,7 +68,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
 
     if (pred_tx.flush) begin
       pred_ap.write(pred_tx); // flush doesn't return any data
-      cache.flush();
+      // don't update cache model because we need reads to return same data as was written
     end else begin
       // no cache flush
       if (pred_tx.rw) begin
@@ -79,7 +79,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
           end else begin
             cache.insert(pred_tx.addr, pred_tx.data, pred_tx.byte_en);
           end
-        end // else don't cache
+        end
       end else begin
         // 0 -> read
         if (pred_tx.addr < `NONCACHE_START_ADDR) begin

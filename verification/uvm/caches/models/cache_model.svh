@@ -26,7 +26,7 @@
 `define CACHE_MODEL_SVH
 
 `include "dut_params.svh"
-`include "cache_env_config.svh"
+`include "memory_bfm.svh"
 `include "Utils.svh"
 
 import uvm_pkg::*;
@@ -58,6 +58,7 @@ class cache_block;
             `uvm_error("cache_block", $sformatf("Attempted to insert item into cache that already exists:\ncache[%h]=%h", addr, data))
         end else begin
             words[addr] = data;
+            `uvm_info("cache_block", $sformatf("inserted cache word, cache[%h] = %h", addr, data), UVM_MEDIUM)
         end
     endfunction: insert
 
@@ -67,6 +68,7 @@ class cache_block;
         end else begin
             words[addr] = data;
             state = DIRTY;
+            `uvm_info("cache_block", $sformatf("updated cache word, cache[%h] = %h", addr, data), UVM_MEDIUM)
         end
     endfunction: update
 
@@ -89,13 +91,13 @@ endclass
 class cache_model extends uvm_object;
     cache_block blocks[word_t]; // key -> value :: base addr -> block
 
-    cache_env_config env_config;
+    memory_bfm bfm;
 
     bit ignore_mask;
 
-    function new(string name = "cache_model", cache_env_config env_config, bit ignore_mask);
+    function new(string name = "cache_model", memory_bfm bfm, bit ignore_mask);
         super.new(name);
-        this.env_config = env_config;
+        this.bfm = bfm;
         this.ignore_mask = ignore_mask;
     endfunction
 
@@ -135,13 +137,20 @@ class cache_model extends uvm_object;
         end
     endfunction: insert
 
-    function void remove(word_t addr, word_t data);
+    function bit remove(word_t addr, word_t data);
         if (exists(addr)) begin
             word_t base = get_base_addr(addr);
             blocks[base].words.delete(addr);
+
+            if (!blocks[base].dirty()) begin
+                `uvm_error(this.get_name(), $sformatf("Attempted to remove item from cache that is not dirty:\ncache[%h]=%h", addr, data))
+                return 0;
+            end
         end else begin
             `uvm_error(this.get_name(), $sformatf("Attempted to remove item from cache that DNE:\ncache[%h]=%h", addr, data))
+            return 0;
         end
+        return 1;
     endfunction: remove
 
     function void update(word_t addr, word_t data, logic[3:0] byte_en);
@@ -162,11 +171,14 @@ class cache_model extends uvm_object;
 
     function word_t read(word_t addr);
         if (this.exists(addr)) begin
+            // check if data is cached
             word_t base = get_base_addr(addr);
+            `uvm_info(this.get_name(), $sformatf("Reading from Initialized Data, value <%h>", blocks[base].words[addr]), UVM_MEDIUM)
             return blocks[base].words[addr];
         end else begin
-            word_t default_val = {env_config.mem_tag, addr[15:0]};
-            `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Memory, Defaulting to value <%h>", default_val), UVM_MEDIUM)
+            // otherwise get expected value from bfm
+            word_t default_val = bfm.read(addr);
+            `uvm_info(this.get_name(), $sformatf("Reading from Non-Initialized Data, Defaulting to value <%h>", default_val), UVM_MEDIUM)
             return default_val; 
         end
     endfunction: read

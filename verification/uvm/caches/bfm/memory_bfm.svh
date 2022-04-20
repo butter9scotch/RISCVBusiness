@@ -108,11 +108,7 @@ class memory_bfm extends uvm_component;
             count++;
         end
 
-        if (mem.exists(bus_if.addr)) begin
-            bus_if.rdata = mem[bus_if.addr];
-        end else begin
-            bus_if.rdata = {env_config.mem_tag, bus_if.addr[15:0]}; // return non-initialized data
-        end
+        bus_if.rdata = read(bus_if.addr);
         bus_if.busy = '0;
     endtask: mem_read
 
@@ -162,6 +158,14 @@ class memory_bfm extends uvm_component;
         // mmio[bus_if.addr] = bus_if.wdata; //TODO: DO SOMETHING MORE MEANINGFUL FOR WRITING TO MMIO, REGISTER MODEL?
         bus_if.busy = '0;
     endtask: mmio_write
+
+    function word_t read(word_t addr);
+        if (mem.exists(bus_if.addr)) begin
+            return mem[bus_if.addr];
+        end else begin
+            return {env_config.mem_tag, addr[15:0]}; // return non-initialized data
+        end
+    endfunction: read
 
 endclass: memory_bfm
 

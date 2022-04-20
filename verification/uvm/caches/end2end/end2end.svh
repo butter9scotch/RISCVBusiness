@@ -171,7 +171,13 @@ class end2end extends uvm_component;
     if (mem_tx.rw) begin
       // write
       // writes are cache evictions
-      cache.remove(mem_tx.addr, mem_tx.data);
+      if (cache.remove(mem_tx.addr, mem_tx.data)) begin
+        successes++;
+        `uvm_info(this.get_name(), "Word sucessfully removed from cache model", UVM_LOW);
+      end else begin
+        errors++;
+        `uvm_error(this.get_name(), "Error when removing word from cache model");
+      end
     end else begin
       // read
       cache.insert(mem_tx.addr, mem_tx.data, mem_tx.byte_en);
