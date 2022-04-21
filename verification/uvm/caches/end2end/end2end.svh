@@ -135,7 +135,8 @@ class end2end extends uvm_component;
       if (history.size() == 1) begin
         cpu_transaction mapped = history.pop_front();
         //FIXME:CHECK THAT THIS IS PROPER WAY TO DEAL WITH THIS
-        if (tx.rw) begin
+        if (!cache.ignore_mask & tx.rw) begin
+          `uvm_info(this.get_name(), "Using Byte Mask for Memory Mapped Data", UVM_LOW);
           tx.data = Utils::byte_mask(tx.byte_en) & tx.data;
         end
         if (mapped.compare(tx)) begin

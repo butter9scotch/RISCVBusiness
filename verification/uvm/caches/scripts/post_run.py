@@ -28,6 +28,11 @@ from datetime import datetime
 from cprint import cprint, csprint, tags, styles
 
 def post_run(params):
+
+    if (params.gui):
+        resp = raw_input(csprint("Save run to run_summary.log?(Y/n)", styles.YELLOW))
+        if (resp == "n"):
+            exit()
     if params.config == "l1":
         keys = ["seed", "cpu_txns", "mem_txns", "uvm_error", "uvm_fatal"] # keys to log variable
     elif params.config == "l2":

@@ -119,12 +119,14 @@ if __name__ == '__main__':
 
     run(params)
 
-    cprint("Running Post Run Script...", tags.LOG)
+    cprint("Run Parameters:", tags.LOG)
 
     # print parameters
     keep = ["mem_timeout", "iterations", "mem_latency", "testcase", "config", "mmio_latency"]
     for arg in vars(params):
         if arg in keep:
             cprint("{key:<15}<- {val}".format(key=arg, val=getattr(params, arg)), tags.INFO)
+    
+    cprint("Running Post Run Script...", tags.LOG)
 
     post_run(params)

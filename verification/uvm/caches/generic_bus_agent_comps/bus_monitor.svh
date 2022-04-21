@@ -140,6 +140,7 @@ class bus_monitor extends uvm_monitor;
           tx.data = bus_if.rdata;
         end
 
+        #(precedence);
         `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
         resp_ap.write(tx);
       end

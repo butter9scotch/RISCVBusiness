@@ -366,7 +366,11 @@ module l2_cache #(
     end // end next cache always_ff   
 
     always_comb begin : output_comb       
-        next_read_addr          = read_addr;  
+        next_read_addr          = read_addr;
+        mem_gen_bus_if.wen      = 1'b0;
+        mem_gen_bus_if.ren      = 1'b0;
+        mem_gen_bus_if.byte_en  = '1;
+        mem_gen_bus_if.wdata    = '0;
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
@@ -396,19 +400,14 @@ module l2_cache #(
                     next_state 	= FLUSH_CACHE;
                 end
                 else begin : NOT_FLUSH
-                    if(pass_through)begin : Passthrough // Passthrough Logic
-                        if(proc_gen_bus_if.ren)begin : Passthrough_Read
-                            mem_gen_bus_if.ren      = 1'b1;
-                            mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                            proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
-                            proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
-                        end // End passthrough read enable
-                        else if(proc_gen_bus_if.wen)begin : Passthrough_Write
-                            mem_gen_bus_if.wen      = 1'b1;
-                            mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                            proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
-                            mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
-                        end 
+                    if(pass_through) begin : Passthrough // Passthrough Logic
+                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
+                        mem_gen_bus_if.ren      = proc_gen_bus_if.ren;
+                        mem_gen_bus_if.wen      = proc_gen_bus_if.wen;
+                        mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata;
+                        mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en;
+                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
+                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
                     end // End Passthrough Logic
                     else begin // Not Passthrough
                         if(hit)begin : Hit // Hit Logic
