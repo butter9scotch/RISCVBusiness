@@ -494,7 +494,7 @@ module tb_l2_cache;
 				$sformat(sub_test_case,"Write Signals Activated L1 Set %d",j);
 				proc_gen_bus_if.ren    = 1'b0;
 				proc_gen_bus_if.wen    = 1'b1;
-				proc_gen_bus_if.addr   = {4'(i/4), 21'd0, 3'(j), 2'b00, 2'b00}; // miss
+				proc_gen_bus_if.addr   = {4'(i/4), 20'd0, 3'(j), 3'b00, 2'b00}; // miss
 				proc_gen_bus_if.wdata  = 32'hbeef_0000 + 32'(i);
 				wait(mem_gen_bus_if.ren);
 				sub_test_case 			= "Go Memory";

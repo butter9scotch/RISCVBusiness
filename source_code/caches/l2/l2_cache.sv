@@ -70,7 +70,7 @@ module l2_cache #(
 
     // FSM type
     typedef enum { 
-       IDLE,                // IDLE
+       IDLE,                // IDLE (HITS STAY IN IDLE)
        FETCH,               // FETCH NFRAMES words from Upper level memory
        WB,                  // WB NFRAMES words to Upper level memory
        FLUSH_CACHE,
@@ -92,9 +92,7 @@ module l2_cache #(
         logic [1:0] nv;
         logic [1:0] [1:0] o;
     } victim_t;
-
-    //Declarations
-    
+   
 
     // Set Counter
     logic [12:0] set_num, next_set_num;
@@ -365,17 +363,10 @@ module l2_cache #(
                 end
             end
         end
-    end // end next cache always_ff
+    end // end next cache always_ff   
 
-
-    always_comb begin : output_comb
-        proc_gen_bus_if.busy    = 1'b1;
-        proc_gen_bus_if.rdata   = '0;
-        mem_gen_bus_if.ren      = 1'b0;
-        mem_gen_bus_if.wen      = 1'b0;
-        mem_gen_bus_if.addr     = '0;
-        mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en;
-        next_read_addr          = read_addr;   
+    always_comb begin : output_comb       
+        next_read_addr          = read_addr;  
         en_set_ctr 	            = 1'b0;
         en_word_ctr 	        = 1'b0;
         en_frame_ctr 	        = 1'b0;
@@ -471,8 +462,8 @@ module l2_cache #(
             WB: begin : WB_STATE
                 mem_gen_bus_if.wen    = 1'b1;
 		        //next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
-                mem_gen_bus_if.addr   = read_addr; 
-                mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+                next_mem_gen_bus_if_addr   = read_addr; 
+                next_mem_gen_bus_if_wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
                
                 if(finish_word) begin
                     clr_word_ctr = 1'b1;
@@ -489,7 +480,7 @@ module l2_cache #(
             ERROR: begin : ERROR_STATE
                 next_state = ERROR;
             end
-            default: begin : DEFAULT_STATE
+            default: begin
                 next_state = ERROR;
             end     
         endcase
