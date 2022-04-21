@@ -1,21 +1,21 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-*   
-*   
+*
+*
 *   Filename:     RISCVBusiness.sv
-*   
+*
 *   Created by:   John Skubic
 *   Email:        jskubic@purdue.edu
 *   Date Created: 06/01/2016
@@ -61,7 +61,7 @@ module RISCVBusiness (
   generic_bus_if dcache_gen_bus_if();
   generic_bus_if icache_mc_if();
   generic_bus_if dcache_mc_if();
-  generic_bus_if pipeline_trans_if(); 
+  generic_bus_if pipeline_trans_if();
   //risc_mgmt_if   rm_if();
   predictor_pipeline_if predict_if();
   prv_pipeline_if prv_pipe_if();
@@ -80,7 +80,7 @@ module RISCVBusiness (
   ooo_bypass_unit_if bypass_if();
   logic halt;    //JOHN CHANGED THIS
   logic halt_pipe;
-  logic flushing_icache, flushing_dcache;  
+  logic flushing_icache, flushing_dcache;
 
 //   ooo_fetch1_stage fetch1_stage (
 //        .CLK(CLK)
@@ -102,9 +102,9 @@ module RISCVBusiness (
 //      );
 
 
-  always @(posedge hazard_if.pc_en) begin
-    $info ("PC: %8x --- Instr: %8x \n", fetch_stage.program_counter_pc, fetch_decode_if.instr);
-  end
+  //always @(posedge hazard_if.pc_en) begin
+  //  $info ("PC: %8x --- Instr: %8x \n", fetch_stage.program_counter_pc, fetch_decode_if.instr);
+  //end
 
 
 
@@ -161,8 +161,8 @@ module RISCVBusiness (
       );
 
    completion_buffer completion_buffer (
-     .CLK 
-     ,.nRST 
+     .CLK
+     ,.nRST
      ,.cb_if
      ,.prv_pipe_if
      ,.rf_if
@@ -177,8 +177,8 @@ module RISCVBusiness (
     assign cb_if.rv32v_wb_exception = 0;
     assign cb_if.rv32v_wb_scalar_index  = 0;
     assign cb_if.rv32v_wb_vd  = 0;
-    assign cb_if.scalar_commit_ena = 0; 
-   
+    assign cb_if.scalar_commit_ena = 0;
+
    rv32i_reg_file reg_file (.*);
 
    ooo_hazard_unit hazard_unit (
@@ -186,7 +186,7 @@ module RISCVBusiness (
        ,.prv_pipe_if(prv_pipe_if)
        ,.cb_if(cb_if)
      );
-   
+
    always @(posedge CLK, negedge nRST)
    begin
        if (!nRST)
@@ -259,23 +259,23 @@ module RISCVBusiness (
 =======
   ); */
 
-  generate 
-    case (BUS_INTERFACE_TYPE) 
+  generate
+    case (BUS_INTERFACE_TYPE)
       "generic_bus_if" : begin
         generic_nonpipeline bt(
-          .CLK(CLK), 
-          .nRST(nRST), 
-          .pipeline_trans_if(pipeline_trans_if), 
+          .CLK(CLK),
+          .nRST(nRST),
+          .pipeline_trans_if(pipeline_trans_if),
           .out_gen_bus_if(gen_bus_if)
         );
       end
-      "ahb_if" : begin 
+      "ahb_if" : begin
         ahb bt (
           .CLK(CLK),
           .nRST(nRST),
           .out_gen_bus_if(pipeline_trans_if),
           .ahb_m(ahb_master)
-        ); 
+        );
       end
    endcase
 
