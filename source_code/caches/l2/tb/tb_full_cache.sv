@@ -349,70 +349,7 @@ module tb_l2_cache;
 		end
 		//--------------------------------------------------------------------------------------
 		
-		//--------------------------------------------------------------------------------------
-		// Test 05: Write to Each D$ Set
-		//--------------------------------------------------------------------------------------
-		test_number ++;
-		test_case = "Write to Each D$ Set";
-		for(integer i = 0; i < 8; i+=2)begin
-			sub_test_case = "L2 Miss";
-			@(negedge tb_CLK);
-			proc_inst_bus.addr = {26'h0, 3'(i),3'h0};
-			proc_inst_bus.ren = 1'b1;
-			wait(mem_gen_bus_if.ren);
-			mem_gen_bus_if.busy = '1; mem_gen_bus_if.rdata = 32'((i*4)/2 + 1);
-			#(5 * CLK_PERIOD);
-			@(negedge tb_CLK);
-			mem_gen_bus_if.busy = '0;
-			@(posedge tb_CLK); #1;
-			mem_gen_bus_if.busy = '1; mem_gen_bus_if.rdata = 32'((i*4)/2 + 2); #(5 * CLK_PERIOD);
-			@(negedge tb_CLK);
-			mem_gen_bus_if.busy = '0;
-			@(posedge tb_CLK); #1;
-			mem_gen_bus_if.busy = '1; mem_gen_bus_if.rdata = 32'((i*4)/2 + 3); #(5 * CLK_PERIOD);
-			@(negedge tb_CLK);
-			mem_gen_bus_if.busy = '0;
-			@(posedge tb_CLK); #1;
-			mem_gen_bus_if.busy = '1; mem_gen_bus_if.rdata = 32'((i*4)/2 + 4); #(5 * CLK_PERIOD);
-			@(negedge tb_CLK);
-			mem_gen_bus_if.busy = '0;
-			@(posedge tb_CLK); #1;
-			mem_gen_bus_if.busy = '1;
-			wait(~proc_inst_bus.busy);
-			proc_inst_bus.addr = 32'h0000_0000;
-			proc_inst_bus.ren = 1'b0;
-			#1;
-			assert(proc_inst_bus.rdata == 32'((i*4)/2 +1)) else $error("############################\nTestcase %s:\nAccessing %h\nReceived incorrect data\nExpected: %h\nReceived %h\n############################\n", test_case, {26'h0, 3'(i),3'h0}, 32'(i+1), proc_inst_bus.rdata);
-			#(CLK_PERIOD * 3);
-			
-			sub_test_case = "L2 Hit";
-			@(negedge tb_CLK);
-			proc_inst_bus.addr = {26'h0, 3'((i+1)),3'h0};
-			proc_inst_bus.ren = 1'b1;
-			wait(arbiter_bus.ren);
-			wait(~arbiter_bus.ren);
-			wait(~proc_inst_bus.busy);
-			proc_inst_bus.addr = 32'h0000_0000;
-			proc_inst_bus.ren = 1'b0;
-			#1;
-			assert(proc_inst_bus.rdata == 32'((i*4)/2 +3)) else $error("############################\nTestcase %s:\nAccessing %h\nReceived incorrect data\nExpected: %h\nReceived %h\n############################\n", test_case, {26'h0, 3'(i+1),3'h0},32'(i+3), proc_inst_bus.rdata);
-		end
-
-		sub_test_case = "IDLE";		
 		#(5 * CLK_PERIOD);
-		sub_test_case = "I$ readout W/ Constant Hits";
-		for(integer i = 0; i < 32; i+=4)begin
-			@(negedge tb_CLK);
-			proc_inst_bus.addr = {26'h0, 6'(i)}; proc_inst_bus.ren = 1'b1;
-			@(posedge tb_CLK); 
-			#1;
-			wait(~proc_inst_bus.busy);
-			proc_inst_bus.addr = 32'h0000_0000; proc_inst_bus.ren = 1'b0;
-			#1;
-			assert(proc_inst_bus.rdata == 32'((i/4)+1)) else $error("############################\nTestcase %s:\nAccessing %h\nReceived incorrect data\nExpected: %h\nReceived %h\n############################\n",test_case, 32'(i),32'((i/4)+1), proc_inst_bus.rdata);
-		end
-		//--------------------------------------------------------------------------------------
-
 		$finish();
 	end
 

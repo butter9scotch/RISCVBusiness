@@ -462,8 +462,8 @@ module l2_cache #(
             WB: begin : WB_STATE
                 mem_gen_bus_if.wen    = 1'b1;
 		        //next_read_addr     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
-                next_mem_gen_bus_if_addr   = read_addr; 
-                next_mem_gen_bus_if_wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+                mem_gen_bus_if.addr   = read_addr; 
+                mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
                
                 if(finish_word) begin
                     clr_word_ctr = 1'b1;
