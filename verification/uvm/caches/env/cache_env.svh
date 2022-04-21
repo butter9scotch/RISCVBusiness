@@ -116,7 +116,7 @@ class cache_env extends uvm_env;
 
     mem_arb_agt = mem_arb_agent::type_id::create("MEM_ARB_AGT", this);
     mem_arb_pred = bus_predictor::type_id::create("MEM_ARB_PRED", this);
-    mem_arb_pred.cache = new("MEM_ARB_PRED_CACHE", mem_bfm, 0);
+    mem_arb_pred.cache = new("MEM_ARB_PRED_CACHE", mem_bfm, 1);
     mem_arb_score = bus_scoreboard::type_id::create("MEM_ARB_SCORE", this);
 
     mem_agt = mem_agent::type_id::create("MEM_AGT", this);
