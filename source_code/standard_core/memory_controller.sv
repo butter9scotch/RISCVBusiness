@@ -1,21 +1,21 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-*   
-*   
+*
+*
 *   Filename:     memory_controller.sv
-*   
+*
 *   Created by:   John Skubic
 *   Modified by:  Chuan Yean Tan
 *   Email:        jskubic@purdue.edu , tan56@purdue.edu
@@ -34,31 +34,31 @@ module memory_controller (
   generic_bus_if.cpu out_gen_bus_if
 );
 
-  /* State Declaration */ 
-  typedef enum { 
-                    IDLE, 
+  /* State Declaration */
+  typedef enum {
+                    IDLE,
                     INSTR_REQ ,
                     INSTR_DATA_REQ,
-                    INSTR_WAIT, 
+                    INSTR_WAIT,
                     DATA_REQ ,
                     DATA_INSTR_REQ ,
                     DATA_WAIT
-                    } state_t; 
+                    } state_t;
 
   state_t current_state, next_state;
 
   /* Internal Signals */
-  logic [31:0] wdata, rdata; 
+  logic [31:0] wdata, rdata;
 
-  always_ff @ (posedge CLK, negedge nRST) 
-  begin 
-    if (nRST == 0) 
-      current_state <= IDLE; 
-    else 
-      current_state <= next_state; 
-  end 
+  always_ff @ (posedge CLK, negedge nRST)
+  begin
+    if (nRST == 0)
+      current_state <= IDLE;
+    else
+      current_state <= next_state;
+  end
 
-  /* State Transition Logic */ 
+  /* State Transition Logic */
   /*
   * Note: After interrupts were integrated, receiving an interrupt forces IREN
   * to go low. On an instruction request, the FSM assumed IREN high, and unconditionally
@@ -73,25 +73,25 @@ module memory_controller (
   * the instruction request in question should not be fetched since the next instruction should be from
   * the interrupt handler after the new PC is inserted.
   */
-  always_comb 
-  begin 
-    case(current_state) 
+  always_comb
+  begin
+    case(current_state)
       IDLE: begin
-        if(d_gen_bus_if.ren || d_gen_bus_if.wen) 
-          next_state = DATA_REQ; 
-        else if(i_gen_bus_if.ren) 
-          next_state = INSTR_REQ; 
-        else 
-          next_state = IDLE; 
-      end 
+        if(d_gen_bus_if.ren || d_gen_bus_if.wen)
+          next_state = DATA_REQ;
+        else if(i_gen_bus_if.ren)
+          next_state = INSTR_REQ;
+        else
+          next_state = IDLE;
+      end
 
       INSTR_REQ: begin
         if(!i_gen_bus_if.ren) // Abort request, received an interrupt
           next_state = IDLE;
-        else if(d_gen_bus_if.ren || d_gen_bus_if.wen) 
+        else if(d_gen_bus_if.ren || d_gen_bus_if.wen)
           next_state = INSTR_DATA_REQ;
-        else 
-          next_state = INSTR_WAIT; 
+        else
+          next_state = INSTR_WAIT;
       end
 
       INSTR_DATA_REQ : begin
@@ -104,62 +104,62 @@ module memory_controller (
       DATA_REQ: begin
         if (i_gen_bus_if.ren)
           next_state = DATA_INSTR_REQ;
-        else 
-          next_state = DATA_WAIT; 
+        else
+          next_state = DATA_WAIT;
       end
 
       DATA_INSTR_REQ: begin
         if(!i_gen_bus_if.ren && out_gen_bus_if.busy == 1'b0) // Abort request, received an interrupt
           next_state = IDLE;
-        else if(out_gen_bus_if.busy == 1'b0) 
-          next_state = INSTR_WAIT; 
-        else 
-          next_state = DATA_INSTR_REQ; 
-      end 
+        else if(out_gen_bus_if.busy == 1'b0)
+          next_state = INSTR_WAIT;
+        else
+          next_state = DATA_INSTR_REQ;
+      end
 
-      INSTR_WAIT: begin 
+      INSTR_WAIT: begin
         if ( out_gen_bus_if.busy == 1'b0 ) begin
           if (d_gen_bus_if.ren || d_gen_bus_if.wen)
             next_state = DATA_REQ;
           else
-            next_state = IDLE; 
-        end else if (d_gen_bus_if.ren || d_gen_bus_if.wen) 
-          next_state = INSTR_DATA_REQ; 
+            next_state = IDLE;
+        end else if (d_gen_bus_if.ren || d_gen_bus_if.wen)
+          next_state = INSTR_DATA_REQ;
         else
           next_state = INSTR_WAIT;
-      end 
+      end
 
-      DATA_WAIT: begin 
+      DATA_WAIT: begin
         if ( out_gen_bus_if.busy == 1'b0 ) begin
           if (i_gen_bus_if.ren)
             next_state = INSTR_REQ;
-          else 
-            next_state = IDLE; 
+          else
+            next_state = IDLE;
         end else if (i_gen_bus_if.ren)
           next_state = DATA_INSTR_REQ;
         else
           next_state = DATA_WAIT;
-      end 
+      end
 
-      default: next_state = IDLE; 
-    endcase 
-  end 
+      default: next_state = IDLE;
+    endcase
+  end
 
-  /* State Output Logic */ 
-  always_comb 
-  begin 
-    case(current_state) 
-      IDLE: begin 
-        out_gen_bus_if.wen      = 0;  
-        out_gen_bus_if.ren      = 0;  
-        out_gen_bus_if.addr     = 0;  
+  /* State Output Logic */
+  always_comb
+  begin
+    case(current_state)
+      IDLE: begin
+        out_gen_bus_if.wen      = 0;
+        out_gen_bus_if.ren      = 0;
+        out_gen_bus_if.addr     = 0;
         out_gen_bus_if.byte_en  = d_gen_bus_if.byte_en;
         d_gen_bus_if.busy       = 1'b1;
         i_gen_bus_if.busy       = 1'b1;
       end
 
-      //-- INSTRUCTION REQUEST --// 
-      INSTR_REQ: begin 
+      //-- INSTRUCTION REQUEST --//
+      INSTR_REQ: begin
         out_gen_bus_if.wen      = i_gen_bus_if.wen;
         out_gen_bus_if.ren      = i_gen_bus_if.ren;
         out_gen_bus_if.addr     = i_gen_bus_if.addr;
@@ -174,42 +174,42 @@ module memory_controller (
         out_gen_bus_if.byte_en  = d_gen_bus_if.byte_en;
         i_gen_bus_if.busy       = out_gen_bus_if.busy;
         d_gen_bus_if.busy       = 1'b1;
-      end 
-      INSTR_WAIT: begin 
-        out_gen_bus_if.wen      = 0;  
-        out_gen_bus_if.ren      = 0;  
-        out_gen_bus_if.addr     = 0;  
+      end
+      INSTR_WAIT: begin
+        out_gen_bus_if.wen      = 0;
+        out_gen_bus_if.ren      = 0;
+        out_gen_bus_if.addr     = 0;
         out_gen_bus_if.byte_en  = i_gen_bus_if.byte_en;
         d_gen_bus_if.busy       = 1'b1;
         i_gen_bus_if.busy       = out_gen_bus_if.busy;
-      end 
+      end
 
       //-- DATA REQUEST --//
-      DATA_REQ: begin 
+      DATA_REQ: begin
         out_gen_bus_if.wen      = d_gen_bus_if.wen;
         out_gen_bus_if.ren      = d_gen_bus_if.ren;
         out_gen_bus_if.addr     = d_gen_bus_if.addr;
         out_gen_bus_if.byte_en  = d_gen_bus_if.byte_en;
         d_gen_bus_if.busy       = 1'b1;
         i_gen_bus_if.busy       = 1'b1;
-      end 
-      DATA_INSTR_REQ: begin 
+      end
+      DATA_INSTR_REQ: begin
         out_gen_bus_if.wen      = i_gen_bus_if.wen;
         out_gen_bus_if.ren      = i_gen_bus_if.ren;
         out_gen_bus_if.addr     = i_gen_bus_if.addr;
         out_gen_bus_if.byte_en  = i_gen_bus_if.byte_en;
         d_gen_bus_if.busy       = out_gen_bus_if.busy;
         i_gen_bus_if.busy       = 1'b1;
-      end 
-      DATA_WAIT: begin 
-        out_gen_bus_if.wen      = d_gen_bus_if.wen;
+      end
+      DATA_WAIT: begin
+        out_gen_bus_if.wen      = d_gen_bus_if.wen & out_gen_bus_if.busy;
         out_gen_bus_if.ren      = d_gen_bus_if.ren;
         out_gen_bus_if.addr     = d_gen_bus_if.addr;
         out_gen_bus_if.byte_en  = d_gen_bus_if.byte_en;
         i_gen_bus_if.busy       = 1'b1;
         d_gen_bus_if.busy       = out_gen_bus_if.busy;
-      end 
-    endcase 
+      end
+    endcase
   end
 
   generate
