@@ -422,15 +422,17 @@ module l1_cache #(
                     clr_frame_ctr  = 1'b1;
                     en_set_ctr 	   = 1'b1;
                 end
-                if(~cache[set_num].frames[frame_num].dirty) begin
+                if(~cache[set_num].frames[frame_num].valid) begin
                     en_frame_ctr  = 1'b1;
                 end
             end // case: FLUSH_SET
 	    
             FLUSH_FRAME: begin
+	       if (cache[set_num].frames[frame_num].dirty) begin
                 mem_gen_bus_if.wen    = 1'b1;
                 mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
                 mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
+	       end
 	       //next_cache[set_num].frames[frame_num].data[word_num] = '0;
 	       //next_cache[set_num].frames[frame_num].tag = '0;
 	       
@@ -500,7 +502,7 @@ module l1_cache #(
             if(finish_frame) begin
                 next_state 	= FLUSH_CACHE;
             end
-            else if(cache[set_num].frames[frame_num].dirty) begin
+            else if(cache[set_num].frames[frame_num].valid) begin
                 next_state = FLUSH_FRAME;
             end
 	    end // case: FLUSH_SET
