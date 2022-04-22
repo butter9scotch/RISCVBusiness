@@ -27,7 +27,7 @@
 `include "component_selection_defines.vh"
 
 module separate_caches (
-  input logic CLK, nRST,
+  input logic CLK, nRST, halt_flush, flushing_dcache, flushing_icache,
   generic_bus_if.cpu icache_mem_gen_bus_if,
   generic_bus_if.cpu dcache_mem_gen_bus_if,
   generic_bus_if.generic_bus icache_proc_gen_bus_if,

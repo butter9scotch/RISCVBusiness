@@ -1,12 +1,12 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,8 +39,9 @@ module tspp_fetch_stage (
 );
   import rv32i_types_pkg::*;
 
-  parameter RESET_PC = 32'h200;
-  //parameter RESET_PC = 32'h80000000;
+  ///parameter RESET_PC = 32'h200;
+  ///parameter RESET_PC = 32'h80000000;
+  parameter RESET_PC = 32'h8400;
 
   word_t  pc, pc4, npc, instr;
 
@@ -56,7 +57,7 @@ module tspp_fetch_stage (
 
   assign pc4 = pc + 4;
   assign predict_if.current_pc = pc;
-  assign npc = hazard_if.insert_priv_pc ? hazard_if.priv_pc : ( sparce_if.skipping ? sparce_if.sparce_target : (hazard_if.npc_sel ? fetch_ex_if.brj_addr : 
+  assign npc = hazard_if.insert_priv_pc ? hazard_if.priv_pc : ( sparce_if.skipping ? sparce_if.sparce_target : (hazard_if.npc_sel ? fetch_ex_if.brj_addr :
                 (predict_if.predict_taken ? predict_if.target_addr : pc4)));
 
   //Instruction Access logic
@@ -66,7 +67,7 @@ module tspp_fetch_stage (
   assign igen_bus_if.wen          = 1'b0;
   assign igen_bus_if.byte_en      = 4'b1111;
   assign igen_bus_if.wdata        = '0;
-  
+
   //Fetch Execute Pipeline Signals
   always_ff @ (posedge CLK, negedge nRST) begin
     if (!nRST)
@@ -86,9 +87,9 @@ module tspp_fetch_stage (
   logic mal_addr;
   assign mal_addr = (igen_bus_if.addr[1:0] != 2'b00);
   assign hazard_if.fault_insn = 1'b0;
-  assign hazard_if.mal_insn = mal_addr;  
+  assign hazard_if.mal_insn = mal_addr;
   assign hazard_if.badaddr_f = igen_bus_if.addr;
-  assign hazard_if.epc_f = pc; 
+  assign hazard_if.epc_f = pc;
 
   // Choose the endianness of the data coming into the processor
   generate
