@@ -61,6 +61,11 @@ module RISCVBusiness (
 
   logic halt;    //JOHN CHANGED THIS
 
+  // logging capability for debugging
+  // NOTE: Make sure to comment out before running benchmarks
+  always @(posedge !hazard_if.if_ex_stall) begin
+    $info ("PC: %8x --- Instr: %8x \n", fetch_stage_i.pc, tspp_icache_gen_bus_if.rdata);
+  end
   // Module Instantiations
 /*
   pipeline_wrapper pipeline (
