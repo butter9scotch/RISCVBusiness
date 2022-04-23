@@ -1,4 +1,4 @@
-# SimVision Command Script (Wed Mar 23 08:07:52 PM EDT 2022)
+# SimVision Command Script (Wed Apr 13 07:10:57 PM EDT 2022)
 #
 # Version 15.20.s030
 #
@@ -39,10 +39,6 @@ database require simulator -hints {
 #
 # Conditions
 #
-set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.decode.f_rs2_data[31:0]}
-if {[catch {condition new -name  {\ex_f_rs2_data} -expr $expression}] != ""} {
-    condition set -using {\ex_f_rs2_data} -expr $expression
-}
 set expression {tb_RISCVBusiness_self_test.DUT.decode_execute_if.execute.f_rs2_data[31:0]}
 if {[catch {condition new -name  condition -expr $expression}] != ""} {
     condition set -using condition -expr $expression
@@ -338,6 +334,7 @@ catch {group new -name frfif -overlay 0}
 catch {group new -name rfif -overlay 0}
 catch {group new -name cuif -overlay 0}
 catch {group new -name {floating point pipeline signals} -overlay 0}
+catch {group new -name priv_if -overlay 0}
 group using frfif
 group set -overlay 0
 group set -comment {}
@@ -434,7 +431,7 @@ group insert \
     [subst  {[format {de_rs1_data[31:0]}]} ] \
     [subst  {[format {ex_rs1_data[31:0]}]} ] \
     [subst  {[format {de_reg_rs2[4:0]}]} ] \
-    [subst  {[format {ex_reg_rs2[4:0]}]} ] \
+    [subst  {[format {bus(bus(bus(bus(bus(ex_reg_rs2)))))} ]} ] \
     [subst  {[format {mem_reg_rs2[4:0]}]} ] \
     [subst  {[format {de_rs2_data[31:0]}]} ] \
     [subst  {[format {ex_rs2_data[31:0]}]} ] \
@@ -502,6 +499,39 @@ group insert \
     [subst  {[format {ex_f_reg_rs2[4:0]}]} ] \
     [subst  {[format {mem_f_reg_rs2[4:0]}]} ] \
     [subst  {[format {wb_f_reg_rs2[4:0]}]} ]
+group using priv_if
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.addr[11:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.badaddr[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.breakpoint}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.clr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.env_m}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.epc[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.ex_rmgmt}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.ext_int}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.ex_rmgmt_cause[-1:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.fault_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.fault_l}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.fault_s}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.insert_pc}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.illegal_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.instr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.intr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.invalid_csr}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.mal_insn}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.mal_l}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.mal_s}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.pipe_clear}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.priv_pc[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.rdata[31:0]}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.set}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.ret}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.soft_int}]} ] \
+    [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.swap}]} ]
 
 #
 # Mnemonic Maps
@@ -516,22 +546,22 @@ mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor ora
 #
 # Design Browser windows
 #
-if {[catch {window new WatchList -name "Design Browser 1" -geometry 1680x867+2100+64}] != ""} {
-    window geometry "Design Browser 1" 1680x867+2100+64
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 1920x946+0+0}] != ""} {
+    window geometry "Design Browser 1" 1920x946+0+0
 }
 window target "Design Browser 1" on
 browser using {Design Browser 1}
-browser set -scope [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage}]} ]
+browser set -scope [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if}]} ]
 browser set \
     -signalsort name
-browser yview see [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage}]} ]
+browser yview see [subst  {simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if}]} ]
 browser timecontrol set -lock 0
 
 #
 # Waveform windows
 #
-if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1920x977+0+0}] != ""} {
-    window geometry "Waveform 1" 1920x977+0+0
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1440x723+2296+203}] != ""} {
+    window geometry "Waveform 1" 1440x723+2296+203
 }
 window target "Waveform 1" on
 waveform using {Waveform 1}
@@ -550,7 +580,6 @@ waveform hierarchy collapse $groupId0
 
 
 set groupId0 [waveform add -groups rfif]
-waveform hierarchy collapse $groupId0
 
 
 set groupId0 [waveform add -groups cuif]
@@ -565,9 +594,11 @@ set id [waveform add -signals [subst  {
 	} ]]
 
 set groupId0 [waveform add -groups frfif]
+waveform hierarchy collapse $groupId0
 
 
 set groupId0 [waveform add -groups rfif]
+waveform hierarchy collapse $groupId0
 
 
 set groupId0 [waveform add -groups cuif]
@@ -633,7 +664,7 @@ foreach {name attrs} [subst  {
     {[format {de_rs1_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
     {[format {ex_rs1_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
     {[format {de_reg_rs2[4:0]}]} {-color #ff0000 -namecolor #ff0000}
-    {[format {ex_reg_rs2[4:0]}]} {-color #ff9900 -namecolor #ff9900}
+    {[format {bus(bus(bus(bus(bus(ex_reg_rs2)))))} ]} {}
     {[format {mem_reg_rs2[4:0]}]} {-color #ffff00 -namecolor #ffff00}
     {[format {de_rs2_data[31:0]}]} {-color #ff0000 -namecolor #ff0000}
     {[format {ex_rs2_data[31:0]}]} {-color #ff9900 -namecolor #ff9900}
@@ -831,14 +862,8 @@ foreach {name attrs} [subst  {
     {}
     {}
     {}
-    {
-        set id $gpID0
-        waveform hierarchy collapse $id
-    }
-    {
-        set id $gpID0
-        waveform hierarchy collapse $id
-    }
+    {}
+    {}
     {}
     {}
     {}
@@ -860,8 +885,92 @@ foreach {name attrs} [subst  {
 set id [waveform add -signals [subst  {
 	{simulator::[format {tb_RISCVBusiness_self_test.DUT.fetch_decode_if.pc[31:0]}]}
 	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.execute_stage.csr_wdata[31:0]}]}
+	} ]]
 
-waveform xview limits 599800ps 2099320ps
+set groupId0 [waveform add -groups priv_if]
+
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.timer_int}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.valid_write}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.wb_enable}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.wdata[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.xepc_r[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.prv_pipe_if.xtvec[3:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.WEN_mem}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.WEN_wb}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.bypass_f_rs1[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.bypass_f_rs2[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.bypass_rs1[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.bypass_rs2[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_WEN_mem}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_WEN_wb}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rd_data_mem[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rd_data_wb[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rd_mem[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rd_wb[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rs1_ex[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.f_rs2_ex[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rd_data_mem[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rd_data_wb[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rd_mem[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rd_wb[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rs1_ex[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {tb_RISCVBusiness_self_test.DUT.bypass_if.rs2_ex[31:0]}]}
+	} ]]
+
+waveform xview limits 0 1499520ps
 
 #
 # Waveform Window Links
@@ -871,7 +980,7 @@ waveform xview limits 599800ps 2099320ps
 # Console windows
 #
 console set -windowname Console
-window geometry Console 730x250+548+86
+window geometry Console 730x250+1054+117
 
 #
 # Layout selection
