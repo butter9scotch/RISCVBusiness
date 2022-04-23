@@ -316,12 +316,12 @@ module l1_cache #(
                 
                 next_read_addr = decoded_addr;
 
-                if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
+                if(proc_gen_bus_if.ren && hit && !flush) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
 		            next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
-                else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
+                else if(proc_gen_bus_if.wen && hit && !flush) begin // if write enable and hit
                     proc_gen_bus_if.busy 							     = 1'b0;
                     casez (proc_gen_bus_if.byte_en)
                         4'b0001:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFFFF00)|{24'd0,proc_gen_bus_if.wdata[7:0]};
