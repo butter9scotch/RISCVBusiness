@@ -90,7 +90,7 @@ def parse_arguments():
                         help=csprint("Specify the requested number of memory accesses for a test", styles.YELLOW))
     parser.add_argument('--no-if-check', action="store_true",
                         help=csprint("Remove interface checks from test", styles.YELLOW))
-    parser.add_argument('--mem-timeout', type=int, default=50,
+    parser.add_argument('--mem-timeout', type=int, default=1000,
                         help=csprint("Specify the max memory latency before a fatal timeout error", styles.YELLOW))
     parser.add_argument('--mem-latency', type=int, default=1,
                         help=csprint("Specify the number of clock cycles before main memory returns", styles.YELLOW))

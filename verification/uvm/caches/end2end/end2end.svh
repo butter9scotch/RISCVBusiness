@@ -39,24 +39,24 @@ import rv32i_types_pkg::*;
 `uvm_analysis_imp_decl(_dest_resp)
 
 class end2end extends uvm_component;
-  `uvm_component_utils(end2end) 
+  `uvm_component_utils(end2end)
 
-  uvm_analysis_imp_src_req #(cpu_transaction, end2end) src_req_export; // src's request
+  uvm_analysis_imp_src_req #(cpu_transaction, end2end) src_req_export;  // src's request
   uvm_analysis_imp_src_resp #(cpu_transaction, end2end) src_resp_export; // dest's response to src's request
-  uvm_analysis_imp_dest_resp #(cpu_transaction, end2end) dest_resp_export; // 
+  uvm_analysis_imp_dest_resp #(cpu_transaction, end2end) dest_resp_export;  // 
 
-  cache_model cache; // holds values currently stored in cache
+  cache_model cache;  // holds values currently stored in cache
 
-  cpu_transaction history[$]; // holds recent mem bus transactions
+  cpu_transaction history[$];  // holds recent mem bus transactions
 
-  int successes, errors; // records number of matches and mismatches
+  int successes, errors;  // records number of matches and mismatches
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
-    src_req_export = new("src_req_ap", this);
-    src_resp_export = new("src_resp_ap", this);
+    src_req_export   = new("src_req_ap", this);
+    src_resp_export  = new("src_resp_ap", this);
     dest_resp_export = new("dest_resp_ap", this);
-  endfunction: new
+  endfunction : new
 
   function void write_src_req(cpu_transaction t);
     cpu_transaction tx = cpu_transaction::type_id::create("src_req_tx", this);
@@ -67,18 +67,20 @@ class end2end extends uvm_component;
     if (history.size() > 0) begin
       flush_history();
     end
-  endfunction: write_src_req
+  endfunction : write_src_req
 
   function void write_src_resp(cpu_transaction t);
     cpu_transaction tx = cpu_transaction::type_id::create("src_resp_tx", this);
     tx.copy(t);
 
     `uvm_info(this.get_name(), $sformatf("Detected CPU Response @%h", tx.addr), UVM_MEDIUM);
+    `uvm_info(this.get_name(), $sformatf("cache before:\n%s", cache.sprint()), UVM_HIGH)
 
-    if (tx.flush) begin
+    if (tx.flush) begin : FLUSH
       // flush request
-      flush_history();      // takes care of any dirty data WBs from flush
-      
+
+      flush_history();  // takes care of any dirty data WBs from flush
+
       if (cache.dirty()) begin
         errors++;
         `uvm_error(this.get_name(), "Error: Cache Flush -> Cache Contains Dirty Data");
@@ -88,11 +90,11 @@ class end2end extends uvm_component;
         `uvm_info(this.get_name(), "Success: Cache Flush -> No Dirty Data", UVM_LOW);
       end
 
-      cache.flush(); // flush all entries from cache model
-    end
-    else if (tx.addr < `NONCACHE_START_ADDR) begin
+      cache.flush();  // flush all entries from cache model
+    end : FLUSH
+    else if (tx.addr < `NONCACHE_START_ADDR) begin : CACHEABLE
       // memory request
-      if (history.size() == 0) begin
+      if (history.size() == 0) begin : QUIET_MEM_BUS
         // quiet memory bus
 
         if (cache.exists(tx.addr)) begin
@@ -104,7 +106,8 @@ class end2end extends uvm_component;
           errors++;
           `uvm_error(this.get_name(), "Error: Cache Miss -> Quiet Mem Bus");
         end
-      end else begin
+      end : QUIET_MEM_BUS
+      else begin : ACTIVE_MEM_BUS
         // active memory bus
         if (cache.exists(tx.addr)) begin
           // data is already cached
@@ -112,24 +115,25 @@ class end2end extends uvm_component;
           `uvm_error(this.get_name(), "Error: Cache Hit -> Active Mem Bus");
         end else begin
           // data not in cache, need to get data from memory
+          flush_history();
 
-        flush_history();
-
-        if (cache.exists(tx.addr)) begin
-          successes++;
-          `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
-        end else begin
-          errors++;
-          `uvm_error(this.get_name(), "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+          if (cache.exists(tx.addr)) begin
+            successes++;
+            `uvm_info(this.get_name(), "Success: Cache Miss -> Active Mem Bus", UVM_LOW);
+          end else begin
+            errors++;
+            `uvm_error(this.get_name(),
+                       "Error: Data Requested by CPU is not pressent in cache after mem bus txns");
+          end
         end
-      end 
-    end
+      end : ACTIVE_MEM_BUS
 
-    if (tx.rw) begin
-      // update cache on PrWr
-      cache.update(tx.addr, tx.data, tx.byte_en);
-    end
-  end else begin
+      if (tx.rw) begin
+        // update cache on PrWr
+        cache.update(tx.addr, tx.data, tx.byte_en);
+      end
+    end : CACHEABLE
+    else begin : MEM_MAPPED
       // memory mapped io request
 
       if (history.size() == 1) begin
@@ -145,23 +149,29 @@ class end2end extends uvm_component;
         end else begin
           errors++;
           `uvm_error(this.get_name(), "Error: Mem Mapped I/O Pass Through Mismatch");
-          `uvm_info(this.get_name(), $sformatf("\ncpu req:\n%s\nmem bus:\n%s",tx.sprint(), mapped.sprint()), UVM_LOW)
+          `uvm_info(this.get_name(), $sformatf(
+                    "\ncpu req:\n%s\nmem bus:\n%s", tx.sprint(), mapped.sprint()), UVM_LOW)
         end
       end else begin
         errors++;
-        `uvm_error(this.get_name(), $sformatf("Error: Mem Mapped I/O Pass Through Transaction Size Mismatch: expected 1, actual %0d", history.size()));
+        `uvm_error(
+            this.get_name(),
+            $sformatf(
+                "Error: Mem Mapped I/O Pass Through Transaction Size Mismatch: expected 1, actual %0d",
+                history.size()));
       end
-    end
-  endfunction: write_src_resp
+    end : MEM_MAPPED
+  endfunction : write_src_resp
 
   function void write_dest_resp(cpu_transaction t);
     cpu_transaction tx = cpu_transaction::type_id::create("dest_resp_tx", this);
     tx.copy(t);
 
-    `uvm_info(this.get_name(), $sformatf("Detected Memory Response:: addr=%h", tx.addr), UVM_MEDIUM);
+    `uvm_info(this.get_name(), $sformatf("Detected Memory Response:: addr=%h", tx.addr),
+              UVM_MEDIUM);
 
     history.push_back(tx);
-  endfunction: write_dest_resp
+  endfunction : write_dest_resp
 
   function void report_phase(uvm_phase phase);
     `uvm_info(this.get_name(), $sformatf("Successes:    %0d", successes), UVM_LOW);
@@ -174,23 +184,29 @@ class end2end extends uvm_component;
       // writes are cache evictions
       if (cache.remove(mem_tx.addr, mem_tx.data)) begin
         successes++;
-        `uvm_info(this.get_name(), "Word sucessfully removed from cache model", UVM_LOW);
+        `uvm_info(this.get_name(), $sformatf("Word sucessfully removed from cache model: 0x%h",
+                                             mem_tx.addr), UVM_LOW);
       end else begin
         errors++;
-        `uvm_error(this.get_name(), "Error when removing word from cache model");
+        `uvm_error(this.get_name(), $sformatf("Error when removing word from cache model: 0x%h",
+                                              mem_tx.addr));
       end
     end else begin
       // read
       cache.insert(mem_tx.addr, mem_tx.data, mem_tx.byte_en);
     end
-  endfunction: handle_mem_tx
+  endfunction : handle_mem_tx
 
   function void flush_history();
     int block_idx = 0;
 
     if (history.size() % `L1_BLOCK_SIZE != 0) begin
       errors++;
-      `uvm_error(this.get_name(), $sformatf("memory word requests do not match block size: requested %0d, not evenly divisible by: %0d", history.size(), `L1_BLOCK_SIZE));
+      `uvm_error(
+          this.get_name(),
+          $sformatf(
+              "memory word requests do not match block size: requested %0d, not evenly divisible by: %0d",
+              history.size(), `L1_BLOCK_SIZE));
     end
 
     while (history.size() > 0) begin
@@ -204,13 +220,14 @@ class end2end extends uvm_component;
           `uvm_info(this.get_name(), $sformatf("Valid block txn with memory: %h", t.addr), UVM_LOW);
         end else begin
           errors++;
-          `uvm_error(this.get_name(), $sformatf("Invalid word addresses for block txn with memory: %h", t.addr));
+          `uvm_error(this.get_name(),
+                     $sformatf("Invalid word addresses for block txn with memory: %h", t.addr));
           `uvm_info(this.get_name(), $sformatf("%s", cache.sprint()), UVM_LOW);
         end
-      end 
+      end
     end
-  endfunction: flush_history
+  endfunction : flush_history
 
-endclass: end2end
+endclass : end2end
 
 `endif
