@@ -337,18 +337,14 @@ module l1_cache #(
 		            next_last_used[decoded_addr.set_bits] 				        = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
                 else if(pass_through)begin // Passthrough data logic
-                    if(proc_gen_bus_if.ren)begin
-                        //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
-                        mem_gen_bus_if.ren      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
-                        proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
-                    end
-                    else if(proc_gen_bus_if.wen)begin
+                    mem_gen_bus_if.wen      = proc_gen_bus_if.wen;
+                    mem_gen_bus_if.ren      = proc_gen_bus_if.ren;
+                    mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
+                    mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en;
+                    proc_gen_bus_if.busy    = mem_gen_bus_if.busy;
+                    proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
+                    if(proc_gen_bus_if.wen)begin
                         //mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata; //non byte enable
-                        mem_gen_bus_if.wen      = 1'b1;
-                        mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
                         casez (proc_gen_bus_if.byte_en) // Case statement for byte enable
                             4'b0001:    mem_gen_bus_if.wdata  = {24'd0, proc_gen_bus_if.wdata[7:0]};
                             4'b0010:    mem_gen_bus_if.wdata  = {16'd0,proc_gen_bus_if.wdata[15:8],8'd0};
