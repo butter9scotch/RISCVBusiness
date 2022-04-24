@@ -37,32 +37,36 @@ class flush_sequence extends base_sequence;
   `uvm_object_utils(flush_sequence)
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   task body();
     cpu_transaction req_item;
     word_t accesses[word_t];  // queue of previous reads/writes
-    word_t flushes[word_t];   // queue of previous flushed addresses that need to be checked
+    word_t flushes[word_t];  // queue of previous flushed addresses that need to be checked
 
     req_item = cpu_transaction::type_id::create("req_item");
 
     `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%0d", N), UVM_LOW)
-    
-    repeat(N) begin
+
+    repeat (N) begin
       start_item(req_item);
 
-      if(!req_item.randomize() with {
-        flush dist { 1:=25, 0:=75 }; //force a 25%/75% distribution of flushes 
-        rw dist { 1:=50, 0:=50 };   //force a 50%/50% distribution of reads/writes
-        
-        if (flush == 1) {
-          //flush from previously accessed addr
-          addr inside {accesses};
-        }
-        else if (flushes.size() > 0) {
-          addr inside {flushes};
-        }
-        }) begin
+      if (!req_item.randomize() with {
+            flush dist {
+              1 := 25,
+              0 := 75
+            };  //force a 25%/75% distribution of flushes 
+            rw dist {
+              1 := 50,
+              0 := 50
+            };  //force a 50%/50% distribution of reads/writes
+
+            if (flush == 1) {
+              //flush from previously accessed addr
+              addr inside {accesses};
+            } else
+            if (flushes.size() > 0) {addr inside {flushes};}
+          }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
@@ -78,11 +82,12 @@ class flush_sequence extends base_sequence;
         flushes[req_item.addr] = req_item.addr;
       end
 
-      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()),
+                UVM_HIGH)
 
       finish_item(req_item);
     end
-  endtask: body
-endclass: flush_sequence
+  endtask : body
+endclass : flush_sequence
 
 `endif

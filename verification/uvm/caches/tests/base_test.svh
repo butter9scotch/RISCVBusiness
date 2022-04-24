@@ -33,7 +33,10 @@ import uvm_pkg::*;
 `include "generic_bus_if.vh"
 `include "cache_if.svh"
 
-class base_test#(type sequence_type = nominal_sequence, string sequence_name = "BASE_TEST") extends uvm_test;
+class base_test #(
+    type   sequence_type = nominal_sequence,
+    string sequence_name = "BASE_TEST"
+) extends uvm_test;
   `uvm_component_utils(base_test)
 
   sequence_type seq;
@@ -47,70 +50,76 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
   virtual generic_bus_if d_cpu_bus_if;
   virtual generic_bus_if i_cpu_bus_if;
 
-  virtual generic_bus_if d_l1_arb_bus_if;  
-  virtual generic_bus_if i_l1_arb_bus_if;  
-  
-  virtual generic_bus_if arb_l2_bus_if;  
-  virtual generic_bus_if mem_bus_if;  
+  virtual generic_bus_if d_l1_arb_bus_if;
+  virtual generic_bus_if i_l1_arb_bus_if;
+
+  virtual generic_bus_if arb_l2_bus_if;
+  virtual generic_bus_if mem_bus_if;
 
   function new(string name = "", uvm_component parent);
-		super.new(name, parent);
-	endfunction: new
+    super.new(name, parent);
+  endfunction : new
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 
     env_config = cache_env_config::type_id::create("ENV_CONFIG", this);
-    if ( !env_config.randomize()) begin
+    if (!env_config.randomize()) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
-    
-	  env = cache_env::type_id::create("ENV",this);
+
+    env = cache_env::type_id::create("ENV", this);
     env.env_config = env_config;
 
     seq = sequence_type::type_id::create(sequence_name);
 
     // get interfaces from db
-    if (!uvm_config_db#(virtual cache_if)::get(this, "", "d_cif", d_cif)) begin 
+    if (!uvm_config_db#(virtual cache_if)::get(this, "", "d_cif", d_cif)) begin
       // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Base/d_cif", "No virtual interface specified for this test instance")
-	  end
-    if (!uvm_config_db#(virtual cache_if)::get(this, "", "i_cif", i_cif)) begin 
+      `uvm_fatal("Base/d_cif", "No virtual interface specified for this test instance")
+    end
+    if (!uvm_config_db#(virtual cache_if)::get(this, "", "i_cif", i_cif)) begin
       // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Base/i_cif", "No virtual interface specified for this test instance")
-	  end 
-    if (!uvm_config_db#(virtual cache_if)::get(this, "", "l2_cif", l2_cif)) begin 
+      `uvm_fatal("Base/i_cif", "No virtual interface specified for this test instance")
+    end
+    if (!uvm_config_db#(virtual cache_if)::get(this, "", "l2_cif", l2_cif)) begin
       // check if interface is correctly set in testbench top level
-	    `uvm_fatal("Base/l2_cif", "No virtual interface specified for this test instance")
-	  end
+      `uvm_fatal("Base/l2_cif", "No virtual interface specified for this test instance")
+    end
 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "d_cpu_bus_if", d_cpu_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "d_cpu_bus_if", d_cpu_bus_if)) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/d_cpu_bus_if", "No virtual interface specified for this test instance")
-	  end 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_cpu_bus_if", i_cpu_bus_if)) begin 
+      `uvm_fatal("Base/d_cpu_bus_if", "No virtual interface specified for this test instance")
+    end
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_cpu_bus_if", i_cpu_bus_if)) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/i_cpu_bus_if", "No virtual interface specified for this test instance")
-	  end
+      `uvm_fatal("Base/i_cpu_bus_if", "No virtual interface specified for this test instance")
+    end
 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "d_l1_arb_bus_if", d_l1_arb_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(
+            this, "", "d_l1_arb_bus_if", d_l1_arb_bus_if
+        )) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/d_l1_arb_bus_if", "No virtual interface specified for this test instance")
-	  end 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "i_l1_arb_bus_if", i_l1_arb_bus_if)) begin 
+      `uvm_fatal("Base/d_l1_arb_bus_if", "No virtual interface specified for this test instance")
+    end
+    if (!uvm_config_db#(virtual generic_bus_if)::get(
+            this, "", "i_l1_arb_bus_if", i_l1_arb_bus_if
+        )) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/i_l1_arb_bus_if", "No virtual interface specified for this test instance")
-	  end
+      `uvm_fatal("Base/i_l1_arb_bus_if", "No virtual interface specified for this test instance")
+    end
 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "arb_l2_bus_if", arb_l2_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(
+            this, "", "arb_l2_bus_if", arb_l2_bus_if
+        )) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/arb_l2_bus_if", "No virtual interface specified for this test instance")
-	  end
+      `uvm_fatal("Base/arb_l2_bus_if", "No virtual interface specified for this test instance")
+    end
 
-    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_bus_if", mem_bus_if)) begin 
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", "mem_bus_if", mem_bus_if)) begin
       // check if interface is correctly set in testbench top level
-		  `uvm_fatal("Base/mem_bus_if", "No virtual interface specified for this test instance")
-	  end 
+      `uvm_fatal("Base/mem_bus_if", "No virtual interface specified for this test instance")
+    end
 
     // send the interfaces down
     //TODO: SHOULD I NARROW THE SCOPE OF THE ENV_CONFIG?
@@ -122,42 +131,44 @@ class base_test#(type sequence_type = nominal_sequence, string sequence_name = "
 
     uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "d_cpu_bus_if", d_cpu_bus_if);
     uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "i_cpu_bus_if", i_cpu_bus_if);
-    
-    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "d_l1_arb_bus_if", d_l1_arb_bus_if);
-    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "i_l1_arb_bus_if", i_l1_arb_bus_if);
+
+    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "d_l1_arb_bus_if",
+                                                d_l1_arb_bus_if);
+    uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "i_l1_arb_bus_if",
+                                                i_l1_arb_bus_if);
 
     uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "arb_l2_bus_if", arb_l2_bus_if);
 
     uvm_config_db#(virtual generic_bus_if)::set(this, "env.agt*", "mem_bus_if", mem_bus_if);
-  endfunction: build_phase
+  endfunction : build_phase
 
   task run_phase(uvm_phase phase);
-    phase.raise_objection( this, $sformatf("Starting <%s> in main phase", sequence_name) );
-    if(!seq.randomize() with {
-        if (env_config.iterations > 0) {
-          N == env_config.iterations; //command line request for iterations
-        } else {
-          N inside {[20:100]}; //default number of memory accesses
-        }
-      }) begin
+    phase.raise_objection(this, $sformatf("Starting <%s> in main phase", sequence_name));
+    if (!seq.randomize() with {
+          if (env_config.iterations > 0) {
+            N == env_config.iterations;  //command line request for iterations
+          } else {
+            N inside {[20 : 100]};  //default number of memory accesses
+          }
+        }) begin
       `uvm_fatal("Randomize Error", "not able to randomize")
     end
 
 `ifdef TB_L1_CONFIG
- 		seq.start(env.cpu_agt.sqr);
+    seq.start(env.cpu_agt.sqr);
 `endif
 
 `ifdef TB_L2_CONFIG
- 		seq.start(env.mem_arb_agt.sqr);
+    seq.start(env.mem_arb_agt.sqr);
 `endif
 
 `ifdef TB_FULL_CONFIG
- 		seq.start(env.d_cpu_agt.sqr);
+    seq.start(env.d_cpu_agt.sqr);
 `endif
-		#5ns;
-		phase.drop_objection( this , $sformatf("Finished <%s> in main phase", sequence_name) );
+    #5ns;
+    phase.drop_objection(this, $sformatf("Finished <%s> in main phase", sequence_name));
   endtask
 
-endclass: base_test
+endclass : base_test
 
 `endif

@@ -36,7 +36,7 @@ class mmio_sequence extends base_sequence;
   `uvm_object_utils(mmio_sequence)
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   task body();
     cpu_transaction req_item;
@@ -44,22 +44,23 @@ class mmio_sequence extends base_sequence;
     req_item = cpu_transaction::type_id::create("req_item");
 
     `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%0d", N), UVM_LOW)
-    
-    repeat(N) begin
+
+    repeat (N) begin
       start_item(req_item);
 
-      if(!req_item.randomize() with {
-        flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
-        addr >= `NONCACHE_START_ADDR;
-      }) begin
+      if (!req_item.randomize() with {
+            flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
+            addr >= `NONCACHE_START_ADDR;
+          }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
-      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()),
+                UVM_HIGH)
 
       finish_item(req_item);
     end
-  endtask: body
-endclass: mmio_sequence
+  endtask : body
+endclass : mmio_sequence
 
 `endif

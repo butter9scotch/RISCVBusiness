@@ -27,17 +27,17 @@
 `define UTILS_SHV
 
 class Utils;
-    static function word_t byte_mask(logic [3:0] byte_en);
-        word_t mask;
+  static function word_t byte_mask(logic [3:0] byte_en);
+    word_t mask;
 
-        mask = '0;
-        for (int i = 0; i < 4; i++) begin
-            if (byte_en[i]) begin
-                mask |= 32'hff << (8*i);
-            end
-        end
-        return mask;
-    endfunction: byte_mask
-endclass: Utils
+    mask = '0;
+    for (int i = 0; i < 4; i++) begin
+      if (byte_en[i]) begin
+        mask |= 32'hff << (8 * i);
+      end
+    end
+    return mask;
+  endfunction : byte_mask
+endclass : Utils
 
 `endif

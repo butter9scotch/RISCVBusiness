@@ -38,7 +38,9 @@ import uvm_pkg::*;
 class null_driver;
 endclass
 
-class bus_agent #(type driver = null_driver) extends uvm_agent;
+class bus_agent #(
+    type driver = null_driver
+) extends uvm_agent;
   `uvm_component_param_utils(bus_agent#(driver))
   cpu_sequencer sqr;
   driver drv;
@@ -48,6 +50,6 @@ class bus_agent #(type driver = null_driver) extends uvm_agent;
     super.new(name, parent);
   endfunction
 
-endclass: bus_agent
+endclass : bus_agent
 
 `endif

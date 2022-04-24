@@ -38,7 +38,7 @@ class index_sequence extends base_sequence;
 
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   task body();
     cpu_transaction req_item;
@@ -49,45 +49,50 @@ class index_sequence extends base_sequence;
 
     req_item = cpu_transaction::type_id::create("req_item");
 
-    N_reps = N / (`L1_BLOCK_SIZE);
+    N_reps   = N / (`L1_BLOCK_SIZE);
 
-    `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d", N, N_reps * (`L1_BLOCK_SIZE)), UVM_LOW)
+    `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d",
+                                         N, N_reps * (`L1_BLOCK_SIZE)), UVM_LOW)
 
     if (N_reps <= 0) begin
-      `uvm_fatal(this.get_name(), $sformatf("Invalid Sequence Size: N must be at least %0d to touch all words of a block", (`L1_BLOCK_SIZE)))
+      `uvm_fatal(this.get_name(),
+                 $sformatf(
+                     "Invalid Sequence Size: N must be at least %0d to touch all words of a block",
+                     (`L1_BLOCK_SIZE)))
     end
-    
-    repeat(N_reps) begin
+
+    repeat (N_reps) begin
       for (int i = 0; i < `L1_BLOCK_SIZE; i++) begin
         start_item(req_item);
-        if(!req_item.randomize() with {
-          flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
-          if (i != 0) {
-            // first iteration is completely random txn
-            addr[31:`L1_ADDR_IDX_END] == index;
-            addr inside {block_words};        
-          }
-          }) begin
+        if (!req_item.randomize() with {
+              flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
+              if (i != 0) {
+                // first iteration is completely random txn
+                addr[31:`L1_ADDR_IDX_END] == index;
+                addr inside {block_words};
+              }
+            }) begin
           `uvm_fatal("Randomize Error", "not able to randomize")
         end
         index = req_item.addr[31:`L1_ADDR_IDX_END];
 
         if (i == 0) begin
           // initialize block words arrays
-          for (int j = 0; j < `L1_BLOCK_SIZE*4; j+=4) begin
+          for (int j = 0; j < `L1_BLOCK_SIZE * 4; j += 4) begin
             word_t temp = {index, j[`L1_ADDR_IDX_END-1:0]};
             block_words[temp] = temp;
           end
         end
 
-        block_words.delete(req_item.addr); // remove from list of addresses to r/w
+        block_words.delete(req_item.addr);  // remove from list of addresses to r/w
 
-        `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+        `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()),
+                  UVM_HIGH)
 
         finish_item(req_item);
       end
     end
-  endtask: body
-endclass: index_sequence
+  endtask : body
+endclass : index_sequence
 
 `endif

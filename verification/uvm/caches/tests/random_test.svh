@@ -30,14 +30,14 @@ import uvm_pkg::*;
 `include "master_sequence.svh"
 `include "uvm_macros.svh"
 
-class random_test extends base_test#(master_sequence, "RANDOM_TEST");
+class random_test extends base_test #(master_sequence, "RANDOM_TEST");
   `uvm_component_utils(random_test)
 
   function new(string name = "", uvm_component parent);
-		super.new(name, parent);
-	endfunction: new
+    super.new(name, parent);
+  endfunction : new
 
-endclass: random_test
+endclass : random_test
 
 `endif
 

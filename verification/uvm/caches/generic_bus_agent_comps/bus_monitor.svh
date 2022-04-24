@@ -44,12 +44,12 @@ class bus_monitor extends uvm_monitor;
   uvm_analysis_port #(cpu_transaction) req_ap;
   uvm_analysis_port #(cpu_transaction) resp_ap;
 
-  int cycle; // number of clock cycles that have elapsed
+  int cycle;  // number of clock cycles that have elapsed
 
   int precedence;
   string cif_str;
   string bus_if_str;
-  
+
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
     req_ap = new("req_ap", this);
@@ -57,39 +57,41 @@ class bus_monitor extends uvm_monitor;
     precedence = 0;
     cif_str = "";
     bus_if_str = "";
-  endfunction: new
+  endfunction : new
 
   function void set_cif_str(string str);
     this.cif_str = str;
-  endfunction: set_cif_str
+  endfunction : set_cif_str
 
   function void set_bus_if_str(string str);
     this.bus_if_str = str;
-  endfunction: set_bus_if_str
+  endfunction : set_bus_if_str
 
   function void set_precedence(int p);
     this.precedence = p;
-  endfunction: set_precedence
+  endfunction : set_precedence
 
   // Build Phase - Get handle to virtual if from config_db
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     // get config from database
-    if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
+    if (!uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config)) begin
       `uvm_fatal(this.get_name(), "env config not registered to db")
-		end
+    end
     `uvm_info(this.get_name(), "pulled <env_config> from db", UVM_FULL)
 
-    if( !uvm_config_db#(virtual cache_if)::get(this, "", cif_str, cif) ) begin
-      `uvm_fatal($sformatf("%s/%s", this.get_name(), cif_str), "No virtual interface specified for this test instance");
-		end
+    if (!uvm_config_db#(virtual cache_if)::get(this, "", cif_str, cif)) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), cif_str),
+                 "No virtual interface specified for this test instance");
+    end
     `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", cif_str), UVM_FULL)
 
-    if( !uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, bus_if) ) begin
-      `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str), "No virtual interface specified for this test instance");
-		end
+    if (!uvm_config_db#(virtual generic_bus_if)::get(this, "", bus_if_str, bus_if)) begin
+      `uvm_fatal($sformatf("%s/%s", this.get_name(), bus_if_str),
+                 "No virtual interface specified for this test instance");
+    end
     `uvm_info(this.get_name(), $sformatf("pulled <%s> from db", bus_if_str), UVM_FULL)
-  endfunction: build_phase
+  endfunction : build_phase
 
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
@@ -98,7 +100,7 @@ class bus_monitor extends uvm_monitor;
       cpu_transaction tx;
 
       @(posedge cif.CLK);
-      `MONITOR_DELAY // delay to pick up new value from bus
+      `MONITOR_DELAY  // delay to pick up new value from bus
 
       if (cif.flush) begin
         tx = cpu_transaction::type_id::create("tx");
@@ -112,10 +114,10 @@ class bus_monitor extends uvm_monitor;
 
         mem_wait(1'b1, cif.flush_done);
 
-        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()),
+                  UVM_FULL)
         resp_ap.write(tx);
-      end
-      else if (bus_if.ren || bus_if.wen) begin
+      end else if (bus_if.ren || bus_if.wen) begin
         // captures activity between the driver and DUT
         tx = cpu_transaction::type_id::create("tx");
 
@@ -124,10 +126,10 @@ class bus_monitor extends uvm_monitor;
         tx.flush = cif.flush;
 
         if (bus_if.ren) begin
-          tx.rw = '0; // 0 -> read; 1 -> write
-          tx.data = 'x; //fill with garbage data
+          tx.rw   = '0;  // 0 -> read; 1 -> write
+          tx.data = 'x;  //fill with garbage data
         end else if (bus_if.wen) begin
-          tx.rw = '1; // 0 -> read; 1 -> write
+          tx.rw   = '1;  // 0 -> read; 1 -> write
           tx.data = bus_if.wdata;
         end
 
@@ -141,24 +143,25 @@ class bus_monitor extends uvm_monitor;
         end
 
         #(precedence);
-        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()), UVM_FULL)
+        `uvm_info(this.get_name(), $sformatf("Writing Resp AP:\nReq Ap:\n%s", tx.sprint()),
+                  UVM_FULL)
         resp_ap.write(tx);
       end
     end
-  endtask: run_phase
+  endtask : run_phase
 
   task mem_wait(logic clear, const ref logic flag);
-    int cycle = 0; 
+    int cycle = 0;
     while (flag != clear) begin
       @(posedge cif.CLK);
-      `MONITOR_DELAY // delay to pick up new value from bus
+      `MONITOR_DELAY  // delay to pick up new value from bus
       cycle++;  //wait for memory to return
       if (cycle > env_config.mem_timeout) begin
         `uvm_fatal(this.get_name(), "memory timeout reached")
       end
     end
-  endtask: mem_wait
+  endtask : mem_wait
 
-endclass: bus_monitor
+endclass : bus_monitor
 
 `endif

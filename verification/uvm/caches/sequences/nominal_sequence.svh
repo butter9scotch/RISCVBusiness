@@ -37,34 +37,37 @@ class nominal_sequence extends base_sequence;
   `uvm_object_utils(nominal_sequence)
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   task body();
     cpu_transaction req_item;
-    int write_count; // current number of writes
-    word_t writes[word_t]; // queue of write addresses
+    int write_count;  // current number of writes
+    word_t writes[word_t];  // queue of write addresses
 
     req_item = cpu_transaction::type_id::create("req_item");
 
     write_count = 0;
 
     `uvm_info(this.get_name(), $sformatf("Creating sequence with size N=%0d", N), UVM_LOW)
-    
-    repeat(N) begin
+
+    repeat (N) begin
       start_item(req_item);
 
-      if(!req_item.randomize() with {
-        flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS IN NOMINAL OPPERATION?
-        rw dist { 1:=1, 0:=1 }; //force a 50/50 distribution of reads/writes
-        if (write_count > N/2) {
-          //only reads allowed
-          rw == 0;
-        }
-        if (rw == 0) {
-          //read from previously written addr
-          addr inside {writes};
-        }
-        }) begin
+      if (!req_item.randomize() with {
+            flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS IN NOMINAL OPPERATION?
+            rw dist {
+              1 := 1,
+              0 := 1
+            };  //force a 50/50 distribution of reads/writes
+            if (write_count > N / 2) {
+              //only reads allowed
+              rw == 0;
+            }
+            if (rw == 0) {
+              //read from previously written addr
+              addr inside {writes};
+            }
+          }) begin
         `uvm_fatal("Randomize Error", "not able to randomize")
       end
 
@@ -77,11 +80,12 @@ class nominal_sequence extends base_sequence;
         writes.delete(req_item.addr);
       end
 
-      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+      `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()),
+                UVM_HIGH)
 
       finish_item(req_item);
     end
-  endtask: body
-endclass: nominal_sequence
+  endtask : body
+endclass : nominal_sequence
 
 `endif

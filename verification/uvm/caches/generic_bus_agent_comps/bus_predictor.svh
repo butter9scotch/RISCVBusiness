@@ -33,27 +33,27 @@ import rv32i_types_pkg::*;
 `include "cache_model.svh"
 
 class bus_predictor extends uvm_subscriber #(cpu_transaction);
-  `uvm_component_utils(bus_predictor) 
+  `uvm_component_utils(bus_predictor)
 
   uvm_analysis_port #(cpu_transaction) pred_ap;
   cpu_transaction pred_tx;
 
   cache_env_config env_config;
 
-  cache_model cache; //software cache
+  cache_model cache;  //software cache
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
-  endfunction: new
+  endfunction : new
 
   function void build_phase(uvm_phase phase);
-    
+
     pred_ap = new("pred_ap", this);
-    
+
     // get config from database
-    if( !uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config) ) begin
+    if (!uvm_config_db#(cache_env_config)::get(this, "", "env_config", env_config)) begin
       `uvm_fatal(this.get_name(), "env config not registered to db")
-		end
+    end
 
   endfunction
 
@@ -67,7 +67,7 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
     `uvm_info(this.get_name(), $sformatf("cache before:\n%s", cache.sprint()), UVM_HIGH)
 
     if (pred_tx.flush) begin
-      pred_ap.write(pred_tx); // flush doesn't return any data
+      pred_ap.write(pred_tx);  // flush doesn't return any data
       // don't update cache model because we need reads to return same data as was written
     end else begin
       // no cache flush
@@ -88,7 +88,10 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
         end else begin
           // mmio responds
           pred_tx.data = {env_config.mmio_tag, pred_tx.addr[15:0]};
-          `uvm_info(this.get_name(), $sformatf("Reading from Memory Mapped Address Space, Defaulting to value <%h>", pred_tx.data), UVM_MEDIUM)
+          `uvm_info(
+              this.get_name(), $sformatf(
+              "Reading from Memory Mapped Address Space, Defaulting to value <%h>", pred_tx.data),
+              UVM_MEDIUM)
         end
       end
       // after prediction, the expected output send to the scoreboard 
@@ -96,8 +99,8 @@ class bus_predictor extends uvm_subscriber #(cpu_transaction);
     end
 
     `uvm_info(this.get_name(), $sformatf("cache after:\n%s", cache.sprint()), UVM_HIGH)
-  endfunction: write
+  endfunction : write
 
-endclass: bus_predictor
+endclass : bus_predictor
 
 `endif

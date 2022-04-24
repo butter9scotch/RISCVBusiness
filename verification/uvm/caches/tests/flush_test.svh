@@ -31,14 +31,14 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 
-class flush_test extends base_test#(flush_sequence, "FLUSH_SEQ");
+class flush_test extends base_test #(flush_sequence, "FLUSH_SEQ");
   `uvm_component_utils(flush_test)
 
   function new(string name = "", uvm_component parent);
-		super.new(name, parent);
-	endfunction: new
+    super.new(name, parent);
+  endfunction : new
 
-endclass: flush_test
+endclass : flush_test
 
 `endif
 

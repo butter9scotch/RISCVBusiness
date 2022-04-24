@@ -36,36 +36,38 @@ import uvm_pkg::*;
 `include "bus_agent.svh"
 `include "cpu_sequencer.svh"
 
-class i_cpu_driver extends cpu_driver#("i_cif", "i_cpu_bus_if");
+class i_cpu_driver extends cpu_driver #("i_cif", "i_cpu_bus_if");
   `uvm_component_utils(i_cpu_driver)
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction
 endclass
 
-class i_cpu_agent extends bus_agent#(i_cpu_driver);
+class i_cpu_agent extends bus_agent #(i_cpu_driver);
   `uvm_component_utils(i_cpu_agent)
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
   endfunction
 
-  virtual function void build_phase(uvm_phase phase);   
+  virtual function void build_phase(uvm_phase phase);
     sqr = cpu_sequencer::type_id::create("I_CPU_SQR", this);
     drv = i_cpu_driver::type_id::create("I_CPU_DRV", this);
     mon = bus_monitor::type_id::create("I_CPU_MON", this);
-      mon.set_precedence(1);
-      mon.set_cif_str("i_cif");
-      mon.set_bus_if_str("i_cpu_bus_if");
+    mon.set_precedence(1);
+    mon.set_cif_str("i_cif");
+    mon.set_bus_if_str("i_cpu_bus_if");
 
-    `uvm_info(this.get_name(), $sformatf("Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_FULL)
+    `uvm_info(this.get_name(), $sformatf(
+              "Created <%s>, <%s>, <%s>", drv.get_name(), sqr.get_name(), mon.get_name()), UVM_FULL)
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
     drv.seq_item_port.connect(sqr.seq_item_export);
-    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", drv.get_name(), sqr.get_name()), UVM_FULL)
+    `uvm_info(this.get_name(), $sformatf("Connected <%s> to <%s>", drv.get_name(), sqr.get_name()),
+              UVM_FULL)
   endfunction
 
-endclass: i_cpu_agent
+endclass : i_cpu_agent
 
 `endif

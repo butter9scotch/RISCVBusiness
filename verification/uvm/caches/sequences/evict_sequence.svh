@@ -38,43 +38,46 @@ class evict_sequence extends base_sequence;
 
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   task body();
     cpu_transaction req_item;
     int N_reps; // used to back calculate proper repetitions to used when combined with inner for loop
     logic [`L1_INDEX_BITS-1:0] index;
-    
+
     req_item = cpu_transaction::type_id::create("req_item");
 
-    N_reps = N / (`L1_ASSOC + 1);
+    N_reps   = N / (`L1_ASSOC + 1);
 
-    `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d", N, N_reps * (`L1_ASSOC + 1)), UVM_LOW)
+    `uvm_info(this.get_name(), $sformatf("Requested size: %0d; Creating sequence with size N=%0d",
+                                         N, N_reps * (`L1_ASSOC + 1)), UVM_LOW)
 
     if (N_reps <= 0) begin
-      `uvm_fatal(this.get_name(), $sformatf("Invalid Sequence Size: N must be at least %0d to trigger an eviction event", (`L1_ASSOC + 1)))
+      `uvm_fatal(this.get_name(),
+                 $sformatf(
+                     "Invalid Sequence Size: N must be at least %0d to trigger an eviction event",
+                     (`L1_ASSOC + 1)))
     end
-    
-    repeat(N_reps) begin
+
+    repeat (N_reps) begin
       for (int i = 0; i < `L1_ASSOC + 1; i++) begin
         start_item(req_item);
-        if(!req_item.randomize() with {
-          flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
-          if (i != 0) {
-            addr[`L1_INDEX_BITS-1:0] == index;
-          }
-          rw == '1;
-          }) begin
+        if (!req_item.randomize() with {
+              flush == 0;  //TODO: DO WE WANT ANY FLUSH SIGNALS?
+              if (i != 0) {addr[`L1_INDEX_BITS-1:0] == index;}
+              rw == '1;
+            }) begin
           `uvm_fatal("Randomize Error", "not able to randomize")
         end
         index = req_item.addr[`L1_INDEX_BITS:0];
 
-        `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()), UVM_HIGH)
+        `uvm_info(this.get_name(), $sformatf("Generated New Sequence Item:\n%s", req_item.sprint()),
+                  UVM_HIGH)
 
         finish_item(req_item);
       end
     end
-  endtask: body
-endclass: evict_sequence
+  endtask : body
+endclass : evict_sequence
 
 `endif

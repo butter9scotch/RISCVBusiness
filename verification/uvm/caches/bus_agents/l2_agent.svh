@@ -38,15 +38,15 @@ class l2_agent extends bus_agent;
     super.new(name, parent);
   endfunction
 
-  virtual function void build_phase(uvm_phase phase);   
+  virtual function void build_phase(uvm_phase phase);
     mon = bus_monitor::type_id::create("L2_MON", this);
-      mon.set_precedence(0);
-      mon.set_cif_str("l2_cif");
-      mon.set_bus_if_str("arb_l2_bus_if");
+    mon.set_precedence(0);
+    mon.set_cif_str("l2_cif");
+    mon.set_bus_if_str("arb_l2_bus_if");
 
     `uvm_info(this.get_name(), $sformatf("Created <%s>", mon.get_name()), UVM_FULL)
   endfunction
 
-endclass: l2_agent
+endclass : l2_agent
 
 `endif

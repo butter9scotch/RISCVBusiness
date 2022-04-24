@@ -37,9 +37,9 @@ class base_sequence extends uvm_sequence #(cpu_transaction);
   `uvm_object_utils(base_sequence)
   function new(string name = "");
     super.new(name);
-  endfunction: new
+  endfunction : new
 
   rand int N;  // total number of processor side transactions
 
-endclass: base_sequence
+endclass : base_sequence
 `endif
