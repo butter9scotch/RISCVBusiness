@@ -76,8 +76,14 @@ module tb_caches_top ();
   if (`INTERFACE_CHECKER == 1) begin
     interface_checker if_check (  //FIXME: THIS NEEDS TO BE UPDATED WITH PROPER INTERFACES
         .d_cif(d_cif.cache),
+        .i_cif(i_cif.cache),
+        .l2_cif(l2_cif.cache),
         .d_cpu_if(d_cpu_bus_if.generic_bus),
-        .mem_if(d_l1_arb_bus_if.generic_bus)
+        .i_cpu_if(i_cpu_bus_if.generic_bus),
+        .d_l1_arb_bus_if(d_l1_arb_bus_if.generic_bus),
+        .i_l1_arb_bus_if(i_l1_arb_bus_if.generic_bus),
+        .arb_l2_bus_if(arb_l2_bus_if.generic_bus),
+        .mem_if(mem_bus_if.generic_bus)
     );
   end
 

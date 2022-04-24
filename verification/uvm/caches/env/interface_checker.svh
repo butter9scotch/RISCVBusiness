@@ -25,26 +25,42 @@
 `ifndef INTERFACE_CHECKER_SVH
 `define INTERFACE_CHECKER_SVH
 
-module interface_checker(
+module interface_checker (
     cache_if.cache d_cif,
+    cache_if.cache i_cif,
+    cache_if.cache l2_cif,
     generic_bus_if.generic_bus d_cpu_if,
+    generic_bus_if.generic_bus i_cpu_if,
+    generic_bus_if.generic_bus d_l1_arb_bus_if,
+    generic_bus_if.generic_bus i_l1_arb_bus_if,
+    generic_bus_if.generic_bus arb_l2_bus_if,
     generic_bus_if.generic_bus mem_if
 );
 
-    //FIXME: L1 RESPONSE WITHOUT REQUEST
-    //FIXME: we have busy low when wen/ren are asserted for first cycle (request cycle)
-    // this doesn't seem like an issue we need to check (or that is even an issue)
-    // assert property (@(posedge i_cif.CLK) !(cpu_if.ren || cpu_if.wen) && !cpu_if.busy);
-    // assert 
-    //     property (@(posedge i_cif.CLK) cpu_if.busy |-> ##2 (cpu_if.ren || cpu_if.wen))
-    //     else $fatal(1, "fatal error");
-    // assert property (@(posedge mem_if.busy) mem_if.ren || mem_if.wen);
-    // assert property(@(posedge i_cif.CLK) cpu_if.byte_en != 32'hff00ff00);
-    assert 
-        property(@(posedge d_cif.CLK) d_cif.flush_done |-> (d_cif.flush))
-        else $fatal(1, "'d_cif.flush_done' should never be asserted without a cpu flush request");
-    //TODO: IMPLEMENT CHECK FOR VALID BYTE_EN
-endmodule: interface_checker
+  // Flush done without a flush request
+  assert property (@(posedge d_cif.CLK) d_cif.flush_done |-> (d_cif.flush))
+  else $fatal(1, "'d_cif.flush_done' should never be asserted without a cpu flush request");
+  assert property (@(posedge i_cif.CLK) i_cif.flush_done |-> (i_cif.flush))
+  else $fatal(1, "'i_cif.flush_done' should never be asserted without a cpu flush request");
+  assert property (@(posedge l2_cif.CLK) l2_cif.flush_done |-> (l2_cif.flush))
+  else $fatal(1, "'l2_cif.flush_done' should never be asserted without a cpu flush request");
 
+  // L2 Response without a read/write request
+  assert property (@(posedge l2_cif.CLK) !arb_l2_bus_if.busy |-> (arb_l2_bus_if.ren | arb_l2_bus_if.wen))
+  else $fatal(1, "'arb_l2_bus_if.busy' should never be low without a cpu read/write request");
+
+  // Ensure all bus transactions only occur when there is a read/write request
+  assert property (@(posedge d_cif.CLK) d_l1_arb_bus_if.ren |-> (d_cpu_if.ren))
+  else $fatal(1, "'d_l1_arb_bus_if.ren' should never be asserted without a cpu read request");
+  assert property (@(posedge d_cif.CLK) d_l1_arb_bus_if.wen |-> (d_cpu_if.wen))
+  else $fatal(1, "'d_l1_arb_bus_if.wen' should never be asserted without a cpu write request");
+
+  assert property (@(posedge d_cif.CLK) i_l1_arb_bus_if.ren |-> (i_cpu_if.ren))
+  else $fatal(1, "'i_l1_arb_bus_if.ren' should never be asserted without a cpu read request");
+  assert property (@(posedge d_cif.CLK) i_l1_arb_bus_if.wen |-> (i_cpu_if.wen))
+  else $fatal(1, "'i_l1_arb_bus_if.wen' should never be asserted without a cpu write request");
+
+  //TODO: IMPLEMENT CHECK FOR INVALID BYTE_EN 
+endmodule : interface_checker
 
 `endif
