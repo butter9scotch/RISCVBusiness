@@ -32,5 +32,4 @@ mitll*
 *~
 open_files.sh
 # Ignore VSCode Configurations
-.vscode
 *.log
