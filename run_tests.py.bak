@@ -36,7 +36,7 @@ START_GREEN = "\033[92m"
 START_RED = "\033[31m"
 
 FILE_NAME = None
-ARCH = "RV32M"
+ARCH = "RV32I"
 SUPPORTED_ARCHS = []
 SUPPORTED_TEST_TYPES = ['asm', 'c', 'selfasm', "sparce", ""]
 SPARCE_MODULES = ['sparce_svc', 'sparce_sprf', 'sparce_sasa_table', 'sparce_psru', 'sparce_cfid']
@@ -101,8 +101,9 @@ def compile_asm(file_name):
     output_name = output_dir + short_name + '.elf'
 
     # Added 64-bit support
-    xlen = 'rv64g' if '64' in ARCH else 'rv32im'
-    abi = 'lp64' if '64' in ARCH else 'ilp32'
+    xlen = 'rv64gcf' if '64' in ARCH else 'rv32imf'
+    abi = 'lp64f' if '64' in ARCH else 'ilp32f'
+
     if not os.path.exists(os.path.dirname(output_name)):
         os.makedirs(os.path.dirname(output_name))
 
@@ -136,7 +137,7 @@ def compile_asm_for_self(file_name):
         os.makedirs(os.path.dirname(output_name))
 
     xlen = 'rv64g' if '64' in ARCH else 'rv32g'
-    abi = 'lp64' if '64' in ARCH else 'ilp32'
+    abi = 'lp64' if '64' in ARCH else 'ilp32f'
 
 
     cmd_arr = ['riscv64-unknown-elf-gcc', '-march=' + xlen, '-mabi=' + abi,
@@ -390,7 +391,7 @@ def run_sim(file_name):
     short_name = file_name.split(ARCH+'/')[1][:-2]
     output_dir = './sim_out/' + ARCH + '/' + short_name + '/'
 
-    cmd_arr = ['waf', 'configure', '--top_level=' + TOP_LEVEL]
+    cmd_arr = ['waf', 'configure', '--top_level=' + TOP_LEVEL + '_self_test']
     failure = subprocess.call(cmd_arr, stdout=FNULL)
     if failure:
         return -1
@@ -438,7 +439,7 @@ def run_spike_asm(file_name):
 
     elf_name = output_dir + short_name + '.elf'
     log_name = output_dir + short_name + '_spike.hex'
-    cmd_arr = ['spike', '-l', '--isa=RV32IM', '+signature=' + log_name, elf_name]
+    cmd_arr = ['spike', '-l', '--isa=RV32IMF', '+signature=' + log_name, elf_name]
     print(cmd_arr)
     spike_log = open(output_dir + short_name + '_spike.trace', 'w')
     failure = subprocess.call(cmd_arr, stdout = spike_log, stderr = spike_log)
@@ -459,7 +460,7 @@ def compare_results(f):
                 stdout=FNULL, stderr=subprocess.STDOUT)
     cmd_arr = ['diff', output_dir + short_name + '_spike.trace']
     cmd_arr += [output_dir + short_name + '_sim.trace']
-    #subprocess.call(cmd_arr)
+    #failure = failure | subprocess.call(cmd_arr, stderr=subprocess.STDOUT)
     if failure:
         print fail_msg
         return 1
@@ -533,7 +534,7 @@ def run_asm():
                 elif ret == -2:
                     print "An error has occured converting elf to hex"
                 sys.exit(1)
-            clean_init_hex(f)
+            #clean_init_hex(f)
             ret = run_spike_asm(f)
             if ret != 0:
                 print "An error has occurred during running Spike"
