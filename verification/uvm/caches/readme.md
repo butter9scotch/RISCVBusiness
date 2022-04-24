@@ -87,5 +87,3 @@ We see that the first line gives an error message and the time step, in this cas
 ## Extension Ideas:
 - Timing Agent
   - responsible for monitoring both buses like end2end and checking if the correct number of cycles for hits/misses
-- Update Nominal Sequence to have better distribution of reads/writes
-  - currently the solver tends to have the writes be front loaded and the reads mostly at the end
