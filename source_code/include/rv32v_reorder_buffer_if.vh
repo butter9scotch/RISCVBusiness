@@ -36,8 +36,11 @@ interface rv32v_reorder_buffer_if;
   // FUNCTIONAL UNIT RESULT
   rob_fu_result_t a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs;
 
+  logic cou_done;
+  offset_t cou_ori_offset;
+
   modport rob (
-    input a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs,
+    input a_sigs, mu_sigs, du_sigs, m_sigs, p_sigs, ls_sigs, cou_done, cou_ori_offset,
     alloc_ena, sew, lmul, branch_mispredict, scalar_exception, commit_ena, vl, single_bit_op,  
     single_bit_write, counter_done, rd_wen, 
     output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, v_done, single_wen, single_wen_vl, vreg_wen
@@ -49,7 +52,7 @@ interface rv32v_reorder_buffer_if;
            single_bit_write,
            sew, branch_mispredict, scalar_exception, commit_ena, vl,  single_bit_op,
     output cur_tail, vd_final, wen_final, wdata_final, full, v_exception, commit_done, single_wen, single_wen_vl,
-           counter_done, rd_wen
+           counter_done, rd_wen, cou_done, cou_ori_offset
   );
 
   modport execute (

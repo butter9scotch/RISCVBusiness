@@ -64,6 +64,9 @@ interface rv32v_decode_execute_if;
   logic vlre_vlse;
   logic done_vfirst;
 
+  logic cou_done;
+  offset_t cou_ori_offset;
+
 
   modport decode (
     output stride_type, stride_val, xs1, xs2, rd_wen, config_type, rd_sel, 
@@ -88,7 +91,9 @@ interface rv32v_decode_execute_if;
     valid,
     counter_done,
     vlre_vlse,
-    done_vfirst
+    done_vfirst,
+    cou_done,
+    cou_ori_offset
   );
 
   modport execute (
@@ -113,7 +118,9 @@ interface rv32v_decode_execute_if;
     valid,
     counter_done,
     vlre_vlse,
-    done_vfirst
+    done_vfirst,
+    cou_done,
+    cou_ori_offset
   );
 
 endinterface

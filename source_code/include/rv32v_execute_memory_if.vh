@@ -32,19 +32,21 @@ interface rv32v_execute_memory_if;
   logic mul_done;
   logic div_done;
   logic vlre_vlse;
+  logic cou_done;
+  offset_t cou_ori_offset;
 
   modport execute (
     output load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vl, vtype, eew, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen,
-    ena, done, fu_type, index, lmul, valid, counter_done, mul_done, div_done, vlre_vlse
+    ena, done, fu_type, index, lmul, valid, counter_done, mul_done, div_done, vlre_vlse, cou_done, cou_ori_offset
   );
 
   modport memory (
     input load_ena, store_ena, storedata0, storedata1, aluresult0, aluresult1, wen, woffset0, woffset1, segment_type,
     config_type, vtype, eew, vl, vd, single_bit_write, vstart, next_vtype_csr, next_avl_csr, eew_loadstore, ls_idx,
     rd_sel, rd_data, rd_wen ,
-    ena, done, fu_type, index, lmul, valid, counter_done, mul_done, div_done, vlre_vlse
+    ena, done, fu_type, index, lmul, valid, counter_done, mul_done, div_done, vlre_vlse, cou_done, cou_ori_offset
   );
 endinterface
 `endif // RV32V_EXECUTE_MEMORY_IF_VH

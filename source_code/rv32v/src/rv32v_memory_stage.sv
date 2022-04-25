@@ -223,6 +223,8 @@ module rv32v_memory_stage (
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
       rob_if.rd_wen <= '0;
+      rob_if.cou_ori_offset      <= '0;
+      rob_if.cou_done <= '0;
 
     end else if (hu_if.flush_mem) begin
       memory_writeback_if.wdat0    <= '0;
@@ -249,6 +251,8 @@ module rv32v_memory_stage (
       rob_if.vl           <= '0;
       rob_if.counter_done <= '0;
       rob_if.rd_wen       <= '0;
+      rob_if.cou_ori_offset      <= '0;
+      rob_if.cou_done <= '0;
     end else if (!hu_if.stall_mem) begin
       /*******************************************************
       *** To Scalar Unit
@@ -271,6 +275,8 @@ module rv32v_memory_stage (
       rob_if.vl               <= execute_memory_if.vl;
       rob_if.counter_done     <= execute_memory_if.counter_done;
       rob_if.rd_wen           <= execute_memory_if.rd_wen;
+      rob_if.cou_ori_offset      <= execute_memory_if.cou_ori_offset;
+      rob_if.cou_done <= execute_memory_if.cou_done;
     //end else if (~asif.arrived1) begin
       //rob_if.ls_sigs          <= '0;
     end

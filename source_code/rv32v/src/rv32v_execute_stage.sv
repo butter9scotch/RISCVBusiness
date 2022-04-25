@@ -499,6 +499,8 @@ module rv32v_execute_stage (
       execute_memory_if.div_done <= '0;
 
       execute_memory_if.vlre_vlse         <= '0;
+      execute_memory_if.cou_done      <= '0;
+      execute_memory_if.cou_ori_offset      <= '0;
 
     end else if (hu_if.flush_ex) begin
       execute_memory_if.load_ena        <= '0;
@@ -534,6 +536,8 @@ module rv32v_execute_stage (
       execute_memory_if.div_done <= '0;
 
       execute_memory_if.vlre_vlse         <= '0;
+      execute_memory_if.cou_done      <= '0;
+      execute_memory_if.cou_ori_offset      <= '0;
 
     end else if (latch_ena) begin
       execute_memory_if.load_ena    <= load_ena;
@@ -584,6 +588,8 @@ module rv32v_execute_stage (
       execute_memory_if.mul_done <= vif0.done_mu;
       execute_memory_if.div_done <= vif0.done_du;
       execute_memory_if.vlre_vlse         <= decode_execute_if.vlre_vlse;
+      execute_memory_if.cou_done      <= decode_execute_if.cou_done;
+      execute_memory_if.cou_ori_offset      <= decode_execute_if.cou_ori_offset;
 
     end
   end

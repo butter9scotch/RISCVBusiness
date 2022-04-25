@@ -64,6 +64,7 @@ module rv32v_reorder_buffer # (
   logic [3:0] vd_wen_offset_a, vd_wen_offset_mu, vd_wen_offset_du, vd_wen_offset_m, vd_wen_offset_p, vd_wen_offset_ls;
   logic [6:0] vd_outer_offset_a, vd_outer_offset_mu, vd_outer_offset_du, vd_outer_offset_m, vd_outer_offset_p, vd_outer_offset_ls;
   logic reached_max_a, reached_max_mu, reached_max_du, reached_max_m, reached_max_p, reached_max_ls;
+  offset_t woffset_mod_a;
   logic flush;
   integer i;
 
@@ -136,7 +137,10 @@ module rv32v_reorder_buffer # (
   assign rob_if.single_wen_vl   = vl_reg;
   assign rob_if.v_exception = rob[head_sel].exception & rob_if.commit_ena;
 
-  assign reached_max_a  = (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 1) || (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 2);
+  assign woffset_mod_a = rob_if.cou_done ? rob_if.cou_ori_offset : rob_if.a_sigs.woffset;
+
+  //assign reached_max_a  = (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 1) || (rob_if.a_sigs.woffset == rob_if.a_sigs.vl - 2);
+  assign reached_max_a  = (woffset_mod_a == rob_if.a_sigs.vl - 1) || (woffset_mod_a == rob_if.a_sigs.vl - 2);
   assign reached_max_mu = (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 1) || (rob_if.mu_sigs.woffset == rob_if.mu_sigs.vl - 2);
   assign reached_max_du = (rob_if.du_sigs.woffset == rob_if.du_sigs.vl - 1) || (rob_if.du_sigs.woffset == rob_if.du_sigs.vl - 2);
   assign reached_max_m  = (rob_if.m_sigs.woffset == rob_if.m_sigs.vl - 1) || (rob_if.m_sigs.woffset == rob_if.m_sigs.vl - 2);
@@ -262,7 +266,8 @@ module rv32v_reorder_buffer # (
           next_rob[rob_if.a_sigs.index].data[rob_if.a_sigs.woffset+:2] = {rob_if.a_sigs.wdata[32], rob_if.a_sigs.wdata[0]};
         end
         next_rob[rob_if.a_sigs.index].wen = '1; // TODO: Corner case: Masked single bit write. 
-        next_rob[rob_if.a_sigs.index].valid = (rob_if.a_sigs.woffset == VLEN - 1) | (rob_if.a_sigs.woffset == VLEN - 2) | reached_max_a;
+        //next_rob[rob_if.a_sigs.index].valid = (rob_if.a_sigs.woffset == VLEN - 1) | (rob_if.a_sigs.woffset == VLEN - 2) | reached_max_a;
+        next_rob[rob_if.a_sigs.index].valid = (woffset_mod_a == VLEN - 1) | (woffset_mod_a == VLEN - 2) | reached_max_a;
         next_rob[rob_if.a_sigs.index].commit_ack = reached_max_a;
       end else begin
         next_rob[a_em_if.final_index].single_bit_write = 0; 
