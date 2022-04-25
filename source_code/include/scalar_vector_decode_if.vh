@@ -35,14 +35,14 @@ interface scalar_vector_decode_if();
   logic         fault_insn;
   logic [$clog2(NUM_CB_ENTRY)-1:0] index; 
   logic         v_start;
- 
+  word_t base_address_offset;
 
   modport fetch(
-    output  instr, mal_insn, fault_insn, index, v_single_bit_op, v_start
+    output  instr, mal_insn, fault_insn, index, v_single_bit_op, v_start, base_address_offset
   );
 
   modport decode(
-    input   instr, mal_insn, fault_insn, index, v_single_bit_op, v_start
+    input   instr, mal_insn, fault_insn, index, v_single_bit_op, v_start, base_address_offset
   );
 
 endinterface

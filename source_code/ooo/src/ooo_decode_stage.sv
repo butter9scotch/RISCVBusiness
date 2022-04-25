@@ -40,6 +40,7 @@ module ooo_decode_stage (
   ooo_hazard_unit_if.decode hazard_if,
   cache_control_if.pipeline cc_if,
   completion_buffer_if.decode cb_if,
+  prv_pipeline_if.pipe  prv_pipe_if,
   ooo_bypass_unit_if.decode bypass_if
 );
 
@@ -47,6 +48,49 @@ module ooo_decode_stage (
   import alu_types_pkg::*;
   //import rv32m_pkg::*;
   import machine_mode_types_1_11_pkg::*;
+
+  // RV32V segmented load store
+  logic segment_ls_busy, segment_ena, segment_ena_reg, segment_ena_pulse;
+  logic vector_load_store, vector_reg_load_store_instr;
+  logic [2:0] nf;
+  logic [2:0] segment_ls_nf_counter;
+  word_t rs1_reg;
+  word_t segment_instr, base_address_offset;
+
+  segment_loadstore_microop slm (
+    .CLK(CLK),
+    .nRST(nRST),
+    .instr(cu_if.instr),
+    .shift_ena(hazard_if.v_decode_done),
+    .is_vector(cu_if.sfu_type == VECTOR_S & vector_load_store),
+    .lmul(prv_pipe_if.vtype[2:0]),
+    .busy(segment_ls_busy),
+    .segment_ena(segment_ena),
+    .nf_counter(segment_ls_nf_counter),
+    .segment_instr(segment_instr),
+    .base_address_offset(base_address_offset),
+    .sew(prv_pipe_if.vtype[5:3])
+  );
+
+  //assign cb_if.segment_ls_alloc = segment_ls_busy & hazard_if.v_decode_done;
+
+  assign segment_ena_pulse = segment_ena & ~segment_ena_reg;
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST) begin
+      cb_if.segment_ls_alloc <= 1'b0;
+      segment_ena_reg <= 0;
+    end else begin
+      cb_if.segment_ls_alloc <= segment_ls_busy & hazard_if.v_decode_done & segment_ls_nf_counter != 1;
+      segment_ena_reg <= segment_ena;
+    end
+  end 
+
+  always_ff @ (posedge CLK, negedge nRST) begin
+    if (~nRST)
+      rs1_reg <= 1'b0;
+    else if (segment_ena_pulse)
+      rs1_reg <= rf_if.rs1_data;
+  end 
 
   logic ebreak_ecall;
   assign ebreak_ecall = cu_if.breakpoint | cu_if.ecall_insn | cu_if.ret_insn;
@@ -262,8 +306,6 @@ module ooo_decode_stage (
   /*********************************************************
   *** Completion buffer signals
   *********************************************************/
-  logic vector_load_store, vector_reg_load_store_instr;
-  logic [2:0] nf;
   width_t vector_eew_loadstore;
   opcode_t vector_opcode;
   mop_t vector_mop;
@@ -277,10 +319,10 @@ module ooo_decode_stage (
   assign vector_reg_load_store_instr = cu_if.sfu_type == VECTOR_S && vector_load_store && (vector_mop == MOP_UNIT) && (vector_lumop == LUMOP_UNIT_FULLREG);
   assign decode_execute_if.vlre_vlse = vector_reg_load_store_instr;
   assign cb_if.alloc_ena =  ~hazard_if.stall_fetch_decode && ~hazard_if.npc_sel && cu_if.opcode != MISCMEM & ~ebreak_ecall;
-  assign decode_execute_if.v_alloc_ena = cb_if.alloc_ena & cu_if.sfu_type == VECTOR_S & ~cu_if.v_scalar_wen; // This is for the vector completion buffer
+  assign decode_execute_if.v_alloc_ena = cb_if.segment_ls_alloc | (cb_if.alloc_ena & cu_if.sfu_type == VECTOR_S & ~cu_if.v_scalar_wen); // This is for the vector completion buffer
   // assign cb_if.rv32v_wb_scalar_ena  = cu_if.wen && (cu_if.sfu_type == VECTOR_S);
   assign cb_if.rv32v_wb_scalar_ena  = cu_if.v_scalar_wen;
-  assign cb_if.rv32v_instr  = cu_if.sfu_type == VECTOR_S;
+  assign cb_if.rv32v_instr  = cb_if.segment_ls_alloc | cu_if.sfu_type == VECTOR_S;
   assign cb_if.opcode = cu_if.opcode;
   assign decode_execute_if.v_single_bit_op = cu_if.v_single_bit_op;
 
@@ -299,6 +341,7 @@ module ooo_decode_stage (
   always_ff @(posedge CLK, negedge nRST) begin : VECTOR_CONTROL_SIGNALS 
     if (~nRST) begin
       decode_execute_if.instr                <= '0;
+      decode_execute_if.base_address_offset  <= '0;
       decode_execute_if.v_sigs.ena           <= '0;
       decode_execute_if.v_sigs.index_v       <= '0;
       decode_execute_if.v_sigs.rs1_data      <= '0;
@@ -307,15 +350,22 @@ module ooo_decode_stage (
       decode_execute_if.v_sigs.rob_index_v   <= '0;
     end else begin 
         if ((hazard_if.decode_execute_flush | (hazard_if.stall_fetch_decode & ~hazard_if.stall_ex & ~hazard_if.stall_v)) | halt) begin
-          decode_execute_if.instr            <= '0;
+          decode_execute_if.instr            <= segment_ena ? segment_instr : 0;
+          decode_execute_if.base_address_offset   <= segment_ena ? base_address_offset : 0;
+          decode_execute_if.v_sigs.rob_index_v   <= segment_ena ? decode_execute_if.rob_index : 0;
+          decode_execute_if.v_sigs.rs1_data  <= segment_ena_reg ? rs1_reg : rf_if.rs1_data;
+          //decode_execute_if.instr            <= '0;
           decode_execute_if.v_sigs.ena       <= '0;
           decode_execute_if.v_sigs.index_v   <= '0;
-          decode_execute_if.v_sigs.rs1_data  <= '0;
+          //decode_execute_if.v_sigs.rs1_data  <= '0;
           decode_execute_if.v_sigs.rs2_data  <= '0;
           decode_execute_if.v_sigs.sfu_type  <= scalar_fu_t'('0);
-          decode_execute_if.v_sigs.rob_index_v   <= '0;
+          //decode_execute_if.v_sigs.rob_index_v   <= '0;
         end else if (hazard_if.v_decode_done) begin
+          //decode_execute_if.instr <= segment_ena ? segment_instr : 0;
+          //decode_execute_if.base_address_offset   <= segment_ena ? base_address_offset : 0;
           decode_execute_if.instr <= 0;
+          decode_execute_if.base_address_offset   <= 0;
           if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
             decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
             decode_execute_if.v_sigs.index_v   <= cb_if.cur_tail;
@@ -324,10 +374,13 @@ module ooo_decode_stage (
             decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
           end
         end else if(hazard_if.rob_empty & ~hazard_if.stall_v) begin
-          decode_execute_if.instr            <= fetch_decode_if.instr;
+          decode_execute_if.instr            <= segment_ena ? segment_instr : fetch_decode_if.instr;
+          decode_execute_if.base_address_offset   <= segment_ena ? base_address_offset : 0;
+          //decode_execute_if.instr            <= fetch_decode_if.instr;
           decode_execute_if.v_sigs.ena       <= cu_if.sfu_type == VECTOR_S;
           decode_execute_if.v_sigs.index_v   <= cb_if.cur_tail;
-          decode_execute_if.v_sigs.rs1_data  <= rf_if.rs1_data;
+          //decode_execute_if.v_sigs.rs1_data  <= rf_if.rs1_data;
+          decode_execute_if.v_sigs.rs1_data  <= segment_ena_reg ? rs1_reg : rf_if.rs1_data;
           decode_execute_if.v_sigs.rs2_data  <= rf_if.rs2_data;
           decode_execute_if.v_sigs.sfu_type  <= cu_if.sfu_type;
           decode_execute_if.v_sigs.rob_index_v   <= decode_execute_if.rob_index; // rob index is a signal coming from the vector reorder buffer in the next stage. not great style here
@@ -410,7 +463,7 @@ module ooo_decode_stage (
   end
 
   // Busy signal for decode stage
-  assign hazard_if.busy_decode = stall_csr | cu_if.halt & (hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls);
+  assign hazard_if.busy_decode = segment_ls_busy | stall_csr | cu_if.halt & (hazard_if.stall_au | hazard_if.stall_mu | hazard_if.stall_du | hazard_if.stall_ls);
 
   /***** MULT, DIV, LSU INSTRUCTION LATCH *****/
   always_ff @(posedge CLK, negedge nRST) begin : FUNCTIONAL_UNITS

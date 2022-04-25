@@ -56,6 +56,7 @@ module rv32v_top_level(
   assign rob_if.commit_ena = rv32v_if.v_commit_ena;
 
   assign scalar_vector_if.instr = rv32v_if.instr;
+  assign scalar_vector_if.base_address_offset = rv32v_if.base_address_offset;
   assign scalar_vector_if.index = rv32v_if.index;
   assign scalar_vector_if.v_single_bit_op = rv32v_if.v_single_bit_op;
   assign scalar_vector_if.v_start = rv32v_if.v_start;

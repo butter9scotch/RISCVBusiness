@@ -76,7 +76,7 @@ module rv32v_execute_stage (
   assign portb0    = decode_execute_if.stride_type == 2 ? segment_unit_stride :
                      decode_execute_if.stride_type == 1 ? decode_execute_if.stride_val :
                      4;
-  assign base_addr = decode_execute_if.xs1;
+  assign base_addr = decode_execute_if.xs1 + decode_execute_if.base_address_offset;
   assign base_addr1 = base_addr + base_addr_offset;
   assign base_addr2 = base_addr1 + base_addr_offset;
   assign base_addr3 = base_addr2 + base_addr_offset;

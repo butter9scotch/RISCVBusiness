@@ -81,24 +81,24 @@ tdat8:  .word 0x00ff00ff
 
 idx8dat:
 idx8dat1:  .byte 0
-idx8dat2:  .byte 4
-idx8dat3:  .byte 8
-idx8dat4:  .byte 12
+idx8dat2:  .byte 1
+idx8dat3:  .byte 2
+idx8dat4:  .byte 3
 idx8dat5:  .word 0x00000000
 idx8dat6:  .word 0x00000000
 idx8dat7:  .word 0x00000000
 
 idx16dat:
-idx16dat1:  .word 0x00040000
-idx16dat2:  .word 0x000c0008
-idx16dat3:  .word 0x00140010
-idx16dat4:  .word 0x001c0018
+idx16dat1:  .word 0x00010000
+idx16dat2:  .word 0x00030002
+idx16dat3:  .word 0x00050004
+idx16dat4:  .word 0x00070006
 
 idx32dat:
 idx32dat1:  .word 0x00000000
-idx32dat2:  .word 0x00000004
-idx32dat3:  .word 0x00000008
-idx32dat4:  .word 0x0000000c
+idx32dat2:  .word 0x00000001
+idx32dat3:  .word 0x00000002
+idx32dat4:  .word 0x00000003
 
 idx64dat:
 idx64dat1:  .word 0x00000000

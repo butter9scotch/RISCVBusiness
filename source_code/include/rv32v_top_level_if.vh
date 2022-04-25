@@ -22,7 +22,7 @@ interface rv32v_top_level_if;
   logic v_start;
   cb_index_t index;
   rob_index_t rob_index;
-
+  word_t base_address_offset;
 
   modport rv32v (
     output rd_wen,
@@ -42,7 +42,8 @@ interface rv32v_top_level_if;
     input instr, rs1_data, rs2_data,
     input scalar_hazard_if_ret,
     input returnex,
-    input csr_update
+    input csr_update,
+    input base_address_offset
   );
 
   modport tb (

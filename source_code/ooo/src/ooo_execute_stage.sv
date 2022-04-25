@@ -204,15 +204,17 @@ module ooo_execute_stage(
   cache_model_if cif();
   rv32v_top_level_if rv32v_if();
 
-  logic v_start_pulse, v_start_reg;
+  logic v_start_pulse, v_start_reg, segment_ls_alloc_reg;
 
-  assign v_start_pulse = decode_execute_if.v_sigs.ena & ~v_start_reg; 
+  assign v_start_pulse = (segment_ls_alloc_reg | decode_execute_if.v_sigs.ena) & ~v_start_reg; 
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin
       v_start_reg <= 0;
+      segment_ls_alloc_reg <= 0;
     end else begin
       v_start_reg <= decode_execute_if.v_sigs.ena;
+      segment_ls_alloc_reg <= cb_if.segment_ls_alloc;
     end 
   end
 
@@ -220,7 +222,7 @@ module ooo_execute_stage(
   assign hazard_if.v_busy = rv32v_hazard_if.v_busy;
   
   // Assign signals to top-level vector unit interface
-  assign rv32v_if.instr = decode_execute_if.v_sigs.sfu_type == VECTOR_S ? decode_execute_if.instr : '0;
+  assign rv32v_if.instr = (segment_ls_alloc_reg | decode_execute_if.v_sigs.sfu_type == VECTOR_S) ? decode_execute_if.instr : '0;
   assign rv32v_if.rs1_data        = decode_execute_if.v_sigs.rs1_data;
   assign rv32v_if.rs2_data        = decode_execute_if.v_sigs.rs2_data;
   assign rv32v_if.alloc_ena       = decode_execute_if.v_alloc_ena;
@@ -231,6 +233,7 @@ module ooo_execute_stage(
   assign rv32v_if.v_single_bit_op = decode_execute_if.v_single_bit_op;
   assign rv32v_if.v_commit_ena    = cb_if.v_commit_ena;
   assign rv32v_if.v_start    = v_start_pulse;
+  assign rv32v_if.base_address_offset    = decode_execute_if.base_address_offset;
 
   assign cb_if.v_commit_done     = rv32v_if.v_commit_done; 
   //TODO: this should go through the top level interface

@@ -81,7 +81,7 @@ module completion_buffer # (
   assign cb_if.CPU_TRACKER       = cb[head_sel].CPU_TRACKER;
 
   assign move_head               = cb_if.v_commit_ena ? cb_if.v_commit_done : cb[head_sel].valid & ~cb_if.flush;
-  assign move_tail               = cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0));
+  assign move_tail               = cb_if.segment_ls_alloc | (cb_if.alloc_ena & ~cb_if.full & (cb_if.opcode != opcode_t'(0)));
   assign flush_cb                = cb_if.flush | cb_if.v_exception;
 
   //assign hazard_if.mispredict = cb[head_sel].branch_mispredict_mal;

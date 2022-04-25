@@ -66,6 +66,7 @@ interface rv32v_decode_execute_if;
 
   logic cou_done;
   offset_t cou_ori_offset;
+  word_t base_address_offset;
 
 
   modport decode (
@@ -93,7 +94,8 @@ interface rv32v_decode_execute_if;
     vlre_vlse,
     done_vfirst,
     cou_done,
-    cou_ori_offset
+    cou_ori_offset,
+    base_address_offset
   );
 
   modport execute (
@@ -120,7 +122,8 @@ interface rv32v_decode_execute_if;
     vlre_vlse,
     done_vfirst,
     cou_done,
-    cou_ori_offset
+    cou_ori_offset,
+    base_address_offset
   );
 
 endinterface

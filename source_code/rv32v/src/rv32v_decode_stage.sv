@@ -535,6 +535,7 @@ module rv32v_decode_stage (
       decode_execute_if.vlre_vlse         <= '0;
       decode_execute_if.cou_done      <= '0;
       decode_execute_if.cou_ori_offset      <= '0;
+      decode_execute_if.base_address_offset      <= '0;
 
     end else if(hu_if.flush_dec | rob_if.v_done) begin
 //    end else if(hu_if.flush_dec | (counter_done_ff1 & ~hu_if.stall_dec)) begin
@@ -630,6 +631,7 @@ module rv32v_decode_stage (
       decode_execute_if.vlre_vlse         <= '0;
       decode_execute_if.cou_done      <= '0;
       decode_execute_if.cou_ori_offset      <= '0;
+      decode_execute_if.base_address_offset      <= '0;
 
     end else if (~hu_if.stall_dec) begin
       decode_execute_if.rd_wen            <= vcu_if.rd_scalar_src & ~counter_done_ff1; //write to scalar regs
@@ -760,6 +762,7 @@ module rv32v_decode_stage (
 
       decode_execute_if.cou_done      <= cou_if.ena;
       decode_execute_if.cou_ori_offset      <= ele_if.offset[ZERO];
+      decode_execute_if.base_address_offset      <= scalar_vector_if.base_address_offset;
 
     end else if ((vcu_if.fu_type == DIV) || (vcu_if.fu_type == LOAD_UNIT) || (vcu_if.fu_type == STORE_UNIT)) begin 
       decode_execute_if.decode_done       <= ele_if.done[ZERO];

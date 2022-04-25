@@ -53,6 +53,7 @@ interface ooo_decode_execute_if();
   opcode_t opcode;
   word_t store_data;
   vlmul_t nf_lmul;
+  word_t base_address_offset;
 
   // new structs for the interface
   exception_control_signals_t exception_sigs; //
@@ -95,7 +96,8 @@ interface ooo_decode_execute_if();
     store_data,
     nf_lmul,
     vlre_vlse,
-    v_single_bit_op
+    v_single_bit_op,
+    base_address_offset
   );
 
   modport execute (
@@ -118,7 +120,8 @@ interface ooo_decode_execute_if();
     store_data,
     nf_lmul,
     vlre_vlse,
-    v_single_bit_op
+    v_single_bit_op,
+    base_address_offset
   );
 
 endinterface

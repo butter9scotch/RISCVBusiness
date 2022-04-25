@@ -126,6 +126,7 @@ module RISCVBusiness (
        ,.hazard_if(hazard_if)
        ,.cc_if(cc_if)
        ,.cb_if(cb_if)
+       ,.prv_pipe_if(prv_pipe_if)
        ,.bypass_if(bypass_if)
       );
 

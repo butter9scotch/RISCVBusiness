@@ -93,9 +93,9 @@ interface ooo_hazard_unit_if();
 
   modport decode (
     input pc_en, decode_execute_flush, stall_au, stall_mu, stall_du, stall_ls, 
-           stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty, stall_v,
+           stall_de, intr, stall_fetch_decode, data_hazard, hazard, npc_sel, rob_empty, stall_v, v_decode_done,
     output halt, dflushed, iflushed, ifence_pc, fu_type, ifence, rd_busy, 
-           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, v_decode_done, wb_port_conflict
+           rs1_busy, rs2_busy, source_a_sel, source_b_sel, wen, stall_ex, busy_decode, wb_port_conflict
   );
   modport execute (
     input pc_en, execute_commit_flush, d_mem_busy, dmem_access, intr, intr_taken, stall_commit,

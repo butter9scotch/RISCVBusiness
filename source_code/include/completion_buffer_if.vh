@@ -82,6 +82,8 @@ interface completion_buffer_if();
   logic tb_read;
   // Memory
 
+  logic segment_ls_alloc;
+
   modport cb (
     input alloc_ena, rv32v_instr, v_commit_done, v_exception, 
           rv32v_wb_scalar_ena, rv32v_wb_scalar_ready, 
@@ -93,7 +95,7 @@ interface completion_buffer_if();
           rv32v_wb_vd, vd_a, vd_mu, vd_du, vd_ls, vd_v, rv32v_wb_scalar_data, 
           wdata_a, wdata_mu, wdata_du, wdata_ls, wdata_v, 
           address_a, address_ls, CPU_TRACKER_decode, opcode,
-          branch_mispredict, 
+          branch_mispredict, segment_ls_alloc,
     output full, empty, scalar_commit_ena, flush, v_commit_ena, rv32f_commit_ena, 
            exception, branch_mispredict_ena, mal_priv, tb_read, cur_tail, vd_final, 
            wdata_final, halt_instr, CPU_TRACKER, epc
@@ -110,7 +112,7 @@ interface completion_buffer_if();
 
   modport decode (
     input cur_tail, full, empty,
-    output alloc_ena, rv32v_instr, rv32v_wb_scalar_ena, opcode, CPU_TRACKER_decode
+    output alloc_ena, rv32v_instr, rv32v_wb_scalar_ena, opcode, CPU_TRACKER_decode, segment_ls_alloc
   );
 
   modport writeback (
@@ -137,7 +139,7 @@ interface completion_buffer_if();
         address_a, address_ls, 
         branch_mispredict, 
         CPU_TRACKER, opcode, halt_instr, v_commit_done, cur_tail,
-        v_commit_ena
+        v_commit_ena, segment_ls_alloc
   );
   
 endinterface
