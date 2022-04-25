@@ -30,20 +30,27 @@ module priv_1_12_pma (
 );
   import pma_types_1_12_pkg::*;
 
-  pma_reg_t pma_reg;
-  pma_cfg_t pma_cfg;
+  pma_reg_t reg_d, reg_i;
+  pma_cfg_t cfg_d, cfg_i;
 
   always_comb begin
     prv_intern_if.pma_l_fault = 1'b0;
     prv_intern_if.pma_s_fault = 1'b0;
     prv_intern_if.pma_i_fault = 1'b0;
 
-    pma_reg = prv_intern_if.pma_cfg_regs[prv_intern_if.addr[31:26]];
+    reg_d = prv_intern_if.pma_cfg_regs[prv_intern_if.d_addr[31:26]];
+    reg_i = prv_intern_if.pma_cfg_regs[prv_intern_if.i_addr[31:26]];
 
-    if (~prv_intern_if.addr[25]) begin
-      pma_cfg = pma_reg.pma_cfg_0;
+    if (~prv_intern_if.d_addr[25]) begin
+      cfg_d = reg_d.pma_cfg_0;
     end else begin
-      pma_cfg = pma_reg.pma_cfg_1;
+      cfg_d = reg_d.pma_cfg_1;
+    end
+
+    if (~prv_intern_if.i_addr[25]) begin
+      cfg_i = reg_i.pma_cfg_0;
+    end else begin
+      cfg_i = reg_i.pma_cfg_1;
     end
 
     if (prv_intern_if.ren & ~pma_cfg.R) begin

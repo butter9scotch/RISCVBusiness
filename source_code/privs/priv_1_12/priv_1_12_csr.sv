@@ -145,7 +145,7 @@ module priv_1_12_csr # (
   assign mip.ssip = 1'b0;
   assign mip.stip = 1'b0;
   assign mip.seip = 1'b0;
-  assign mip.impl_defined = '0; // TODO do we want to define others?
+  assign mip.impl_defined = '0;
 
   assign mie.zero_0 = '0;
   assign mie.zero_1 = '0;
@@ -157,7 +157,7 @@ module priv_1_12_csr # (
   assign mie.ssie = 1'b0;
   assign mie.stie = 1'b0;
   assign mie.seie = 1'b0;
-  assign mie.impl_defined = '0; // TODO do we want to define others?
+  assign mie.impl_defined = '0;
 
   // Control and Status Registers
   always_ff @ (posedge CLK, negedge nRST) begin
@@ -170,8 +170,8 @@ module priv_1_12_csr # (
       mstatus.tw <= 1'b1;
 
       /* mtvec reset */
-      mtvec.mode <= DIRECT; // TODO talk with cole about defaults
-      mtvec.base <= '0;     // TODO talk with cole about defaults
+      mtvec.mode <= DIRECT;
+      mtvec.base <= '0;
 
       /* mie reset */
       mie.msie <= 1'b0;
@@ -323,7 +323,7 @@ module priv_1_12_csr # (
     end
   end
 
-  // Return proper values to CPU, PMP, PMA
+  // Return proper values to CPU
   always_comb begin
     prv_intern_if.old_csr_val = '0;
     /* CPU return */
@@ -352,5 +352,8 @@ module priv_1_12_csr # (
       12'b101111zzzzzz: prv_intern_if.old_csr_val = pmacfg[prv_intern_if.csr_addr [5:0]];
     endcase
   end
+
+  // Return proper values to PMA
+  assign prv_intern_if.pma_cfg_regs = pmacfg;
 
 endmodule

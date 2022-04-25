@@ -45,7 +45,7 @@ interface generic_bus_if ();
     output addr, ren, wen, wdata, byte_en
   );
 
-  modport pma (
+  modport priv (
     input addr, ren, wen
   );
 

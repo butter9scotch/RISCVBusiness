@@ -39,7 +39,7 @@ interface priv_1_12_internal_if;
     logic inst_ret; // signal when an instruction is retired
     word_t new_csr_val, old_csr_val; // new and old CSR values (atomically swapped)
 
-    logic [RAM_ADDR_SIZE-1:0] addr; // Address to check
+    logic [RAM_ADDR_SIZE-1:0] i_addr, d_addr; // Address to check
     logic ren, wen, xen; // RWX access type (xen is always high for i-fetches)
     pma_accwidth_t acc_width_type; // What is the memory trying to access
 

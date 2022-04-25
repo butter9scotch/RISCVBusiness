@@ -301,6 +301,9 @@ module tb_priv_1_12_block ();
     #PROP_DELAY;
     test_num++;
 
+    $display("== PMA cases");
+    prv_pipeline_if.clr = 1'b0;
+
 
     $display("==== Finishing tests");
     $display("\n");

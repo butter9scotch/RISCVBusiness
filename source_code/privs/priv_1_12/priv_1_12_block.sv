@@ -30,8 +30,8 @@ module priv_1_12_block (
     input logic CLK, nRST,
     prv_pipeline_if.priv_block prv_pipe_if,
     core_interrupt_if.core interrupt_if,
-    generic_bus_if icache_if,
-    generic_bus_if dcache_if
+    generic_bus_if.priv icache_if,
+    generic_bus_if.priv dcache_if
 );
 
     import priv_types_1_12_pkg::*;
@@ -52,6 +52,13 @@ module priv_1_12_block (
     assign prv_intern_if.new_csr_val = prv_pipe_if.wdata;
     assign prv_pipe_if.rdata = prv_intern_if.old_csr_val;
     assign prv_pipe_if.invalid_csr = prv_intern_if.invalid_csr;
+
+    assign prv_intern_if.i_addr = icache_if.addr;
+    assign prv_intern_if.xen = icache_if.ren;
+    assign prv_intern_if.d_addr = dcache_if.addr;
+    assign prv_intern_if.ren = dcache_if.ren;
+    assign prv_intern_if.wen = dcache_if.wen;
+    assign prv_intern_if.acc_width_type = WordAcc;
 
 
 endmodule
