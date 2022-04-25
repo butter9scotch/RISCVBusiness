@@ -36,16 +36,21 @@ module address_scheduler (
   typedef enum logic [2:0] {IDLE, LOAD0, LOAD1, STORE0, STORE1, EX} state_type;
   state_type state, next_state;
 
+  logic [3:0] byte_ena_standard;
+
   assign daccess       = asif.load_ena | asif.store_ena;
-  assign misalign0     = (asif.addr0[1:0] != 2'b00) & daccess;
-  assign misalign1     = (asif.addr1[1:0] != 2'b00) & daccess;
+  //assign misalign0     = (asif.addr0[1:0] != 2'b00) & daccess;
+  //assign misalign1     = (asif.addr1[1:0] != 2'b00) & daccess;
+  assign misalign0     = 0;
+  assign misalign1     = 0;
   assign asif.arrived0 = state == LOAD0 & asif.dhit;
   assign asif.arrived1 = state == LOAD1 & asif.dhit;
   assign asif.store_done = (state == STORE1 & asif.dhit) || (state == STORE0 & asif.vl == asif.woffset1 & asif.dhit);
   //assign asif.arrived1 = (state == LOAD1 & asif.dhit) || (state == STORE1 & asif.dhit) || (state == STORE0 & asif.dhit & (asif.vl == asif.woffset1));
-  assign asif.byte_ena = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) | (asif.vlre_vlse) ? 4'b1111: // choose csr sew for indexed load/store_ena, otherwise choose instr sew
+  assign byte_ena_standard = (asif.eew_loadstore == WIDTH32 & ~asif.ls_idx) | (asif.sew == SEW32 & asif.ls_idx) | (asif.vlre_vlse) ? 4'b1111: // choose csr sew for indexed load/store, otherwise choose instr sew
                          (asif.eew_loadstore == WIDTH16 & ~asif.ls_idx) | (asif.sew == SEW16 & asif.ls_idx) ? 4'b0011:
                          4'b0001;
+  assign asif.byte_ena = (state == STORE1 || state == LOAD1)? byte_ena_standard << asif.addr1[1:0] : byte_ena_standard << asif.addr0[1:0];
 /*
   always_ff @ (posedge CLK, negedge nRST) begin
     if (nRST == 0) done <= 0;

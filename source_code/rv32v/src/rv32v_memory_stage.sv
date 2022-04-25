@@ -42,11 +42,17 @@ module rv32v_memory_stage (
 
   logic [31:0] data0, wdat0, wdat1, final_wdat0, final_wdat1;
   logic [5:0] addr0_shifted, addr1_shifted;
+  word_t dload_ext;
 
   address_scheduler_if asif ();
 
   address_scheduler AS (CLK, nRST, asif);
 
+  load_t lt;
+  assign lt = asif.vlre_vlse ? LW:
+              (execute_memory_if.ls_idx & execute_memory_if.sew == SEW8) | (~execute_memory_if.ls_idx & asif.eew_loadstore == WIDTH8) ? LBU :
+              (execute_memory_if.ls_idx & execute_memory_if.sew == SEW16) | (~execute_memory_if.ls_idx & asif.eew_loadstore == WIDTH16) ? LHU :
+              LW;
 
   assign hu_if.busy_mem = asif.busy;
   assign hu_if.memory_ena = execute_memory_if.ena;
@@ -56,8 +62,8 @@ module rv32v_memory_stage (
   assign hu_if.exception_mem = asif.exception;
   assign final_wdat0 = execute_memory_if.segment_type ? data0 >> addr0_shifted : // data0 / 8bit
                        data0; 
-  assign final_wdat1 = execute_memory_if.segment_type ? cif.dmemload >> addr1_shifted :
-                       cif.dmemload; 
+  assign final_wdat1 = execute_memory_if.segment_type ? dload_ext >> addr1_shifted :
+                       dload_ext; 
 //  assign wdat0 = execute_memory_if.load_ena ? final_wdat0 : execute_memory_if.aluresult0;
 //  assign wdat1 = execute_memory_if.load_ena ? final_wdat1 : execute_memory_if.aluresult1;
   always_comb begin
@@ -129,8 +135,11 @@ module rv32v_memory_stage (
   assign asif.ls_idx     = execute_memory_if.ls_idx;
   assign asif.segment_type  = execute_memory_if.segment_type;
   // To dcache
-  assign cif.dmemstore = asif.final_storedata;
-  assign cif.dmemaddr  = {asif.final_addr[31:2], 2'd0};
+  assign cif.dmemstore = (lt == LB || lt == LBU) ? {4{asif.final_storedata[7:0]}} :
+                         (lt == LH || lt == LHU) ? {2{asif.final_storedata[15:0]}} :
+                         asif.final_storedata;
+  //assign cif.dmemaddr  = {asif.final_addr[31:2], 2'd0};
+  assign cif.dmemaddr  = asif.final_addr;
   assign cif.ren       = asif.ren;
   assign cif.wen       = asif.wen;
   assign cif.byte_ena  = asif.byte_ena;
@@ -139,9 +148,15 @@ module rv32v_memory_stage (
     if (nRST == 0) begin
       data0 <= '0;
     end else if (asif.arrived0) begin
-      data0 <= cif.dmemload;
+      data0 <= dload_ext;
     end
   end
+  dmem_extender dmem_ext (
+    .dmem_in(cif.dmemload),
+    .load_type(lt),
+    .byte_en(cif.byte_ena),
+    .ext_out(dload_ext)
+  );
 
   rob_fu_result_t next_a_sigs, next_mu_sigs, next_du_sigs, next_m_sigs, next_p_sigs, next_ls_sigs;
     assign next_a_sigs.index = execute_memory_if.index;
@@ -185,7 +200,7 @@ module rv32v_memory_stage (
     assign next_ls_sigs.woffset = execute_memory_if.woffset0;
     assign next_ls_sigs.exception_index = execute_memory_if.index;
     assign next_ls_sigs.exception = 0;
-    assign next_ls_sigs.wdata = {wdat1, wdat0};
+    assign next_ls_sigs.wdata = {dload_ext, data0};
     assign next_ls_sigs.vd = execute_memory_if.vd;
     assign next_ls_sigs.wen = ~asif.vlre_vlse & (execute_memory_if.woffset1 == execute_memory_if.vl) ? {1'b0, execute_memory_if.wen[0]} : execute_memory_if.wen;
     assign next_ls_sigs.ready = execute_memory_if.store_ena ? execute_memory_if.valid & ~execute_memory_if.rd_wen & asif.store_done: asif.arrived1;
