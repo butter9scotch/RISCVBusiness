@@ -154,11 +154,14 @@ module rv32v_execute_stage (
     endcase
   end
 
+  word_t vlbit;
+  assign vlbit = 32'hFFFFFFFF << decode_execute_if.vl;
   always_comb begin
     case(decode_execute_if.rs2_type)
       V:
       begin
-        vif0.vs2_data = decode_execute_if.vs2_lane0;
+        vif0.vs2_data = (decode_execute_if.mask_type == VMASK_POPC) ? decode_execute_if.vs2_lane0 & ~vlbit : decode_execute_if.vs2_lane0;
+        //vif0.vs2_data = decode_execute_if.vs2_lane0;
         vif1.vs2_data = decode_execute_if.vs2_lane1;
       end
       I:
@@ -597,7 +600,9 @@ module rv32v_execute_stage (
   assign iota_or_id = (decode_execute_if.mask_type == VMASK_IOTA) | (decode_execute_if.mask_type == VMASK_ID);
   assign ones_aluresult0 = ~mask_bit_found & (aluresult0 == 0) & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF));
   assign ones_aluresult1 = ~mask_bit_found & (aluresult1 == 0) & ~iota_or_id;
+  //assign ones_aluresult1 = ~mask_bit_found & (aluresult0 == 0 & aluresult1 == 0) & ~iota_or_id & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF));
   assign zero_aluresult1 = (mask_bit_found | (aluresult0 != 0)) & ~iota_or_id;
+  //assign zero_aluresult1 = (mask_bit_found | (aluresult0 != 0)) & ~iota_or_id & ((decode_execute_if.mask_type == VMASK_SBF) || (decode_execute_if.mask_type == VMASK_SIF));
 
   always_ff @(posedge CLK, negedge nRST) begin
     if (~nRST) begin

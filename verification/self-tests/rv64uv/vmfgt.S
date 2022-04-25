@@ -18,21 +18,21 @@ RVTEST_VSET
   # vmfgt.VF tests
   #-------------------------------------------------------------
 
-  TEST_FP_VFM_OP(  2,  vmfgt.vf,     0,  0,  -1.36,     0 );
-  TEST_FP_VFM_OP(  3,  vmfgt.vf,     0,  0,  -1.36, -1.36 );
-  TEST_FP_VFM_OP(  4,  vmfgt.vf,     0,  0,  -1.37, -1.36 );
-  TEST_FP_VFM_OP(  5,  vmfgt.vf,  0x10,  0,    NaN,     0 );
-  TEST_FP_VFM_OP(  6,  vmfgt.vf,  0x10,  0,    NaN,   NaN );
+  #TEST_FP_VFM_OP(  2,  vmfgt.vf,     0,  0,  -1.36,     0 );
+  #TEST_FP_VFM_OP(  3,  vmfgt.vf,     0,  0,  -1.36, -1.36 );
+  #TEST_FP_VFM_OP(  4,  vmfgt.vf,     0,  0,  -1.37, -1.36 );
+  #TEST_FP_VFM_OP(  5,  vmfgt.vf,  0x10,  0,    NaN,     0 );
+  #TEST_FP_VFM_OP(  6,  vmfgt.vf,  0x10,  0,    NaN,   NaN );
 
   #-------------------------------------------------------------
   # vmfge.VF tests
   #-------------------------------------------------------------
 
-  TEST_FP_VFM_OP(  7,  vmfge.vf,     0,  0,  -1.36,     0 );
-  TEST_FP_VFM_OP(  8,  vmfge.vf,     0,  1,  -1.36, -1.36 );
-  TEST_FP_VFM_OP(  9,  vmfge.vf,     0,  0,  -1.37, -1.36 );
-  TEST_FP_VFM_OP( 10,  vmfge.vf,  0x10,  0,    NaN,     0 );
-  TEST_FP_VFM_OP( 11,  vmfge.vf,  0x10,  0,    NaN,   NaN );
+  #TEST_FP_VFM_OP(  7,  vmfge.vf,     0,  0,  -1.36,     0 );
+  #TEST_FP_VFM_OP(  8,  vmfge.vf,     0,  1,  -1.36, -1.36 );
+  #TEST_FP_VFM_OP(  9,  vmfge.vf,     0,  0,  -1.37, -1.36 );
+  #TEST_FP_VFM_OP( 10,  vmfge.vf,  0x10,  0,    NaN,     0 );
+  #TEST_FP_VFM_OP( 11,  vmfge.vf,  0x10,  0,    NaN,   NaN );
 	
   TEST_PASSFAIL
 

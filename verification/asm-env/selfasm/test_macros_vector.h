@@ -89,6 +89,8 @@ test_ ## testnum: \
     code; \
     li x7, correctval; \
     li TESTNUM, testnum; \
+    li x22, 0xffff; \
+    vmv.v.x v0, x22; \
     vpopc.m x14, testreg; \
     bne x14, x7, fail;
 
@@ -97,6 +99,8 @@ test_ ## testnum: \
     code; \
     li x7, correctval; \
     li TESTNUM, testnum; \
+    li x22, 0xffff; \
+    vmv.v.x v0, x22; \
     VSET_VSEW_4AVL \
     vpopc.m x14, testreg; \
     VSET_VSEW \

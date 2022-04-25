@@ -28,21 +28,21 @@ RVTEST_VSET
   # vfmv.f.s Tests
   #-------------------------------------------------------------
 
-  TEST_VFMVF_OP( 7, fdat1 );
-  TEST_VFMVF_OP( 8, fdat2 );
-  TEST_VFMVF_OP( 9, fdat3 );
-  TEST_VFMVF_OP( 10,fdat4 );
-  TEST_VFMVF_OP( 11,fdat5 );
+  #TEST_VFMVF_OP( 7, fdat1 );
+  #TEST_VFMVF_OP( 8, fdat2 );
+  #TEST_VFMVF_OP( 9, fdat3 );
+  #TEST_VFMVF_OP( 10,fdat4 );
+  #TEST_VFMVF_OP( 11,fdat5 );
 
   #-------------------------------------------------------------
   # vfmv.v.f Tests
   #-------------------------------------------------------------
 
-  TEST_VFMVF_OP( 12,fdat1 );
-  TEST_VFMVF_OP( 13,fdat2 );
-  TEST_VFMVF_OP( 14,fdat3 );
-  TEST_VFMVF_OP( 15,fdat4 );
-  TEST_VFMVF_OP( 16,fdat5 );
+  #TEST_VFMVF_OP( 12,fdat1 );
+  #TEST_VFMVF_OP( 13,fdat2 );
+  #TEST_VFMVF_OP( 14,fdat3 );
+  #TEST_VFMVF_OP( 15,fdat4 );
+  #TEST_VFMVF_OP( 16,fdat5 );
 	
   TEST_PASSFAIL
 
