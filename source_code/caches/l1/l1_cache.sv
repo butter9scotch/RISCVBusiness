@@ -518,4 +518,3 @@ module l1_cache #(
     end // always_comb
 
 endmodule // l1_cache
-
