@@ -310,6 +310,17 @@ module ooo_decode_stage (
   opcode_t vector_opcode;
   mop_t vector_mop;
   lumop_t vector_lumop;
+  logic is_vopi, vmv1r, vmv2r, vmv4r, vmv8r, vmre; 
+  vfunct3_t vfunct3;
+  vopi_t funct6_opi;
+  assign vfunct3              = vfunct3_t'(fetch_decode_if.instr[14:12]);
+  assign funct6_opi           = vopi_t'(fetch_decode_if.instr[31:26]);
+  assign is_vopi              = (vector_opcode == VECTOR)  && ((vfunct3 == OPIVV) || (vfunct3 == OPIVX) || (vfunct3 == OPIVI));
+  assign vmv1r                = is_vopi & (funct6_opi == VSMUL) & (vfunct3 == OPIVI) & (fetch_decode_if.instr[25] & (fetch_decode_if.instr[17:15] == 3'd0));  
+  assign vmv2r                = is_vopi & (funct6_opi == VSMUL) & (vfunct3 == OPIVI) & (fetch_decode_if.instr[25] & (fetch_decode_if.instr[17:15] == 3'd1));  
+  assign vmv4r                = is_vopi & (funct6_opi == VSMUL) & (vfunct3 == OPIVI) & (fetch_decode_if.instr[25] & (fetch_decode_if.instr[17:15] == 3'd3));  
+  assign vmv8r                = is_vopi & (funct6_opi == VSMUL) & (vfunct3 == OPIVI) & (fetch_decode_if.instr[25] & (fetch_decode_if.instr[17:15] == 3'd7));  
+  assign decode_execute_if.vmre = {vmv8r,vmv4r,vmv2r,vmv1r};
   assign nf                   = fetch_decode_if.instr[31:29];
   assign vector_eew_loadstore = width_t'(fetch_decode_if.instr[14:12]); 
   assign vector_opcode        = opcode_t'(fetch_decode_if.instr[6:0]);

@@ -227,7 +227,12 @@ module ooo_execute_stage(
   assign rv32v_if.rs2_data        = decode_execute_if.v_sigs.rs2_data;
   assign rv32v_if.alloc_ena       = decode_execute_if.v_alloc_ena;
   //assign rv32v_if.lmul            = vlmul_t'(prv_pipe_if.vtype[2:0]);
-  assign rv32v_if.lmul            = decode_execute_if.vlre_vlse ? decode_execute_if.nf_lmul : vlmul_t'(prv_pipe_if.vtype[2:0]);
+  assign rv32v_if.lmul            = decode_execute_if.vmre[0] ? LMUL1 :
+                                    decode_execute_if.vmre[1] ? LMUL2 :
+                                    decode_execute_if.vmre[2] ? LMUL4 :
+                                    decode_execute_if.vmre[3] ? LMUL8 :
+                                    decode_execute_if.vlre_vlse ? decode_execute_if.nf_lmul : 
+                                    vlmul_t'(prv_pipe_if.vtype[2:0]);
   assign rv32v_if.index           = decode_execute_if.v_sigs.rob_index_v;
   //assign rv32v_if.index           = rv32v_if.rob_index;
   assign rv32v_if.v_single_bit_op = decode_execute_if.v_single_bit_op;

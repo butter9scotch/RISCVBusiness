@@ -71,6 +71,8 @@ interface ooo_decode_execute_if();
   
   cpu_tracker_signals_t tracker_sigs; //
 
+  logic [3:0] vmre;
+
   modport decode (
     input rob_index,
     output port_a, port_b, reg_file_wdata, sfu_type, halt_instr,
@@ -97,6 +99,7 @@ interface ooo_decode_execute_if();
     nf_lmul,
     vlre_vlse,
     v_single_bit_op,
+    vmre,
     base_address_offset
   );
 
@@ -121,6 +124,7 @@ interface ooo_decode_execute_if();
     nf_lmul,
     vlre_vlse,
     v_single_bit_op,
+    vmre,
     base_address_offset
   );
 

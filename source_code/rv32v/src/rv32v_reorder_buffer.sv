@@ -365,7 +365,7 @@ module rv32v_reorder_buffer # (
       endcase
     end
     // Next state for mask unit result
-    if (rob_if.m_sigs.ready) begin
+    /*if (rob_if.m_sigs.ready) begin
       next_rob[m_em_if.final_index].single_bit_write = 0; 
       next_rob[m_em_if.final_index].sew = rob_if.m_sigs.sew;
       next_rob[m_em_if.final_index].vd = m_em_if.final_vd;
@@ -419,7 +419,7 @@ module rv32v_reorder_buffer # (
           next_rob[p_em_if.final_index].wen[p_em_if.vd_wen_offset+:2] = rob_if.p_sigs.wen;
         end
       endcase
-    end
+    end */
     // Next state for load store unit result
     if (rob_if.ls_sigs.ready) begin
       next_rob[ls_em_if.final_index].single_bit_write = 0; 
