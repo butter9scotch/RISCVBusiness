@@ -56,7 +56,7 @@ module l1_cache #(
     //      check that you start incrementing your next_read_addr + 4 from the proper base offset
 
     import rv32i_types_pkg::*;
-    
+
     // local parameters
     localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
     localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;
@@ -95,7 +95,7 @@ module l1_cache #(
     logic [12:0] set_num, next_set_num;
     logic en_set_ctr, clr_set_ctr;
 
-    // Frame(way) Counter - either 1 or 2 frames in a set 
+    // Frame(way) Counter - either 1 or 2 frames in a set
     logic [1:0] frame_num, next_frame_num;
     logic en_frame_ctr, clr_frame_ctr;
 
@@ -120,7 +120,7 @@ module l1_cache #(
 
 
     // Read Address
-    word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
+    decoded_addr_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
 
     // Counter always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
@@ -184,7 +184,7 @@ module l1_cache #(
     end // always_ff @
 
 
-    
+
      // FF for state
     always_ff @ (posedge CLK, negedge nRST)  begin
         if(~nRST) begin
@@ -227,9 +227,9 @@ module l1_cache #(
     // Comb. output logic for counter finish flags
     assign finish_set = (set_num == N_SETS) ? 1'b1 : 1'b0;
     assign finish_frame  = (frame_num == ASSOC) ? 1'b1 : 1'b0;
-    assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
+    assign finish_word 	= (word_num == BLOCK_SIZE - 1) ? 1'b1 : 1'b0;
 
-    	
+
     // Decode incoming addr. to cache config. bits
     decoded_addr_t decoded_addr;
     assign decoded_addr = proc_gen_bus_if.addr;
@@ -257,7 +257,7 @@ module l1_cache #(
         end // else: !if(proc_gen_bus_if.addr >= NONCACHE_START_ADDR)
     end // always_comb
 
-    
+
 
     ///WAS COMMENTED OUT Because combined with block below
     //always_comb begin
@@ -296,7 +296,7 @@ module l1_cache #(
 	else if (ASSOC == 2) begin
 	    ridx  = ~last_used[decoded_addr.set_bits];
 	end
-       
+
         for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
             for(int j = 0; j < ASSOC; j++) begin
                 next_cache[i].frames[j].data   = cache[i].frames[j].data;
@@ -309,7 +309,7 @@ module l1_cache #(
 
         casez(state)
             IDLE: begin
-                
+
                 next_read_addr = decoded_addr;
 
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
@@ -327,7 +327,7 @@ module l1_cache #(
 		                4'b0011:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'hFFFF0000)|{16'd0,proc_gen_bus_if.wdata[15:0]};
 		                4'b1100:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = (cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits] & 32'h0000FFFF)|{proc_gen_bus_if.wdata[31:16],16'd0};
                         default:    next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-                    endcase														   				   
+                    endcase
                     //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
 		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
 		            next_last_used[decoded_addr.set_bits] 				        = hit_idx;
@@ -354,7 +354,7 @@ module l1_cache #(
                             4'b1100:    mem_gen_bus_if.wdata  = {proc_gen_bus_if.wdata[31:16],16'd0};
                             default:    mem_gen_bus_if.wdata  = proc_gen_bus_if.wdata;
                         endcase
-                    end 
+                    end
                 end
 		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
                 	next_read_addr =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; ////////////////////// FIX FOR WB to wrong address?
@@ -363,31 +363,32 @@ module l1_cache #(
 			        next_read_addr  =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
             	end
             end // case: IDLE
-	    
+
             FETCH: begin
                 mem_gen_bus_if.ren   = 1'b1;
                 mem_gen_bus_if.addr  = read_addr;
-                
-                if(finish_word) begin
+
+                if(finish_word && ~mem_gen_bus_if.busy) begin
                     clr_word_ctr 					  = 1'b1;
-                    next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
-                    next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
+                    next_cache[read_addr.set_bits].frames[ridx].valid  = 1'b1;
+                  next_cache[read_addr.set_bits].frames[ridx].tag 	  = read_addr.tag_bits; //decoded_addr.tag_bits;
+                    next_cache[read_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
                     mem_gen_bus_if.ren 					  = 1'b0;
                 end
                 else if(~mem_gen_bus_if.busy && ~finish_word) begin
                     en_word_ctr 						   = 1'b1;
                     next_read_addr 						   = read_addr + 4;
-                    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
+                    next_cache[read_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
                 end
             end // case: FETCH
-	    
+
             WB: begin
                 mem_gen_bus_if.wen    = 1'b1;
-		        //next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
-                mem_gen_bus_if.addr   = read_addr; 
+		        //next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00};
+                mem_gen_bus_if.addr   = read_addr;
                 mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
-               
- 
+
+
                 if(finish_word) begin
                     clr_word_ctr 					  = 1'b1;
                     next_read_addr  =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; //TODO: CHECK THIS, ADDED BY VERIFICATION
@@ -409,11 +410,11 @@ module l1_cache #(
                     flush_done 	 = 1'b1;
                 end
             end
-	    
+
             // FLUSH_SET is not required, because we already know ASSOC is either 1 or 2
             // therefore, just checking ASSOC in FLUSH_FRAME, and deciding whether to go back to
             // FLUSH_CACHE or stay for cleaning of the another frame is sufficient
-            FLUSH_SET: begin 
+            FLUSH_SET: begin
                 if(finish_frame) begin
                     clr_frame_ctr  = 1'b1;
                     en_set_ctr 	   = 1'b1;
@@ -422,12 +423,12 @@ module l1_cache #(
                     en_frame_ctr  = 1'b1;
                 end
             end // case: FLUSH_SET
-	    
+
             FLUSH_FRAME: begin
                 mem_gen_bus_if.wen    = 1'b1;
                 mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
                 mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
-                
+
                 if(finish_word) begin
                     clr_word_ctr 				 = 1'b1;
                     en_frame_ctr 				 = 1'b1;
@@ -439,7 +440,7 @@ module l1_cache #(
 		    end
 		    else
 		      en_frame_ctr                               = 1'b1;*/
-                end		
+                end
                 if(~mem_gen_bus_if.busy) begin
                     en_word_ctr  = 1'b1;
                 end
@@ -462,28 +463,28 @@ module l1_cache #(
                 next_state 	= FLUSH_CACHE;
             end
 	    end // case: IDLE
-	    
+
 	    FETCH: begin
-            if(finish_word) begin
+            if(finish_word & ~mem_gen_bus_if.busy) begin
                 next_state 	= IDLE;
             end
 	    end
-	    
+
 	    WB: begin
             if(finish_word) begin
                 next_state 	= FETCH;
             end
 	    end
-	    
+
 	    FLUSH_CACHE: begin
             next_state  = FLUSH_SET;
 	    //next_state = FLUSH_FRAME;
-   
+
             if(finish_set) begin
                 next_state 	= IDLE;
             end
 	    end // case: FLUSH_CACHE
-	    
+
 	    FLUSH_SET: begin
             if(finish_frame) begin
                 next_state 	= FLUSH_CACHE;
@@ -492,7 +493,7 @@ module l1_cache #(
                 next_state = FLUSH_FRAME;
             end
 	    end // case: FLUSH_SET
-	    
+
 	    FLUSH_FRAME: begin
             if(finish_word) begin
 	       /*if(finish_frame)

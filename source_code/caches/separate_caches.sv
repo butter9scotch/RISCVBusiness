@@ -34,6 +34,20 @@ module separate_caches (
   generic_bus_if.generic_bus dcache_proc_gen_bus_if,
   cache_control_if.caches cc_if
 );
+
+  // ICACHE CONFIG
+  parameter ICACHE_SIZE                = 1024;
+  parameter ICACHE_BLOCK_SIZE          = 2;
+  parameter ICACHE_ASSOC               = 2;
+  parameter ICACHE_NONCACHE_START_ADDR = 32'h8FFFFFFF;
+
+  // DCACHE CONFIG
+  parameter DCACHE_SIZE                = 1024;
+  parameter DCACHE_BLOCK_SIZE          = 2;
+  parameter DCACHE_ASSOC               = 2;
+  parameter DCACHE_NONCACHE_START_ADDR = 32'h20000; //32'h8FFFFFFF;
+  // NOTE: 0x20000 is made the base of the not cachable address space
+  // so that embench can print the cycles for reporting the  benchmark info
   generate
     case (DCACHE_TYPE)
       "pass_through" : begin
@@ -59,7 +73,7 @@ module separate_caches (
                         );
 	 end
       "l1_cache":          begin
-	                    l1_cache dcache(
+                        l1_cache #(.CACHE_SIZE(DCACHE_SIZE), .BLOCK_SIZE(DCACHE_BLOCK_SIZE), .ASSOC(DCACHE_ASSOC), .NONCACHE_START_ADDR(DCACHE_NONCACHE_START_ADDR)) dcache (
 			  .CLK(CLK),
 			  .nRST(nRST),
 			  .mem_gen_bus_if(dcache_mem_gen_bus_if),
@@ -99,7 +113,7 @@ module separate_caches (
                         );
 	 end
       "l1_cache" :           begin
-                            l1_cache icache(
+                        l1_cache #(.CACHE_SIZE(ICACHE_SIZE), .BLOCK_SIZE(ICACHE_BLOCK_SIZE), .ASSOC(ICACHE_ASSOC), .NONCACHE_START_ADDR(ICACHE_NONCACHE_START_ADDR)) icache (
                           .CLK(CLK),
                           .nRST(nRST),
                           .mem_gen_bus_if(icache_mem_gen_bus_if),
