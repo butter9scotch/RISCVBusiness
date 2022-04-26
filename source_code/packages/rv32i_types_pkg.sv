@@ -26,9 +26,11 @@
 `define RV32I_TYPES_PKG_SV
 
 `include "machine_mode_types_1_11_pkg.sv"
+`include "rv32f_types_pkg.sv"
 
 package rv32i_types_pkg;
   // import alu_types_pkg::aluop_t;
+  import rv32f_types_pkg::*;
   parameter WORD_SIZE = 32;
   parameter RAM_ADDR_SIZE = 32;
   parameter OP_W = 7;
@@ -278,6 +280,15 @@ package rv32i_types_pkg;
     logic ready_a;
     logic [$clog2(NUM_CB_ENTRY)-1:0] index_a; 
   } arith_control_signals_t;
+
+  typedef struct packed {
+      logic ena;
+      f_funct7_t f_funct7;
+      logic wen;
+      logic [4:0] reg_rd;
+      logic ready_f;
+      logic [$clog2(NUM_CB_ENTRY) - 1:0] index_f;
+  } float_control_signals_t;
 
   typedef struct packed {
     logic ena;
