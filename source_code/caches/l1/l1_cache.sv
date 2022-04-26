@@ -43,11 +43,7 @@ module l1_cache #(
 
 );
     // TODO:
-    // 1. Implement Byte Enable
     // 2. Implement Flush & Clear functunality
-    // 3. Direct Memory Access
-    // 4. Counter for frame size is not necessary, one if(ASSOC == 1) else should be enough
-    // 5. Make it work for icache and dcache
     // 6. Test for ASSOC = 1
 
     // FIXME:
@@ -58,7 +54,9 @@ module l1_cache #(
     import rv32i_types_pkg::*;
     
     // local parameters
-    localparam N_TOTAL_FRAMES     = CACHE_SIZE / (BLOCK_SIZE * WORD_SIZE / 8);
+    localparam N_TOTAL_BYTES      = CACHE_SIZE / 8;
+    localparam N_TOTAL_WORDS      = N_TOTAL_BYTES / 4;
+    localparam N_TOTAL_FRAMES     = N_TOTAL_WORDS / (BLOCK_SIZE);
     localparam N_SETS             = N_TOTAL_FRAMES / ASSOC;
     localparam N_FRAME_BITS       = $clog2(ASSOC);
     localparam N_SET_BITS         = $clog2(N_SETS);
@@ -122,6 +120,9 @@ module l1_cache #(
     // Read Address
     word_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
 
+    //ABORT 
+    logic abort;
+
     // Counter always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
             if(~nRST) begin
@@ -174,12 +175,17 @@ module l1_cache #(
         end
     end
 
+    decoded_addr_t decoded_req_addr;
+    decoded_addr_t next_decoded_req_addr;
+
     always_ff @ (posedge CLK, negedge nRST) begin
         if(~nRST) begin
             read_addr <= '0;
+            decoded_req_addr <= '0;
         end
         else begin
             read_addr <= next_read_addr;
+            decoded_req_addr <= next_decoded_req_addr;
         end
     end // always_ff @
 
@@ -232,7 +238,15 @@ module l1_cache #(
     	
     // Decode incoming addr. to cache config. bits
     decoded_addr_t decoded_addr;
+    decoded_addr_t decoded_read_addr;
+   
+
+
+
     assign decoded_addr = proc_gen_bus_if.addr;
+    assign decoded_read_addr = read_addr;
+
+
 
     // Cache Hit
     logic hit, pass_through;
@@ -293,6 +307,7 @@ module l1_cache #(
         clr_frame_ctr 	        = 1'b0;
         flush_done 	            = 1'b0;
         clear_done 	            = 1'b0;
+        next_decoded_req_addr   = decoded_req_addr;
 
        	if(ASSOC == 1) begin
 	        ridx  = 1'b0;
@@ -356,47 +371,54 @@ module l1_cache #(
                         endcase
                     end 
                 end
-		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+		        else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // FETCH
+                    next_decoded_req_addr = decoded_addr;
                 	next_read_addr =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; ////////////////////// FIX FOR WB to wrong address?
+
 			    end
-			    else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
+			    else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin // WB
+                    next_decoded_req_addr = decoded_addr;
 			        next_read_addr  =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00};
             	end
             end // case: IDLE
 	    
             FETCH: begin
-                mem_gen_bus_if.ren   = 1'b1;
-                mem_gen_bus_if.addr  = read_addr;
-                
-                if(finish_word) begin
-                    clr_word_ctr 					  = 1'b1;
-                    next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
-                    next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
-                    mem_gen_bus_if.ren 					  = 1'b0;
-                end
-                else if(~mem_gen_bus_if.busy && ~finish_word) begin
-                    en_word_ctr 						   = 1'b1;
-                    next_read_addr 						   = read_addr + 4;
-                    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
+                 if(~abort)begin
+                    mem_gen_bus_if.ren   = 1'b1;
+                    mem_gen_bus_if.addr  = read_addr;
+
+                    if(finish_word) begin
+                        clr_word_ctr 					  = 1'b1;
+                        next_cache[decoded_req_addr.set_bits].frames[ridx].valid  = 1'b1;
+                        next_cache[decoded_req_addr.set_bits].frames[ridx].tag 	  = decoded_req_addr.tag_bits;
+                        mem_gen_bus_if.ren 					  = 1'b0;
+                    end
+                    else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                        en_word_ctr 						   = 1'b1;
+                        next_read_addr 						   = read_addr + 4;
+                        next_cache[decoded_read_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
+                    end
                 end
             end // case: FETCH
 	    
             WB: begin
-                mem_gen_bus_if.wen    = 1'b1;
-		        //next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
-                mem_gen_bus_if.addr   = read_addr; 
-                mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
-               
- 
-                if(finish_word) begin
-                    clr_word_ctr 					  = 1'b1;
-                    next_read_addr  =  {decoded_addr.tag_bits, decoded_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; //TODO: CHECK THIS, ADDED BY VERIFICATION
-                    next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
-                    mem_gen_bus_if.wen 					  = 1'b0;
-                end
-                else if(~mem_gen_bus_if.busy && ~finish_word) begin
-                    en_word_ctr     = 1'b1;
-                    next_read_addr  = read_addr + 4;
+                if(~abort)begin
+                    mem_gen_bus_if.wen    = 1'b1;
+                    //next_read_address     =  {cache[decoded_addr.set_bits].frames[ridx].tag, decoded_addr.set_bits, 2'b00, 2'b00}; 
+                    mem_gen_bus_if.addr   = read_addr; 
+                    mem_gen_bus_if.wdata  = cache[decoded_read_addr.set_bits].frames[ridx].data[word_num];
+                
+    
+                    if(finish_word) begin
+                        clr_word_ctr 					  = 1'b1;
+                        next_read_addr  =  {decoded_req_addr.tag_bits, decoded_req_addr.set_bits, N_BLOCK_BITS'('0), 2'b00}; //TODO: CHECK THIS, ADDED BY VERIFICATION
+                        next_cache[decoded_req_addr.set_bits].frames[ridx].dirty  = 1'b0;
+                        mem_gen_bus_if.wen 					  = 1'b0;
+                    end
+                    else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                        en_word_ctr     = 1'b1;
+                        next_read_addr  = read_addr + 4;
+                    end
                 end
             end // case: WB
             // Maybe: you don't even need counters, three loops is enough
@@ -460,6 +482,7 @@ module l1_cache #(
     // Comb. logic for next state for FSM
     always_comb begin
 	next_state = state;
+    abort = 0;
 	casez(state)
 	    IDLE: begin
             if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && cache[decoded_addr.set_bits].frames[ridx].dirty && ~pass_through) begin
@@ -474,20 +497,29 @@ module l1_cache #(
 	    end // case: IDLE
 	    
 	    FETCH: begin
-            if(finish_word) begin
+            if(decoded_addr != decoded_req_addr)begin //ABORT 
+                next_state = IDLE;
+                abort = 1;
+            end
+ 
+            else if(finish_word) begin
                 next_state 	= IDLE;
             end
 	    end
 	    
 	    WB: begin
-            if(finish_word) begin
+            if(decoded_addr != decoded_req_addr)begin //ABORT
+                next_state = IDLE; 
+                abort = 1;
+            end
+            else if(finish_word) begin
                 next_state 	= FETCH;
             end
 	    end
 	    
 	    FLUSH_CACHE: begin
             next_state  = FLUSH_SET;
-	    //next_state = FLUSH_FRAME;
+	        //next_state = FLUSH_FRAME;
    
             if(finish_set) begin
                 next_state 	= IDLE;
