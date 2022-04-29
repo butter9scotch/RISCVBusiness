@@ -35,50 +35,25 @@ module rv32f_reg_file (
 //  import rv32i_types_pkg::*;
 
 // rs1 and rs2: register locations of two calculation operands
-// rd: register location where f_w_data goes
+// rd: register location where f_wdata goes
 
   parameter NUM_REGS = 32;
 
-  logic [31:0] fcsr_reg;
   logic [31:0] [NUM_REGS-1:0] registers;
-  logic f_wen; //write enable. Enable register file to written by FPU TODO: implementation of this signal
-  //logic [2:0] frm;
 
   always_ff @ (posedge frf_rf.clk, negedge frf_rf.n_rst) begin
     if (~frf_rf.n_rst) begin
-      fcsr_reg <= '0;
       for (int i = 0; i < 32; i++) begin
           registers[i] <= 'h7fc00000;
       end
-      //frf_rf.f_frm <= '0;
     end else if (frf_rf.f_wen) begin 
-      registers[frf_rf.f_rd] <= frf_rf.f_wdata; //f_w_data: FPU_out or dload_ext
-      //frf_rf.frm <= frf_rf.f_frm_in;
-      //fcsr_reg[7:5] <= frf_rf.f_frm_in;
-      fcsr_reg[4:0] <= frf_rf.f_flags;
+      registers[frf_rf.f_rd] <= frf_rf.f_wdata; 
     end else begin
-      //frf_rf.frm <= frf_rf.f_frm_in;
-      //fcsr_reg[7:5] <= frf_rf.f_frm_in;
     end
   end 
 
-  /*always_comb begin: f_wen_logic
-	f_wen = 1'b0; //f_wen default to be 0.
-	if (frf_rf.f_LW) // if f_lw is assert(choosing dload_ext)
-		f_wen = 1'b1; 
-	else begin //if f_lw is asserteds(choosing FPU_out)
-		if (!frf_rf.f_ready) //if not f_ready,
-			f_wen = 1'b0;
-		else	      //if f_ready,
-			f_wen = 1'b1;
-	end
-  end*/
 
   assign frf_rf.f_rs1_data = registers[frf_rf.f_rs1];
   assign frf_rf.f_rs2_data = registers[frf_rf.f_rs2];
-
-  assign frf_rf.f_frm = fcsr_reg[7:5];
-  // assign frf_rf.f_flags = {frf_rf.f_NV, frf_rf.f_DZ, frf_rf.f_OF, frf_rf.f_UF, frf_rf.f_NX};
-  //assign frf_rf.f_flags = fcsr_reg[4:0];
 
 endmodule
