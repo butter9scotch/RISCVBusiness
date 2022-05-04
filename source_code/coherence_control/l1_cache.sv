@@ -27,6 +27,7 @@
 */
 
 `include "generic_bus_if.vh"
+`include "coherence_ctrl_if.vh"
 
 module l1_cache #(
     parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 4k - 4 * 2^10
@@ -39,8 +40,8 @@ module l1_cache #(
     input logic clear, flush,
     output logic clear_done, flush_done,
     generic_bus_if.cpu mem_gen_bus_if,
-    generic_bus_if.generic_bus proc_gen_bus_if
-
+    generic_bus_if.generic_bus proc_gen_bus_if,
+    coherence_ctrl_if.dc ccif
 );
     // TODO:
     // 1. Implement Byte Enable
@@ -65,6 +66,7 @@ module l1_cache #(
     typedef struct packed {
         logic valid;
         logic dirty;
+        logic exclusive; 
         logic [N_TAG_BITS - 1:0] tag;
         word_t [BLOCK_SIZE - 1:0] data;
     } cache_frame;
@@ -75,7 +77,7 @@ module l1_cache #(
 
     // FSM type
     typedef enum {
-       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME
+       IDLE, FETCH, WB, FLUSH_CACHE, FLUSH_SET, FLUSH_FRAME, FWD
     } fsm_t;
 
     // Cache address decode type
@@ -164,6 +166,7 @@ module l1_cache #(
                     cache[i].frames[j].tag   <= '0;
                     cache[i].frames[j].valid <= 1'b0;
                     cache[i].frames[j].dirty <= 1'b0;
+                    cache[i].frames[j].exclusive <= 1'b0; 
                 end
             end
 	end
@@ -174,6 +177,7 @@ module l1_cache #(
                     cache[i].frames[j].tag   <= next_cache[i].frames[j].tag;
                     cache[i].frames[j].valid <= next_cache[i].frames[j].valid;
                     cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
+                    cache[i].frames[j].dirty <= next_cache[i].frames[j].exclusive; 
                 end
             end
         end // else: !if(~nRST)
@@ -266,6 +270,7 @@ module l1_cache #(
                 next_cache[i].frames[j].tag    = cache[i].frames[j].tag;
                 next_cache[i].frames[j].valid  = cache[i].frames[j].valid;
                 next_cache[i].frames[j].dirty  = cache[i].frames[j].dirty;
+                next_cache[i].frames[j].exclusive = cache[i].frames[j].exclusive; 
             end // for (int j = 0; j < ASSOC; j++)
 	    next_last_used[i] = last_used[i];
         end
@@ -275,89 +280,105 @@ module l1_cache #(
                 if(proc_gen_bus_if.ren && hit) begin
                     proc_gen_bus_if.busy 		   = 1'b0;
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits];
-		    next_last_used[decoded_addr.set_bits]  = hit_idx;
+		            next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin
                     proc_gen_bus_if.busy 							     = 1'b0;
                     next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
-		    next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
-		    next_last_used[decoded_addr.set_bits] 					     = hit_idx;
+		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 			     = 1'b1;
+		            next_last_used[decoded_addr.set_bits] 					     = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
-		next_read_addr = decoded_addr;
+		        next_read_addr = decoded_addr;
             end // case: IDLE
 	    
             FETCH: begin
-		mem_gen_bus_if.ren   = 1'b1;
-		mem_gen_bus_if.addr  = read_addr;
+		        mem_gen_bus_if.ren   = 1'b1;
+		        mem_gen_bus_if.addr  = read_addr;
 		
-		if(finish_word) begin
-		    clr_word_ctr 					  = 1'b1;
-		    next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
-		    next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
-		    mem_gen_bus_if.ren 					  = 1'b0;
-		end
-		else if(~mem_gen_bus_if.busy && ~finish_word) begin
-		    en_word_ctr 						   = 1'b1;
-		    next_read_addr 						   = read_addr + 4;
-		    next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
-		end
+		        if(finish_word) begin
+		            clr_word_ctr 					  = 1'b1;
+		            next_cache[decoded_addr.set_bits].frames[ridx].valid  = 1'b1;
+		            next_cache[decoded_addr.set_bits].frames[ridx].tag 	  = decoded_addr.tag_bits;
+		            mem_gen_bus_if.ren 					  = 1'b0;
+		        end
+		        else if(~mem_gen_bus_if.busy && ~finish_word) begin
+		            en_word_ctr 						   = 1'b1;
+		            next_read_addr 						   = read_addr + 4;
+		            next_cache[decoded_addr.set_bits].frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
+		        end
             end // case: FETCH
 	    
-	    WB: begin
-		mem_gen_bus_if.wen    = 1'b1;
-		mem_gen_bus_if.addr   = read_addr;
-		mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+	        WB: begin
+		        mem_gen_bus_if.wen    = 1'b1;
+		        mem_gen_bus_if.addr   = read_addr;
+		        mem_gen_bus_if.wdata  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
 		
-		if(finish_word) begin
-		    clr_word_ctr 					  = 1'b1;
-		    next_read_addr 					  = decoded_addr;
-		    next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
-		    mem_gen_bus_if.wen 					  = 1'b0;
-		end
-		else if(~mem_gen_bus_if.busy && ~finish_word) begin
-		    en_word_ctr     = 1'b1;
-		    next_read_addr  = read_addr + 4;
-		end
-	    end // case: WB
-	    // Maybe: you don't even need counters, three loops is enough
-	    // whenever you find a frame that is dirty, goto state FLUSH_WB
-	    // write back, un-dirty and then come back to FLUSH_CACHE
-	    // then re-loop to search for dirty frame
-	    FLUSH_CACHE: begin
-		if(finish_set) begin
-		    clr_set_ctr  = 1'b1;
-		    flush_done 	 = 1'b1;
-		end
-	    end
+		        if(finish_word) begin
+		            clr_word_ctr 					  = 1'b1;
+		            next_read_addr 					  = decoded_addr;
+		            next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
+		            mem_gen_bus_if.wen 					  = 1'b0;
+		        end
+		        else if(~mem_gen_bus_if.busy && ~finish_word) begin
+		            en_word_ctr     = 1'b1;
+		            next_read_addr  = read_addr + 4;
+		        end
+	        end // case: WB
+	        // Maybe: you don't even need counters, three loops is enough
+	        // whenever you find a frame that is dirty, goto state FLUSH_WB
+	        // write back, un-dirty and then come back to FLUSH_CACHE
+	        // then re-loop to search for dirty frame
+	        FLUSH_CACHE: begin
+		        if(finish_set) begin
+		            clr_set_ctr  = 1'b1;
+		            flush_done 	 = 1'b1;
+		        end
+	        end
 	    
-	    // FLUSH_SET is not required, because we already know ASSOC is either 1 or 2
-	    // therefore, just checking ASSOC in FLUSH_FRAME, and deciding whether to go back to
-	    // FLUSH_CACHE or stay for cleaning of the another frame is sufficient
-	    FLUSH_SET: begin 
-		if(finish_frame) begin
-		    clr_frame_ctr  = 1'b1;
-		    en_set_ctr 	   = 1'b1;
-		end
-		else if(~cache[set_num].frames[frame_num].dirty) begin
-		    en_frame_ctr  = 1'b1;
-		end
-	    end // case: FLUSH_SET
+	        // FLUSH_SET is not required, because we already know ASSOC is either 1 or 2
+	        // therefore, just checking ASSOC in FLUSH_FRAME, and deciding whether to go back to
+	        // FLUSH_CACHE or stay for cleaning of the another frame is sufficient
+	        FLUSH_SET: begin 
+		        if(finish_frame) begin
+		            clr_frame_ctr  = 1'b1;
+		            en_set_ctr 	   = 1'b1;
+		        end
+		        else if(~cache[set_num].frames[frame_num].dirty) begin
+		            en_frame_ctr  = 1'b1;
+		        end
+	        end // case: FLUSH_SET
 	    
-	    FLUSH_FRAME: begin
-		mem_gen_bus_if.wen    = 1'b1;
-		mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
-		mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
+	        FLUSH_FRAME: begin
+		        mem_gen_bus_if.wen    = 1'b1;
+		        mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
+		        mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
 		
-		if(finish_word) begin
-		    clr_word_ctr 				 = 1'b1;
-		    en_frame_ctr 				 = 1'b1;
-		    mem_gen_bus_if.wen 				 = 1'b0;
-		    next_cache[set_num].frames[frame_num].dirty  = 1'b0;
-		end		
-		else if(~mem_gen_bus_if.busy) begin
-		    en_word_ctr  = 1'b1;
-		end
-	    end // case: FLUSH_FRAME
+		        if(finish_word) begin
+		            clr_word_ctr 				 = 1'b1;
+		            en_frame_ctr 				 = 1'b1;
+		            mem_gen_bus_if.wen 				 = 1'b0;
+		            next_cache[set_num].frames[frame_num].dirty  = 1'b0;
+		        end		
+		        else if(~mem_gen_bus_if.busy) begin
+		            en_word_ctr  = 1'b1;
+		        end
+	        end // case: FLUSH_FRAME
+            FWD: begin
+                ccif.dWEN   = 1'b1;
+		        ccif.daddr   = read_addr;
+		        ccif.dstore  = cache[decoded_addr.set_bits].frames[ridx].data[word_num];
+		
+		        if(finish_word) begin
+		            clr_word_ctr 					  = 1'b1;
+		            next_read_addr 					  = decoded_addr;
+		            next_cache[decoded_addr.set_bits].frames[ridx].dirty  = 1'b0;
+		            ccif.wen 					  = 1'b0;
+		        end
+		        else begin
+		            en_word_ctr     = 1'b1;
+		            next_read_addr  = read_addr + 4;
+		        end
+            end
         endcase // casez (state)
     end // always_comb
 
