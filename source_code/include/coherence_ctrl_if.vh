@@ -32,7 +32,8 @@ typedef enum logic[4:0] {
     LOAD1, LOAD2,  
     LOADEX1, LOADEX2, LOADEX3,  
     FWDWB1, FWDWB2, FWDWB3,
-    FWDEX1, FWDEX2, FWDEX3
+    FWDEX1, FWDEX2, FWDEX3, 
+    WB1, WB2
 } cc_state_t;
 
 typedef enum logic[1:0] {

@@ -28,7 +28,7 @@
 //`include "rv32i_types_pkg.sv"
 
 parameter CLK_PERIOD = 10; 
-parameter BLOCK_SIZE = 4; 
+parameter BLOCK_SIZE = 2; 
 parameter L2_LATENCY = 0; 
 
 module cocherence_ctrl_tb(); 

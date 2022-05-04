@@ -1,0 +1,14 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-access
++rwc
+-gui
++nctimescale+1ns/1ns
+-incdir
+/home/ecegridfs/a/socet94/RISCVBusiness/source_code/include/
+coherence_ctrl.sv
+coherence_ctrl_tb.sv
+-input
+wave.tcl

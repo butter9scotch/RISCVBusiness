@@ -71,9 +71,10 @@ module coherence_ctrl #(
             IDLE, EIDLE: begin
                 nprid = ccif.cctrans[~prid] ? ~prid : prid;
                 if (ccif.cctrans[nprid]) begin
-                    if (ccif.dWEN[nprid]) ns = WB; 
+                    if (ccif.dWEN[nprid]) ns = WB1; 
                     else if (ccif.dREN[nprid]) ns = SNP1; 
                     else ns = INV; 
+                end                    
                 end
                 else ns = IDLE; 
             end
@@ -173,6 +174,17 @@ module coherence_ctrl #(
                 ccif.ccinv[~prid] = 1'b1; 
                 ccif.ccwait[~prid] = 1'b1; 
                 ns = IDLE; 
+            end
+            WB1: begin
+                ccif.l2store = ccif.dstore[prid]; 
+                ccif.l2addr = ccif.daddr[prid]; 
+                ccif.l2WEN = 1'b1; 
+                ccif.dwait[prid] = ~(ccif.l2state == L2_ACCESS); 
+                ns = (ccif.l2state == L2_ACCESS) ? WB2 : WB1;   
+            end
+            WB2: begin
+                ns = ($unsigned(word_counter + 1) < $unsigned(BLOCK_SIZE)) ? WB1 : IDLE; 
+                next_word_counter = (ns == WB1) ? word_counter+1 : 0; 
             end
             INV: begin
                 ccif.ccinv[~prid] = 1'b1; 

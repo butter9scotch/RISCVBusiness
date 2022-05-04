@@ -1,0 +1,282 @@
+# SimVision Command Script (Wed Mar 23 04:07:13 PM EDT 2022)
+#
+# Version 15.20.s030
+#
+# You can restore this configuration with:
+#
+#      irun -access +rwc +nctimescale+1ns/1ns -incdir /home/ecegridfs/a/socet94/RISCVBusiness/source_code/include/ coherence_ctrl.sv coherence_ctrl_tb.sv -input wave.tcl -input /home/ecegridfs/a/socet94/RISCVBusiness/source_code/coherence_control/wave.tcl
+#
+
+
+#
+# Preferences
+#
+preferences set script-input-warning 0
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-sendToIndago-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set whats-new-dont-show-at-startup 1
+
+#
+# Simulator
+#
+database require simulator -hints {
+	simulator "irun -access +rwc -gui +nctimescale+1ns/1ns -incdir /home/ecegridfs/a/socet94/RISCVBusiness/source_code/include/ coherence_ctrl.sv coherence_ctrl_tb.sv -input wave.tcl -input wave.tcl"
+}
+#
+# Groups
+#
+catch {group new -name {__assert_4 contributors} -overlay 0}
+catch {group new -name {__assert_3 contributors} -overlay 0}
+catch {group new -name {__assert_2 contributors} -overlay 0}
+catch {group new -name {__assert_1 contributors} -overlay 0}
+group using {__assert_4 contributors}
+group set -overlay 0
+group set -comment {simulator::cocherence_ctrl_tb.__assert_4 contributors}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {cocherence_ctrl_tb.tb_err}]} ]
+group using {__assert_3 contributors}
+group set -overlay 0
+group set -comment {simulator::cocherence_ctrl_tb.__assert_3 contributors}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {cocherence_ctrl_tb.tb_err}]} ]
+group using {__assert_2 contributors}
+group set -overlay 0
+group set -comment {simulator::cocherence_ctrl_tb.__assert_2 contributors}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {cocherence_ctrl_tb.tb_err}]} ]
+group using {__assert_1 contributors}
+group set -overlay 0
+group set -comment {simulator::cocherence_ctrl_tb.__assert_1 contributors}
+group clear 0 end
+
+group insert \
+    [subst  {simulator::[format {cocherence_ctrl_tb.tb_err}]} ]
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 730x500+261+33}] != ""} {
+    window geometry "Design Browser 1" 730x500+261+33
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope [subst  {simulator::[format {cocherence_ctrl_tb}]} ]
+browser set \
+    -signalsort name
+browser yview see [subst  {simulator::[format {cocherence_ctrl_tb}]} ]
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1010x600+-10+20}] != ""} {
+    window geometry "Waveform 1" 1010x600+-10+20
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ps \
+    -valuewidth 75
+waveform baseline set -time 0
+
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.test_case_num}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.test_case_info}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.CLK}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.nRST}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.i}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.tb_err}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.DUT.prid}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.DUT.s[4:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.DUT.ns[4:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.DUT.word_counter[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccdirty[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccexclusive[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.cchit[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccinv[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccsnpaddr[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.cctrans[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccwait[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.ccwrite[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.dREN[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.dWEN[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.daddr[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.dload[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.dstore[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.dwait[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2REN}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2WEN}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2load[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2state[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cc.l2store[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccdirty[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccexclusive[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cchit[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccinv[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccsnpaddr[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.cctrans[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccwait[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.ccwrite[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.dREN[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.dWEN[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.daddr[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.dload[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.dstore[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.dwait[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2REN}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2WEN}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2addr[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2load[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2state[1:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{simulator::[format {cocherence_ctrl_tb.ccif.l2store[31:0]}]}
+	} ]]
+
+waveform xview limits 0 2000ps
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 730x250+261+564
+
+#
+# Layout selection
+#
+
