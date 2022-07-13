@@ -17,13 +17,14 @@
 *   Filename:     l1_cache.sv
 *
 *   Created by:   Rufat Imanov, Aedan Frazier, Dhruv Gupta
+*   Modified by:  Yiyang Shui (shuiy@purdue.edu)
 *   Email:        rimanov@purdue.edu
 *   Date Created: 06/20/2021
 *   Description:  L1 Cache. The following are configurable:
 *                   - Cache Size
 *                   - Non-Cacheable start address
 *                   - Block Size | max 8
-*	            - ASSOC | either 1 or 2
+*	                - ASSOC | either 1 or 2
 */
 
 `include "generic_bus_if.vh"
@@ -70,8 +71,8 @@ module l1_cache #(
     typedef struct packed {
         logic valid;
         logic dirty;
-        logic [N_TAG_BITS - 1:0] tag;
-        word_t [BLOCK_SIZE - 1:0] data;
+        // logic [N_TAG_BITS - 1:0] tag;
+        // word_t [BLOCK_SIZE - 1:0] data;
     } cache_frame;
 
     typedef struct packed {
@@ -136,12 +137,12 @@ module l1_cache #(
             end
     end // always_ff @
 
-    // Cache Frame always_ff
+    // Cache Frame always_ff (data and tag moved out of flip-flop, use wrapper file for SRAM instead, implemented below this always_ff)
     always_ff @ (posedge CLK, negedge nRST) begin
         if(~nRST) begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
-                    cache[i].frames[j].data  <= '0;
+                    // cache[i].frames[j].data  <= '0;
                     cache[i].frames[j].tag   <= '0;
                     cache[i].frames[j].valid <= 1'b0;
                     cache[i].frames[j].dirty <= 1'b0;
@@ -151,7 +152,7 @@ module l1_cache #(
         else begin
             for(int i = 0; i < N_SETS; i++) begin
                 for(int j = 0; j < ASSOC; j++) begin
-                    cache[i].frames[j].data  <= next_cache[i].frames[j].data;
+                    // cache[i].frames[j].data  <= next_cache[i].frames[j].data;
                     cache[i].frames[j].tag   <= next_cache[i].frames[j].tag;
                     cache[i].frames[j].valid <= next_cache[i].frames[j].valid;
                     cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
@@ -159,6 +160,21 @@ module l1_cache #(
             end
         end // else: !if(~nRST)
     end // always_ff @
+
+    // wrapper module for tag and data for cache frames
+    logic [N_SET_BITS - 1:0] sram_set_bits;
+    logic [N_FRAME_BITS - 1:0] sram_frame_bits;
+    logic sram_chip_select;
+    logic sram_write_enable;
+    logic sram_output_enable;
+    word_t [BLOCK_SIZE - 1:0] sram_input_data;
+    word_t [BLOCK_SIZE - 1:0] sram_output_data;
+
+    sram_wrapper  #(.ASSOC(ASSOC), .N_FRAME_BITS(N_FRAME_BITS), .N_SET(N_SET), 
+                .N_SET_BITS(N_SET_BITS), .BLOCK_SIZE(BLOCK_SIZE)) 
+                cache_data_sram (.CLK(CLK), .nRST(nRST), .set_bits(sram_set_bits), .frame_bits(sram_frame_bits), 
+                    .chip_select(sram_chip_select), .write_enable(sram_write_enable), .output_enable(sram_output_enable),
+                    .input_data(sram_input_data), .output_data(sram_output_data));
 
 
     always_ff @(posedge CLK, negedge nRST) begin // FF for last used if ASSOC = 1
@@ -299,8 +315,8 @@ module l1_cache #(
 
         for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
             for(int j = 0; j < ASSOC; j++) begin
-                next_cache[i].frames[j].data   = cache[i].frames[j].data;
-                next_cache[i].frames[j].tag    = cache[i].frames[j].tag;
+                //next_cache[i].frames[j].data   = cache[i].frames[j].data;
+                //next_cache[i].frames[j].tag    = cache[i].frames[j].tag;
                 next_cache[i].frames[j].valid  = cache[i].frames[j].valid;
                 next_cache[i].frames[j].dirty  = cache[i].frames[j].dirty;
             end // for (int j = 0; j < ASSOC; j++)
@@ -509,4 +525,3 @@ module l1_cache #(
     end // always_comb
 
 endmodule // l1_cache
-
