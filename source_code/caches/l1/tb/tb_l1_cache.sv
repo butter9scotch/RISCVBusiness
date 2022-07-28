@@ -1,6 +1,8 @@
 `timescale 1ns/1ns
 `include "generic_bus_if.vh"
 
+// modified by Yiyang Shui (shuiy@purdue.edu) starting on Jul. 25, 2022
+
 parameter CLK_PERIOD = 10;
 			    
 module tb_l1_cache;
@@ -80,15 +82,27 @@ program test(
 	proc_gen_bus_if.ren    = 1'b0;
 	proc_gen_bus_if.wen    = 1'b1;
 	proc_gen_bus_if.addr   = '0; // miss
-	proc_gen_bus_if.wdata  = 32'hDEAD_DEAF;
-	wait(mem_gen_bus_if.ren);
+	proc_gen_bus_if.wdata  = 32'hDEAD_DEAF; // processor want to write data to memory
+	wait(mem_gen_bus_if.ren);               
 	assert(mem_gen_bus_if.addr == proc_gen_bus_if.addr) else $error("Test case: %s, test num: %0d, address from CPU does not match with incoming to main memory", test_case, test_num);
-	mem_gen_bus_if.rdata  = 32'hBEEF_BEEF;
+			// above: confirm we are fetching the correct address from memory
+	// -- added memory access latency --
+	mem_gen_bus_if.busy = 1'b1;
+	@(negedge CLK);
+	@(negedge CLK);
+	// -- end of memory access latency --
+	mem_gen_bus_if.rdata  = 32'hBEEF_BEEF; // pretent DRAM has this value in this address
 	mem_gen_bus_if.busy   = 1'b0;
 	@(posedge CLK);
 	assert(mem_gen_bus_if.addr == proc_gen_bus_if.addr + 4) else $error("Test case: %s, test num: %0d, second word address is wrong", test_case, test_num);
+	// -- added memory access latency --
+	mem_gen_bus_if.busy = 1'b1;
+	@(negedge CLK);
+	@(negedge CLK);
+	// -- end of memory access latency --
 	mem_gen_bus_if.rdata  = 32'hFFFF_AAAA;
-	wait(~proc_gen_bus_if.busy);
+	mem_gen_bus_if.busy   = 1'b0;
+	wait(~proc_gen_bus_if.busy); // ** goes into write enable and hit part of IDLE output logic **
 	mem_gen_bus_if.busy  = 1'b1;
 	@(posedge CLK);
 	proc_gen_bus_if.wen  = 1'b0;
@@ -99,7 +113,8 @@ program test(
 	test_case  = "Read back";
 	@(posedge CLK);
 	proc_gen_bus_if.ren  = 1'b1;
-	wait(~proc_gen_bus_if.busy);
+	#(1); // let ren last longer so that we can see in waveform
+	wait(~proc_gen_bus_if.busy); // ** goes into read enable and hit part of IDLE output logic **
 	assert(proc_gen_bus_if.rdata == 32'hDEAD_DEAF) else $error("Test case: %s, test num: %0d, read %h, expected %h,  value from cache after miss", test_case, test_num, proc_gen_bus_if.rdata, 32'hDEAD_DEAF);
 	proc_gen_bus_if.ren = 1'b0;
 
@@ -109,11 +124,22 @@ program test(
 	test_case  = "Cache Replace";
 	@(posedge CLK);
 	proc_gen_bus_if.addr   = 32'h0FFF_0000;
-	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA;
+	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA; // data to be written to memory
 	proc_gen_bus_if.wen    = 1'b1;
+//	mem_gen_bus_if.busy    = 1'b0; 			// means memory is ready to provide data?
+
+	mem_gen_bus_if.busy    = 1'b1; 			
+	mem_gen_bus_if.rdata   = 32'hCCCC_CCCC; // what is in memory in that address and address + 4
+	@(posedge CLK); // added memory access delay
+	@(posedge CLK);
+	mem_gen_bus_if.busy    = 1'b0; 			
+	@(posedge CLK);
+	mem_gen_bus_if.busy	   = 1'b1;
+	@(posedge CLK);
+	@(posedge CLK);
 	mem_gen_bus_if.busy    = 1'b0;
-	mem_gen_bus_if.rdata   = 32'hCCCC_CCCC;
-	wait(~proc_gen_bus_if.busy);
+	
+	wait(~proc_gen_bus_if.busy); // FETCH and cpu to cache write are finished
 	@(posedge CLK);
 	proc_gen_bus_if.wdata  = 32'hBBBB_BBBB;
 	proc_gen_bus_if.addr   = 32'h0AAA_0000; #1;
@@ -143,7 +169,9 @@ program test(
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0;
 	// Write twice to each word
-	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin
+	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin // write the lower half word first, than upper half word
+														   // cache size: 64 * 8 = 512 distinct addresses
+														   // so travel through the entire cache twice
 	    proc_gen_bus_if.addr  = i; #1;
 	    wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
@@ -153,7 +181,7 @@ program test(
 	proc_gen_bus_if.ren 	  = 1'b0;
 	#CLK_PERIOD;
         @(posedge CLK);
-	test_value 	     = 32'h0000_0080;
+	test_value 	     = 32'h0000_0080; // = 128 in decimal = 512 / 4, make sense
 	proc_gen_bus_if.ren  = 1'b1;
 	// Read back lastest values
 	for(integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4) begin
@@ -181,7 +209,7 @@ program test(
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0;
 
-	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin
+	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin // same write routine as the previous test case
 	    proc_gen_bus_if.addr  = i;
 	    #1; wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
@@ -200,27 +228,32 @@ program test(
 	    if(flush_done) begin
 		break;
 	    end
-	    if(mem_gen_bus_if.addr >= 32'h0000_0200) begin
-		assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round first write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
-		mem_gen_bus_if.busy  = 1'b0;
-	        @(posedge CLK);
-		test_value++;
-		// now second word in the frame
-		assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
-	        @(posedge CLK);
-		mem_gen_bus_if.busy  = 1'b1;
-		test_value++;
-	    end // if (mem_gen_bus_if.addr > 32'h0000_0200)
-	    else begin
-		assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value2, mem_gen_bus_if.wdata);
-		mem_gen_bus_if.busy  = 1'b0;
-	        @(posedge CLK);
-		test_value2++;
-		// now second word in the frame
-		assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
-		@(posedge CLK);
-		mem_gen_bus_if.busy  = 1'b1;
-		test_value2++;
+	    if(mem_gen_bus_if.addr >= 32'h0000_0200) begin // in frame[0]
+
+			assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round first write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
+			mem_gen_bus_if.busy  = 1'b0; // due to one-cycle memory write
+				@(posedge CLK);
+			test_value++;
+			// now second word in the frame
+
+			assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
+				@(posedge CLK);
+			mem_gen_bus_if.busy  = 1'b1;
+			test_value++;
+
+		end // if (mem_gen_bus_if.addr > 32'h0000_0200)
+	    else begin           							// in frame[1]
+
+			assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value2, mem_gen_bus_if.wdata);
+			mem_gen_bus_if.busy  = 1'b0;
+				@(posedge CLK);
+			test_value2++;
+
+			// now second word in the frame
+			assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
+			@(posedge CLK);
+			mem_gen_bus_if.busy  = 1'b1;
+			test_value2++;
 	    end // else: !if(mem_gen_bus_if.addr >= 32'h0000_0200)
 	end // while (1)
 	flush  = 1'b0;
@@ -234,29 +267,39 @@ program test(
 	#CLK_PERIOD;
 	nRST 		       = 1'b1;
 	proc_gen_bus_if.wen    = 1'b1;
+	// data 0
 	proc_gen_bus_if.addr   = '0;
-	proc_gen_bus_if.wdata  = 32'hBADD_BADD;
+	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA;
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0; #1;
+
+	// data 1
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.wdata  = 32'hBADD_BADD;
 	proc_gen_bus_if.addr   = 32'h0000_0200; #1;
+	proc_gen_bus_if.wdata  = 32'hBBBB_BBBB;
+
+	// data 2
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.wdata  = 32'hBADD_BADD;
 	proc_gen_bus_if.addr   = 32'h2000_0000; #1;
+	proc_gen_bus_if.wdata  = 32'hCCCC_CCCC;
+
+	// data 3
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.wdata  = 32'hFEED_FEED;
 	proc_gen_bus_if.addr = 32'h4000_0000; #1;
+	proc_gen_bus_if.wdata  = 32'hDDDD_DDDD;
+
+	// end of processor write
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
 	proc_gen_bus_if.wen   = 1'b0;
+
 	// read to replace, read-allocate
 	proc_gen_bus_if.ren   = 1'b1;
 	proc_gen_bus_if.addr  = 32'h3000_0000;
-        mem_gen_bus_if.rdata  = 32'hFEED_FEED;
+        mem_gen_bus_if.rdata  = 32'hFEED_FEED; // why memory is read?
 	#1; wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
 
