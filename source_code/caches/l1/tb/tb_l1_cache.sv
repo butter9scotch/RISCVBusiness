@@ -269,26 +269,26 @@ program test(
 	proc_gen_bus_if.wen    = 1'b1;
 	// data 0
 	proc_gen_bus_if.addr   = '0;
-	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA;
+	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA; // frame[1]: IDLE - FETCH - IDLE (hit & write)
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0; #1;
 
 	// data 1
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.addr   = 32'h0000_0200; #1;
+	proc_gen_bus_if.addr   = 32'h0000_0200; #1 // frame[0]: IDLE - FETCH - IDLE (hit & write)
 	proc_gen_bus_if.wdata  = 32'hBBBB_BBBB;
 
 	// data 2
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.addr   = 32'h2000_0000; #1;
+	proc_gen_bus_if.addr   = 32'h2000_0000; #1; // frame[1]: IDLE - WB - FETCH - IDLE (hit & write)
 	proc_gen_bus_if.wdata  = 32'hCCCC_CCCC;
 
 	// data 3
 	wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
-	proc_gen_bus_if.addr = 32'h4000_0000; #1;
+	proc_gen_bus_if.addr = 32'h4000_0000; #1; // frame[0]: IDLE - WB - FETCH - IDLE (hit & write)
 	proc_gen_bus_if.wdata  = 32'hDDDD_DDDD;
 
 	// end of processor write
@@ -296,22 +296,27 @@ program test(
 	@(posedge CLK);
 	proc_gen_bus_if.wen   = 1'b0;
 
-	// read to replace, read-allocate
+	// read to replace, read-allocate, data 4
 	proc_gen_bus_if.ren   = 1'b1;
-	proc_gen_bus_if.addr  = 32'h3000_0000;
+	proc_gen_bus_if.addr  = 32'h3000_0000; // frame[1]: IDLE - WB - FETCH - IDLE (hit & read)
         mem_gen_bus_if.rdata  = 32'hFEED_FEED; // why memory is read?
+											   // A: Because cpu want to read a memory location
+											   //    that is not in cache, so memory has to provide
+											   //    the data anyway 
 	#1; wait(~proc_gen_bus_if.busy);
 	@(posedge CLK);
+	// --- end of cache read & write action ---
 
 	// read back to test
 	proc_gen_bus_if.ren   = 1'b1;
-	mem_gen_bus_if.rdata  = 32'hAAAA_AAAA;
-	proc_gen_bus_if.addr  = 32'h4000_0000; #1;
+	mem_gen_bus_if.rdata  = 32'hAAAA_AAAA; // no idea why, I guess just provide random data
+	proc_gen_bus_if.addr  = 32'h4000_0000; #1;  // want to read frame[0], modified from data 3 because of LRU policy
 	wait(~proc_gen_bus_if.busy);
-	assert(proc_gen_bus_if.rdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h at 0x%h", test_case, test_num, proc_gen_bus_if.rdata, 32'hFEED_FEED, proc_gen_bus_if.addr);
+	//assert(proc_gen_bus_if.rdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h at 0x%h", test_case, test_num, proc_gen_bus_if.rdata, 32'hFEED_FEED, proc_gen_bus_if.addr);
+	assert(proc_gen_bus_if.rdata == 32'hDDDD_DDDD) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h at 0x%h", test_case, test_num, proc_gen_bus_if.rdata, 32'hFEED_FEED, proc_gen_bus_if.addr);
 	@(posedge CLK);
 	
-	proc_gen_bus_if.addr  = 32'h3000_0000; #1;
+	proc_gen_bus_if.addr  = 32'h3000_0000; #1;  // want to read frame[1], modified from data 4
 	wait(~proc_gen_bus_if.busy);
 	assert(proc_gen_bus_if.rdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h at 0x%h", test_case, test_num, proc_gen_bus_if.rdata, 32'hFEED_FEED, proc_gen_bus_if.addr);
 	@(posedge CLK);
@@ -334,7 +339,7 @@ program test(
 	mem_gen_bus_if.rdata   = '0;
 	// Write twice to each word
 	for(integer i = 0; i < 4; i = i + 1) begin
-	    proc_gen_bus_if.addr  = i* 16; #1;
+	    proc_gen_bus_if.addr  = i* 16; #1; // cache[0], cache[2], cache[]
 		proc_gen_bus_if.byte_en = 1'b1 << i; // small edit
 	    wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
@@ -345,7 +350,7 @@ program test(
         @(posedge CLK);
 	test_value 	     = 32'hDDCC_BBAA;
 	proc_gen_bus_if.ren  = 1'b1;
-	// Read back lastest values
+	// Read back lastest values (no byte enable)
        for(integer i = 0; i < 4; i = i + 1) begin
 	    proc_gen_bus_if.addr = i*16; #1;
 	    wait(~proc_gen_bus_if.busy);
@@ -382,7 +387,7 @@ program test(
         @(posedge CLK);
 	test_value 	     = 32'h0000_0080;
 	proc_gen_bus_if.ren  = 1'b1;
-	// Read back lastest values
+	// Read back lastest values (make sure nothing in cache is touched)
 	for(integer i = 32'h8000_0000; i < 32'h8000_f000; i = i + 4) begin
 	    proc_gen_bus_if.addr = i; #1;
 	    assert(proc_gen_bus_if.rdata == '0) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
