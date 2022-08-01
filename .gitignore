@@ -39,3 +39,5 @@ _vmake
 *.qpg
 
 open_files.sh
+
+basic_core_config.yml

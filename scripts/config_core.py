@@ -39,9 +39,9 @@ UARCH_PARAMS = \
     # Branch/Jump Configurations
     'br_predictor_type' : ['not_taken'],
     # Cache Configurations
-    'cache_config' : ['separate'],
-    'dcache_type' : ['pass_through', 'direct_mapped_tpf'],
-    'icache_type' : ['pass_through', 'direct_mapped_tpf'],
+    'cache_config' : ['separate'],    
+    'dcache_type' : ['pass_through', 'direct_mapped_tpf', "l1", "l1_cache"],
+    'icache_type' : ['pass_through', 'direct_mapped_tpf', "l1", "l1_cache"],
     # Bus Configurations
     'bus_endianness' : ['big', 'little'],
     'bus_interface_type' : ['ahb_if', 'generic_bus_if'],
