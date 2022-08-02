@@ -1,17 +1,21 @@
-`timescale 1ns/1ns
+`timescale 100ns/100ns
 `include "generic_bus_if.vh"
 
 // modified by Yiyang Shui (shuiy@purdue.edu) starting on Jul. 25, 2022
 
-parameter CLK_PERIOD = 10;
+parameter CLK_PERIOD = 100;
 			    
 module tb_l1_cache;
-    logic CLK, nRST;
+    logic CLK, CLK_SRAM,nRST;
     initial CLK  = 1'b0;
+	initial CLK_SRAM = 1'b1;
     always #(CLK_PERIOD/2) begin
-	CLK = ~CLK;    
+	CLK = ~CLK;
     end
     
+    always #(CLK_PERIOD/4) begin
+	CLK_SRAM = ~CLK_SRAM;
+    end
 /* -----\/----- EXCLUDED -----\/-----
 module l1_cache #(
     parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 2^32
@@ -36,13 +40,13 @@ module l1_cache #(
     generic_bus_if mem_gen_bus_if(), proc_gen_bus_if();
     
     l1_cache #(.CACHE_SIZE(1024), .BLOCK_SIZE(2), .ASSOC(2), .NONCACHE_START_ADDR(32'h8000_0000)) DUT (.*);
-    test TB_DUT(clear_done, flush_done, CLK, clear, flush, nRST, mem_gen_bus_if, proc_gen_bus_if);
+    test TB_DUT(clear_done, flush_done, CLK, CLK_SRAM, clear, flush, nRST, mem_gen_bus_if, proc_gen_bus_if);
     // test TB_DUT(.*);
  
 endmodule // tb_l1_cache
 
 program test(
-    input logic  clear_done, flush_done, CLK, 
+    input logic  clear_done, flush_done, CLK, CLK_SRAM
     output logic clear, flush, nRST, 
     generic_bus_if.generic_bus mem_gen_bus_if,
     generic_bus_if.cpu proc_gen_bus_if
