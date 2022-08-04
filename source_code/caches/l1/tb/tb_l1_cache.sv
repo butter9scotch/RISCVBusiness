@@ -1,4 +1,4 @@
-`timescale 100ns/100ns
+`timescale 100ns/100ns // MODIFIED BY YIYANG - to implement CLK_SRAM
 `include "generic_bus_if.vh"
 
 // modified by Yiyang Shui (shuiy@purdue.edu) starting on Jul. 25, 2022
@@ -8,7 +8,7 @@ parameter CLK_PERIOD = 100;
 module tb_l1_cache;
     logic CLK, CLK_SRAM,nRST;
     initial CLK  = 1'b0;
-	initial CLK_SRAM = 1'b1;
+	initial CLK_SRAM = 1'b0;
     always #(CLK_PERIOD/2) begin
 	CLK = ~CLK;
     end
@@ -117,7 +117,8 @@ program test(
 	test_case  = "Read back";
 	@(posedge CLK);
 	proc_gen_bus_if.ren  = 1'b1;
-	#(1); // let ren last longer so that we can see in waveform
+	// #(10) // original (when using SRAM wrapper, will not be able to see busy goes low, but apparently it does go low)
+	#(30); // MODIFIED BY YIYANG - let ren last longer so that we can see in waveform
 	wait(~proc_gen_bus_if.busy); // ** goes into read enable and hit part of IDLE output logic **
 	assert(proc_gen_bus_if.rdata == 32'hDEAD_DEAF) else $error("Test case: %s, test num: %0d, read %h, expected %h,  value from cache after miss", test_case, test_num, proc_gen_bus_if.rdata, 32'hDEAD_DEAF);
 	proc_gen_bus_if.ren = 1'b0;
@@ -234,12 +235,14 @@ program test(
 	    end
 	    if(mem_gen_bus_if.addr >= 32'h0000_0200) begin // in frame[0]
 
+			wait(~proc_gen_bus_if.busy); // MODIFIED BY YIYANG - wait for caches to prepare to output data
 			assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round first write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
 			mem_gen_bus_if.busy  = 1'b0; // due to one-cycle memory write
 				@(posedge CLK);
 			test_value++;
 			// now second word in the frame
 
+			wait(~proc_gen_bus_if.busy); // MODIFIED BY YIYANG - wait for caches to prepare to output data
 			assert(mem_gen_bus_if.wdata == test_value) else $error("Test case: %s, test num: %0d, \n \t Second Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
 				@(posedge CLK);
 			mem_gen_bus_if.busy  = 1'b1;
@@ -248,16 +251,19 @@ program test(
 		end // if (mem_gen_bus_if.addr > 32'h0000_0200)
 	    else begin           							// in frame[1]
 
+			wait(~proc_gen_bus_if.busy); // MODIFIED BY YIYANG - wait for caches to prepare to output data
 			assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value2, mem_gen_bus_if.wdata);
 			mem_gen_bus_if.busy  = 1'b0;
 				@(posedge CLK);
 			test_value2++;
 
 			// now second word in the frame
+			wait(~proc_gen_bus_if.busy); // MODIFIED BY YIYANG - wait for caches to prepare to output data
 			assert(mem_gen_bus_if.wdata == test_value2) else $error("Test case: %s, test num: %0d, \n \t First Round second write at 0x%h, expected: 0x%h, read: 0x%h", test_case, test_num, mem_gen_bus_if.addr, test_value, mem_gen_bus_if.wdata);
 			@(posedge CLK);
 			mem_gen_bus_if.busy  = 1'b1;
 			test_value2++;
+
 	    end // else: !if(mem_gen_bus_if.addr >= 32'h0000_0200)
 	end // while (1)
 	flush  = 1'b0;
@@ -274,6 +280,7 @@ program test(
 	// data 0
 	proc_gen_bus_if.addr   = '0;
 	proc_gen_bus_if.wdata  = 32'hAAAA_AAAA; // frame[1]: IDLE - FETCH - IDLE (hit & write)
+											// MODIFIED BY YIYANG - change the following wdata to improve readability
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0; #1;
 
@@ -326,42 +333,42 @@ program test(
 	@(posedge CLK);
 	proc_gen_bus_if.ren = 1'b0;
 	
-	// Test case 8,	#CLK_PERIOD; // Byte Enable
-	@(negedge CLK);
-	test_num++;
-	test_case 	      = "Byte Enable";
-	nRST 		     = 1'b0;
-	proc_gen_bus_if.wen  = 1'b0;
-	proc_gen_bus_if.ren  = 1'b0;
-	@(posedge CLK);
-	@(posedge CLK);
-	nRST 		       = 1'b1;
-	@(posedge CLK);
-	proc_gen_bus_if.wen    = 1'b1;
-	proc_gen_bus_if.wdata  = 32'hDDCCBBAA;
-	mem_gen_bus_if.busy    = 1'b0;
-	mem_gen_bus_if.rdata   = '0;
-	// Write twice to each word
-	for(integer i = 0; i < 4; i = i + 1) begin
-	    proc_gen_bus_if.addr  = i* 16; #1; // cache[0], cache[2], cache[]
-		proc_gen_bus_if.byte_en = 1'b1 << i; // small edit
-	    wait(~proc_gen_bus_if.busy);
-	    @(posedge CLK);
-	end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
-	proc_gen_bus_if.wen 	  = 1'b0;
-	proc_gen_bus_if.ren 	  = 1'b0;
-	#CLK_PERIOD;
-        @(posedge CLK);
-	test_value 	     = 32'hDDCC_BBAA;
-	proc_gen_bus_if.ren  = 1'b1;
-	// Read back lastest values (no byte enable)
-       for(integer i = 0; i < 4; i = i + 1) begin
-	    proc_gen_bus_if.addr = i*16; #1;
-	    wait(~proc_gen_bus_if.busy);
-	    assert((proc_gen_bus_if.rdata >> (i * 8)) == ({24'd0,test_value[7:0]})) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
-	    test_value = test_value >> 8;
-	    @(posedge CLK);
-	end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
+	// // Test case 8,	#CLK_PERIOD; // Byte Enable - YIYANG: the sync SRAM version doesn't have this function yet
+	// @(negedge CLK);
+	// test_num++;
+	// test_case 	      = "Byte Enable";
+	// nRST 		     = 1'b0;
+	// proc_gen_bus_if.wen  = 1'b0;
+	// proc_gen_bus_if.ren  = 1'b0;
+	// @(posedge CLK);
+	// @(posedge CLK);
+	// nRST 		       = 1'b1;
+	// @(posedge CLK);
+	// proc_gen_bus_if.wen    = 1'b1;
+	// proc_gen_bus_if.wdata  = 32'hDDCCBBAA;
+	// mem_gen_bus_if.busy    = 1'b0;
+	// mem_gen_bus_if.rdata   = '0;
+	// // Write twice to each word
+	// for(integer i = 0; i < 4; i = i + 1) begin
+	//     proc_gen_bus_if.addr  = i* 16; #1; // cache[0], cache[2], cache[]
+	// 	proc_gen_bus_if.byte_en = 1'b1 << i; // small edit
+	//     wait(~proc_gen_bus_if.busy);
+	//     @(posedge CLK);
+	// end // for (integer i = 0; i < 32'h0000_0400; i = i + 4)
+	// proc_gen_bus_if.wen 	  = 1'b0;
+	// proc_gen_bus_if.ren 	  = 1'b0;
+	// #CLK_PERIOD;
+    //     @(posedge CLK);
+	// test_value 	     = 32'hDDCC_BBAA;
+	// proc_gen_bus_if.ren  = 1'b1;
+	// // Read back lastest values (no byte enable)
+    //    for(integer i = 0; i < 4; i = i + 1) begin
+	//     proc_gen_bus_if.addr = i*16; #1;
+	//     wait(~proc_gen_bus_if.busy);
+	//     assert((proc_gen_bus_if.rdata >> (i * 8)) == ({24'd0,test_value[7:0]})) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
+	//     test_value = test_value >> 8;
+	//     @(posedge CLK);
+	// end // for (integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4)
 
 	// Test case: 9, Pass Through Functionality
 	#CLK_PERIOD;

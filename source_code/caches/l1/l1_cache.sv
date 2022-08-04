@@ -123,6 +123,9 @@ module l1_cache #(
     // Read Address
     decoded_addr_t read_addr, next_read_addr; // remember read addr. at IDLE to increment by 4 later when fetching
 
+    // SRAM
+    logic ctrl_busy; // if cache is busy
+
     // Counter always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
             if(~nRST) begin
@@ -178,7 +181,9 @@ module l1_cache #(
                 .N_SET_BITS(N_SET_BITS), .BLOCK_SIZE(BLOCK_SIZE), .N_BLOCK_BITS(N_BLOCK_BITS)) 
                 cache_data_sram (.CLK(CLK_SRAM), .nRST(nRST), .set_bits(sram_set_bits), .frame_bits(sram_frame_bits),     // has its own clock
                     .chip_select(sram_chip_select), .write_enable(sram_write_enable), .output_enable(sram_output_enable),
-                    .word_num(sram_word_num), .input_data(sram_input_data), .output_data(sram_output_data));
+                    .word_num(sram_word_num), .input_data(sram_input_data), .output_data(sram_output_data), .busy(sram_busy));
+
+    assign proc_gen_bus_if.busy = ctrl_busy | sram_busy;
 
     // --- end of wrapper module ---
 
@@ -298,7 +303,7 @@ module l1_cache #(
     // for now leave it like this for readability.
     // Outputs: counter control signals, cache, signals to memory, signals to processor
     always_comb begin
-        proc_gen_bus_if.busy    = 1'b1;
+        ctrl_busy    = 1'b1;
         mem_gen_bus_if.ren      = 1'b0;
         mem_gen_bus_if.wen      = 1'b0;
         mem_gen_bus_if.byte_en  = proc_gen_bus_if.byte_en; //FIXME: THIS WAS ADDED TO THE DESIGN BY VERIFICATION
@@ -345,19 +350,19 @@ module l1_cache #(
                 next_read_addr = decoded_addr;
 
                 if(proc_gen_bus_if.ren && hit) begin // if read enable and hit
-                    proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
+                    ctrl_busy 		   = 1'b0; // Set bus to not busy
 
                     // SRAM
                     sram_chip_select = 1'b1;
                     sram_output_enable = 1'b1;
                     sram_set_bits = decoded_addr.set_bits;
-                    sram_frame_bits = decoded_addr.block_bits;
-                    proc_gen_bus_if.rdata = sram_output_data;
+                    sram_frame_bits = hit_idx;
+                    proc_gen_bus_if.rdata = sram_output_data[decoded_addr.block_bits];
 
 		            next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit) begin // if write enable and hit
-                    proc_gen_bus_if.busy 							     = 1'b0;
+                    ctrl_busy 							     = 1'b0;
 
                     // ignore byte_en for now
                     // casez (proc_gen_bus_if.byte_en) // because bus can only contain one word at a time, have to choose what word / what byte in cache to write
@@ -373,6 +378,8 @@ module l1_cache #(
                     // SRAM
                     sram_chip_select = 1'b1;
                     sram_write_enable = 1'b1;
+                    sram_set_bits = decoded_addr.set_bits;
+                    sram_frame_bits = hit_idx; // or rdix
                     sram_word_num = decoded_addr.block_bits;
                     sram_input_data = proc_gen_bus_if.wdata;
 
@@ -386,14 +393,14 @@ module l1_cache #(
                         //proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata; //non byte enable
                         mem_gen_bus_if.ren      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
+                        ctrl_busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
                         proc_gen_bus_if.rdata   = mem_gen_bus_if.rdata;
                     end
                     else if(proc_gen_bus_if.wen)begin
                         //mem_gen_bus_if.wdata    = proc_gen_bus_if.wdata; //non byte enable
                         mem_gen_bus_if.wen      = 1'b1;
                         mem_gen_bus_if.addr     = proc_gen_bus_if.addr;
-                        proc_gen_bus_if.busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
+                        ctrl_busy    = mem_gen_bus_if.busy; //TODO: CHECK, ADDED BY VERIFICATION
                         casez (proc_gen_bus_if.byte_en) // Case statement for byte enable
                             4'b0001:    mem_gen_bus_if.wdata  = {24'd0, proc_gen_bus_if.wdata[7:0]};
                             4'b0010:    mem_gen_bus_if.wdata  = {16'd0,proc_gen_bus_if.wdata[15:8],8'd0};
@@ -428,6 +435,8 @@ module l1_cache #(
                     // SRAM
                     sram_chip_select = 1'b1;
                     sram_write_enable = 1'b1;
+                    sram_set_bits = read_addr.set_bits; // why decoded_addr also works?
+                    sram_frame_bits = ridx;
                     sram_word_num = word_num;
                     sram_input_data = mem_gen_bus_if.rdata;
 
@@ -442,6 +451,8 @@ module l1_cache #(
                     // SRAM
                     sram_chip_select = 1'b1;
                     sram_write_enable = 1'b1;
+                    sram_set_bits = read_addr.set_bits; // why decoded_addr also works?
+                    sram_frame_bits = ridx;
                     sram_word_num = word_num;
                     sram_input_data = mem_gen_bus_if.rdata;
 
@@ -457,6 +468,8 @@ module l1_cache #(
                 // SRAM
                 sram_chip_select = 1'b1;
                 sram_output_enable = 1'b1;
+                sram_set_bits = decoded_addr.set_bits;
+                sram_frame_bits = ridx;
                 mem_gen_bus_if.wdata = sram_output_data[word_num];
 
 
@@ -497,6 +510,7 @@ module l1_cache #(
             end // case: FLUSH_SET
 
             FLUSH_FRAME: begin
+                ctrl_busy = 1'b0;
                 mem_gen_bus_if.wen    = 1'b1;
                 mem_gen_bus_if.addr   = {cache[set_num].frames[frame_num].tag, set_num[N_SET_BITS - 1:0], word_num[N_BLOCK_BITS - 1:0], 2'b00};
                 //mem_gen_bus_if.wdata  = cache[set_num].frames[frame_num].data[word_num];
@@ -504,6 +518,8 @@ module l1_cache #(
                 // SRAM
                 sram_chip_select = 1'b1;
                 sram_output_enable = 1'b1;
+                sram_set_bits = set_num;
+                sram_frame_bits = frame_num;
                 mem_gen_bus_if.wdata = sram_output_data[word_num];
 
                 if(finish_word) begin

@@ -1,0 +1,446 @@
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+array unset createdGroup
+array set createdGroup {}
+#
+# Groups
+#
+if {[catch {group get -using [list proc_gen_bus_if]}]} {
+set createdGroup([list proc_gen_bus_if]) 1
+catch {group new -name proc_gen_bus_if -overlay 0}
+}
+if {[catch {group get -using [list Group 2]}]} {
+set createdGroup([list Group 2]) 1
+catch {group new -name {Group 2} -overlay 0}
+}
+if {[catch {group get -using [list Group 3]}]} {
+set createdGroup([list Group 3]) 1
+catch {group new -name {Group 3} -overlay 0}
+}
+if {[catch {group get -using [list Group 4]}]} {
+set createdGroup([list Group 4]) 1
+catch {group new -name {Group 4} -overlay 0}
+}
+if {[catch {group get -using [list Group 5]}]} {
+set createdGroup([list Group 5]) 1
+catch {group new -name {Group 5} -overlay 0}
+}
+if {[catch {group get -using [list mem_gen_bus_if]}]} {
+set createdGroup([list mem_gen_bus_if]) 1
+catch {group new -name mem_gen_bus_if -overlay 0}
+}
+if {[catch {group get -using [list proc_gen_bus_if.cpu]}]} {
+set createdGroup([list proc_gen_bus_if.cpu]) 1
+catch {group new -name proc_gen_bus_if.cpu -overlay 0}
+}
+if {[catch {group get -using [list mem_gen_Bus_if.generic_bus]}]} {
+set createdGroup([list mem_gen_Bus_if.generic_bus]) 1
+catch {group new -name mem_gen_Bus_if.generic_bus -overlay 0}
+}
+if {[catch {group get -using [list Group 1]}]} {
+set createdGroup([list Group 1]) 1
+catch {group new -name {Group 1} -overlay 0}
+}
+if {[catch {group get -using [list Group 6]}]} {
+set createdGroup([list Group 6]) 1
+catch {group new -name {Group 6} -overlay 0}
+}
+if {[catch {group get -using [list Group 7]}]} {
+set createdGroup([list Group 7]) 1
+catch {group new -name {Group 7} -overlay 0}
+}
+if {[info exists createdGroup([list proc_gen_bus_if])]} {
+group using proc_gen_bus_if
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list Group 2])]} {
+group using {Group 2}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list Group 3])]} {
+group using {Group 3}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list Group 4])]} {
+group using {Group 4}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list Group 5])]} {
+group using {Group 5}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list mem_gen_bus_if])]} {
+group using mem_gen_bus_if
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list proc_gen_bus_if.cpu])]} {
+group using proc_gen_bus_if.cpu
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+group insert \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.addr[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.busy}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.byte_en[3:0]}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.rdata[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.ren}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.wdata[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.proc_gen_bus_if.cpu.wen}]} ]
+}
+
+if {[info exists createdGroup([list mem_gen_Bus_if.generic_bus])]} {
+group using mem_gen_Bus_if.generic_bus
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+group insert \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.addr[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.busy}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.byte_en[3:0]}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.rdata[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.ren}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.wdata[31:0]}]} ] \
+    [subst  {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.wen}]} ]
+}
+
+if {[info exists createdGroup([list Group 1])]} {
+group using {Group 1}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+}
+
+if {[info exists createdGroup([list Group 6])]} {
+group using {Group 6}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+group insert \
+    [subst  {[format {tb_l1_cache.DUT.cache[63]}]} ]
+}
+
+if {[info exists createdGroup([list Group 7])]} {
+group using {Group 7}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+group insert \
+    [subst  {[format {tb_l1_cache.DUT.cache[1]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[2]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[3]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[4]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[5]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[6]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[7]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[8]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[9]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[10]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[11]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[12]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[13]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[14]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[15]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[16]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[17]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[18]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[19]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[20]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[21]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[22]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[23]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[24]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[25]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[26]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[27]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[28]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[29]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[30]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[31]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[32]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[33]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[34]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[35]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[36]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[37]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[38]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[39]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[40]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[41]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[42]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[43]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[44]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[45]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[46]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[47]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[48]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[49]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[50]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[51]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[52]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[53]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[54]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[55]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[56]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[57]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[58]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[59]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[60]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[61]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[62]}]} ] \
+    [subst  {[format {tb_l1_cache.DUT.cache[63]}]} ]
+}
+
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.CLK}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.TB_DUT.CLK_SRAM}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.clear}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.clear_done}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.flush}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.flush_done}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.nRST}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.TB_DUT.test_num}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.TB_DUT.test_case}]}
+	} ]]
+set id [waveform add -cdivider divider]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.state}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.finish_word}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.finish_frame}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.finish_set}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.hit}]}
+	} ]]
+
+set groupId0 [waveform add -groups proc_gen_bus_if.cpu]
+set gpGlist0 [waveform hierarchy contents $groupId0]
+set gpID0 [lindex $gpGlist0 0]
+foreach {name attrs} [subst  {
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.addr[31:0]}]} {}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.busy}]} {}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.byte_en[3:0]}]} {}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.rdata[31:0]}]} {}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.ren}]} {-color #00ffff -namecolor #00ffff}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.wdata[31:0]}]} {}
+    {[format {tb_l1_cache.proc_gen_bus_if.cpu.wen}]} {-color #00ffff -namecolor #00ffff}
+}] childcmds {
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+} {
+    set expected [ join [waveform signals -format path $gpID0] ]
+    if {[string equal $name $expected] || $name == "cdivider"} {
+        if {$attrs != ""} {
+            eval waveform format $gpID0 $attrs
+        }
+        if { $childcmds != ""} {
+            eval $childcmds
+        }
+    }
+    set gpGlist0 [lrange $gpGlist0 1 end]
+    set gpID0 [lindex $gpGlist0 0]
+}
+
+
+set groupId0 [waveform add -groups mem_gen_Bus_if.generic_bus]
+set gpGlist0 [waveform hierarchy contents $groupId0]
+set gpID0 [lindex $gpGlist0 0]
+foreach {name attrs} [subst  {
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.addr[31:0]}]} {}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.busy}]} {}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.byte_en[3:0]}]} {}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.rdata[31:0]}]} {}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.ren}]} {-color #00ffff -namecolor #00ffff}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.wdata[31:0]}]} {}
+    {[format {tb_l1_cache.mem_gen_bus_if.generic_bus.wen}]} {-color #00ffff -namecolor #00ffff}
+}] childcmds {
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+    {}
+} {
+    set expected [ join [waveform signals -format path $gpID0] ]
+    if {[string equal $name $expected] || $name == "cdivider"} {
+        if {$attrs != ""} {
+            eval waveform format $gpID0 $attrs
+        }
+        if { $childcmds != ""} {
+            eval $childcmds
+        }
+    }
+    set gpGlist0 [lrange $gpGlist0 1 end]
+    set gpID0 [lindex $gpGlist0 0]
+}
+
+set id [waveform add -cdivider divider]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.chip_select}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.output_enable}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.write_enable}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.ctrl_busy}]}
+	} ]]
+waveform format $id -namecolor #ff9900
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.busy}]}
+	} ]]
+waveform format $id -namecolor #ff9900
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.sram_set_bits[5:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.sram_frame_bits[0:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.sram_word_num[0:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.input_data[31:0]}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.output_data[1:0]}]}
+	} ]]
+waveform hierarchy expand $id
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.sram_data[0]}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform hierarchy collapse $id2
+set id2 [lindex [waveform hierarchy content $id] 1]
+waveform hierarchy collapse $id2
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache_data_sram.sram_data[0:63]}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id3 [lindex [waveform hierarchy content $id2] 1]
+waveform hierarchy expand $id3
+waveform hierarchy collapse $id2
+set id [waveform add -cdivider divider]
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache[0]}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 2]
+waveform hierarchy collapse $id4
+set id3 [lindex [waveform hierarchy content $id2] 1]
+waveform hierarchy expand $id3
+set id [waveform add -signals [subst  {
+	{[format {tb_l1_cache.DUT.cache[63:0]}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 0]
+waveform hierarchy expand $id4
+set id4 [lindex [waveform hierarchy content $id3] 1]
+waveform hierarchy expand $id4
+waveform hierarchy collapse $id2
+set id2 [lindex [waveform hierarchy content $id] 1]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 0]
+waveform hierarchy expand $id4
+set id4 [lindex [waveform hierarchy content $id3] 1]
+waveform hierarchy expand $id4
+waveform hierarchy collapse $id2
+set id2 [lindex [waveform hierarchy content $id] 62]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 0]
+waveform hierarchy expand $id4
+set id4 [lindex [waveform hierarchy content $id3] 1]
+waveform hierarchy expand $id4
+waveform hierarchy collapse $id2
+set id2 [lindex [waveform hierarchy content $id] 63]
+waveform hierarchy expand $id2
+set id3 [lindex [waveform hierarchy content $id2] 0]
+waveform hierarchy expand $id3
+set id4 [lindex [waveform hierarchy content $id3] 0]
+waveform hierarchy expand $id4
+set id4 [lindex [waveform hierarchy content $id3] 1]
+waveform hierarchy expand $id4
+waveform hierarchy collapse $id2
+waveform hierarchy collapse $id
+
+waveform xview limits 0 327535000ns

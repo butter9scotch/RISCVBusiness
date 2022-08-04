@@ -38,7 +38,6 @@ module sram_wrapper #(
 )
 (
     input logic CLK, nRST,
-    input logic clear, flush, // TODO: not planned yet
 
     input logic [N_SET_BITS - 1:0] set_bits,
     input logic [N_FRAME_BITS - 1:0] frame_bits,
