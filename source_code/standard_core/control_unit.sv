@@ -26,6 +26,7 @@
 `include "control_unit_if.vh"
 `include "rv32i_reg_file_if.vh"
 `include "risc_mgmt_if.vh"
+`include "decompressor_if.vh"
 
 module control_unit 
 (
@@ -84,7 +85,6 @@ module control_unit
   assign cu_if.jump       = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.ex_pc_sel  = (cu_if.opcode == JAL || cu_if.opcode == JALR);
   assign cu_if.j_sel      = (cu_if.opcode == JAL);
-
   // Assign alu operands
   always_comb begin
     case(cu_if.opcode)
@@ -213,6 +213,7 @@ module control_unit
     cu_if.ret_insn = 1'b0;
     cu_if.breakpoint = 1'b0;
     cu_if.ecall_insn = 1'b0;
+    cu_if.wfi = 1'b0;
 
     if (cu_if.opcode == SYSTEM) begin
       if (rv32i_system_t'(instr_i.funct3) == PRIV) begin
@@ -222,6 +223,8 @@ module control_unit
           cu_if.breakpoint = 1'b1;
         if (priv_insn_t'(instr_i.imm11_00) == ECALL)
           cu_if.ecall_insn = 1'b1;
+        if (priv_insn_t'(instr_i.imm11_00) == WFI)
+          cu_if.wfi = 1'b1;
       end
     end
   end
@@ -253,7 +256,6 @@ module control_unit
       end
     end
   end
-
   assign cu_if.csr_rw_valid = (cu_if.csr_swap | cu_if.csr_set | cu_if.csr_clr);
 
   assign cu_if.csr_addr = csr_addr_t'(instr_i.imm11_00);
