@@ -47,3 +47,7 @@ _vmake
 *.qpg
 
 open_files.sh
+
+# fusesoc
+fusesoc_libraries
+fusesoc.conf
