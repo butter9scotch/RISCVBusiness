@@ -1,12 +1,12 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,7 @@ module priv_1_11_csr_rfile (
 );
   import machine_mode_types_1_11_pkg::*;
   import rv32i_types_pkg::*;
- 
+
   /* Machine Information Registers */
 
   mvendorid_t   mvendorid;
@@ -45,7 +45,7 @@ module priv_1_11_csr_rfile (
   assign misaid_default.zero        = '0;
   assign misaid_default.extensions  = MISAID_EXT_I `ifdef         RV32M_SUPPORTED |
                                       MISAID_EXT_M `endif `ifdef  RV32C_SUPPORTED |
-                                      MISAID_EXT_C `endif `ifdef  RV32F_SUPPORTED | 
+                                      MISAID_EXT_C `endif `ifdef  RV32F_SUPPORTED |
                                       MISAID_EXT_F `endif `ifdef  CUSTOM_SUPPORTED |
                                       MISAID_EXT_X `endif;
 
@@ -53,9 +53,9 @@ module priv_1_11_csr_rfile (
   assign mvendorid        = '0;
   assign marchid          = '0;
   assign mimpid           = '0;
-  assign mhartid          = '0; 
+  assign mhartid          = '0;
 
-  
+
   /* Machine Trap Setup Registers */
 
   mstatus_t mstatus, mstatus_next;
@@ -63,70 +63,71 @@ module priv_1_11_csr_rfile (
   mideleg_t mideleg;
   mie_t     mie, mie_next;
   mtvec_t   mtvec, mtvec_next;
-
+/*
   // Privilege and Global Interrupt-Enable Stack
-  assign mstatus.uie          = 1'b0;
-  assign mstatus.sie   	      = 1'b0;
-  assign mstatus.reserved_0   = 1'b0;
-  assign mstatus.upie	      = 1'b0;
-  assign mstatus.spie	      = 1'b0;
-  assign mstatus.reserved_1   = 1'b0;
-  assign mstatus.spp	      = 1'b0;
-  assign mstatus.reserved_2   = 2'b0;
-  assign mstatus.mpp          = M_LEVEL;
+  assign mstatus_next.uie          = 1'b0;
+  assign mstatus_next.sie             = 1'b0;
+  assign mstatus_next.reserved_0   = 1'b0;
+  assign mstatus_next.upie        = 1'b0;
+  assign mstatus_next.spie        = 1'b0;
+  assign mstatus_next.reserved_1   = 1'b0;
+  assign mstatus_next.spp         = 1'b0;
+  assign mstatus_next.reserved_2   = 2'b0;
+  assign mstatus_next.mpp          = M_LEVEL;
 
   // No memory protection
-  assign mstatus.mprv   = 1'b0;
-  assign mstatus.sum    = 1'b0;
-  assign mstatus.mxr    = 1'b0;
+  assign mstatus_next.mprv   = 1'b0;
+  assign mstatus_next.sum    = 1'b0;
+  assign mstatus_next.mxr    = 1'b0;
 
   // No virtualization protection
-  assign mstatus.tvm = 1'b0;
-  assign mstatus.tw = 1'b0;
-  assign mstatus.tsr = 1'b0;
+  assign mstatus_next.tvm = 1'b0;
+  assign mstatus_next.tw = 1'b0;
+  assign mstatus_next.tsr = 1'b0;
 
   // No FPU or Extensions
-  assign mstatus.xs     = XS_ALL_OFF;
-  assign mstatus.fs     = FS_OFF; // Even though FPU will be integrated for AFTx06, there is no functionality for Supervisor Mode
-  assign mstatus.sd     = (mstatus.fs == FS_DIRTY) | (mstatus.xs == XS_SOME_D);
-  assign mstatus.reserved_3 = '0;
-
+  assign mstatus_next.xs     = XS_ALL_OFF;
+  assign mstatus_next.fs     = FS_OFF; // Even though FPU will be integrated for AFTx06, there is no functionality for Supervisor Mode
+  assign mstatus_next.sd     = (mstatus.fs == FS_DIRTY) | (mstatus.xs == XS_SOME_D);
+  assign mstatus_next.reserved_3 = '0;
+*/
 
 
   // Deleg Register Zero in Machine Mode Only (Should be removed)
   assign medeleg = '0;
   assign mideleg = '0;
 
-  assign mie.reserved_0 = '0;
-  assign mie.reserved_1 = '0;
-  assign mie.reserved_2 = '0;
-  assign mie.reserved_3 = '0;
-  assign mie.utie = 1'b0;
-  assign mie.stie = 1'b0;
-  assign mie.usie = 1'b0;
-  assign mie.ssie = 1'b0;
-  assign mie.ueie = 1'b0;
-  assign mie.seie = 1'b0;
-
+/*
+  assign mie_next.reserved_0 = '0;
+  assign mie_next.reserved_1 = '0;
+  assign mie_next.reserved_2 = '0;
+  assign mie_next.reserved_3 = '0;
+  assign mie_next.utie = 1'b0;
+  assign mie_next.stie = 1'b0;
+  assign mie_next.usie = 1'b0;
+  assign mie_next.ssie = 1'b0;
+  assign mie_next.ueie = 1'b0;
+  assign mie_next.seie = 1'b0;
+*/
  /* Machine Trap Handling */
- 
+
   mscratch_t  mscratch, mscratch_next;
   mepc_t      mepc, mepc_next;
   mcause_t    mcause, mcause_next;
   mtval_t     mtval, mtval_next;
   mip_t       mip, mip_next;
- 
-  assign mip.reserved_0 = '0;
-  assign mip.reserved_1 = '0;
-  assign mip.reserved_2 = '0;
-  assign mip.reserved_3 = '0;
-  assign mip.utip = 1'b0;
-  assign mip.stip = 1'b0;
-  assign mip.usip = 1'b0;
-  assign mip.ssip = 1'b0;
-  assign mip.ueip = 1'b0;
-  assign mip.seip = 1'b0;
-
+/*
+  assign mip_next.reserved_0 = '0;
+  assign mip_next.reserved_1 = '0;
+  assign mip_next.reserved_2 = '0;
+  assign mip_next.reserved_3 = '0;
+  assign mip_next.utip = 1'b0;
+  assign mip_next.stip = 1'b0;
+  assign mip_next.usip = 1'b0;
+  assign mip_next.ssip = 1'b0;
+  assign mip_next.ueip = 1'b0;
+  assign mip_next.seip = 1'b0;
+*/
   /* Machine Counter Delta Registers */
   // Unimplemented, only Machine Mode Supported
 
@@ -148,11 +149,12 @@ module priv_1_11_csr_rfile (
   assign instretfull_next = (prv_intern_if.instr_retired == 1'b1) ?
                             instretfull + 1 : instretfull;
 
- 
+
   always_ff @ (posedge CLK, negedge nRST) begin
     if (~nRST) begin
-      mstatus.mie <= 1'b0;
-      mstatus.mpie <= 1'b0;
+      mstatus <= '0;
+      //mstatus.mie <= 1'b0;
+      //mstatus.mpie <= 1'b0;
       mie.mtie    <= 1'b0;
       mie.msie    <= 1'b0;
       mip.msip    <= 1'b0;
@@ -167,15 +169,18 @@ module priv_1_11_csr_rfile (
       timefull    <= '0;
       cyclefull   <= '0;
       instretfull <= '0;
-    end else begin      
-      mstatus.mie  <= mstatus_next.mie;
-      mstatus.mpie <= mstatus_next.mpie;
-      mie.mtie    <= mie_next.mtie;
-      mie.msie    <= mie_next.msie;
-      mie.meie    <= mie_next.meie;
-      mip.msip    <= mip_next.msip;
-      mip.mtip    <= mip_next.mtip;
-      mip.meip    <= mip_next.meip;
+    end else begin
+      mstatus <= mstatus_next;
+      //mstatus.mie  <= mstatus_next.mie;
+      //mstatus.mpie <= mstatus_next.mpie;
+      mie <= mie_next;
+      //mie.mtie    <= mie_next.mtie;
+      //mie.msie    <= mie_next.msie;
+      //mie.meie    <= mie_next.meie;
+      mip <= mip_next;
+      //mip.msip    <= mip_next.msip;
+      //mip.mtip    <= mip_next.mtip;
+      //mip.meip    <= mip_next.meip;
       misaid      <= misaid_next;
       mtvec       <= mtvec_next;
       mcause      <= mcause_next;
@@ -220,7 +225,7 @@ module priv_1_11_csr_rfile (
                             mstatus
                           );
   assign mepc_next      = (prv_intern_if.addr == MEPC_ADDR)  ? mepc_t'(rup_data) : (
-                            prv_intern_if.mepc_rup ? prv_intern_if.mepc_next : 
+                            prv_intern_if.mepc_rup ? prv_intern_if.mepc_next :
                             mepc
                           );
 
@@ -232,7 +237,7 @@ module priv_1_11_csr_rfile (
   // Ensure legal MISA value - WARL
   always_comb begin
     misaid_temp = misaid_t'(rup_data);
-      if(prv_intern_if.addr == MISA_ADDR && misaid_temp.base != 2'b00 
+      if(prv_intern_if.addr == MISA_ADDR && misaid_temp.base != 2'b00
           && (misaid_temp.extensions & MISAID_EXT_E) ^ (misaid_temp.extensions & MISAID_EXT_I) != 'b1
             && misaid_temp.zero == 4'b0) begin
         misaid_next = misaid_temp;
@@ -248,19 +253,19 @@ module priv_1_11_csr_rfile (
       MARCHID_ADDR    : prv_intern_if.rdata = marchid;
       MIMPID_ADDR     : prv_intern_if.rdata = mimpid;
       MHARTID_ADDR    : prv_intern_if.rdata = mhartid;
-      MISA_ADDR       : prv_intern_if.rdata = misaid; 
+      MISA_ADDR       : prv_intern_if.rdata = misaid;
 
       MSTATUS_ADDR    : prv_intern_if.rdata = mstatus;
       MTVEC_ADDR      : prv_intern_if.rdata = mtvec;
-      MEDELEG_ADDR    : prv_intern_if.rdata = medeleg; 
-      MIDELEG_ADDR    : prv_intern_if.rdata = mideleg; 
+      MEDELEG_ADDR    : prv_intern_if.rdata = medeleg;
+      MIDELEG_ADDR    : prv_intern_if.rdata = mideleg;
       MIE_ADDR        : prv_intern_if.rdata = mie;
 
       MSCRATCH_ADDR   : prv_intern_if.rdata = mscratch;
       MEPC_ADDR       : prv_intern_if.rdata = mepc;
       MCAUSE_ADDR     : prv_intern_if.rdata = mcause;
       MTVAL_ADDR      : prv_intern_if.rdata = mtval;
-      MIP_ADDR        : prv_intern_if.rdata = mip; 
+      MIP_ADDR        : prv_intern_if.rdata = mip;
 
       // Performance counters
       MCYCLE_ADDR      : prv_intern_if.rdata = cycle;

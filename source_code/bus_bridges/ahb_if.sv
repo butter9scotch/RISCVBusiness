@@ -4,10 +4,7 @@
 // Version      1.0
 // Description: Interface for fully specified AMBA 3 AHB-Lite
 
-`ifndef AHB_IF_VH
-`define AHB_IF_VH
-
-interface ahb_if;
+interface ahb_if();
    logic [1:0] HTRANS;
    logic  [1:0] HRESP;
    //logic [1:0] HRESP;			JOHN CHANGED THIS
@@ -36,5 +33,3 @@ interface ahb_if;
    );   
 
 endinterface // ahb_if
-
-`endif //  `ifndef AHB_IF_VH
