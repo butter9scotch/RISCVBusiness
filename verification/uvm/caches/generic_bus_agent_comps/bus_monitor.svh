@@ -34,6 +34,7 @@ import uvm_pkg::*;
 
 class bus_monitor extends uvm_monitor;
   // precedence breaks ties for transactions that come during the same tick (lower is higher precedence)
+  // TODO: change precedence to using uvm_wait_for_nba_region()
   `uvm_component_utils(bus_monitor)
 
   virtual cache_if cif;
