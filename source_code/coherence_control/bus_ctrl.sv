@@ -22,48 +22,58 @@
 *	Description:  Bus controller for MESI cache coherence; extended from coherence_ctrl.sv
 */
 
-`include "coherence_ctrl_if.vh"
+`include "bus_ctrl_if.vh"
 
 module bus_ctrl #( 
-    parameter BLOCK_SIZE = 2,
-    parameter CPUS = 2
+    parameter DOUBLE_BLOCK_SIZE = 1,    // BLOCK_SIZE == 2
+    parameter CPUS = 4
 )(  
     input logic CLK, nRST, 
     bus_ctrl_if.cc ccif
 );  
-    // localparams and variables
-    // localparam COUNTER_LENGTH = $clog2(BLOCK_SIZE/2); // 64 bit memory bandwidth
+    // localparams/imports
+    localparam COUNT_LENGTH = $clog2(DOUBLE_BLOCK_SIZE); // 64 bit memory bandwidth
     localparam CPU_ID_LENGTH = $clog2(CPUS);
-    // logic [COUNTER_LENGTH-1:0] count, ncount;
-    bus_state_t state, nstate; 
+    // states
+    bus_state_t state, nstate;
+    // requester/supplier
     logic [CPU_ID_LENGTH-1:0] requester_cpu, nrequester_cpu;
     logic [CPU_ID_LENGTH-1:0] supplier_cpu, nsupplier_cpu;
+    logic nosupplier, n_nosupplier;
+    // support for flopped outputs
     word_t [CPUS-1:0] nccsnoopaddr;
     logic [CPUS-1:0] nccwait, nccinv;
     longWord_t ndload;
-    
+    // counter to ensure all bandwidth size is acted on
+    logic [COUNT_LENGTH:0] count, ncount;
+    logic count_complete;
+
+    // FF
     always_ff @(posedge CLK, negedge nRST) begin
         if (!nRST) begin
             requester_cpu <= '0;
             supplier_cpu <= '0;
             nosupplier <= 1;
-            counter <= '0;
             state <= IDLE; 
             // cc outputs
-            ccif.snoopaddr <= '0;
+            ccif.ccsnoopaddr <= '0;
             ccif.ccinv <= '0;
             ccif.dload <= '0;
+            // count for number of 64 bit operations needed
+            count <= '0;
         end
         else begin
             requester_cpu <= nrequester_cpu;
             supplier_cpu <= nsupplier_cpu;
             nosupplier <= n_nosupplier;
-            counter <= ncounter; 
+            count <= ncount; 
             state <= nstate;
             // cc outputs
-            ccif.snoopaddr <= nccsnoopaddr;
+            ccif.ccsnoopaddr <= nccsnoopaddr;
             ccif.ccinv <= nccinv;
             ccif.dload[requester_cpu] <= ndload;
+            // count for number of 64 bit operations needed
+            count <= ncount;
         end
     end
 
@@ -72,19 +82,24 @@ module bus_ctrl #(
         nstate = state;
         casez (state)
             IDLE:  begin
-                if (|ccif.dWEN)                         nstate = WMEM;
-                else if (|(ccif.dREN))                  nstate = SNOOP;
+                if (|ccif.dWEN)
+                    nstate = WMEM;
+                else if (|(ccif.dREN))                  
+                    nstate = SNOOP;
+                else if (|ccif.cctrans)
+                    nstate = UPDATE;
             end    
-            SNOOP:          nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER : RMEM;
-            SNOOPX:         nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFERX : RMEMX;
-            RMEM:           nstate = !ccif.dwait[requester_cpu] ? IDLE : state;  // will add counter
-            RMEMX:          nstate = !ccif.dwait[requester_cpu] ? IDLE : state;
-            TRANSFER_0:     nstate = TRANSFER_1;
-            TRANSFER_1:     nstate = IDLE;
+            SNOOP:          nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER_0 : RMEM;
+            SNOOPX:         nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFERX_0 : RMEMX;
+            RMEM:           nstate = count_complete && !ccif.dwait[requester_cpu] ? IDLE : state;
+            RMEMX:          nstate = count_complete && !ccif.dwait[requester_cpu] ? IDLE : state;
             TRANSFERX_0:    nstate = TRANSFERX_1;
-            TRANSFERX_1:    nstate = TRANSFERX_2;
-            TRANSFERX_2:    nstate = !ccif.dwait[supplier_cpu] ? IDLE : state;
-            WMEM:           nstate = !ccif.dwait[requester_cpu] ? IDLE : state;
+            TRANSFERX_1:    nstate = IDLE;
+            TRANSFER_0:     nstate = TRANSFER_1;
+            TRANSFER_1:     nstate = WMEM_TRANSFER;
+            WMEM_TRANSFER:  nstate = count_complete && !ccif.dwait[supplier_cpu] ? IDLE : state;
+            WMEM:           nstate = count_complete && !ccif.dwait[requester_cpu] ? IDLE : state;
+            UPDATE:         nstate = IDLE;
         endcase
     end
 
@@ -100,8 +115,24 @@ module bus_ctrl #(
                 4'b001z: nsupplier_cpu = 1;
                 4'b0001: nsupplier_cpu = 0;
                 4'b0000: n_nosupplier = 1;
-            endcasez
+            endcase
         end
+    end
+
+    // counter, for current word
+    always_comb begin
+        ncount = count;
+        count_complete = (count == (DOUBLE_BLOCK_SIZE - 1));
+        // CLEAR when entering cache-cache or rmem
+        if ((state == SNOOP || state == SNOOPX || state == UPDATE) && nstate != state)
+            ncount = 0;
+        // CLEAR when entering WMEM
+        else if (nstate == WMEM && nstate != state)
+            ncount = 0;
+        // increment due to dwait = 0 from anything 
+        // (dwait only matters for either req or sup; maybe can be simplified)
+        else if (|(~ccif.dwait))
+            ncount = count + 1;
     end
 
     // output logic for bus FSM
@@ -120,16 +151,15 @@ module bus_ctrl #(
         casez(state)
             // determine requester CPU
             IDLE: begin
-                casez (cctrans) // assume 4 cores for now
+                casez (ccif.cctrans) // assume 4 cores for now
                     4'b1zzz: nrequester_cpu = 3;
                     4'b01zz: nrequester_cpu = 2;
                     4'b001z: nrequester_cpu = 1;
                     4'b0001: nrequester_cpu = 0;
-                endcasez
+                endcase
             end
             // attempt to snoop all other caches
             SNOOP: begin
-                n_nosupplier = 0;
                 ccif.ccwait = '1 & ~(1 << requester_cpu);
                 for (int i = 0; i < CPUS; i++) begin
                     if (requester_cpu != i)
@@ -139,7 +169,6 @@ module bus_ctrl #(
             // attempt to snoop all other caches; invalidate on the next clk
             SNOOPX: begin
                 nccinv = '1 & ~(1 << requester_cpu);
-                n_nosupplier = 0;
                 ccif.ccwait = '1 & ~(1 << requester_cpu);
                 for (int i = 0; i < CPUS; i++) begin
                     if (requester_cpu != i)
@@ -148,7 +177,7 @@ module bus_ctrl #(
             end
             // respond with reading L2 if no snoop hit; update to E if exclusive
             RMEM: begin
-                ccif.l2REN = 1'b1; 
+                ccif.l2REN = 1; 
                 ccif.l2addr = ccif.daddr[requester_cpu]; 
                 ccif.dload[requester_cpu] = ccif.l2load; 
                 ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS); 
@@ -156,33 +185,41 @@ module bus_ctrl #(
             end
             // respond with reading L2 if no snoopx hit; update to M
             RMEMX: begin
-                ccif.l2REN = 1'b1; 
+                ccif.l2REN = 1; 
                 ccif.l2addr = ccif.daddr[requester_cpu]; 
                 ccif.dload[requester_cpu] = ccif.l2load; 
                 ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS); 
                 ccif.ccexclusive[requester_cpu] = 1;
             end
-            // respond with cache-to-cache on snoop/snoopx hit; first write to bus
+            // respond with cache-to-cache on snoop/snoopx hit; first, write to bus
             TRANSFER_0, TRANSFERX_0: begin
                 ndload = ccif.dstore[supplier_cpu]; 
             end
-            // respond with cache-to-cache on snoop/snoopx hit; second write to requester
+            // respond with cache-to-cache on snoop/snoopx hit; second, write to requester
             TRANSFER_1, TRANSFERX_1: begin
-                ccif.dwait[requester_cpu] = 1'b0;
+                ccif.dwait[requester_cpu] = 0;
             end
-            // final writeback for snoopx hit, invalidation done prior
-            TRANSFERX_2: begin
+            // final writeback for snoop hit; [I -> S; M -> S needs a WB as S can be replaced]
+            WMEM_TRANSFER: begin
                 ccif.l2store = ccif.dstore[supplier_cpu]; 
                 ccif.l2addr = ccif.daddr[supplier_cpu]; 
-                ccif.l2WEN = 1'b1; 
+                ccif.l2WEN = 1; 
                 ccif.dwait[supplier_cpu] = !(ccif.l2state == L2_ACCESS); 
             end
-            // evictions may occur
+            // evictions may occur (dWEN goes high)
             WMEM: begin
                 ccif.l2store = ccif.dstore[requester_cpu]; 
                 ccif.l2addr = ccif.daddr[requester_cpu]; 
-                ccif.l2WEN = 1'b1; 
+                ccif.l2WEN = 1; 
                 ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS); 
+            end
+            UPDATE: begin
+                nccinv = '1 & ~(1 << requester_cpu);
+                ccif.ccwait = '1 & ~(1 << requester_cpu);
+                for (int i = 0; i < CPUS; i++) begin
+                    if (requester_cpu != i)
+                        nccsnoopaddr = ccif.daddr[requester_cpu];
+                end
             end
         endcase
     end

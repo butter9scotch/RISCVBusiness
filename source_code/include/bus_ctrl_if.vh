@@ -18,7 +18,7 @@
 *
 *	Created by:   Jimmy Mingze Jin
 *	Email:        jin357@purdue.edu
-*	Date Created: 11/01/2022
+*	Date Created: 10/31/2022
 *	Description:  Bus controller connections
 */
 
@@ -26,34 +26,35 @@
 `define BUS_CTRL_IF_VH
 
 // coherence bus controller states
-typedef enum logic {  
-    IDLE, 
-    SNOOP, SNOOPX,
-    RMEM, RMEMX, 
-    TRANSFER_0, TRANSFER_1, 
-    TRANSFERX_0, TRANSFERX_1, TRANSFERX_2,
-    WMEM
+typedef enum logic [3:0] {  
+    IDLE,                                   // IDLE, transaction arbiter
+    SNOOP, RMEM,                            // regular busRD
+    SNOOPX, RMEMX,                          // regular busRDX
+    TRANSFER_0, TRANSFER_1, WMEM_TRANSFER,  // regular busWB
+    TRANSFERX_0, TRANSFERX_1,               // [I -> M, M -> I] optimization
+    WMEM,                                   // evictions
+    UPDATE                                  // buscache optimization
 } bus_state_t;
 
 // taken from coherence_ctrl_if.vh
-typedef enum logic[1:0] {
+typedef enum logic [1:0] {
     L2_FREE, L2_BUSY, L2_ACCESS, L2_ERROR
 } l2_state_t;
 
 // taken from coherence_ctrl_if.vh
 typedef logic [31:0] word_t;
 typedef logic [63:0] longWord_t;
-parameter CPUS = 2;
+parameter CPUS = 4;
 
 // modified from coherence_ctrl_if.vh
 interface bus_ctrl_if;
     // L1 generic control signals
     logic       [CPUS-1:0] dREN, dWEN, dwait; 
-    longWord_t  [CPUS-1:0] daddr, dload, dstore; 
+    longWord_t  [CPUS-1:0] dload, dstore; 
     // L1 coherence signals 
     logic       [CPUS-1:0] cctrans, ccwrite, ccsnoophit, ccexclusivehit;  
     logic       [CPUS-1:0] ccwait, ccinv, ccexclusive; 
-    word_t      [CPUS-1:0] ccsnoopaddr; 
+    word_t      [CPUS-1:0] ccsnoopaddr, daddr; 
     // L2 signals
     l2_state_t l2state; 
     longWord_t l2load, l2store; 
@@ -70,9 +71,9 @@ interface bus_ctrl_if;
                 l2addr, l2store, l2REN, l2WEN
     ); 
 
-    modport cc(
+    modport tb(
         input   dwait, dload, 
-                ccwait, ccinv, ccsnoopaddr, ccexclusivehit, 
+                ccwait, ccinv, ccsnoopaddr, ccexclusive, 
                 l2addr, l2store, l2REN, l2WEN,
         output  dREN, dWEN, daddr, dstore, 
                 cctrans, ccwrite, ccsnoophit, ccexclusivehit,
@@ -80,4 +81,4 @@ interface bus_ctrl_if;
     ); 
 
 endinterface
-`endif // COHERENCE_CTRL_IF_VH
+`endif // BUS_CTRL_IF_VH
