@@ -1,0 +1,1 @@
+rm -rf .simvision INCA_libs waves.shm irun.history irun.key irun.log

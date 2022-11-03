@@ -28,12 +28,15 @@
 // coherence bus controller states
 typedef enum logic [3:0] {  
     IDLE,                                   // IDLE, transaction arbiter
-    SNOOP, RMEM,                            // regular busRD
-    SNOOPX, RMEMX,                          // regular busRDX
+    SNOOP, RMEM,                            // regular busRD            // happens when supplier is going S/E
+    SNOOP_INV, RMEM_INV,                    // regular busRDX           // happens when requester is going modified
     TRANSFER_0, TRANSFER_1, WMEM_TRANSFER,  // regular busWB
-    TRANSFERX_0, TRANSFERX_1,               // [I -> M, M -> I] optimization
+                                            // special exclusivity case handled in RMEM and TRANSFER for updates to E for requester
+                                            // state transitions ignore WMEM if supplier E -> S rather than M -> S
+                                            // 
+    TRANSFER_INV_0, TRANSFER_INV_1,         // do not WB if [I -> M, M -> I]
     WMEM,                                   // evictions
-    UPDATE                                  // buscache optimization
+    UPDATE                                  // buscache optimization, minimal clk cycles for [S -> M, S/I -> I]
 } bus_state_t;
 
 // taken from coherence_ctrl_if.vh
@@ -52,7 +55,7 @@ interface bus_ctrl_if;
     logic       [CPUS-1:0] dREN, dWEN, dwait; 
     longWord_t  [CPUS-1:0] dload, dstore; 
     // L1 coherence signals 
-    logic       [CPUS-1:0] cctrans, ccwrite, ccsnoophit, ccexclusivehit;  
+    logic       [CPUS-1:0] cctrans, ccwrite, ccsnoophit, ccIsExclusive;  // todo: EXPLAIN what I even use these for in comments or elsewhere
     logic       [CPUS-1:0] ccwait, ccinv, ccexclusive; 
     word_t      [CPUS-1:0] ccsnoopaddr, daddr; 
     // L2 signals
@@ -64,7 +67,7 @@ interface bus_ctrl_if;
     // modports
     modport cc(
         input   dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccexclusivehit,
+                cctrans, ccwrite, ccsnoophit, ccIsExclusive,
                 l2load, l2state, 
         output  dwait, dload, 
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
@@ -76,7 +79,7 @@ interface bus_ctrl_if;
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
                 l2addr, l2store, l2REN, l2WEN,
         output  dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccexclusivehit,
+                cctrans, ccwrite, ccsnoophit, ccIsExclusive,
                 l2load, l2state
     ); 
 
