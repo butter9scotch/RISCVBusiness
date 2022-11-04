@@ -64,13 +64,15 @@ module bus_ctrl_tb();
 		ccif.dREN = 0; 
 		ccif.dWEN = '0; 
 		ccif.daddr = '0;
-		ccif.dstore = '0; 
+		ccif.dstore = 64'hBADBADBAD; 
 		ccif.cctrans = '0; 
 		ccif.ccwrite = '0; 
 		ccif.ccsnoophit = '0; 
-		ccif.ccIsExclusive = 0;
-		ccif.l2load = 64'h05; 		// what we get if we load from memory
-		ccif.l2state = L2_FREE;  
+		ccif.ccIsPresent = '0;
+		ccif.ccdirty = '0;
+		ccif.l2load = 64'hBADBADBAD;
+		ccif.l2state = L2_FREE;
+		#(CLK_PERIOD * 2);
 	endtask
 
 	/*
@@ -84,6 +86,8 @@ module bus_ctrl_tb();
 		#(L2_LATENCY * CLK_PERIOD); 
 		ccif.l2state = L2_ACCESS; 
 		ccif.l2load = l2load;
+		wait(ccif.l2REN == 1'b0);
+			ccif.l2state = L2_FREE; 
 	endtask
 
 	/*
@@ -108,7 +112,6 @@ module bus_ctrl_tb();
 	*/
 	task check_dload(input longWord_t expected_data, logic expected_ccexclusive, int prid);
 		wait(~ccif.dwait[prid]);
-		#(CLK_PERIOD/2);
 		if (word_t'(ccif.dload[prid]) != expected_data) begin
 			$display("E: ccif.dload[%1d]: %8h, but expecting: %8h\n", prid, ccif.dload[prid], expected_data);
 			tb_err = 1'b1; 
@@ -117,12 +120,6 @@ module bus_ctrl_tb();
 			$display("E: wrong ccif.ccexclusive[%1d]\n", prid); 
 			tb_err = 1'b1; 
 		end
-		#(CLK_PERIOD/2);
-	endtask
-
-	task relinquish_l2;
-		wait(ccif.l2REN == 1'b0);
-			ccif.l2state = L2_FREE; 
 	endtask
 
 	/*
@@ -163,7 +160,6 @@ module bus_ctrl_tb();
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);
-			relinquish_l2();
 		end
 
 		// one other cache has the data (supplier = E)
@@ -178,7 +174,7 @@ module bus_ctrl_tb();
 		// go through and check outputs
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			supplier = (!(i % 4) ? 1 : (i % 4));
-			ccif.ccIsExclusive[supplier] = 1;
+			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
 			check_dload(longWord_t'(i + 1), 0, 0);
 		end
@@ -195,10 +191,10 @@ module bus_ctrl_tb();
 		// go through and check outputs
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			supplier = (!(i % 4) ? 1 : (i % 4));
+			ccif.ccdirty[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
 			check_dload(longWord_t'(i + 1), 0, 0);
 			l2_store(longWord_t'(i + 1));
-			relinquish_l2();
 		end
 
 		// multiple other caches has the data (other caches = S)
@@ -213,9 +209,9 @@ module bus_ctrl_tb();
 		ccif.daddr[0] = word_t'(19);
 		// go through and check outputs
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+			ccif.ccIsPresent = 4'b1100;
 			l2_load(longWord_t'(i + 1));
-			check_dload(longWord_t'(i + 1), 3, 0);
-			relinquish_l2();
+			check_dload(longWord_t'(i + 1), 0, 0);
 		end
 
     /***************************************************************************
@@ -235,7 +231,6 @@ module bus_ctrl_tb();
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);		// need to check ccinv
-			relinquish_l2();
 		end
 
 		// one other cache has the data (supplier = E)
@@ -251,9 +246,9 @@ module bus_ctrl_tb();
 		// go through and check outputs
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			supplier = (!(i % 4) ? 1 : (i % 4));
-			ccif.ccIsExclusive[supplier] = 1;
+			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
-			check_dload(longWord_t'(i + 1), 0, 0);					// need to check ccinv
+			check_dload(longWord_t'(i + 1), 1, 0);	// does not matter					// need to check ccinv
 		end
 
 		// one other cache has the data (supplier = M)
@@ -270,10 +265,10 @@ module bus_ctrl_tb();
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
 			supplier = (!(i % 4) ? 1 : (i % 4));
 			ccif.ccsnoophit[supplier] = 1;
+			ccif.ccdirty[supplier] = 1;
+			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
-			l2_store(longWord_t'(i + 1));
-			check_dload(longWord_t'(i + 1), 0, 0);
-			relinquish_l2();
+			check_dload(longWord_t'(i + 1), 1, 0);
 		end
 
 		// multiple other caches has the data (other caches = S)
@@ -288,9 +283,9 @@ module bus_ctrl_tb();
 		ccif.ccwrite[0] = 1;
 		// go through and check outputs
 		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+			ccif.ccIsPresent[supplier] = 1;
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);		// need to check ccinv
-			relinquish_l2();
 		end
 
 
@@ -301,7 +296,7 @@ module bus_ctrl_tb();
 		// set stimuli
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 0;				// indicate that we are going S -> M 
-		ccif.ccsnoophit = '0;		// does not matter
+		ccif.ccsnoophit = '0;			// does not matter
 		ccif.daddr[0] = word_t'(19);
 		ccif.ccwrite[0] = 1;
 
@@ -309,7 +304,7 @@ module bus_ctrl_tb();
 		#(CLK_PERIOD * 2)
 
 
-		/***************************************************************************
+	/***************************************************************************
     * Set 3: Simulate the behaviour of 1 processor's eviction                  *  
     ****************************************************************************/
 		// verify that we go through and write our data

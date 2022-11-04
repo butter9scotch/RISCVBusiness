@@ -41,9 +41,9 @@ module bus_ctrl #(
     logic [CPU_ID_LENGTH-1:0] supplier_cpu, nsupplier_cpu;
     logic nosupplier, n_nosupplier;
     // support for flopped outputs
-    word_t [CPUS-1:0] nccsnoopaddr;
+    word_t [CPUS-1:0] nccsnoopaddr, nl2_addr;
     logic [CPUS-1:0] nccwait, nccinv;
-    longWord_t ndload;
+    longWord_t ndload, nl2_store;
     // counter to ensure all bandwidth size is acted on
     logic [COUNT_LENGTH:0] count, ncount;
     logic count_complete;
@@ -61,6 +61,8 @@ module bus_ctrl #(
             ccif.ccsnoopaddr <= '0;
             ccif.ccinv <= '0;
             ccif.dload <= '0;
+            ccif.l2_store <= '0;
+            ccif.l2addr <= '0;
             // count for number of 64 bit operations needed
             count <= '0;
         end
@@ -77,7 +79,8 @@ module bus_ctrl #(
             ccif.dload[requester_cpu] <= ndload;
             // count for number of 64 bit operations needed
             count <= ncount;
-
+            ccif.l2_store <= nl2_store;
+            ccif.l2addr <= nl2_addr;
         end
     end
 
@@ -88,24 +91,27 @@ module bus_ctrl #(
             IDLE:  begin
                 if (|ccif.dWEN)
                     nstate = WMEM;
-                else if (|(ccif.dREN))                  
-                    nstate = SNOOP;
                 else if (|(ccif.dREN & ccif.ccwrite))                  
                     nstate = SNOOP_INV;
+                else if (|(ccif.dREN))                  
+                    nstate = SNOOP;
                 else if (|ccif.cctrans)
                     nstate = UPDATE;
             end    
             SNOOP:          nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER_0 : RMEM;                // snoop hits happen on both E/M
             SNOOP_INV:      nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER_INV_0 : RMEM_INV;
-            RMEM:           nstate = (count_complete && !ccif.dwait[requester_cpu]) ? IDLE : state;
-            RMEM_INV:       nstate = (count_complete && !ccif.dwait[requester_cpu]) ? IDLE : state;
+            RMEM:           nstate = (count_complete && (ccif.l2state == L2_ACCESS)) ? RMEM_FIN : state;
+            RMEM_INV:       nstate = (count_complete && (ccif.l2state == L2_ACCESS)) ? RMEM_FINX : state;
+            RMEM_FIN:       nstate = IDLE;
+            RMEM_FINX:      nstate = IDLE;
             TRANSFER_INV_0: nstate = TRANSFER_INV_1;
             TRANSFER_INV_1: nstate = IDLE;                                                              // must be a I -> M, M -> I transition
             TRANSFER_0:     nstate = TRANSFER_1;
-            TRANSFER_1:     nstate = ccif.ccIsExclusive[supplier_cpu] ? IDLE : WMEM_TRANSFER;           // requester I -> S, supply on both E and M, but only WB if its in M
-            WMEM_TRANSFER:  nstate = (count_complete && !ccif.dwait[supplier_cpu]) ? IDLE : state;
-            WMEM:           nstate = (count_complete && !ccif.dwait[requester_cpu]) ? IDLE : state;
+            TRANSFER_1:     nstate = ccif.ccdirty[supplier_cpu] ? WMEM_TRANSFER : IDLE;           // requester I -> S, supply on both E and M, but only WB if its in M
+            WMEM_TRANSFER:  nstate = WMEM_FIN;
+            WMEM:           nstate = WMEM_FIN;
             UPDATE:         nstate = IDLE;
+            WMEM_FIN:       nstate = nstate = (count_complete && (ccif.l2state == L2_ACCESS)) ? IDLE : state;
         endcase
     end
 
@@ -159,7 +165,7 @@ module bus_ctrl #(
         casez(state)
             // determine requester CPU
             IDLE: begin
-                nexclusiveUpdate = !(|ccif.ccIsExclusive); 
+                nexclusiveUpdate = !(|ccif.ccIsPresent); 
                 casez (ccif.cctrans) // assume 4 cores for now
                     4'b1zzz: nrequester_cpu = 3;
                     4'b01zz: nrequester_cpu = 2;
@@ -185,40 +191,62 @@ module bus_ctrl #(
                 end
             end
             // respond with reading L2 if no snoop hit; update to E if exclusive
-            RMEM, RMEM_INV: begin
+            RMEM: begin
                 ccif.l2REN = 1; 
                 ccif.l2addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
-                ccif.dload[requester_cpu] = ccif.l2load; 
-                ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS);
+                ndload[requester_cpu] = ccif.l2load; 
                 ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
+            end
+            RMEM_INV: begin
+                ccif.l2REN = 1; 
+                ccif.l2addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
+                ndload[requester_cpu] = ccif.l2load; 
+                ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS);
+                ccif.ccexclusive[requester_cpu] = 1;
+            end
+            RMEM_FIN: begin
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
+                ccif.dwait[requester_cpu] = 0;
+            end
+            RMEM_FINX: begin
+                ccif.ccexclusive[requester_cpu] = 1;
+                ccif.dwait[requester_cpu] = 0;
             end
             // respond with cache-to-cache on snoop/snoopx hit; first, write to bus
             TRANSFER_0, TRANSFER_INV_0: begin
                 ndload = ccif.dstore[supplier_cpu]; 
             end
             // respond with cache-to-cache on snoop/snoopx hit; second, write to requester
-            TRANSFER_1, TRANSFER_INV_1: begin
+            TRANSFER_1: begin
                 ccif.dwait[requester_cpu] = 0;
-                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
+                ccif.ccexclusive[requester_cpu] = 0;    // [I -> E, M -> I] is not possible
+            end
+            TRANSFER_INV_1: begin
+                ccif.dwait[requester_cpu] = 0;
+                ccif.ccexclusive[requester_cpu] = 1;    // [I -> E, M -> I] is not possible
             end
             // final writeback for snoop hit; [I -> S; M -> S needs a WB as S can be replaced]
             WMEM_TRANSFER: begin
-                ccif.l2store = ccif.dstore[supplier_cpu]; 
-                ccif.l2addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
-                ccif.l2WEN = 1; 
-                ccif.dwait[supplier_cpu] = !(ccif.l2state == L2_ACCESS); 
+                nl2_store = ccif.dstore[supplier_cpu]; 
+                nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
+                ccif.dwait[supplier_cpu] = 1; 
             end
             // evictions may occur (dWEN goes high)
             WMEM: begin
-                ccif.l2store = ccif.dstore[requester_cpu]; 
-                ccif.l2addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
+                nl2_store = ccif.dstore[supplier_cpu]; 
+                nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
+                ccif.dwait[requester_cpu] = 0; 
+            end
+            WMEM_FIN: begin
+                ccif.l2store = nl2_store; 
+                ccif.l2addr = nl2_addr;
                 ccif.l2WEN = 1; 
-                ccif.dwait[requester_cpu] = !(ccif.l2state == L2_ACCESS); 
             end
             // S -> M should invalidate the other caches, no need to WB as we have the latest data somewhere
             UPDATE: begin
                 nccinv = '1 & ~(1 << requester_cpu);
                 ccif.ccwait = '1 & ~(1 << requester_cpu);
+                ccif.ccexclusive[requester_cpu] = 1;
                 for (int i = 0; i < CPUS; i++) begin
                     if (requester_cpu != i)
                         nccsnoopaddr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
