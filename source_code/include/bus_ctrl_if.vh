@@ -25,41 +25,63 @@
 `ifndef BUS_CTRL_IF_VH
 `define BUS_CTRL_IF_VH
 
+// parameters
+parameter CPUS = 4;
+parameter BLOCK_SIZE = 2;
+localparam DATA_WIDTH = 32 * BLOCK_SIZE; // 64 bit/clk memory bandwidth
+
 // coherence bus controller states
 typedef enum logic [3:0] {  
-    IDLE,                                   // IDLE, transaction arbiter
-    SNOOP, RMEM,                            // regular busRD            // happens when supplier is going S/E
-    SNOOP_INV, RMEM_INV,                    // regular busRDX           // happens when requester is going modified
-    TRANSFER_0, TRANSFER_1, WMEM_TRANSFER,  // regular busWB
-                                            // special exclusivity case handled in RMEM and TRANSFER for updates to E for requester
-                                            // state transitions ignore WMEM if supplier E -> S rather than M -> S
-                                            // 
-    TRANSFER_INV_0, TRANSFER_INV_1,         // do not WB if [I -> M, M -> I]
-    WMEM,                                   // evictions
-    UPDATE,                                 // buscache optimization, minimal clk cycles for [S -> M, S/I -> I]
-    RMEM_FIN, RMEM_FINX,
-    WMEM_FIN
+    IDLE,               // determines if a request is going on
+    SNOOP,              // sends a snoop request to all cores not the req
+    SNOOP_INV,          // sends a snoop & invalidation request to all cores not the req
+    RMEM,               // reads from l2 to bus
+    RMEM_INV,           // reads from l2 to bus, only when promoting to modified
+    RMEM_FIN,           // finishes transaction by providing from bus to cache
+    RMEM_EXCL_FIN,      // finishes transaction as well as updates cache to exclusive
+    TRANSFER,           // provides cache to bus transfer
+    TRANSFER_INV,       // provides cache to bus transfer, only when promoting to modified
+    TRANSFER_FIN,       // provides bus to requester transfer
+    TRANSFER_INV_FIN,   // provides bus to requester transfer as well as updates cache to exclusive
+    WMEM,               // initiates an eviction request by writing to the bus
+    WMEM_TRANSFER,      // initiates a writeback due to cache to cache
+    WMEM_FIN,           // attempts to write value into l2
+    UPDATE,             // sends an invalidation request
+    UPDATE_FIN          // completes an invalidation request
 } bus_state_t;
 
-// taken from coherence_ctrl_if.vh
+/*
+* dummy l2 states
+* FREE -> IDLE
+* BUSY -> IN TRANSITIONS
+* ACCESS -> HIT
+* ERROR -> yikes
+*/
 typedef enum logic [1:0] {
     L2_FREE, L2_BUSY, L2_ACCESS, L2_ERROR
 } l2_state_t;
 
 // taken from coherence_ctrl_if.vh
 typedef logic [31:0] word_t;
-typedef logic [63:0] longWord_t;
-parameter CPUS = 4;
+typedef logic [DATA_WIDTH-1:0] longWord_t;
 
 // modified from coherence_ctrl_if.vh
 interface bus_ctrl_if;
     // L1 generic control signals
     logic       [CPUS-1:0] dREN, dWEN, dwait; 
-    longWord_t  [CPUS-1:0] dload, dstore; 
-    // L1 coherence signals 
-    logic       [CPUS-1:0] cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty;  // todo: EXPLAIN what I even use these for in comments or elsewhere
-    logic       [CPUS-1:0] ccwait, ccinv, ccexclusive; 
-    word_t      [CPUS-1:0] ccsnoopaddr, daddr; 
+    longWord_t  [CPUS-1:0] dload, dstore;
+    word_t      [CPUS-1:0] daddr;
+    // L1 coherence INPUTS to bus 
+    logic       [CPUS-1:0] cctrans;     // indicates that the requester is undergoing a miss
+    logic       [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
+    logic       [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
+    logic       [CPUS-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
+    logic       [CPUS-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
+    // L1 coherence OUTPUTS
+    logic       [CPUS-1:0] ccwait;      // indicates a potential snoophit wait request
+    logic       [CPUS-1:0] ccinv;       // indicates an invalidation request
+    logic       [CPUS-1:0] ccexclusive; // indicates an exclusivity update
+    word_t      [CPUS-1:0] ccsnoopaddr; 
     // L2 signals
     l2_state_t l2state; 
     longWord_t l2load, l2store; 

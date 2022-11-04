@@ -26,9 +26,11 @@
 `include "bus_ctrl_if.vh"
 
 parameter CLK_PERIOD = 10; 
-parameter BLOCK_SIZE = 2; 
+parameter TB_BLOCK_SIZE = BLOCK_SIZE; 
 parameter L2_LATENCY = 4; 
-parameter TB_CPUS = 4; 
+parameter TB_CPUS = CPUS;
+parameter OUTPUT_CHECK_COUNT = 1;
+parameter DADDR = 19;
 
 module bus_ctrl_tb(); 
 	// CLK/nRST
@@ -46,7 +48,7 @@ module bus_ctrl_tb();
 	bus_ctrl_if ccif(); 
 
 	// DUT instance.
-	bus_ctrl #(.DOUBLE_BLOCK_SIZE(BLOCK_SIZE/2), .CPUS(TB_CPUS)) DUT(
+	bus_ctrl #(.BLOCK_SIZE(TB_BLOCK_SIZE), .CPUS(TB_CPUS)) DUT(
 		.CLK(CLK), 
 		.nRST(nRST), 
 		.ccif(ccif)
@@ -64,13 +66,13 @@ module bus_ctrl_tb();
 		ccif.dREN = 0; 
 		ccif.dWEN = '0; 
 		ccif.daddr = '0;
-		ccif.dstore = 64'hBADBADBAD; 
+		ccif.dstore = 64'hDEADBEEF; 
 		ccif.cctrans = '0; 
 		ccif.ccwrite = '0; 
 		ccif.ccsnoophit = '0; 
 		ccif.ccIsPresent = '0;
 		ccif.ccdirty = '0;
-		ccif.l2load = 64'hBADBADBAD;
+		ccif.l2load = 64'hDEADBEEF;
 		ccif.l2state = L2_FREE;
 		#(CLK_PERIOD * 2);
 	endtask
@@ -155,9 +157,9 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);
 		end
@@ -170,10 +172,10 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
-			supplier = (!(i % 4) ? 1 : (i % 4));
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
+			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
 			check_dload(longWord_t'(i + 1), 0, 0);
@@ -187,10 +189,10 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
-			supplier = (!(i % 4) ? 1 : (i % 4));
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
+			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 			ccif.ccdirty[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
 			check_dload(longWord_t'(i + 1), 0, 0);
@@ -206,9 +208,9 @@ module bus_ctrl_tb();
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.dstore[1] = 5;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			ccif.ccIsPresent = 4'b1100;
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 0, 0);
@@ -225,10 +227,10 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);		// need to check ccinv
 		end
@@ -241,11 +243,11 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
-			supplier = (!(i % 4) ? 1 : (i % 4));
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
+			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(longWord_t'(i + 1), supplier, 0);
 			check_dload(longWord_t'(i + 1), 1, 0);	// does not matter					// need to check ccinv
@@ -259,11 +261,11 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
-			supplier = (!(i % 4) ? 1 : (i % 4));
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
+			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 			ccif.ccsnoophit[supplier] = 1;
 			ccif.ccdirty[supplier] = 1;
 			ccif.ccIsPresent[supplier] = 1;
@@ -279,10 +281,10 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
 		// go through and check outputs
-		for (i = 0; i < BLOCK_SIZE/2; i++) begin
+		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			ccif.ccIsPresent[supplier] = 1;
 			l2_load(longWord_t'(i + 1));
 			check_dload(longWord_t'(i + 1), 1, 0);		// need to check ccinv
@@ -297,7 +299,7 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 0;				// indicate that we are going S -> M 
 		ccif.ccsnoophit = '0;			// does not matter
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
 
 		// TODO, check invalidation
@@ -315,9 +317,8 @@ module bus_ctrl_tb();
 		ccif.cctrans[0] = 1;
 		ccif.dWEN[0] = 1;				// writeback 
 		ccif.ccsnoophit = '0;		// does not matter
-		ccif.daddr[0] = word_t'(19);
+		ccif.daddr[0] = word_t'(DADDR);
 		ccif.ccwrite[0] = 1;
-
 		// TODO
 
 		
@@ -325,13 +326,18 @@ module bus_ctrl_tb();
     * Set 4: Simulate the behaviour of multiple concurrent requests            *
     ****************************************************************************/
 		// simulate operation of 1 bus transaction with multiple read requests
+		initialize_inputs();
 		test_case_num++;
 		test_case_info = "arbitration between multiple read requests";
+		#(CLK_PERIOD);
 
 		// simulate operation of 1 bus transaction with multiple read requests and
 		// one eviction request
+		initialize_inputs();
 		test_case_num++;
 		test_case_info = "arbitration between multiple read requests and a write request";
+		#(CLK_PERIOD);
+
 		$finish; 
 	end
 endmodule
