@@ -1,1 +1,2 @@
-irun -access +rwc -gui +nctimescale+1ns/1ns -incdir  ../../include/ bus_ctrl.sv bus_ctrl_tb.sv
+vlog -sv -work work *.sv +incdir+../../include 
+vsim -c -voptargs="+acc" work.bus_ctrl_tb -do "do wave.do; run -all" 

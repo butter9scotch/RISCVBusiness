@@ -29,6 +29,8 @@
 parameter CPUS = 4;
 parameter BLOCK_SIZE = 2;
 localparam DATA_WIDTH = 32 * BLOCK_SIZE; // 64 bit/clk memory bandwidth
+localparam CPU_ID_LENGTH = $clog2(CPUS);
+
 
 // coherence bus controller states
 typedef enum logic [3:0] {  
@@ -43,11 +45,10 @@ typedef enum logic [3:0] {
     TRANSFER_INV,       // provides cache to bus transfer, only when promoting to modified
     TRANSFER_FIN,       // provides bus to requester transfer
     TRANSFER_INV_FIN,   // provides bus to requester transfer as well as updates cache to exclusive
-    WMEM,               // initiates an eviction request by writing to the bus
     WMEM_TRANSFER,      // initiates a writeback due to cache to cache
-    WMEM_FIN,           // attempts to write value into l2
-    UPDATE,             // sends an invalidation request
-    UPDATE_FIN          // completes an invalidation request
+    WMEM_TRANSFER_FIN,  // attempts to write value into l2
+    EVICT,              // evicts cache entry to L2
+    UPDATE              // invalidates non requester entries and updates requester S -> M
 } bus_state_t;
 
 /*
@@ -63,28 +64,30 @@ typedef enum logic [1:0] {
 
 // taken from coherence_ctrl_if.vh
 typedef logic [31:0] word_t;
-typedef logic [DATA_WIDTH-1:0] longWord_t;
+typedef logic [DATA_WIDTH-1:0] transfer_width_t;
+typedef logic [CPUS-1:0] cpus_bitvec_t;
+typedef logic [CPU_ID_LENGTH-1:0] cpuid_t;
 
 // modified from coherence_ctrl_if.vh
 interface bus_ctrl_if;
     // L1 generic control signals
-    logic       [CPUS-1:0] dREN, dWEN, dwait; 
-    longWord_t  [CPUS-1:0] dload, dstore;
-    word_t      [CPUS-1:0] daddr;
+    logic               [CPUS-1:0] dREN, dWEN, dwait; 
+    transfer_width_t    [CPUS-1:0] dload, dstore;
+    word_t              [CPUS-1:0] daddr;
     // L1 coherence INPUTS to bus 
-    logic       [CPUS-1:0] cctrans;     // indicates that the requester is undergoing a miss
-    logic       [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
-    logic       [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
-    logic       [CPUS-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
-    logic       [CPUS-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
+    logic               [CPUS-1:0] cctrans;     // indicates that the requester is undergoing a miss
+    logic               [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
+    logic               [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
+    logic               [CPUS-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
+    logic               [CPUS-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
     // L1 coherence OUTPUTS
-    logic       [CPUS-1:0] ccwait;      // indicates a potential snoophit wait request
-    logic       [CPUS-1:0] ccinv;       // indicates an invalidation request
-    logic       [CPUS-1:0] ccexclusive; // indicates an exclusivity update
-    word_t      [CPUS-1:0] ccsnoopaddr; 
+    logic               [CPUS-1:0] ccwait;      // indicates a potential snoophit wait request
+    logic               [CPUS-1:0] ccinv;       // indicates an invalidation request
+    logic               [CPUS-1:0] ccexclusive; // indicates an exclusivity update
+    word_t              [CPUS-1:0] ccsnoopaddr; 
     // L2 signals
     l2_state_t l2state; 
-    longWord_t l2load, l2store; 
+    transfer_width_t l2load, l2store; 
     logic l2WEN, l2REN; 
     word_t l2addr; 
 

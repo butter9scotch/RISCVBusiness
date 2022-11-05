@@ -42,9 +42,11 @@ module bus_ctrl #(
     // support for flopped outputs
     word_t [CPUS-1:0] nccsnoopaddr, nl2_addr;
     logic [CPUS-1:0] nccwait, nccinv;
-    longWord_t ndload, nl2_store;
+    transfer_width_t ndload, nl2_store;
     // internal store for if we want to update to exclusive
     logic exclusiveUpdate, nexclusiveUpdate;
+    // MESI(F) forwarding
+    // logic [CPUS-1:0] ccforward, nccforward;
 
     // FF
     always_ff @(posedge CLK, negedge nRST) begin
@@ -57,14 +59,13 @@ module bus_ctrl #(
             exclusiveUpdate <= 0;
             // state machine for bus controller
             state <= IDLE; 
-            // cc outputs (addr broken up from l1)
+            // cc latched addr
             ccif.ccsnoopaddr <= '0;
-            ccif.ccinv <= '0;
             // store/load/addr to l2 (broken up from l1)
             ccif.dload <= '0;
             ccif.l2store <= '0;
             ccif.l2addr <= '0;
-            // count for number of 64 bit operations needed
+            // ccforward <= 0;
         end
         else begin
             requester_cpu <= nrequester_cpu;
@@ -73,10 +74,10 @@ module bus_ctrl #(
             state <= nstate;
             exclusiveUpdate <= nexclusiveUpdate;
             ccif.ccsnoopaddr <= nccsnoopaddr;
-            ccif.ccinv <= nccinv;
             ccif.dload[requester_cpu] <= ndload;
             ccif.l2store <= nl2_store;
             ccif.l2addr <= nl2_addr;
+            // ccforward <= nccforward;
         end
     end
 
@@ -86,17 +87,19 @@ module bus_ctrl #(
         casez (state)
             IDLE:  begin
                 if (|ccif.dWEN)
-                    nstate = WMEM;
+                    nstate = EVICT;
                 else if (|(ccif.dREN & ccif.ccwrite))                  
                     nstate = SNOOP_INV;
                 else if (|(ccif.dREN))                  
                     nstate = SNOOP;
                 else if (|ccif.ccwrite)
                     nstate = UPDATE;
-            end    
-            SNOOP:              nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER : RMEM;
-            SNOOP_INV:          nstate = ccif.ccsnoophit[nsupplier_cpu] ? TRANSFER_INV : RMEM_INV;
-            RMEM:               nstate = (ccif.l2state == L2_ACCESS) ? (exclusiveUpdate ? RMEM_EXCL_FIN: RMEM_FIN) : state;
+            end
+            SNOOP:              nstate = |ccif.ccsnoophit ? TRANSFER : RMEM;
+            SNOOP_INV:          nstate = |ccif.ccsnoophit ? TRANSFER_INV : RMEM_INV;
+            // SNOOP:              nstate = |nccforward ? TRANSFER : IDLE;
+            // SNOOP_INV:          nstate = |nccforward ? TRANSFER_INV : IDLE;
+            RMEM:               nstate = (ccif.l2state == L2_ACCESS) ? (exclusiveUpdate ? RMEM_EXCL_FIN : RMEM_FIN) : state;
             RMEM_INV:           nstate = (ccif.l2state == L2_ACCESS) ? RMEM_EXCL_FIN : state;
             RMEM_FIN:           nstate = IDLE;
             RMEM_EXCL_FIN:      nstate = IDLE;
@@ -104,11 +107,10 @@ module bus_ctrl #(
             TRANSFER_INV_FIN:   nstate = IDLE;
             TRANSFER:           nstate = TRANSFER_FIN;
             TRANSFER_FIN:       nstate = ccif.ccdirty[supplier_cpu] ? WMEM_TRANSFER : IDLE;
-            WMEM_TRANSFER:      nstate = WMEM_FIN;
-            WMEM:               nstate = WMEM_FIN;
-            WMEM_FIN:           nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
-            UPDATE:             nstate = UPDATE_FIN;
-            UPDATE_FIN:         nstate = IDLE;
+            WMEM_TRANSFER:      nstate = WMEM_TRANSFER_FIN;
+            WMEM_TRANSFER_FIN:  nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
+            EVICT:              nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
+            UPDATE:             nstate = IDLE;
         endcase
     end
 
@@ -118,19 +120,20 @@ module bus_ctrl #(
         n_nosupplier = nosupplier;
         nrequester_cpu = requester_cpu;
         if (state == SNOOP || state == SNOOP_INV) begin
-            n_nosupplier = 0;
+            n_nosupplier = 1;
+            // determine supplier from snoophits
             for (int i = 0; i < CPUS; i++) begin
-                /* 
-                * M/E states should ensure that only one core gets a snoop hit
-                * if more than one core responds, our FSM must be faulty, as it
-                * would imply that we have not invalidated other caches on M or
-                * promoted to E without ensuring the lack of sharing
-                */ 
                 if (ccif.ccsnoophit[i]) begin
                     nsupplier_cpu = i;
-                    n_nosupplier = 1;
+                    n_nosupplier = 0;
                 end
             end
+            // for (int i = 0; i < CPUS; i++) begin
+            //     if (ccif.ccIsPresent[i]) begin
+            //         nsupplier_cpu = i;
+            //         n_nosupplier = 0;
+            //     end
+            // end
         end
         if (state == IDLE) begin
             for (int i = 0; i < CPUS; i++) begin
@@ -146,35 +149,43 @@ module bus_ctrl #(
         nccsnoopaddr = ccif.ccsnoopaddr;
         ccif.dwait = '1; 
         ccif.ccwait = '0; 
-        nl2_addr = '0; 
-        nl2_store = '0; 
+        nl2_addr = ccif.l2addr; 
+        nl2_store = ccif.l2store; 
         ccif.l2REN = '0; 
         ccif.l2WEN = '0; 
         ccif.ccexclusive = '0;
-        nccinv = '0;
+        ccif.ccinv = '0;
         ndload = ccif.dload[requester_cpu];
         nexclusiveUpdate = exclusiveUpdate;
+        // nccforward = ccforward;
         casez(state)
-            // IDLE (maybe can be merged with SNOOP/INV in some way)
-            IDLE:
+            // IDLE (maybe guard with if nstate != state to reduce the amount of 1 -> 0 -> 1 switches)
+            IDLE: begin
+                // beneficial when transitioning to snoop
+                for (int i = 0; i < CPUS; i++) begin
+                    if (requester_cpu != i)
+                        nccsnoopaddr[i] = ccif.daddr[nrequester_cpu] & ~(word_t'(3'b111));
+                end
+                // beneficial when transitioning to WB
+                nl2_store = ccif.dstore[nrequester_cpu]; 
+                nl2_addr = ccif.daddr[nrequester_cpu] & ~(word_t'(3'b111));
+                // forwarding if multipresent, we choose to forward from the msb
+                // nccforward = 0;
+                // for (int i = 0; i < CPUS; i++) begin
+                //     if (ccif.ccIsPresent[i])
+                //         nccforward = 1 << i;
+                // end
+            end
             // attempt to snoop all other caches
             SNOOP: begin
                 nexclusiveUpdate = !(|ccif.ccIsPresent);
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
-                for (int i = 0; i < CPUS; i++) begin
-                    if (requester_cpu != i)
-                        nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
-                end
             end
             // attempt to snoop all other caches; invalidate on the next clk
             SNOOP_INV: begin
                 nexclusiveUpdate = !(|ccif.ccIsPresent);
-                nccinv = nonrequesterToggle(requester_cpu);
+                ccif.ccinv = nonrequesterToggle(requester_cpu);
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
-                for (int i = 0; i < CPUS; i++) begin
-                    if (requester_cpu != i)
-                        nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
-                end
             end
             // respond with reading L2 if no snoop hit; update to E if exclusive
             RMEM, RMEM_INV: begin
@@ -191,7 +202,8 @@ module bus_ctrl #(
             end
             // respond with cache-to-cache on snoop/snoopx hit; first, write to bus
             TRANSFER, TRANSFER_INV: begin
-                ndload = ccif.dstore[supplier_cpu]; 
+                ndload = ccif.dstore[supplier_cpu];
+                ccif.ccwait = nonrequesterToggle(requester_cpu);
             end
             // respond with cache-to-cache on snoop/snoopx hit; second, write to requester
             TRANSFER_FIN: begin
@@ -204,31 +216,24 @@ module bus_ctrl #(
             end
             // final writeback for snoop hit; [I -> S; M -> S needs a WB as S can be replaced]
             WMEM_TRANSFER: begin
+                // doing writebacks strictly after transfers for now, hoping that I -> S; M -> S is not too frequent (else warrants O state)
                 nl2_store = ccif.dstore[supplier_cpu]; 
                 nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
-                ccif.dwait[supplier_cpu] = 1; 
+                ccif.dwait[supplier_cpu] = 0; 
             end
             // evictions may occur (dWEN goes high)
-            WMEM: begin
-                nl2_store = ccif.dstore[supplier_cpu]; 
-                nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
-                ccif.dwait[requester_cpu] = 0; 
+            EVICT: begin
+                ccif.dwait[requester_cpu] = 0;  // seems it cant be earlier unless i use nstate
+                ccif.l2WEN = 1;
             end
-            WMEM_FIN: begin
+            WMEM_TRANSFER_FIN: begin
                 ccif.l2WEN = 1; 
             end
             // S -> M should invalidate the other caches, no need to WB as we have the latest data somewhere
             UPDATE: begin
-                nccinv = nonrequesterToggle(requester_cpu);
+                ccif.ccinv = nonrequesterToggle(requester_cpu);
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
                 ccif.ccexclusive[requester_cpu] = 1;
-                for (int i = 0; i < CPUS; i++) begin
-                    if (requester_cpu != i)
-                        nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
-                end
-            end
-            UPDATE_FIN: begin
-                ccif.ccwait = nonrequesterToggle(requester_cpu);
             end
         endcase
     end
