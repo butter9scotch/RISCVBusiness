@@ -19,7 +19,7 @@
 *	Created by:   Jimmy Mingze Jin
 *	Email:        jin357@purdue.edu
 *	Date Created: 10/24/2022
-*	Description:  Bus controller for MESI cache coherence; extended from coherence_ctrl.sv
+*	Description:  Bus controller for MESI cache coherence; extended from old coherence_ctrl.sv
 */
 
 `include "bus_ctrl_if.vh"
@@ -33,50 +33,45 @@ module bus_ctrl #(
 );  
     // localparams/imports
     localparam CPU_ID_LENGTH = $clog2(CPUS);
+
     // states
     bus_state_t state, nstate;
+
     // requester/supplier
     logic [CPU_ID_LENGTH-1:0] requester_cpu, nrequester_cpu;
     logic [CPU_ID_LENGTH-1:0] supplier_cpu, nsupplier_cpu;
-    logic nosupplier, n_nosupplier;
-    // support for flopped outputs
+
+    // internal register next signals
     word_t [CPUS-1:0] nccsnoopaddr, nl2_addr;
     logic [CPUS-1:0] nccwait, nccinv;
     transfer_width_t ndload, nl2_store;
-    // internal store for if we want to update to exclusive
+    
+    // stores whether we need to update requester to exclusive or if WB is needed after transfer
     logic exclusiveUpdate, nexclusiveUpdate;
     logic wb_needed, nwb_needed;
 
-    // FF
     always_ff @(posedge CLK, negedge nRST) begin
         if (!nRST) begin
-            // requester/supplier arbitration
             requester_cpu <= '0;
             supplier_cpu <= '0;
-            nosupplier <= 1;
-            // if we need to update the cache ot exclusive
             exclusiveUpdate <= 0;
-            // state machine for bus controller
+            wb_needed <= 0;
             state <= IDLE; 
-            // cc latched addr
             ccif.ccsnoopaddr <= '0;
-            // store/load/addr to l2 (broken up from l1)
             ccif.dload <= '0;
             ccif.l2store <= '0;
             ccif.l2addr <= '0;
-            wb_needed <= 0;
         end
         else begin
-            requester_cpu <= nrequester_cpu;
-            supplier_cpu <= nsupplier_cpu;
-            nosupplier <= n_nosupplier;
-            state <= nstate;
-            exclusiveUpdate <= nexclusiveUpdate;
-            ccif.ccsnoopaddr <= nccsnoopaddr;
-            ccif.dload[requester_cpu] <= ndload;
-            ccif.l2store <= nl2_store;
-            ccif.l2addr <= nl2_addr;
-            wb_needed <= nwb_needed;
+            requester_cpu <= nrequester_cpu;        // requester
+            supplier_cpu <= nsupplier_cpu;          // supplier
+            state <= nstate;                        // current bus controller state
+            exclusiveUpdate <= nexclusiveUpdate;    // whether to update to exclusive
+            wb_needed <= nwb_needed;                // whether WB to l2 is required
+            ccif.ccsnoopaddr <= nccsnoopaddr;       // snoopaddr to other l1 caches
+            ccif.dload[requester_cpu] <= ndload;    // bus to requester
+            ccif.l2store <= nl2_store;              // l2 store value
+            ccif.l2addr <= nl2_addr;                // l2 addr to store at
         end
     end
 
@@ -89,56 +84,26 @@ module bus_ctrl #(
                     nstate = GRANT_EVICT;
                 else if (|(ccif.dREN & ccif.ccwrite))                  
                     nstate = GRANT_RX;
-                else if (|(ccif.dREN))                  
+                else if (|ccif.dREN)                  
                     nstate = GRANT_R;
                 else if (|ccif.ccwrite)
                     nstate = GRANT_INV;
             end
-            GRANT_R:            nstate = SNOOP;
-            GRANT_RX:           nstate = SNOOP_INV;
+            GRANT_R:            nstate = SNOOP_R;
+            GRANT_RX:           nstate = SNOOP_RX;
             GRANT_EVICT:        nstate = WRITEBACK;
-            GRANT_INV:          nstate = SNOOP_UPDATE;
-            SNOOP:              nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER : RMEM) : state;
-            SNOOP_INV:          nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER_INV : RMEM) : state;
-            SNOOP_UPDATE:       nstate = &ccif.ccsnoopdone ? UPDATE : state;
-            RMEM:               nstate = (ccif.l2state == L2_ACCESS) ? RMEM_FIN : state;
-            RMEM_FIN:           nstate = IDLE;
-            TRANSFER:           nstate = TRANSFER_FIN;
-            TRANSFER_INV:       nstate = TRANSFER_INV_FIN;
-            TRANSFER_FIN:       nstate = wb_needed ? WRITEBACK : IDLE;     // [I -> S, M -> S] : [I -> S, E -> S]
-            TRANSFER_INV_FIN:   nstate = IDLE;                                              // [I -> M]
+            GRANT_INV:          nstate = SNOOP_INV;
+            SNOOP_R:            nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER_R : READ_L2) : state;
+            SNOOP_RX:           nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER_RX : READ_L2) : state;
+            SNOOP_INV:          nstate = &ccif.ccsnoopdone ? INVALIDATE : state;
+            TRANSFER_R:         nstate = TRANSFER_R_FIN;
+            TRANSFER_RX:        nstate = BUS_TO_L1;
+            TRANSFER_R_FIN:     nstate = wb_needed ? WRITEBACK : IDLE; // note: roughly translates to [I -> S, M -> S] : [I -> S, E -> S]
+            READ_L2:            nstate = (ccif.l2state == L2_ACCESS) ? BUS_TO_L1 : state;
+            BUS_TO_L1:          nstate = IDLE;
             WRITEBACK:          nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
-            UPDATE:             nstate = IDLE;
+            INVALIDATE:         nstate = IDLE;
         endcase
-    end
-
-    // supplier and requester CPU arbitration
-    always_comb begin
-        nsupplier_cpu = supplier_cpu;
-        n_nosupplier = nosupplier;
-        nrequester_cpu = requester_cpu;
-        if (state == SNOOP || state == SNOOP_INV) begin
-            n_nosupplier = 1;
-            // determine supplier from snoophits
-            for (int i = 0; i < CPUS; i++) begin
-                if (ccif.ccsnoophit[i]) begin
-                    nsupplier_cpu = i;
-                    n_nosupplier = 0;
-                end
-            end
-            // for (int i = 0; i < CPUS; i++) begin
-            //     if (ccif.ccIsPresent[i]) begin
-            //         nsupplier_cpu = i;
-            //         n_nosupplier = 0;
-            //     end
-            // end
-        end
-        if (state == IDLE) begin
-            for (int i = 0; i < CPUS; i++) begin
-                if (ccif.cctrans[i])
-                    nrequester_cpu = i;
-            end
-        end
     end
 
     // output logic for bus FSM
@@ -156,79 +121,80 @@ module bus_ctrl #(
         ndload = ccif.dload[requester_cpu];
         nexclusiveUpdate = exclusiveUpdate;
         nwb_needed = wb_needed;
-        // nccforward = ccforward;
+        nrequester_cpu = requester_cpu;
+        nsupplier_cpu = supplier_cpu;
         casez(state)
-            IDLE: begin
-                // logic haha
+            IDLE: begin // obtain the requester CPU id
+                priorityEncode(ccif.cctrans, nrequester_cpu);
             end
-            GRANT_R, GRANT_RX, GRANT_INV: begin
+            GRANT_R, GRANT_RX, GRANT_INV: begin // set the stimulus for snooping
                 for (int i = 0; i < CPUS; i++) begin
                     if (requester_cpu != i)
                         nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
                 end
             end
-            GRANT_EVICT: begin
+            GRANT_EVICT: begin  // set the stimulus to WB to L2
                 nl2_store = ccif.dstore[requester_cpu]; 
                 nl2_addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
-                ccif.dwait[requester_cpu] = 0;  // seems it cant be earlier unless i use nstate
+                ccif.dwait[requester_cpu] = 0;
             end
-            // attempt to snoop all other caches
-            SNOOP: begin
+            SNOOP_R: begin  // determine what to do on busRD
                 nexclusiveUpdate = !(|ccif.ccIsPresent);
-                ccif.ccwait = nonrequesterToggle(requester_cpu);
-            end
-            // attempt to snoop all other caches; invalidate on the next clk
-            SNOOP_INV: begin
-                nexclusiveUpdate = !(|ccif.ccIsPresent);
-                ccif.ccinv = nonrequesterToggle(requester_cpu);
-                ccif.ccwait = nonrequesterToggle(requester_cpu);
-            end
-            // respond with reading L2 if no snoop hit; update to E if exclusive
-            RMEM: begin
-                ccif.l2REN = 1; 
+                ccif.ccwait = nonRequesterEnable(requester_cpu);
+                priorityEncode(ccif.ccsnoophit, nsupplier_cpu);
                 nl2_addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
+            end
+            SNOOP_RX: begin // determine what to do on busRDX
+                nexclusiveUpdate = !(|ccif.ccIsPresent);
+                ccif.ccinv = nonRequesterEnable(requester_cpu);
+                ccif.ccwait = nonRequesterEnable(requester_cpu);
+                priorityEncode(ccif.ccsnoophit, nsupplier_cpu);
+                nl2_addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
+            end
+            SNOOP_INV: begin // snoop and invalidate non_requesters
+                ccif.ccinv = nonRequesterEnable(requester_cpu);
+                ccif.ccwait = nonRequesterEnable(requester_cpu);
+            end
+            READ_L2: begin // reads data into bus from l2
+                ccif.l2REN = 1; 
                 ndload[requester_cpu] = ccif.l2load; 
             end
-            RMEM_FIN: begin
-                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
+            BUS_TO_L1: begin // move data from bus to cache; alert requester
                 ccif.dwait[requester_cpu] = 0;
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
             end
-            // respond with cache-to-cache on snoop/snoopx hit; first, write to bus
-            TRANSFER, TRANSFER_INV: begin
+            TRANSFER_R, TRANSFER_RX: begin // move data from cache to bus
                 ndload = ccif.dstore[supplier_cpu];
-                ccif.ccwait = nonrequesterToggle(requester_cpu);
+                ccif.ccwait = nonRequesterEnable(requester_cpu);
                 nwb_needed = ccif.ccdirty[supplier_cpu];
             end
-            // respond with cache-to-cache on snoop/snoopx hit; second, write to requester
-            TRANSFER_FIN: begin
+            TRANSFER_R_FIN: begin // move data from bus to requester
                 ccif.dwait[requester_cpu] = 0;
-                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;    // [I -> E, M -> I] is not possible
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
                 nl2_store = ccif.dstore[supplier_cpu]; 
                 nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
                 ccif.dwait[supplier_cpu] = 0; 
             end
-            TRANSFER_INV_FIN: begin
-                ccif.dwait[requester_cpu] = 0;
-                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;    // [I -> E, M -> I] is not possible
-            end
-            // evictions may occur (dWEN goes high)
-            WRITEBACK: begin
+            WRITEBACK:
                 ccif.l2WEN = 1;
-            end
-            // S -> M should invalidate the other caches, no need to WB as we have the latest data somewhere
-            SNOOP_UPDATE: begin
-                ccif.ccinv = nonrequesterToggle(requester_cpu);
-                ccif.ccwait = nonrequesterToggle(requester_cpu);
-            end
-            UPDATE: begin
+            INVALIDATE:
                 ccif.dwait[requester_cpu] = 0;
-            end
         endcase
     end
 
-    // function to obtain all non requesters (because it looks cryptic)
-    function logic [CPUS-1:0] nonrequesterToggle;
+    // function to obtain all non requesters
+    function logic [CPUS-1:0] nonRequesterEnable;
         input requester_cpu;
-        nonrequesterToggle = '1 & ~(1 << requester_cpu);
+        nonRequesterEnable = '1 & ~(1 << requester_cpu);
     endfunction
+
+    // task to do priority encoding to determine the requester or supplier
+    task priorityEncode;
+        input logic [CPUS-1:0] to_encode;
+        output logic [CPU_ID_LENGTH-1:0] encoded;       
+        for (int i = 0; i < CPUS; i++) begin
+            if (to_encode[i])
+                encoded = i;
+        end
+    endtask
 endmodule

@@ -33,20 +33,19 @@ localparam CPU_ID_LENGTH = $clog2(CPUS);
 
 
 // coherence bus controller states
-typedef enum logic [3:0] {  
-    IDLE,               // determines if a request is going on
+typedef enum logic [3:0] {
     GRANT_R, GRANT_RX, GRANT_EVICT, GRANT_INV, 
-    SNOOP,              // sends a snoop request to all cores not the req
-    SNOOP_INV,          // sends a snoop & invalidation request to all cores not the req
-    RMEM,               // reads from l2 to bus
-    RMEM_FIN,           // finishes transaction by providing from bus to cache
-    TRANSFER,           // provides cache to bus transfer
-    TRANSFER_INV,       // provides cache to bus transfer, only when promoting to modified
-    TRANSFER_FIN,       // provides bus to requester transfer
-    TRANSFER_INV_FIN,   // provides bus to requester transfer as well as updates cache to exclusive
+    IDLE,               // determines if a request is going on
+    SNOOP_R,            // sends a snoop based on busRD
+    SNOOP_RX,           // sends a snoop based on busRDX
+    SNOOP_INV,          // sends a invalidation request to all cores
+    TRANSFER_R,         // provides cache to bus transfer
+    TRANSFER_RX,        // provides cache to bus transfer, only when promoting to modified
+    TRANSFER_R_FIN,     // provides bus to requester transfer
+    READ_L2,            // reads from l2 to bus
+    BUS_TO_L1,          // finishes transaction by providing from bus to cache
     WRITEBACK,          // evicts cache entry to L2
-    SNOOP_UPDATE,
-    UPDATE              // invalidates non requester entries and updates requester S -> M
+    INVALIDATE          // invalidates non requester entries and updates requester S -> M
 } bus_state_t;
 
 /*
