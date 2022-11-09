@@ -33,19 +33,15 @@ module bus_ctrl #(
 );  
     // localparams/imports
     localparam CPU_ID_LENGTH = $clog2(CPUS);
-
     // states
     bus_state_t state, nstate;
-
     // requester/supplier
     logic [CPU_ID_LENGTH-1:0] requester_cpu, nrequester_cpu;
     logic [CPU_ID_LENGTH-1:0] supplier_cpu, nsupplier_cpu;
-
     // internal register next signals
     word_t [CPUS-1:0] nccsnoopaddr, nl2_addr;
     logic [CPUS-1:0] nccwait, nccinv;
     transfer_width_t ndload, nl2_store;
-    
     // stores whether we need to update requester to exclusive or if WB is needed after transfer
     logic exclusiveUpdate, nexclusiveUpdate;
     logic wb_needed, nwb_needed;
