@@ -35,19 +35,17 @@ localparam CPU_ID_LENGTH = $clog2(CPUS);
 // coherence bus controller states
 typedef enum logic [3:0] {  
     IDLE,               // determines if a request is going on
+    GRANT_R, GRANT_RX, GRANT_EVICT, GRANT_INV, 
     SNOOP,              // sends a snoop request to all cores not the req
     SNOOP_INV,          // sends a snoop & invalidation request to all cores not the req
     RMEM,               // reads from l2 to bus
-    RMEM_INV,           // reads from l2 to bus, only when promoting to modified
     RMEM_FIN,           // finishes transaction by providing from bus to cache
-    RMEM_EXCL_FIN,      // finishes transaction as well as updates cache to exclusive
     TRANSFER,           // provides cache to bus transfer
     TRANSFER_INV,       // provides cache to bus transfer, only when promoting to modified
     TRANSFER_FIN,       // provides bus to requester transfer
     TRANSFER_INV_FIN,   // provides bus to requester transfer as well as updates cache to exclusive
-    WMEM_TRANSFER,      // initiates a writeback due to cache to cache
-    WMEM_TRANSFER_FIN,  // attempts to write value into l2
-    EVICT,              // evicts cache entry to L2
+    WRITEBACK,          // evicts cache entry to L2
+    SNOOP_UPDATE,
     UPDATE              // invalidates non requester entries and updates requester S -> M
 } bus_state_t;
 
@@ -78,6 +76,7 @@ interface bus_ctrl_if;
     logic               [CPUS-1:0] cctrans;     // indicates that the requester is undergoing a miss
     logic               [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
     logic               [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
+    logic               [CPUS-1:0] ccsnoopdone;  // indicates that the responder has the data
     logic               [CPUS-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
     logic               [CPUS-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
     // L1 coherence OUTPUTS
@@ -94,7 +93,7 @@ interface bus_ctrl_if;
     // modports
     modport cc(
         input   dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty,
+                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
                 l2load, l2state, 
         output  dwait, dload, 
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
@@ -106,7 +105,7 @@ interface bus_ctrl_if;
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
                 l2addr, l2store, l2REN, l2WEN,
         output  dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty,
+                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
                 l2load, l2state
     ); 
 

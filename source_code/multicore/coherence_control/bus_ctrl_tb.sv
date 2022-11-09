@@ -72,6 +72,7 @@ module bus_ctrl_tb();
 		ccif.ccwrite = '0; 
 		ccif.ccsnoophit = '0; 
 		ccif.ccIsPresent = '0;
+		ccif.ccsnoopdone = '1;
 		ccif.ccdirty = '0;
 		ccif.l2load = 64'hDEADBEEF;
 		ccif.l2state = L2_FREE;
@@ -126,7 +127,7 @@ module bus_ctrl_tb();
 	endtask
 
 	task ensure_invalidation;
-		#(CLK_PERIOD * 1.5);	// checking in the middle of clk
+		#(CLK_PERIOD * 2.5);	// checking in the middle of clk
 		if (ccif.ccinv != ~cpus_bitvec_t'(1)) begin
 			$display("E: ccif.ccinv: %8h, but expecting: %8h\n", ccif.ccinv, ~int'(1));
 			tb_err = 1'b1;
@@ -213,6 +214,7 @@ module bus_ctrl_tb();
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 			ccif.ccdirty[supplier] = 1;
+			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(transfer_width_t'(i + 1), supplier, 0);
 			check_dload(transfer_width_t'(i + 1), 0, 0);
 			l2_store(transfer_width_t'(i + 1));
@@ -279,7 +281,7 @@ module bus_ctrl_tb();
 					supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
 					ccif.ccIsPresent[supplier] = 1;
 					cachetransfer(transfer_width_t'(i + 1), supplier, 0);
-					check_dload(transfer_width_t'(i + 1), 1, 0);
+					check_dload(transfer_width_t'(i + 1), 0, 0);
 				end
 				ensure_invalidation();
 			join
@@ -304,7 +306,7 @@ module bus_ctrl_tb();
 					ccif.ccdirty[supplier] = 1;
 					ccif.ccIsPresent[supplier] = 1;
 					cachetransfer(transfer_width_t'(i + 1), supplier, 0);
-					check_dload(transfer_width_t'(i + 1), 1, 0);
+					check_dload(transfer_width_t'(i + 1), 0, 0);
 				end
 				ensure_invalidation();
 			join
@@ -327,7 +329,7 @@ module bus_ctrl_tb();
 				begin
 					ccif.ccIsPresent[supplier] = 1;
 					l2_load(transfer_width_t'(i + 1));
-					check_dload(transfer_width_t'(i + 1), 1, 0);		// need to check ccinv
+					check_dload(transfer_width_t'(i + 1), 0, 0);		// need to check ccinv
 				end
 				ensure_invalidation();
 			join

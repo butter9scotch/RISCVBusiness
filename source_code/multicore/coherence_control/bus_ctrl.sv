@@ -45,8 +45,7 @@ module bus_ctrl #(
     transfer_width_t ndload, nl2_store;
     // internal store for if we want to update to exclusive
     logic exclusiveUpdate, nexclusiveUpdate;
-    // MESI(F) forwarding
-    // logic [CPUS-1:0] ccforward, nccforward;
+    logic wb_needed, nwb_needed;
 
     // FF
     always_ff @(posedge CLK, negedge nRST) begin
@@ -65,7 +64,7 @@ module bus_ctrl #(
             ccif.dload <= '0;
             ccif.l2store <= '0;
             ccif.l2addr <= '0;
-            // ccforward <= 0;
+            wb_needed <= 0;
         end
         else begin
             requester_cpu <= nrequester_cpu;
@@ -77,7 +76,7 @@ module bus_ctrl #(
             ccif.dload[requester_cpu] <= ndload;
             ccif.l2store <= nl2_store;
             ccif.l2addr <= nl2_addr;
-            // ccforward <= nccforward;
+            wb_needed <= nwb_needed;
         end
     end
 
@@ -87,29 +86,28 @@ module bus_ctrl #(
         casez (state)
             IDLE:  begin
                 if (|ccif.dWEN)
-                    nstate = EVICT;
+                    nstate = GRANT_EVICT;
                 else if (|(ccif.dREN & ccif.ccwrite))                  
-                    nstate = SNOOP_INV;
+                    nstate = GRANT_RX;
                 else if (|(ccif.dREN))                  
-                    nstate = SNOOP;
+                    nstate = GRANT_R;
                 else if (|ccif.ccwrite)
-                    nstate = UPDATE;
+                    nstate = GRANT_INV;
             end
-            SNOOP:              nstate = |ccif.ccsnoophit ? TRANSFER : RMEM;
-            SNOOP_INV:          nstate = |ccif.ccsnoophit ? TRANSFER_INV : RMEM_INV;
-            // SNOOP:              nstate = |nccforward ? TRANSFER : IDLE;
-            // SNOOP_INV:          nstate = |nccforward ? TRANSFER_INV : IDLE;
-            RMEM:               nstate = (ccif.l2state == L2_ACCESS) ? (exclusiveUpdate ? RMEM_EXCL_FIN : RMEM_FIN) : state;
-            RMEM_INV:           nstate = (ccif.l2state == L2_ACCESS) ? RMEM_EXCL_FIN : state;
+            GRANT_R:            nstate = SNOOP;
+            GRANT_RX:           nstate = SNOOP_INV;
+            GRANT_EVICT:        nstate = WRITEBACK;
+            GRANT_INV:          nstate = SNOOP_UPDATE;
+            SNOOP:              nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER : RMEM) : state;
+            SNOOP_INV:          nstate = &ccif.ccsnoopdone ? (|ccif.ccsnoophit ? TRANSFER_INV : RMEM) : state;
+            SNOOP_UPDATE:       nstate = &ccif.ccsnoopdone ? UPDATE : state;
+            RMEM:               nstate = (ccif.l2state == L2_ACCESS) ? RMEM_FIN : state;
             RMEM_FIN:           nstate = IDLE;
-            RMEM_EXCL_FIN:      nstate = IDLE;
-            TRANSFER_INV:       nstate = TRANSFER_INV_FIN;
-            TRANSFER_INV_FIN:   nstate = IDLE;
             TRANSFER:           nstate = TRANSFER_FIN;
-            TRANSFER_FIN:       nstate = ccif.ccdirty[supplier_cpu] ? WMEM_TRANSFER : IDLE;
-            WMEM_TRANSFER:      nstate = WMEM_TRANSFER_FIN;
-            WMEM_TRANSFER_FIN:  nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
-            EVICT:              nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
+            TRANSFER_INV:       nstate = TRANSFER_INV_FIN;
+            TRANSFER_FIN:       nstate = wb_needed ? WRITEBACK : IDLE;     // [I -> S, M -> S] : [I -> S, E -> S]
+            TRANSFER_INV_FIN:   nstate = IDLE;                                              // [I -> M]
+            WRITEBACK:          nstate = (ccif.l2state == L2_ACCESS) ? IDLE : state;
             UPDATE:             nstate = IDLE;
         endcase
     end
@@ -157,24 +155,22 @@ module bus_ctrl #(
         ccif.ccinv = '0;
         ndload = ccif.dload[requester_cpu];
         nexclusiveUpdate = exclusiveUpdate;
+        nwb_needed = wb_needed;
         // nccforward = ccforward;
         casez(state)
-            // IDLE (maybe guard with if nstate != state to reduce the amount of 1 -> 0 -> 1 switches)
             IDLE: begin
-                // beneficial when transitioning to snoop
+                // logic haha
+            end
+            GRANT_R, GRANT_RX, GRANT_INV: begin
                 for (int i = 0; i < CPUS; i++) begin
                     if (requester_cpu != i)
-                        nccsnoopaddr[i] = ccif.daddr[nrequester_cpu] & ~(word_t'(3'b111));
+                        nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
                 end
-                // beneficial when transitioning to WB
-                nl2_store = ccif.dstore[nrequester_cpu]; 
-                nl2_addr = ccif.daddr[nrequester_cpu] & ~(word_t'(3'b111));
-                // forwarding if multipresent, we choose to forward from the msb
-                // nccforward = 0;
-                // for (int i = 0; i < CPUS; i++) begin
-                //     if (ccif.ccIsPresent[i])
-                //         nccforward = 1 << i;
-                // end
+            end
+            GRANT_EVICT: begin
+                nl2_store = ccif.dstore[requester_cpu]; 
+                nl2_addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
+                ccif.dwait[requester_cpu] = 0;  // seems it cant be earlier unless i use nstate
             end
             // attempt to snoop all other caches
             SNOOP: begin
@@ -188,52 +184,44 @@ module bus_ctrl #(
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
             end
             // respond with reading L2 if no snoop hit; update to E if exclusive
-            RMEM, RMEM_INV: begin
+            RMEM: begin
                 ccif.l2REN = 1; 
                 nl2_addr = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
                 ndload[requester_cpu] = ccif.l2load; 
             end
             RMEM_FIN: begin
-                ccif.dwait[requester_cpu] = 0;
-            end
-            RMEM_EXCL_FIN: begin
-                ccif.ccexclusive[requester_cpu] = 1;
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;
                 ccif.dwait[requester_cpu] = 0;
             end
             // respond with cache-to-cache on snoop/snoopx hit; first, write to bus
             TRANSFER, TRANSFER_INV: begin
                 ndload = ccif.dstore[supplier_cpu];
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
+                nwb_needed = ccif.ccdirty[supplier_cpu];
             end
             // respond with cache-to-cache on snoop/snoopx hit; second, write to requester
             TRANSFER_FIN: begin
                 ccif.dwait[requester_cpu] = 0;
-                ccif.ccexclusive[requester_cpu] = 0;    // [I -> E, M -> I] is not possible
-            end
-            TRANSFER_INV_FIN: begin
-                ccif.dwait[requester_cpu] = 0;
-                ccif.ccexclusive[requester_cpu] = 1;    // [I -> E, M -> I] is not possible
-            end
-            // final writeback for snoop hit; [I -> S; M -> S needs a WB as S can be replaced]
-            WMEM_TRANSFER: begin
-                // doing writebacks strictly after transfers for now, hoping that I -> S; M -> S is not too frequent (else warrants O state)
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;    // [I -> E, M -> I] is not possible
                 nl2_store = ccif.dstore[supplier_cpu]; 
                 nl2_addr = ccif.daddr[supplier_cpu] & ~(word_t'(3'b111));
                 ccif.dwait[supplier_cpu] = 0; 
             end
+            TRANSFER_INV_FIN: begin
+                ccif.dwait[requester_cpu] = 0;
+                ccif.ccexclusive[requester_cpu] = exclusiveUpdate;    // [I -> E, M -> I] is not possible
+            end
             // evictions may occur (dWEN goes high)
-            EVICT: begin
-                ccif.dwait[requester_cpu] = 0;  // seems it cant be earlier unless i use nstate
+            WRITEBACK: begin
                 ccif.l2WEN = 1;
             end
-            WMEM_TRANSFER_FIN: begin
-                ccif.l2WEN = 1; 
-            end
             // S -> M should invalidate the other caches, no need to WB as we have the latest data somewhere
-            UPDATE: begin
+            SNOOP_UPDATE: begin
                 ccif.ccinv = nonrequesterToggle(requester_cpu);
                 ccif.ccwait = nonrequesterToggle(requester_cpu);
-                ccif.ccexclusive[requester_cpu] = 1;
+            end
+            UPDATE: begin
+                ccif.dwait[requester_cpu] = 0;
             end
         endcase
     end
