@@ -139,11 +139,11 @@ program test(
 	nRST  = 1'b1;
 	@(posedge CLK);
 	proc_gen_bus_if.wen    = 1'b1;
-	proc_gen_bus_if.wdata  = '0;
+	proc_gen_bus_if.wdata  = 32'h1;
 	mem_gen_bus_if.busy    = 1'b0;
-	mem_gen_bus_if.rdata   = '0;
+	mem_gen_bus_if.rdata   = 32'hda7ada7a;
 	// Write twice to each word
-	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin
+	for(integer i = 0; i < 32'h0000_0040; i = i + 4) begin
 	    proc_gen_bus_if.addr  = i; #1;
 	    wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
@@ -153,10 +153,10 @@ program test(
 	proc_gen_bus_if.ren 	  = 1'b0;
 	#CLK_PERIOD;
         @(posedge CLK);
-	test_value 	     = 32'h0000_0080;
+	test_value 	     = 32'h0000_0001;
 	proc_gen_bus_if.ren  = 1'b1;
 	// Read back lastest values
-	for(integer i = 32'h0000_0200; i < 32'h0000_0400; i = i + 4) begin
+	for(integer i = 32'h0000_0000; i < 32'h0000_0040; i = i + 4) begin
 	    proc_gen_bus_if.addr = i; #1;
 	    wait(~proc_gen_bus_if.busy);
 	    assert(proc_gen_bus_if.rdata == test_value) else $error("Test case: %s, test num: %0d, read: 0x%h, expected: 0x%h for address: 0x%h\n", test_case, test_num, proc_gen_bus_if.rdata, test_value, proc_gen_bus_if.addr);
@@ -181,7 +181,7 @@ program test(
 	mem_gen_bus_if.busy    = 1'b0;
 	mem_gen_bus_if.rdata   = '0;
 
-	for(integer i = 0; i < 32'h0000_0400; i = i + 4) begin
+	for(integer i = 0; i < 32'h0000_0040; i = i + 4) begin
 	    proc_gen_bus_if.addr  = i;
 	    #1; wait(~proc_gen_bus_if.busy);
 	    @(posedge CLK);
@@ -275,41 +275,41 @@ program test(
 	proc_gen_bus_if.ren = 1'b0;
 	
 	
-	// Test case 8, flush after random write
-	@(negedge CLK);
-	nRST  = 1'b0;
-	#CLK_PERIOD;
-	nRST 		      = 1'b1;
-	test_case 	      = "Random Flush";
-	test_num 	     += 1;
-	proc_gen_bus_if.wen   = 1'b1;
-	mem_gen_bus_if.busy   = 1'b0;
-	mem_gen_bus_if.rdata  = 32'hFEED_FEED;
-	proc_gen_bus_if.ren   = 1'b0;
-	proc_gen_bus_if.addr  = 32'h0000_0100;
-	proc_gen_bus_if.wdata = 32'hDEAF_DEAF;
-	#1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
+	// // Test case 8, flush after random write
+	// @(negedge CLK);
+	// nRST  = 1'b0;
+	// #CLK_PERIOD;
+	// nRST 		      = 1'b1;
+	// test_case 	      = "Random Flush";
+	// test_num 	     += 1;
+	// proc_gen_bus_if.wen   = 1'b1;
+	// mem_gen_bus_if.busy   = 1'b0;
+	// mem_gen_bus_if.rdata  = 32'hFEED_FEED;
+	// proc_gen_bus_if.ren   = 1'b0;
+	// proc_gen_bus_if.addr  = 32'h0000_0100;
+	// proc_gen_bus_if.wdata = 32'hDEAF_DEAF;
+	// #1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
 
-	proc_gen_bus_if.addr  = 32'h0000_0020;
-	#1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
+	// proc_gen_bus_if.addr  = 32'h0000_0020;
+	// #1; wait(~proc_gen_bus_if.busy); @(posedge CLK);
 
-	proc_gen_bus_if.wen  = 1'b0;
-	flush 		     = 1'b1;
+	// proc_gen_bus_if.wen  = 1'b0;
+	// flush 		     = 1'b1;
 
-        while(1) begin
-	    wait(flush_done || mem_gen_bus_if.wen);
-	    if(flush_done) begin
-		flush  = 1'b0;
-		#CLK_PERIOD;
-		break;
-	    end
-	    if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020) begin
-		assert(mem_gen_bus_if.wdata == 32'hDEAF_DEAF) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h, at 0x%h", test_case, test_num, mem_gen_bus_if.wdata, 32'hDEAF_DEAF, mem_gen_bus_if.addr);
-	    end
-	    else begin
-		assert(mem_gen_bus_if.wdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h, at 0x%h", test_case, test_num, mem_gen_bus_if.wdata, 32'hFEED_FEED, mem_gen_bus_if.addr);
-	    end // else: !if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020)
-	end // while (1)
+    //     while(1) begin
+	//     wait(flush_done || mem_gen_bus_if.wen);
+	//     if(flush_done) begin
+	// 		flush  = 1'b0;
+	// 		#CLK_PERIOD;
+	// 		break;
+	//     end
+	//     if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020) begin
+	// 		assert(mem_gen_bus_if.wdata == 32'hDEAF_DEAF) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h, at 0x%h", test_case, test_num, mem_gen_bus_if.wdata, 32'hDEAF_DEAF, mem_gen_bus_if.addr);
+	//     end
+	//     else begin
+	// 		assert(mem_gen_bus_if.wdata == 32'hFEED_FEED) else $error("Test case: %s, test num: %0d, \n \t read: 0x%h, expected: 0x%h, at 0x%h", test_case, test_num, mem_gen_bus_if.wdata, 32'hFEED_FEED, mem_gen_bus_if.addr);
+	//     end // else: !if(mem_gen_bus_if.addr === 32'h0000_0100 || mem_gen_bus_if.addr == 32'h0000_0020)
+	// end // while (1)
 	$finish;	
     end // initial begin
  

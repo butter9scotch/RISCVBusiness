@@ -44,9 +44,14 @@ UARCH_PARAMS = \
     'icache_type' : ['pass_through', 'direct_mapped_tpf'],
     # Bus Configurations
     'bus_endianness' : ['big', 'little'],
-    'bus_interface_type' : ['ahb_if', 'generic_bus_if'],
+    'bus_interface_type' : ['ahb_if', 'generic_bus_if', 'apb_if'],
     # Sparisty Optimizations
     'sparce_enabled' : [ 'enabled', 'disabled' ],
+    # RV32C
+    'rv32c_enabled' : [ 'enabled', 'disabled' ],
+    # base ISA Configurations
+    'base_isa': ['RV32I', 'RV32E'], 
+    
     # Halt Enable -- Good for testing, not for tapeout
     'infinite_loop_halts' : ['true', 'false']
   }
@@ -69,7 +74,7 @@ NONSTANDARD_OPCODES = [ '0001011',
 def load_configuration(file_name):
   with open(file_name, 'r') as f:
     try:
-      config = yaml.load(f)
+      config = yaml.full_load(f)
     except yaml.parser.ParserError:
       sys.exit('Parse of '+ file_name + ' failed. Please check yml syntax')
   return config
@@ -81,7 +86,7 @@ def add_custom_instruction_header(name, encoding, length, opcode, fptr):
       fptr.write("GENERATE_CUSTOM_INSTRUCTION_R_TYPE(" +
         name + "," + opcode + "," + str(i) + "," + funct[0:7] + "," + funct[7:10] + ")\n")
   elif encoding in RISC_MGMT_PARAMS['nonstandard_extensions']['encoding']:
-    print "Warning: Generation of C Macros for the encoding " + encoding + " is not supported."
+    print("Warning: Generation of C Macros for the encoding " + encoding + " is not supported.")
   else:
     err = "Error: Invalid custom instruction encoding: " + encoding
     sys.exit(err)
