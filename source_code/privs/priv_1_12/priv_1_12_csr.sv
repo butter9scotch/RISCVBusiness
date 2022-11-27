@@ -61,6 +61,7 @@ module priv_1_12_csr #(
   /* Machine Trap Handling */
   csr_reg_t         mscratch, mscratch_next;
   csr_reg_t         mepc, mepc_next;
+  csr_reg_t         dpc, dpc_next;
   mcause_t          mcause, mcause_next;
   csr_reg_t         mtval, mtval_next;
   mip_t             mip, mip_next;
@@ -199,6 +200,9 @@ module priv_1_12_csr #(
       /* mepc reset */
       mepc <= '0;
 
+      /* dpc reset */
+      //dpc <= '0;
+
       /* mtval reset */
       mtval <= '0;
 
@@ -220,6 +224,7 @@ module priv_1_12_csr #(
       mip <= mip_next;
       mscratch <= mscratch_next;
       mepc <= mepc_next;
+      //dpc <= dpc_next;
       mtval <= mtval_next;
       mcounteren <= mcounteren_next;
       mcounterinhibit <= mcounterinhibit_next;
@@ -328,6 +333,11 @@ module priv_1_12_csr #(
     if (prv_intern_if.inject_mip) begin
       mip_next = prv_intern_if.next_mip;
     end
+    /*
+    if(prv_intern_if.inject_dpc) begin
+      dpc_next = prv_intern_if.next_dpc;
+    end
+    */
   end
 
   // hw perf mon

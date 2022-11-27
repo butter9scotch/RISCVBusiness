@@ -27,7 +27,9 @@ module top_core #(
     input soft_int,
     soft_int_clear,
     input timer_int,
-    timer_int_clear
+    timer_int_clear,
+    input debug_int,
+    debug_int_clear
 );
 
 
@@ -65,6 +67,9 @@ module top_core #(
     assign interrupt_if.soft_int_clear = soft_int_clear;
     assign interrupt_if.timer_int = timer_int;
     assign interrupt_if.timer_int_clear = timer_int_clear;
+    // debug
+    assign interrupt_if.debug_int = debug_int;
+    assign interrupt_if.debug_int_clear = debug_int_clear;
 
 `ifdef BUS_INTERFACE_GENERIC_BUS
     generic_bus_if gen_bus_if ();

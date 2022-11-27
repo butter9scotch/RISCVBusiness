@@ -51,11 +51,13 @@ interface priv_1_12_internal_if;
     logic timer_int_u, timer_int_s, timer_int_m;
     logic soft_int_u, soft_int_s, soft_int_m;
     logic ext_int_u, ext_int_s, ext_int_m;
+    logic debug_int_m; //debug*
 
     // Sources to clear the pending interrupt
     logic clear_timer_int_u, clear_timer_int_s, clear_timer_int_m;
     logic clear_soft_int_u, clear_soft_int_s, clear_soft_int_m;
     logic clear_ext_int_u, clear_ext_int_s, clear_ext_int_m;
+    logic clear_debug_int_m;    // debug*
 
     // Sources for exceptions
     logic mal_insn, fault_insn_access, illegal_insn, breakpoint, fault_l, mal_l, fault_s, mal_s;
@@ -66,10 +68,11 @@ interface priv_1_12_internal_if;
     mie_t curr_mie, next_mie;
     mcause_t curr_mcause, next_mcause;
     csr_reg_t curr_mepc, next_mepc;
+    csr_reg_t curr_dpc, next_dpc; //debug*
     mstatus_t curr_mstatus, next_mstatus;
     mtvec_t curr_mtvec;
     csr_reg_t curr_mtval, next_mtval;
-    logic inject_mip, inject_mie, inject_mcause, inject_mepc, inject_mstatus, inject_mtval;
+    logic inject_mip, inject_mie, inject_mcause, inject_mepc, inject_mstatus, inject_mtval, inject_dpc; // debug*
 
     // Things from the pipe we care about
     word_t epc; // pc of the instruction prior to the exception

@@ -69,6 +69,8 @@ module priv_1_12_block (
     assign prv_intern_if.ext_int_u = 1'b0;
     assign prv_intern_if.ext_int_s = 1'b0;
     assign prv_intern_if.ext_int_m = interrupt_if.ext_int;
+    // debug
+    assign prv_intern_if.debug_int_m = interrupt_if.debug_int;
 
     // Disable clear interrupts that will not be used
     assign prv_intern_if.clear_timer_int_u = 1'b0;
@@ -80,6 +82,8 @@ module priv_1_12_block (
     assign prv_intern_if.clear_ext_int_u = 1'b0;
     assign prv_intern_if.clear_ext_int_s = 1'b0;
     assign prv_intern_if.clear_ext_int_m = interrupt_if.ext_int_clear;
+    // debug
+    assign prv_intern_if.clear_debug_int_m = interrupt_if.debug_int_clear;
 
     // from pipeline to the priv unit
     assign prv_intern_if.pipe_clear        = prv_pipe_if.pipe_clear;

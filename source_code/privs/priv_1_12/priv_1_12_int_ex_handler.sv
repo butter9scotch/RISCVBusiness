@@ -63,6 +63,8 @@ module priv_1_12_int_ex_handler (
         else if (prv_intern_if.timer_int_s) begin
             int_src = TIMER_INT_S;
         end
+        else if (prv_intern_if.debug_int_m)
+            int_src = DEBUG_INT_M; //debug*
         else begin
             interrupt = 1'b0;
         end
@@ -70,7 +72,8 @@ module priv_1_12_int_ex_handler (
 
     assign clear_interrupt = (prv_intern_if.clear_timer_int_m | prv_intern_if.clear_soft_int_m
                              | prv_intern_if.clear_ext_int_m  | prv_intern_if.clear_timer_int_s
-                             | prv_intern_if.clear_soft_int_s | prv_intern_if.clear_ext_int_s);
+                             | prv_intern_if.clear_soft_int_s | prv_intern_if.clear_ext_int_s
+                             | prv_intern_if.clear_debug_int_m); // debug*
 
     // Determine whether an exception occured
     always_comb begin
@@ -111,12 +114,14 @@ module priv_1_12_int_ex_handler (
             exception = 1'b0;
     end
 
+    // untill here
     // Output info to pipe_ctrl
     assign prv_intern_if.intr = exception | interrupt_reg;
     assign interrupt_fired = (prv_intern_if.curr_mstatus.mie &
                                 ((prv_intern_if.curr_mie.mtie & prv_intern_if.curr_mip.mtip)
                                     | (prv_intern_if.curr_mie.msie & prv_intern_if.curr_mip.msip)
-                                    | (prv_intern_if.curr_mie.meie & prv_intern_if.curr_mip.meip)));
+                                    | (prv_intern_if.curr_mie.meie & prv_intern_if.curr_mip.meip)
+                                    | (prv_intern_if.curr_mie.mdie & prv_intern_if.curr_mip.mdip))); // debug*
 
     // Register updates on Interrupts/Exceptions
     /* NOTE a lot of the below code are patterns that exist to solve issues
@@ -147,6 +152,11 @@ module priv_1_12_int_ex_handler (
 
         if (prv_intern_if.timer_int_s) prv_intern_if.next_mip.stip = 1'b1;
         else if (prv_intern_if.clear_timer_int_s) prv_intern_if.next_mip.stip = 1'b0;
+        
+        // debug*
+        if (prv_intern_if.debug_int_m) prv_intern_if.next_mip.mdip = 1'b1;
+        else if (prv_intern_if.clear_debug_int_m) prv_intern_if.next_mip.mdip = 1'b0;
+
     end
 
     assign prv_intern_if.inject_mstatus = exception | prv_intern_if.intr | prv_intern_if.mret;
@@ -173,6 +183,10 @@ module priv_1_12_int_ex_handler (
     // TODO: Change to interrupt
     assign prv_intern_if.inject_mepc = exception | (interrupt_fired & ~update_mie);
     assign prv_intern_if.next_mepc = prv_intern_if.epc;
+
+    // debug*
+    // TODO: 
+    assign  
 
     // TODO: May need to insert other exception signals
     assign prv_intern_if.inject_mtval = (prv_intern_if.mal_l | prv_intern_if.fault_l

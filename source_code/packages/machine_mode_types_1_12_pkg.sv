@@ -284,7 +284,8 @@ package machine_mode_types_1_12_pkg;
   // Decreasing priority: MEI, MSI, MTI
 
   typedef struct packed {
-    logic [15:0] impl_defined; // Implementation defined
+    logic [14:0] impl_defined; // Implementation defined
+    logic        mdip;         // M-Mode debug interrupt
     logic [3:0]  zero_6;
     logic        meip;         // M-Mode external interrupt
     logic        zero_5;
@@ -301,7 +302,8 @@ package machine_mode_types_1_12_pkg;
   } mip_t;
 
   typedef struct packed {
-    logic [15:0] impl_defined;
+    logic [14:0] impl_defined;
+    logic        mdie;
     logic [3:0]  zero_6;
     logic        meie;
     logic        zero_5;
@@ -420,7 +422,8 @@ package machine_mode_types_1_12_pkg;
     TIMER_INT_S         = 31'd5,
     TIMER_INT_M         = 31'd7,
     EXT_INT_S           = 31'd9,
-    EXT_INT_M           = 31'd11
+    EXT_INT_M           = 31'd11,
+    DEBUG_INT_M         = 31'd16
   } int_code_t;
 
   // General CSR definition
