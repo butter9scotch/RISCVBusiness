@@ -102,8 +102,8 @@ interface priv_1_12_internal_if;
     );
 
     modport int_ex_handler (
-        input timer_int_u, timer_int_s, timer_int_m, soft_int_u, soft_int_s, soft_int_m, ext_int_u, ext_int_s, ext_int_m,
-            clear_timer_int_u, clear_timer_int_s, clear_timer_int_m, clear_soft_int_u, clear_soft_int_s, clear_soft_int_m,
+        input timer_int_u, timer_int_s, timer_int_m, soft_int_u, soft_int_s, soft_int_m, ext_int_u, ext_int_s, ext_int_m, debug_int_m,
+            clear_timer_int_u, clear_timer_int_s, clear_timer_int_m, clear_soft_int_u, clear_soft_int_s, clear_soft_int_m, clear_debug_int_m,
             clear_ext_int_u, clear_ext_int_s, clear_ext_int_m, mal_insn, fault_insn_access, illegal_insn, breakpoint, fault_l, mal_l, fault_s, mal_s,
             env_u, env_s, env_m, fault_insn_page, fault_load_page, fault_store_page, curr_mcause, curr_mepc, curr_mie, curr_mip, curr_mstatus, curr_mtval,
             mret, sret, uret, pipe_clear, ex_rmgmt, ex_rmgmt_cause, epc,
