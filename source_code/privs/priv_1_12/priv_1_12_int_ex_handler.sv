@@ -185,8 +185,7 @@ module priv_1_12_int_ex_handler (
     assign prv_intern_if.next_mepc = prv_intern_if.epc;
 
     // debug*
-    // TODO: 
-    assign  
+    // TODO:  
 
     // TODO: May need to insert other exception signals
     assign prv_intern_if.inject_mtval = (prv_intern_if.mal_l | prv_intern_if.fault_l
