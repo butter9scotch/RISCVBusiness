@@ -12,36 +12,33 @@
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-*
-*
-*   Filename:     include/rv32i_reg_file_if.vh
-*
-*   Created by:   John Skubic
-*   Email:        jskubic@purdue.edu
-*   Date Created: 06/14/2016
-*   Description:  Interface for the Register File 
+*   
+*   
+*   Filename:     stage3_fetch_execute_if.vh
+*   
+*   Created by:   Jacob R. Stevens	
+*   Email:        steven69@purdue.edu
+*   Date Created: 06/01/2016
+*   Description:  Interface between the fetch and execute pipeline stages
 */
 
-`ifndef RV32I_REG_FILE_IF_VH
-`define RV32I_REG_FILE_IF_VH
+`ifndef STAGE3_FETCH_EXECUTE_IF_VH
+`define STAGE3_FETCH_EXECUTE_IF_VH
 
-interface rv32i_reg_file_if();
-
+interface stage3_fetch_execute_if;
   import rv32i_types_pkg::*;
+  import stage3_types_pkg::*;
+ 
+  fetch_ex_t fetch_ex_reg;
+  word_t brj_addr;
 
-  word_t        w_data, rs1_data, rs2_data;
-  logic   [4:0] rs1, rs2, rd;
-  logic         wen;
-
-  modport rf (
-    input w_data, rs1, rs2, rd, wen,
-    output rs1_data, rs2_data
+  modport fetch(
+    output fetch_ex_reg
   );
 
-  modport cu (
-    output rs1, rs2
+  modport execute(
+    input fetch_ex_reg
   );
 
 endinterface
-
-`endif //RV32I_REG_FILE_IF_VH
+`endif
