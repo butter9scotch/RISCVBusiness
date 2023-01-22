@@ -31,10 +31,10 @@ module priv_1_12_csr #(
 )(
   input CLK,
   input nRST,
-  input logic [63:0] mtime,
   priv_1_12_internal_if.csr prv_intern_if,
   priv_ext_if.priv priv_ext_pma_if,
-  priv_ext_if.priv priv_ext_pmp_if
+  priv_ext_if.priv priv_ext_pmp_if,
+  priv_ext_if.priv priv_ext_debug_if,
   `ifdef RV32F_SUPPORTED
   , priv_ext_if.priv priv_ext_f_if
   `endif // RV32F_SUPPORTED
@@ -79,32 +79,38 @@ module priv_1_12_csr #(
   csr_reg_t nxt_csr_val;
 
   // invalid_csr flags
-  logic invalid_csr_priv, invalid_csr_addr;
-  assign prv_intern_if.invalid_csr = invalid_csr_priv | invalid_csr_addr;
-
-  // csr operation flag
-  logic csr_operation;
-  assign csr_operation = prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear;
+  logic invalid_csr_0, invalid_csr_1; // 0: lack of privilege, 1: bad address
+  assign prv_intern_if.invalid_csr = invalid_csr_0 | invalid_csr_1;
 
   // Extension Broadcast Signals
   // - PMA
   assign priv_ext_pma_if.csr_addr = prv_intern_if.csr_addr;
   assign priv_ext_pma_if.value_in = nxt_csr_val;
-  assign priv_ext_pma_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
+  assign priv_ext_pma_if.csr_active = ~invalid_csr_0 & prv_intern_if.valid_write 
+                                      & (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear);
   // - PMP
   assign priv_ext_pmp_if.csr_addr = prv_intern_if.csr_addr;
   assign priv_ext_pmp_if.value_in = nxt_csr_val;
-  assign priv_ext_pmp_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
+  assign priv_ext_pmp_if.csr_active = ~invalid_csr_0 & prv_intern_if.valid_write 
+                                      & (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear);
   `ifdef RV32F_SUPPORTED
     assign priv_ext_f_if.csr_addr = prv_intern_if.csr_addr;
     assign priv_ext_f_if.value_in = nxt_csr_val;
-    assign priv_ext_f_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
+    assign priv_ext_f_if.csr_active = prv_intern_if.valid_write
+                                      & (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear);
 `endif // RV32F_SUPPORTED
 `ifdef RV32V_SUPPORTED
     assign priv_ext_v_if.csr_addr = prv_intern_if.csr_addr;
     assign priv_ext_v_if.value_in = nxt_csr_val;
-    assign priv_ext_v_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
+    assign priv_ext_v_if.csr_active = prv_intern_if.valid_write
+                                      & (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear);
 `endif // RV32V_SUPPORTED
+
+  /* RISC-V External Debug Support */
+  assign priv_ext_debug_if.csr_addr = prv_intern_if.csr_addr;
+  assign priv_ext_debug_if.value_in = nxt_csr_val;
+  assign priv_ext_debug_if.csr_active = ~invalid_csr_0 & prv_intern_if.valid_write 
+                                      & (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear);
 
   /* Save some logic with this */
   assign mcycle = cycles_full[31:0];
@@ -124,7 +130,6 @@ module priv_1_12_csr #(
   assign misa.base = BASE_RV32;
   // NOTE: Per the v1.12 spec, both I and E CANNOT be high - If supporting E, I must be disabled
   assign misa.extensions =      MISA_EXT_I
-                              | MISA_EXT_U
                             `ifdef RV32C_SUPPORTED
                                 | MISA_EXT_C
                              `endif `ifdef RV32E_SUPPORTED
@@ -133,6 +138,8 @@ module priv_1_12_csr #(
                                 | MISA_EXT_F
                             `endif `ifdef RV32M_SUPPORTED
                                 | MISA_EXT_M
+                            `endif `ifdef RV32U_SUPPORTED
+                                | MISA_EXT_U
                             `endif `ifdef RV32V_SUPPORTED
                                 | MISA_EXT_V
                             `endif `ifdef CUSTOM_SUPPORTED
@@ -152,7 +159,7 @@ module priv_1_12_csr #(
       /* mstatus reset */
       mstatus.mie <= 1'b0;
       mstatus.mpie <= 1'b0;
-      mstatus.mpp <= U_MODE;
+      mstatus.mpp <= M_MODE;
       mstatus.mprv <= 1'b0;
       mstatus.tw <= 1'b1;
       mstatus.reserved_0 <= '0;
@@ -167,7 +174,7 @@ module priv_1_12_csr #(
       mstatus.mxr <= 1'b0;
       mstatus.tvm <= 1'b0;
       mstatus.tsr <= 1'b0;
-      mstatus.sd <= 1'b0;
+      mstatus.sd <= &(mstatus.vs) | &(mstatus.fs) | &(mstatus.xs);
       `ifdef RV32V_SUPPORTED
         mstatus.vs <= VS_INITIAL;
       `else
@@ -235,7 +242,6 @@ module priv_1_12_csr #(
   end
 
   // Privilege Check and Legal Value Check
-  logic inject_mcycle, inject_minstret, inject_mcycleh, inject_minstreth;
   always_comb begin
     mstatus_next = mstatus;
     mtvec_next = mtvec;
@@ -248,30 +254,21 @@ module priv_1_12_csr #(
     mcounterinhibit_next = mcounterinhibit;
     mcause_next = mcause;
 
-    inject_mcycle = 1'b0;
-    inject_mcycle = 1'b0;
-    inject_minstret = 1'b0;
-    inject_minstreth = 1'b0;
-
     nxt_csr_val = (prv_intern_if.csr_write) ? prv_intern_if.new_csr_val :
                   (prv_intern_if.csr_set)   ? prv_intern_if.new_csr_val | prv_intern_if.old_csr_val :
                   (prv_intern_if.csr_clear) ? ~prv_intern_if.new_csr_val & prv_intern_if.old_csr_val :
                   prv_intern_if.new_csr_val;
-    invalid_csr_priv = 1'b0;
+    invalid_csr_0 = 1'b0;
 
-    if (prv_intern_if.csr_addr[11:10] == 2'b11 && !prv_intern_if.csr_read_only) begin
-      if (csr_operation) begin
-        invalid_csr_priv = 1'b1; // Attempting to modify a R/O CSR
-      end
-    end else if (prv_intern_if.csr_addr[9:8] > prv_intern_if.curr_privilege_level) begin
-      if (csr_operation) begin
-        invalid_csr_priv = 1'b1; // Not enough privilege
+    if (prv_intern_if.csr_addr[9:8] > prv_intern_if.curr_priv) begin
+      if (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear) begin
+        invalid_csr_0 = 1'b1; // Not enough privilege
       end
     end else begin
       if (prv_intern_if.valid_write) begin
         casez(prv_intern_if.csr_addr)
           MSTATUS_ADDR: begin
-            if (prv_intern_if.new_csr_val[12:11] == RESERVED_MODE || prv_intern_if.new_csr_val[12:11] == S_MODE) begin
+            if (prv_intern_if.new_csr_val[12:11] == RESERVED_MODE) begin
               mstatus_next.mpp = U_MODE; // If invalid privilege level, dump at 0
             end else begin
               mstatus_next.mpp = priv_level_t'(nxt_csr_val[12:11]);
@@ -320,18 +317,6 @@ module priv_1_12_csr #(
           MCAUSE_ADDR: begin
             mcause_next = nxt_csr_val;
           end
-          MCYCLE_ADDR: begin
-            inject_mcycle = 1'b1;
-          end
-          MINSTRET_ADDR: begin
-            inject_minstret = 1'b1;
-          end
-          MCYCLEH_ADDR: begin
-            inject_mcycleh = 1'b1;
-          end
-          MINSTRETH_ADDR: begin
-            inject_minstreth = 1'b1;
-          end
         endcase
       end
     end
@@ -349,11 +334,17 @@ module priv_1_12_csr #(
     if (prv_intern_if.inject_mcause) begin
       mcause_next = prv_intern_if.next_mcause;
     end
+    if (prv_intern_if.inject_mie) begin
+      mie_next = prv_intern_if.next_mie;
+    end
     if (prv_intern_if.inject_mip) begin
       mip_next = prv_intern_if.next_mip;
     end
-
-    mstatus_next.sd = &(mstatus_next.vs) | &(mstatus_next.fs) | &(mstatus_next.xs);
+    /*
+    if(prv_intern_if.inject_dpc) begin
+      dpc_next = prv_intern_if.next_dpc;
+    end
+    */
   end
 
   // hw perf mon
@@ -361,35 +352,20 @@ module priv_1_12_csr #(
     cf_next = cycles_full;
     if_next = instret_full;
 
-    if (~mcounterinhibit.cy) begin
+    if (mcounteren.cy & ~mcounterinhibit.cy) begin
       cf_next = cycles_full + 1;
     end
-    if (~mcounterinhibit.ir) begin
+    if (mcounteren.ir & ~mcounterinhibit.ir) begin
       if_next = instret_full + prv_intern_if.inst_ret;
-    end
-
-    if (inject_mcycle) begin
-      cf_next = {mcycleh, nxt_csr_val};
-    end
-    if (inject_mcycleh) begin
-      cf_next = {nxt_csr_val, mcycle};
-    end
-
-    if (inject_minstret) begin
-      if_next = {minstreth, nxt_csr_val};
-    end
-    if (inject_minstreth) begin
-      if_next = {nxt_csr_val, minstret};
     end
   end
 
-  // Return proper values to CPU
+  // Return proper values to CPU, PMP, PMA
   always_comb begin
     /* CPU return */
     prv_intern_if.old_csr_val = '0;
-    invalid_csr_addr = 1'b0;
+    invalid_csr_1 = 1'b0;
     casez(prv_intern_if.csr_addr)
-      /* Machine Mode Addresses */
       MVENDORID_ADDR: prv_intern_if.old_csr_val = mvendorid;
       MARCHID_ADDR: prv_intern_if.old_csr_val = marchid;
       MIMPID_ADDR: prv_intern_if.old_csr_val = mimpid;
@@ -411,70 +387,27 @@ module priv_1_12_csr #(
       MINSTRET_ADDR: prv_intern_if.old_csr_val = minstret;
       MCYCLEH_ADDR: prv_intern_if.old_csr_val = mcycleh;
       MINSTRETH_ADDR: prv_intern_if.old_csr_val = minstreth;
-      /* Unprivileged Addresses */
-      CYCLE_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.cy) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = mcycle;
-        end
-      end
-      CYCLEH_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.cy) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = mcycleh;
-        end
-      end
-      INSTRET_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.ir) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = minstret;
-        end
-      end
-      INSTRETH_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.ir) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = minstreth;
-        end
-      end
-      TIME_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.tm) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = /* TODO get mtime */ mtime[31:0];
-        end
-      end
-      TIMEH_ADDR: begin
-        if (prv_intern_if.curr_privilege_level == U_MODE & ~mcounteren.tm) begin
-          invalid_csr_addr = 1'b1;
-        end else begin
-          prv_intern_if.old_csr_val = /* TODO get mtimeh */ mtime[63:32];
-        end
-      end
-      /* Extension Addresses */
       default: begin
-        if (csr_operation) begin
+        if (prv_intern_if.csr_write | prv_intern_if.csr_set | prv_intern_if.csr_clear) begin
           if (priv_ext_pma_if.ack) begin
             prv_intern_if.old_csr_val = priv_ext_pma_if.value_out;
-          end else if (priv_ext_pmp_if.ack) begin
+          end
+          if (priv_ext_pmp_if.ack) begin
             prv_intern_if.old_csr_val = priv_ext_pmp_if.value_out;
           end
           `ifdef RV32F_SUPPORTED
-            else if (priv_ext_f_if.ack) begin
+            if (priv_ext_f_if.ack) begin
               prv_intern_if.old_csr_val = priv_ext_f_if.value_out;
             end
           `endif // RV32F_SUPPORTED
           `ifdef RV32V_SUPPORTED
-            else if (priv_ext_v_if.ack) begin
+            if (priv_ext_v_if.ack) begin
               prv_intern_if.old_csr_val = priv_ext_v_if.value_out;
             end
           `endif // RV32V_SUPPORTED
 
           // CSR address doesn't exist
-          invalid_csr_addr = 1'b1
+          invalid_csr_1 = 1'b1
                           & (~priv_ext_pma_if.ack) & (~priv_ext_pma_if.invalid_csr)
                           & (~priv_ext_pmp_if.ack) & (~priv_ext_pmp_if.invalid_csr)
                           `ifdef RV32F_SUPPORTED

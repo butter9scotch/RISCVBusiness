@@ -72,7 +72,7 @@ interface priv_1_12_internal_if;
     mstatus_t curr_mstatus, next_mstatus;
     mtvec_t curr_mtvec;
     csr_reg_t curr_mtval, next_mtval;
-    logic inject_mip, inject_mcause, inject_mepc, inject_mstatus, inject_mtval;
+    logic inject_mip, inject_mcause, inject_mepc, inject_mstatus, inject_mtval, inject_dpc; //debug*
 
     // Things from the pipe we care about
     word_t epc; // pc of the instruction prior to the exception
@@ -113,6 +113,7 @@ interface priv_1_12_internal_if;
 
     modport pipe_ctrl (
         input intr, pipe_clear, mret, sret, curr_mtvec, curr_mepc, next_mcause,
+              curr_dpc, //debug*
         output insert_pc, priv_pc
     );
 
@@ -129,6 +130,14 @@ interface priv_1_12_internal_if;
     modport mode (
         input mret, curr_mstatus, intr,
         output curr_privilege_level
+    );
+
+    //debug*
+    // TODO: make sure the pipe_control unit can receive this curr_dpc signal
+    modport debug (
+        input inject_dpc, inject_mcause,
+              next_dpc, next_mcause,
+        output curr_dpc
     );
 
 endinterface

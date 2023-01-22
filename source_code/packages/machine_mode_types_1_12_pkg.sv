@@ -161,6 +161,8 @@ package machine_mode_types_1_12_pkg;
     MHPMEVENT31_ADDR   = 12'h33F
   } maddr_t;
 
+  
+
   /* User Mode Addresses */
   typedef enum logic [11:0] { 
     CYCLE_ADDR         = 12'hC00,
@@ -493,6 +495,27 @@ package machine_mode_types_1_12_pkg;
     EXT_INT_M           = 31'd11,
     DEBUG_INT_M         = 31'd16
   } int_code_t;
+
+  //debug*
+  // Debug Control and Status dcsr, 
+  // RISC-V External Debug Support Version 0.13.2, pg 42
+  typedef struct packed {
+    logic [3:0] xdebugver;
+    logic [11:0] zeroe_0;
+    logic ebreakm;
+    logic zero_1;
+    logic ebreaks;
+    logic ebreaku;
+    logic stepie;
+    logic stopcount;
+    logic stoptime;
+    logic [2:0] cause;
+    logic zero_2;
+    logic mprven;
+    logic nmip;
+    logic step;
+    logic [1:0] prv
+  } dscr_t; 
 
   // General CSR definition
   typedef logic [11:0] csr_addr_t;
