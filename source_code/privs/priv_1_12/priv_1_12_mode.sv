@@ -49,7 +49,7 @@ module priv_1_12_mode (
         next_priv_level = curr_priv_level;
         if (prv_intern_if.intr) begin
             next_priv_level = M_MODE;
-        end else if (prv_intern_if.mret) begin
+        end else if (prv_intern_if.mret || prv_intern_if.dret) begin
             next_priv_level = prv_intern_if.curr_mstatus.mpp;
         end
     end

@@ -56,7 +56,7 @@ module priv_1_12_block (
     assign prv_intern_if.csr_read_only = prv_pipe_if.read_only;
     assign prv_intern_if.new_csr_val = prv_pipe_if.wdata;
     assign prv_pipe_if.rdata = prv_intern_if.old_csr_val;
-    assign prv_pipe_if.invalid_priv_isn = prv_intern_if.invalid_csr | (prv_pipe_if.ret & (prv_intern_if.curr_privilege_level != M_MODE)) 
+    assign prv_pipe_if.invalid_priv_isn = prv_intern_if.invalid_csr | (prv_pipe_if.ret & (prv_intern_if.curr_privilege_level != M_MODE & prv_intern_if.curr_privilege_level != D_MODE)) 
                                             | (prv_pipe_if.wfi & (prv_intern_if.curr_privilege_level == U_MODE) & (prv_intern_if.curr_mstatus.tw));
 
     // Disable interrupts that will not be used
@@ -105,6 +105,7 @@ module priv_1_12_block (
     assign prv_intern_if.curr_mtval        = prv_pipe_if.badaddr;
     assign prv_intern_if.valid_write       = prv_pipe_if.valid_write;
     assign prv_intern_if.mret              = prv_pipe_if.ret & (prv_intern_if.curr_privilege_level == M_MODE);
+    assign prv_intern_if.dret              = prv_pipe_if.ret & (prv_intern_if.curr_privilege_level == D_MODE);
     assign prv_intern_if.sret              = 1'b0;
 
     // RISC-MGMT?
