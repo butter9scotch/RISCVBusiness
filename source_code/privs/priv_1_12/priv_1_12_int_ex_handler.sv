@@ -177,7 +177,7 @@ module priv_1_12_int_ex_handler (
         end else if (prv_intern_if.mret) begin // If we are going back from a trap
             prv_intern_if.next_mstatus.mpp = U_MODE; // We must set mpp to the least privileged mode possible
             if (prv_intern_if.curr_mstatus.mpp != M_MODE) begin
-                prv_intern_if.next_mstatus = 1'b0;
+                prv_intern_if.next_mstatus.mprv = 1'b0;
             end
         end
     end
