@@ -99,7 +99,9 @@ module priv_1_12_debug (
 
             if(priv_intern_if.inject_mcause) begin
                 if(priv_intern_if.next_mcause.interrupt) begin
-                    
+                    //
+                    if(priv_intern_if.next_mcause.casue == DEBUG_INT_M)
+                        nxt_dcsr.cause = 
                 end
                 else begin
                     
