@@ -4,10 +4,10 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "sequence.svh"
-`include "ahb_bus_driver.svh"
-`include "ahb_bus_monitor.svh"
+`include "bus_driver.svh"
+`include "bus_monitor.svh"
 
-class ahb_bus_agent extends uvm_agent;
+class bus_agent extends uvm_agent;
   `uvm_component_utils(ahb_bus_agent)
   sequencer sqr;
   ahb_bus_driver ahb_drv;

@@ -67,6 +67,8 @@ typedef logic [CPU_ID_LENGTH-1:0] cpuid_t;
 
 // modified from coherence_ctrl_if.vh
 interface bus_ctrl_if;
+    logic nRST;
+    logic clk;
     // L1 generic control signals
     logic               [CPUS-1:0] dREN, dWEN, dwait; 
     transfer_width_t    [CPUS-1:0] dload, dstore;
@@ -93,7 +95,7 @@ interface bus_ctrl_if;
     modport cc(
         input   dREN, dWEN, daddr, dstore, 
                 cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
-                l2load, l2state, 
+                l2load, l2state,
         output  dwait, dload, 
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
                 l2addr, l2store, l2REN, l2WEN
