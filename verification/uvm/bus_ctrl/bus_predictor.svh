@@ -3,13 +3,11 @@
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "ahb_bus_transaction_v2.svh"
-`include "peripheral_model.svh"
+`include "bus_transaction.svh"
 `include "dut_params.svh"
 
-localparam TOP_ADDR = `AHB_BASE_ADDR + `AHB_NWORDS * (`AHB_ADDR_WIDTH / 8);
 
-class ahb_bus_predictor extends uvm_subscriber #(ahb_bus_transaction_v2);
+/*class ahb_bus_predictor extends uvm_subscriber #(ahb_bus_transaction_v2);
   `uvm_component_utils(ahb_bus_predictor)
 
   peripheral_model periph = new;
@@ -164,6 +162,6 @@ class ahb_bus_predictor extends uvm_subscriber #(ahb_bus_transaction_v2);
     pred_ap.write(output_tx);
   endfunction : write
 
-endclass : ahb_bus_predictor
+endclass : ahb_bus_predictor*/
 
 `endif

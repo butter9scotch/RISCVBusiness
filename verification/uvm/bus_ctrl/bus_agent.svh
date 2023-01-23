@@ -9,9 +9,9 @@ import uvm_pkg::*;
 
 class bus_agent extends uvm_agent;
   `uvm_component_utils(ahb_bus_agent)
-  sequencer sqr;
-  ahb_bus_driver ahb_drv;
-  ahb_bus_monitor ahb_mon;
+  sequencer   sqr;
+  bus_driver  bus_drv;
+  bus_monitor bus_mon;
 
   function new(string name, uvm_component parent = null);
     super.new(name, parent);
@@ -19,12 +19,12 @@ class bus_agent extends uvm_agent;
 
   virtual function void build_phase(uvm_phase phase);
     sqr = sequencer::type_id::create("sqr", this);
-    ahb_drv = ahb_bus_driver::type_id::create("ahb_drv", this);
-    ahb_mon = ahb_bus_monitor::type_id::create("ahb_mon", this);
+    bus_drv = bus_driver::type_id::create("bus_drv", this);
+    bus_mon = bus_monitor::type_id::create("bus_mon", this);
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
-    ahb_drv.seq_item_port.connect(sqr.seq_item_export);
+    bus_drv.seq_item_port.connect(sqr.seq_item_export);
   endfunction
 
 endclass : ahb_bus_agent

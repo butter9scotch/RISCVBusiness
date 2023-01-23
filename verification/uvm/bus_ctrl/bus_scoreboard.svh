@@ -4,7 +4,7 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-class ahb_bus_scoreboard extends uvm_scoreboard;
+/*class ahb_bus_scoreboard extends uvm_scoreboard;
   `uvm_component_utils(ahb_bus_scoreboard)
   uvm_analysis_export #(ahb_bus_transaction_v2) expected_export;  // receive result from predictor
   uvm_analysis_export #(ahb_bus_transaction_v2) actual_export;  // receive result from DUT
@@ -80,6 +80,6 @@ class ahb_bus_scoreboard extends uvm_scoreboard;
     uvm_report_info("Comparator", $sformatf("Mismatches: %0d", m_mismatches));
   endfunction
 
-endclass
+endclass*/
 
 `endif

@@ -1,10 +1,11 @@
-`ifndef AHB_BUS_DRIVER_SVH
-`define AHB_BUS_DRIVER_SVH
+`ifndef BUS_DRIVER_SVH
+`define BUS_DRIVER_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
 `include "bus_ctrl_if.sv"
+`include "dut_params.svh"
 
 class bus_driver extends uvm_driver #(bus_transaction);
   `uvm_component_utils(bus_driver)
@@ -25,45 +26,204 @@ class bus_driver extends uvm_driver #(bus_transaction);
   endfunction : build_phase
 
   task run_phase(uvm_phase phase);
-    bus_transaction transaction;
+    bus_transaction currTrans;
+    int [dut_params::NUM_CPUS_USED-1:0] cpuIndexCounts;
+    int [dut_params::NUM_CPUS_USED-1:0] snoopCpuIndexs; // array of all the cpus that have a snoop request that need to be handled
+    int transCpuIndex;
+    int timeoutCount;
 
     DUT_reset();  // Power on Reset
-  
+
     forever begin
-      zero_sigs();
-      seq_item_port.get_next_item(currTransaction);
-      
-      
-      
-      
+      zero_all_sigs();
+      seq_item_port.get_next_item(currTrans);
+      cpuIndexCounts = '0;
+
+
+      // While there are still some transactions by the CPUs that need to be sent
+      while (allStimNotSent(
+          cpuIndexCounts, currTrans.numTransactions
+      )) begin
+        timeoutCount = 0;
+
+        // Loop through all of the CPUS that we are driving and send out any stim that needs to be sent
+        for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+          if (cpuIndexCounts[i] < currTrans.numTransactions) begin // if we haven't sent all stim from this particular CPU
+            driveCpuStim(i, currTrans);
+          end else begin
+            driveCpuIdle(i);
+          end
+        end
+
+        @(posedge vif.clk); // clock in the stimulus
+        snoopCpuIndexs = '0;
+        transCpuIndex = 0;
+
+        // The snoop hit and transaction complete ints are passed by reference
+        // TransComplete function checks to see if dwait is low for any of the cpus
+        while(!snoopHit(snoopCpuIndexs) || !transComplete(transCpuIndex)) begin
+          if(timeoutCount > dut_params::DRVR_TIMEOUT) begin
+            `uvm_fatal("Driver", "Timeout while waiting for bus to snoop or give low dwait to any cpu");
+          end
+          @(posedge vif.clk);
+          timeoutCount = timeoutCount + 1;
+        end
+
+        timeoutCount = 0;
+        if(snoopHit(snoopCpuIndexs)) begin
+          driveSnoopResponses(snoopCpuIndexs, currTrans);
+          while(!transComplete(transCpuIndex)) begin
+            if(timeoutCount > dut_params::DRVR_TIMEOUT) begin
+              `uvm_fatal("Driver", "Timeout while waiting for a low dwait to any cpu after snooping");
+            end
+            @(posedge vif.clk);
+            timeoutCount = timeoutCount + 1;
+          end
+        end
+        
+        cpuIndexCounts[transCpuIndex] = cpuIndexCounts[transCpuIndex] + 1;;
+
+        @(posedge vif.clk);
+
+      end
       seq_item_port.item_done();
+      if(!allDwaitHigh()) begin
+        `uvm_fatal("Driver", "Not all dwaits high cycle after bus gives response");
+      end
     end
   endtask
 
-  task DUT_reset();
-    `uvm_info(this.get_name(), "Resetting DUT", UVM_LOW);
+  function automatic bit allDwaitHigh();
+    foreach(vif.dwait[i]) begin
+      if(vif.dwait[i] != 1'b1) return 1'b0;
+    end
+    return 1'b1;
 
-    zero_sigs();
+  endfunction
 
-    @(posedge vif.clk);
-    vif.nRST = '0;
-    @(posedge vif.clk);
-    vif.nRST = '1;
-    @(posedge vif.clk);
-    @(posedge vif.clk);
+
+  task driveSnoopResponses();
+    input int [dut_params::NUM_CPUS_USED-1:0] snoopCpuIndexs;
+    input bus_transaction currTrans;
+    begin
+      zero_snoop_sigs(); 
+
+      foreach(snoopCpuIndexs[i]) begin
+        if(snoopCpuIndexs[i] == 1'b1) begin // if we have a snoop hit to the i'th CPU then we need to respond
+          if(currTrans.snoopData.snoopHitAddr[vif.ccsnoopaddr[i]]) begin // if the snoop is a hit
+            vif.ccsnoopdone[i] = 1'b1;
+            vif.ccsnoophit[i] = 1'b1;
+            vif.ccIsPresent[i] = 1'b1;
+            vif.ccdirty[i] = currTrans.snoopData.snoopDirty[vif.ccsnoopaddr[i]];
+          end else begin
+            vif.ccsnoopdone[i] = 1'b1;
+          end
+        end
+      end
+
+      @(posedge vif.clk);
+
+      zero_snoop_sigs();
+    end
   endtask
 
-  task zero_sigs();
-    vif.dREN    = '0;
-    vif.dWEN    = '0;
-    vif.daddr   = '0;
-    vif.dstore  = '0;
-    vif.cctrans = '0;
-    vif.ccwrite = '0;
-    vif.ccsnoophit = '0;
-    vif.ccIsPresent = '0;
-    vif.ccdirty   = '0;
-    vif.ccsnoopdone = '0;
+  function automatic bit snoopHit(ref int [dut_params::NUM_CPUS_USED-1:0] snoopCpuIndexs);
+    bit returnVal;
+
+    snoopCpuIndexs = '0;
+
+    for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+      if(vif.ccwait[i]) begin
+        returnVal = 1'b1;
+        snoopCpuIndexs[i] = 1;
+      end
+    end
+
+    return returnVal;
+  endfunction
+
+  function automatic bit transComplete(ref int transCpuIndex);
+    bit returnVal;
+
+    returnVal = 1'b0;
+    transCpuIndex = 0; // no real need to zero out, just nice to do
+
+    for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+      if(~vif.dwait[i]) begin
+        // Check to make sure that this is the only cpu recieviing information
+        if(returnVal = 1'b1) `uvm_fatal("Driver", "Multiple CPUS see !dwait, cannot continue");
+        returnVal = 1'b1;
+        transCpuIndex = i;
+      end
+    end
+    return returnVal;
+  endfunction
+
+
+  function automatic bit allStimNotSent(int [dut_params::NUM_CPUS_USED-1:0] cpuIndexCounts,
+                                        int numTrans);
+    for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+      if (cpuIndexCounts[i] < numTrans) return 1'b1;
+    end
+
+    return 1'b0;
+  endfunction
+
+  // Task that drives the stim to the correct CPU based off of the data given in the transaction
+  task driveCpuStim();
+    input int cpuIndex;
+    input bus_transaction currTrans;
+    begin
+      if (currTrans.idle[cpuIndex]) begin
+        driveCpuIdle(cpuIndex);
+      end else begin
+        vif.daddr[cpuIndex]   = currTrans.daddr[cpuIndex];
+        vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex];
+        vif.dREN[cpuIndex]    = ~currTrans.dREN[cpuIndex];
+        vif.dstore[cpuIndex]  = currTrans.dstore[cpuIndex];
+        vif.ccwrite[cpuIndex] = currTrans.readX[cpuIndex];
+      end
+    end
+  endtask
+
+
+  task DUT_reset();
+    begin
+      `uvm_info(this.get_name(), "Resetting DUT", UVM_LOW);
+
+      zero_all_sigs();
+
+      @(posedge vif.clk);
+      vif.nRST = '0;
+      @(posedge vif.clk);
+      vif.nRST = '1;
+      @(posedge vif.clk);
+      @(posedge vif.clk);
+    end
+  endtask
+
+  task zero_all_sigs();
+    begin
+      vif.dREN        = '0;
+      vif.dWEN        = '0;
+      vif.daddr       = '0;
+      vif.dstore      = '0;
+      vif.cctrans     = '0;
+      vif.ccwrite     = '0;
+      vif.ccsnoophit  = '0;
+      vif.ccIsPresent = '0;
+      vif.ccdirty     = '0;
+      vif.ccsnoopdone = '0;
+    end
+  endtask
+
+    task zero_snoop_sigs();
+    begin
+      vif.ccsnoophit  = '0;
+      vif.ccIsPresent = '0;
+      vif.ccdirty     = '0;
+      vif.ccsnoopdone = '0;
+    end
   endtask
 
 endclass : bus_driver

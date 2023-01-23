@@ -9,12 +9,25 @@ class bus_transaction extends uvm_sequence_item;
 
   localparam TRANS_SIZE dut_params::WORD_W * dut_params::BLOCK_SIZE_WORDS;
 
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] idle;
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [dut_params::WORD_W - 1: 0] daddr;
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] rw;
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [TRANS_SIZE - 1: 0] dstore;
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [TRANS_SIZE - 1: 0] dload;
-  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] exclusive;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0]                                idle;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [dut_params::WORD_W - 1: 0]    daddr;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0]                                dWEN;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0]                                readX;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [TRANS_SIZE - 1: 0]            dstore;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0] [TRANS_SIZE - 1: 0]            dload;
+  rand bit [dut_params::NUM_CPUS_USED - 1: 0] [1023:0]                                exclusive;
+
+  
+  dut_params::drvr_snoop_t [dut_params::NUM_CPUS_USED-1:0] snoopData;
+
+  rand int numTransactions;
+
+
+  // Constraints on the data
+  constraint numTransConstraint {numTransactions > 0;}
+  constraint busReadX { // can't have a bus write along with a readX
+    foreach(dWEN[i]) dWEN[i] && readX[i] == 0;
+  }
  
   
   //TODO: YOU MAY WANT TO RECONSIDER HOW MANY OF THESE FIELDS YOU INCLUDE FOR PRINTING

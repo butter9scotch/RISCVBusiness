@@ -3,8 +3,8 @@
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "ahb_if.sv"
-class ahb_bus_monitor extends uvm_monitor;
+`include "bus_ctrl_if.sv"
+/*class ahb_bus_monitor extends uvm_monitor;
   `uvm_component_utils(ahb_bus_monitor)
 
   virtual ahb_if vif;
@@ -170,6 +170,6 @@ class ahb_bus_monitor extends uvm_monitor;
     end
   endtask : run_phase
 
-endclass : ahb_bus_monitor
+endclass : ahb_bus_monitor*/
 
 `endif

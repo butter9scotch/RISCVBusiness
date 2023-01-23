@@ -1,43 +1,34 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-`include "ahb_bus_transaction_v2.svh"
+`include "bus_transaction.svh"
 `include "dut_params.svh"
 
-class basic_sequence extends uvm_sequence #(ahb_bus_transaction_v2);
+class basic_sequence extends uvm_sequence #(bus_transaction);
   `uvm_object_utils(basic_sequence)
   function new(string name = "");
     super.new(name);
   endfunction : new
 
   task body();
-    ahb_bus_transaction_v2 req_item;
-    req_item = ahb_bus_transaction_v2::type_id::create("req_item");
+    bus_transaction req_item;
+    req_item = bus_transaction::type_id::create("req_item");
 
     // Do a simple NONSEQ or IDLE transfer
-    repeat (10000) begin
+    repeat (5) begin
       start_item(req_item);
-      if (!req_item.randomize() with {
-            req_item.hsize == 3'b010;
-            foreach (req_item.haddr[i]) {
-              req_item.haddr[i] < `AHB_NWORDS * 4;
-              req_item.haddr[i][1:0] == 2'b00;
-              //req_item.hwstrb == '1;
-            }
-            req_item.burstType == 3;
-            req_item.errorAddrFlag == 0;
-          }) begin
+      if (!req_item.randomize() with {req_item.numTransactions < 3;}) begin
         // if the transaction is unable to be randomized, send a fatal message
         `uvm_fatal("sequence", "not able to randomize")
       end
-
-      req_item.hsel = 1;
 
       finish_item(req_item);
     end
   endtask : body
 endclass  //sequence
 
+
+/*
 class burst_sequence extends uvm_sequence #(ahb_bus_transaction_v2);
   `uvm_object_utils(burst_sequence)
   function new(string name = "");
@@ -205,3 +196,4 @@ class sequencer extends uvm_sequencer #(ahb_bus_transaction_v2);
     super.new(name, parent);
   endfunction : new
 endclass : sequencer
+*/
