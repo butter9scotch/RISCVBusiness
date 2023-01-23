@@ -21,7 +21,7 @@ class test_basic extends uvm_test;
 
 
     // send the interface down
-    if (!uvm_config_db#(virtual bus_ctrl_if)::get(this, "", "bus_ctrl_vip", bus_ctrl_if)) begin
+    if (!uvm_config_db#(virtual bus_ctrl_if)::get(this, "", "bus_ctrl_vif", bus_ctrl_if)) begin
       // check if interface is correctly set in testbench top level
       `uvm_fatal("TEST", "No virtual interface specified for this test instance")
     end

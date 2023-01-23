@@ -18,9 +18,12 @@ class bus_transaction extends uvm_sequence_item;
   rand bit [dut_params::NUM_CPUS_USED - 1:0][1023:0][TRANS_SIZE - 1:0] dload;
   rand bit [dut_params::NUM_CPUS_USED - 1:0][1023:0] exclusive;
 
-
-  rand bit [$clog2(dut_params::WORD_W)-1:0] snoopHitAddr;  // if 1 at address index then hit
-  rand bit [$clog2(dut_params::WORD_W)-1:0] snoopDirty;  // if 1 at address index thn dirty
+  rand
+  bit [dut_params::NUM_CPUS_USED - 1:0][dut_params::DRVR_SNOOP_ARRAY_SIZE-1:0][dut_params::WORD_W - 1:0]
+  snoopHitAddr;  // if 1 at address index then hit
+  rand
+  bit [dut_params::NUM_CPUS_USED - 1:0][dut_params::DRVR_SNOOP_ARRAY_SIZE-1:0][dut_params::WORD_W - 1:0]
+  snoopDirty;  // if 1 at address index thn dirty
 
   rand int numTransactions;
 
@@ -43,6 +46,9 @@ class bus_transaction extends uvm_sequence_item;
     `uvm_field_int(dstore, UVM_DEFAULT)
     `uvm_field_int(dload, UVM_DEFAULT)
     `uvm_field_int(exclusive, UVM_DEFAULT)
+    `uvm_field_int(snoopHitAddr, UVM_DEFAULT)
+    `uvm_field_int(snoopDirty, UVM_DEFAULT)
+    `uvm_field_int(numTransactions, UVM_DEFAULT)
   `uvm_object_utils_end
 
   function new(string name = "bus_transaction");

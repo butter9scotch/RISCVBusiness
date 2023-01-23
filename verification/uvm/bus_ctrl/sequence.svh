@@ -17,7 +17,10 @@ class basic_sequence extends uvm_sequence #(bus_transaction);
     // Do a simple NONSEQ or IDLE transfer
     repeat (5) begin
       start_item(req_item);
-      if (!req_item.randomize() with {req_item.numTransactions < 3;}) begin
+      if (!req_item.randomize() with {
+            req_item.numTransactions < 3;
+            req_item.idle == 0;
+          }) begin
         // if the transaction is unable to be randomized, send a fatal message
         `uvm_fatal("sequence", "not able to randomize")
       end

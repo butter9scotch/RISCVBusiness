@@ -25,6 +25,8 @@ module tb_bus_ctrl ();
   // instantiate the interface
   bus_ctrl_if bus_ctrl_if ();
 
+  assign bus_ctrl_if.clk = clk;
+
   // TODO: instantiate the DUT
   bus_ctrl #(
       .BLOCK_SIZE(dut_params::BLOCK_SIZE_WORDS),
@@ -38,6 +40,6 @@ module tb_bus_ctrl ();
   initial begin
     uvm_config_db#(virtual bus_ctrl_if)::set(null, "", "bus_ctrl_vif",
                                              bus_ctrl_if); // configure the interface into the database, so that it can be accessed throughout the hierachy
-    run_test("testAll");
+    run_test("test_basic");
   end
 endmodule

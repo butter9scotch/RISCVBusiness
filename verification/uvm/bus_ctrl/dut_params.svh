@@ -9,6 +9,7 @@ package dut_params;
   localparam BLOCK_SIZE_WORDS = 2;
   localparam WORD_W = 32;
   localparam DRVR_TIMEOUT = 50;
+  localparam DRVR_SNOOP_ARRAY_SIZE = 4096;
 
 endpackage
 `endif

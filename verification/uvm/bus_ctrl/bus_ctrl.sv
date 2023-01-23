@@ -101,6 +101,26 @@ module bus_ctrl #(
             INVALIDATE:         nstate = IDLE;
         endcase
     end
+    
+//     // requester arbitration
+//     typedef enum logic [1:0] {
+//     INVALIDATE, READ, READ_EXCLUSIVE, EVICTION 
+//     } request_type_t;
+    
+//     request_type_t [CPUS-1: 0] request_type;
+//     always_comb begin
+//         request_type = 0;
+//         for (int i = 0; i < CPUS; i++) begin
+//             if (ccif.dWEN[i])
+//                 request_type[I] = EVICTION;
+//             else if (ccif.dREN[i] & ccif.ccwrite[i])                  
+//                 request_type[i] = READ_EXCLUSIVE;
+//             else if (ccif.dREN[i])                  
+//                 request_type[i] = READ;
+//             else if (ccif.ccwrite[i])
+//                 request_type[i] = INVALIDATE;
+//         end
+//     end
 
     // output logic for bus FSM
     always_comb begin
@@ -121,7 +141,14 @@ module bus_ctrl #(
         nsupplier_cpu = supplier_cpu;
         casez(state)
             IDLE: begin // obtain the requester CPU id
-                priorityEncode(ccif.cctrans, nrequester_cpu);
+                if (|ccif.dWEN)
+                    priorityEncode(ccif.dWEN, nrequester_cpu);
+                else if (|(ccif.dREN & ccif.ccwrite))                  
+                    priorityEncode((ccif.dREN & ccif.ccwrite), nrequester_cpu);
+                else if (|ccif.dREN)                  
+                    priorityEncode(ccif.dREN, nrequester_cpu);
+                else if (|ccif.ccwrite)
+                    priorityEncode(ccif.ccwrite, nrequester_cpu);
             end
             GRANT_R, GRANT_RX, GRANT_INV: begin // set the stimulus for snooping
                 for (int i = 0; i < CPUS; i++) begin

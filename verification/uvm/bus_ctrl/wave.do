@@ -1,49 +1,47 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /tb_ahb/ahbif/ADDR_WIDTH
-add wave -noupdate /tb_ahb/ahbif/DATA_WIDTH
-add wave -noupdate /tb_ahb/ahbif/HRESETn
-add wave -noupdate /tb_ahb/ahbif/HREADY
-add wave -noupdate /tb_ahb/ahbif/HMASTLOCK
-add wave -noupdate /tb_ahb/ahb_mod/state
-add wave -noupdate /tb_ahb/ahb_mod/next_state
-add wave -noupdate -color Cyan /tb_ahb/ahb_mod/range_error
-add wave -noupdate -color Gold /tb_ahb/ahbif/HCLK
-add wave -noupdate -color {Spring Green} /tb_ahb/ahbif/HSEL
-add wave -noupdate -color {Medium Violet Red} /tb_ahb/ahbif/HWRITE
-add wave -noupdate -color Cyan /tb_ahb/ahbif/HREADYOUT
-add wave -noupdate -color Aquamarine /tb_ahb/ahbif/HRESP
-add wave -noupdate -color Gold -radix hexadecimal /tb_ahb/ahbif/HADDR
-add wave -noupdate -color {Violet Red} /tb_ahb/bpif/request_stall
-add wave -noupdate /tb_ahb/ahbif/HTRANS
-add wave -noupdate /tb_ahb/ahbif/HBURST
-add wave -noupdate /tb_ahb/ahbif/HSIZE
-add wave -noupdate /tb_ahb/ahbif/HWDATA
-add wave -noupdate /tb_ahb/ahbif/HRDATA
-add wave -noupdate /tb_ahb/ahbif/HWSTRB
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/dataIndexWidth
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/CLK
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/nRST
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/data
-add wave -noupdate -group {BFM SIGS} -expand /tb_ahb/periphBFM/ndata
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/waited
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/nwaited
-add wave -noupdate -group {BFM SIGS} /tb_ahb/periphBFM/errorOccured
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/ADDR_WIDTH
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/DATA_WIDTH
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/wen
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/ren
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/addr
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/error
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/strobe
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/wdata
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/rdata
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/is_burst
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/burst_type
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/burst_length
-add wave -noupdate -expand -group {BPIF SIGS} /tb_ahb/bpif/secure_transfer
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/nRST
+add wave -noupdate -color Gold /tb_bus_ctrl/bus_ctrl_if/clk
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Violet Red} -subitemconfig {{/tb_bus_ctrl/bus_ctrl_if/dwait[1]} {-color {Violet Red} -height 17} {/tb_bus_ctrl/bus_ctrl_if/dwait[0]} {-color {Violet Red} -height 17}} /tb_bus_ctrl/bus_ctrl_if/dwait
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color Coral /tb_bus_ctrl/bus_ctrl_if/dload
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Cadet Blue} /tb_bus_ctrl/bus_ctrl_if/ccexclusive
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Medium Spring Green} /tb_bus_ctrl/bus_ctrl_if/ccwait
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color Coral /tb_bus_ctrl/bus_ctrl_if/ccsnoopaddr
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Cornflower Blue} /tb_bus_ctrl/bus_ctrl_if/ccinv
+add wave -noupdate -expand -group {L1 -> bus_ctrl} -color Cyan /tb_bus_ctrl/bus_ctrl_if/daddr
+add wave -noupdate -expand -group {L1 -> bus_ctrl} -color Magenta /tb_bus_ctrl/bus_ctrl_if/dWEN
+add wave -noupdate -expand -group {L1 -> bus_ctrl} -color {Light Steel Blue} -subitemconfig {{/tb_bus_ctrl/bus_ctrl_if/dREN[1]} {-color {Light Steel Blue}} {/tb_bus_ctrl/bus_ctrl_if/dREN[0]} {-color {Light Steel Blue}}} /tb_bus_ctrl/bus_ctrl_if/dREN
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccwrite
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccsnoopdone
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/dstore
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccsnoophit
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccIsPresent
+add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccdirty
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/cctrans
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2state
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2load
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2store
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2WEN
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2REN
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/l2addr
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/state
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nstate
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/requester_cpu
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nrequester_cpu
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/supplier_cpu
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nsupplier_cpu
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nccsnoopaddr
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nl2_addr
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nccwait
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nccinv
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/ndload
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nl2_store
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/exclusiveUpdate
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nexclusiveUpdate
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/wb_needed
+add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nwb_needed
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2888642732 ps} 0}
+WaveRestoreCursors {{Cursor 1} {91912 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -59,4 +57,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {2888640058 ps} {2888778426 ps}
+WaveRestoreZoom {41504 ps} {179872 ps}

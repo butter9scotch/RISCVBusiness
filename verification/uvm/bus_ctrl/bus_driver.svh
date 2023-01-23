@@ -37,6 +37,8 @@ class bus_driver extends uvm_driver #(bus_transaction);
     forever begin
       zero_all_sigs();
       seq_item_port.get_next_item(currTrans);
+      `uvm_info(this.get_name(), $sformatf("Received new sequence item:\n%s", currTrans.sprint()),
+                UVM_DEBUG);
       `zero_unpckd_array(cpuIndexCounts);
 
 
@@ -45,12 +47,14 @@ class bus_driver extends uvm_driver #(bus_transaction);
           cpuIndexCounts, currTrans.numTransactions
       )) begin
         timeoutCount = 0;
-
+        `uvm_info(this.get_name(), "Stim not fully sent...", UVM_DEBUG);
         // Loop through all of the CPUS that we are driving and send out any stim that needs to be sent
         for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
           if (cpuIndexCounts[i] < currTrans.numTransactions) begin // if we haven't sent all stim from this particular CPU
+            `uvm_info(this.get_name(), $sformatf("Sending stim from CPU: %d", i), UVM_DEBUG);
             driveCpuStim(i, currTrans);
           end else begin
+            `uvm_info(this.get_name(), $sformatf("Sending idle from CPU: %d", i), UVM_DEBUG);
             driveCpuIdle(i);
           end
         end
@@ -63,7 +67,7 @@ class bus_driver extends uvm_driver #(bus_transaction);
         // TransComplete function checks to see if dwait is low for any of the cpus
         while (!snoopHit(
             snoopCpuIndexs
-        ) || !transComplete(
+        ) && !transComplete(
             transCpuIndex
         )) begin
           if (timeoutCount > dut_params::DRVR_TIMEOUT) begin
@@ -76,6 +80,7 @@ class bus_driver extends uvm_driver #(bus_transaction);
 
         timeoutCount = 0;
         if (snoopHit(snoopCpuIndexs)) begin
+          `uvm_info(this.get_name(), $sformatf("Snoop hits on: %p", snoopCpuIndexs), UVM_DEBUG);
           driveSnoopResponses(snoopCpuIndexs, currTrans);
           while (!transComplete(
               transCpuIndex
@@ -89,15 +94,21 @@ class bus_driver extends uvm_driver #(bus_transaction);
           end
         end
 
+        `uvm_info(this.get_name(), $sformatf("Transaction %0d/%0d complete for CPU: %0d",
+                                             cpuIndexCounts[transCpuIndex] + 1,
+                                             currTrans.numTransactions, transCpuIndex), UVM_DEBUG);
         cpuIndexCounts[transCpuIndex] = cpuIndexCounts[transCpuIndex] + 1;
 
         @(posedge vif.clk);
+        if (!allDwaitHigh()) begin
+          `uvm_fatal("Driver", "Not all dwaits high cycle after bus gives response");
+        end
+
+        zero_all_sigs();
 
       end
       seq_item_port.item_done();
-      if (!allDwaitHigh()) begin
-        `uvm_fatal("Driver", "Not all dwaits high cycle after bus gives response");
-      end
+
     end
   endtask
 
@@ -109,6 +120,16 @@ class bus_driver extends uvm_driver #(bus_transaction);
 
   endfunction
 
+  function automatic bit isInside(
+      bit [dut_params::DRVR_SNOOP_ARRAY_SIZE-1:0][dut_params::WORD_W - 1:0] checkArray,
+      bit [dut_params::WORD_W - 1:0] checkVal);
+    foreach (checkArray[i]) begin
+      if (checkVal == checkArray[i]) return 1'b1;
+    end
+    return 1'b0;
+
+  endfunction
+  ;
 
   task driveSnoopResponses;
     input int snoopCpuIndexs[dut_params::NUM_CPUS_USED-1:0];
@@ -118,11 +139,13 @@ class bus_driver extends uvm_driver #(bus_transaction);
 
       foreach (snoopCpuIndexs[i]) begin
         if(snoopCpuIndexs[i] == 1'b1) begin // if we have a snoop hit to the i'th CPU then we need to respond
-          if (currTrans.snoopHitAddr[vif.ccsnoopaddr[i]]) begin  // if the snoop is a hit
+          if (isInside(
+                  currTrans.snoopHitAddr[i], vif.ccsnoopaddr[i]
+              )) begin  // if the snoop is a hit
             vif.ccsnoopdone[i] = 1'b1;
             vif.ccsnoophit[i] = 1'b1;
             vif.ccIsPresent[i] = 1'b1;
-            vif.ccdirty[i] = currTrans.snoopDirty[vif.ccsnoopaddr[i]];
+            vif.ccdirty[i] = isInside(currTrans.snoopDirty[i], vif.ccsnoopaddr[i]);
           end else begin
             vif.ccsnoopdone[i] = 1'b1;
           end
@@ -186,6 +209,7 @@ class bus_driver extends uvm_driver #(bus_transaction);
       if (currTrans.idle[cpuIndex]) begin
         driveCpuIdle(cpuIndex);
       end else begin
+        vif.cctrans[cpuIndex] = 1'b1;
         vif.daddr[cpuIndex]   = currTrans.daddr[cpuIndex];
         vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex];
         vif.dREN[cpuIndex]    = ~currTrans.dWEN[cpuIndex];
@@ -203,6 +227,7 @@ class bus_driver extends uvm_driver #(bus_transaction);
       vif.dREN[cpuIndex]    = '0;
       vif.dstore[cpuIndex]  = '0;
       vif.ccwrite[cpuIndex] = '0;
+      vif.cctrans[cpuIndex] = '0;
 
     end
   endtask
@@ -219,6 +244,8 @@ class bus_driver extends uvm_driver #(bus_transaction);
       vif.nRST = '1;
       @(posedge vif.clk);
       @(posedge vif.clk);
+
+      `uvm_info(this.get_name(), "DUT Reset", UVM_LOW);
     end
   endtask
 
