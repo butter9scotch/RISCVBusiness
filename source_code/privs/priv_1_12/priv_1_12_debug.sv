@@ -58,7 +58,7 @@ module priv_1_12_debug (
             nxt_dpc = dpc;
             nxt_dscratch0 = dscratch0;
             nxt_dscratch1 = dscratch1;
-            nxt_dscr = dcsr;
+            nxt_dcsr = dcsr;
 
             // handle csr write
             case (priv_ext_if.csr_addr)
@@ -68,7 +68,7 @@ module priv_1_12_debug (
                     if(priv_ext_if.csr_active) begin
                         // WARL check
                         // assume now all the WARL fields are fixed to reset value
-                        nxt_dscr = dcsr | dcsr_t'(dcsr_mask);
+                        nxt_dcsr = dcsr | dcsr_t'(dcsr_mask);
                     end
                 end
                 12'h7b1: begin
@@ -99,12 +99,25 @@ module priv_1_12_debug (
 
             if(priv_intern_if.inject_mcause) begin
                 if(priv_intern_if.next_mcause.interrupt) begin
-                    //
-                    if(priv_intern_if.next_mcause.casue == DEBUG_INT_M)
-                        nxt_dcsr.cause = 
+                    if(priv_intern_if.next_mcause.casue == DEBUG_INT_M) begin
+                        // enter debug due to haltreq was set
+                        nxt_dcsr.cause = 3'b001;
+                    end
+                    
+                    // TODO:
+                        // enter due to resethaltreq
+                        // cause = 2
                 end
                 else begin
+                    if(priv_intern_if.next_mcause.casue == BREAKPOINT) begin
+                        // enter debug due to ebreak
+                        nxt_dcsr.cause = 3'b011;
+                    end
                     
+                    // TODO:
+                        // enter due to single step
+                        // cause = 0
+
                 end
             end
         end
@@ -118,6 +131,8 @@ module priv_1_12_debug (
                 2'b11: priv_ext_if.value_out = dscratch1;
             endcase
         end
+
+        assign priv_intern_if.current_dpc = dpc;
     end
     
 endmodule

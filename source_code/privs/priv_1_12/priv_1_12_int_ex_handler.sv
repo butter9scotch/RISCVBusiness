@@ -154,10 +154,16 @@ module priv_1_12_int_ex_handler (
         // debug*
         if (prv_intern_if.debug_int_m) prv_intern_if.next_mip.mdip = 1'b1;
         else if (prv_intern_if.clear_debug_int_m) prv_intern_if.next_mip.mdip = 1'b0;
-
     end
 
-    assign prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret;
+    // TODO: mstatus need to be updated if there is dret
+    always_comb begin
+        prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret;
+        if(priv_intern_if.curr_privilege_level == DEBUG_MODE) begin
+            // Do NOT update mstatus upon exception during debug mode
+            prv_intern_if.inject_mstatus = 1'b0;
+        end
+    end
 
     always_comb begin
         prv_intern_if.next_mstatus = prv_intern_if.curr_mstatus;
@@ -186,9 +192,16 @@ module priv_1_12_int_ex_handler (
     assign prv_intern_if.next_mepc = prv_intern_if.epc;
 
     // debug*
-    assign prv_intern_if.inject_dpc = exception | interrupt_fired;
-    assign prv_intern_if.next_dpc = prv_intern_if.epc;
+    // only update dpc UPON entry to the debug mode
+    always_comb begin
+        prv_intern_if.inject_dpc = 1'b0;
 
+        if(priv_intern_if.curr_privilege_level != DEBUG_MODE) begin
+            prv_intern_if.inject_dpc = exception | interrupt_fired;
+        end
+        prv_intern_if.next_dpc = prv_intern_if.epc;
+    end
+    
     // TODO: May need to insert other exception signals
     assign prv_intern_if.inject_mtval = (prv_intern_if.mal_l | prv_intern_if.fault_l
                                         | prv_intern_if.mal_s | prv_intern_if.fault_s
