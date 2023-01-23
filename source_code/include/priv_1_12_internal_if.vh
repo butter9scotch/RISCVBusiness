@@ -79,7 +79,7 @@ interface priv_1_12_internal_if;
     word_t priv_pc; // pc to handle the interrupt/exception
     logic pipe_clear; // is the pipeline clear of hazards
     logic insert_pc; // inform pipeline that we are changing the PC
-    logic mret, sret; // returning from a trap instruction
+    logic mret, sret, dret; // returning from a trap instruction
     logic intr; // Did something trigger an interrupt or exception?
 
     // Addresses and memory access info for memory protection
@@ -105,15 +105,15 @@ interface priv_1_12_internal_if;
         input timer_int_u, timer_int_s, timer_int_m, soft_int_u, soft_int_s, soft_int_m, ext_int_u, ext_int_s, ext_int_m, debug_int_m,
             clear_timer_int_u, clear_timer_int_s, clear_timer_int_m, clear_soft_int_u, clear_soft_int_s, clear_soft_int_m, clear_debug_int_m,
             clear_ext_int_u, clear_ext_int_s, clear_ext_int_m, mal_insn, fault_insn_access, illegal_insn, breakpoint, fault_l, mal_l, fault_s, mal_s,
-            env_u, env_s, env_m, fault_insn_page, fault_load_page, fault_store_page, curr_mcause, curr_mepc, curr_mie, curr_mip, curr_mstatus, curr_mtval,
+            env_u, env_s, env_m, fault_insn_page, fault_load_page, fault_store_page, curr_mcause, curr_mepc, curr_dpc, curr_mie, curr_mip, curr_mstatus, curr_mtval,
             mret, sret, pipe_clear, ex_rmgmt, ex_rmgmt_cause, epc, curr_privilege_level,
         output inject_mcause, inject_mepc, inject_mip, inject_mstatus, inject_mtval,
-            next_mcause, next_mepc, next_mie, next_mip, next_mstatus, next_mtval, intr
+            next_mcause, next_mepc, next_dpc, next_mie, next_mip, next_mstatus, next_mtval, intr
     );
 
     modport pipe_ctrl (
-        input intr, pipe_clear, mret, sret, curr_mtvec, curr_mepc, next_mcause,
-              curr_dpc, //debug*
+        input intr, pipe_clear, mret, dret, sret, curr_mtvec, curr_mepc, next_mcause,
+              curr_dpc,
         output insert_pc, priv_pc
     );
 

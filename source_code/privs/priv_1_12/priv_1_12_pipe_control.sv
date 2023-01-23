@@ -32,7 +32,7 @@ module priv_1_12_pipe_control (
     import machine_mode_types_1_12_pkg::*;
     import rv32i_types_pkg::*;
 
-    assign prv_intern_if.insert_pc = prv_intern_if.mret | prv_intern_if.sret | prv_intern_if.intr;
+    assign prv_intern_if.insert_pc = prv_intern_if.mret | prv_intern_if.dret | prv_intern_if.sret | prv_intern_if.intr;
 
     always_comb begin
         prv_intern_if.priv_pc = '0;
@@ -46,6 +46,8 @@ module priv_1_12_pipe_control (
             end
         end else if (prv_intern_if.mret) begin
             prv_intern_if.priv_pc = prv_intern_if.curr_mepc; // Leaving ISR
+        end else if (prv_intern_if.dret) begin
+            prv_intern_if.priv_pc = prv_intern_if.curr_dpc; // Leaving ISR
         end
     end
 

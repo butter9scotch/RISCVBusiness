@@ -127,6 +127,7 @@ package rv32i_types_pkg;
         MRET   = 12'b0011000_00010,
         SRET   = 12'b0001000_00010,
         URET   = 12'b0000000_00010,
+        DRET   = 12'b0111101_10010,
         WFI    = 12'b0001000_00101
     } priv_insn_t;
 

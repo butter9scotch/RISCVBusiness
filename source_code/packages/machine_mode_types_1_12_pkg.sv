@@ -298,11 +298,12 @@ package machine_mode_types_1_12_pkg;
     XS_SOME_D   = 2'h3
   } xs_t;
 
-  typedef enum logic [1:0] {
-    U_MODE  = 2'h0,
-    S_MODE  = 2'h1,
-    RESERVED_MODE   = 2'h2,
-    M_MODE   = 2'h3
+  typedef enum logic [2:0] {
+    U_MODE  = 3'h0,
+    S_MODE  = 3'h1,
+    RESERVED_MODE   = 3'h2,
+    M_MODE   = 3'h3,
+    D_MODE   = 3'h4
   } priv_level_t;
 
   typedef struct packed {
