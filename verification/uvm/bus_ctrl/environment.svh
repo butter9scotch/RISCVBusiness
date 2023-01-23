@@ -4,15 +4,15 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "bus_agent.svh"
-`include "bus_ctrl_if.sv"
+`include "bus_ctrl_if.vh"
 `include "bus_scoreboard.svh"  // uvm_scoreboard
 `include "bus_predictor.svh"  // uvm_subscriber
-`include "bus_transaction_v2.svh"  // uvm_sequence_item
+`include "bus_transaction.svh"  // uvm_sequence_item
 
 class environment extends uvm_env;
   `uvm_component_utils(environment)
 
-  bus_agent bus_agent;  // contains monitor and driver
+  bus_agent bus_agent_agent;  // contains monitor and driver
   //bus_predictor bus_predictor;  // a reference model to check the result
   //bus_scoreboard bus_scoreboard;  // scoreboard
 
@@ -22,7 +22,7 @@ class environment extends uvm_env;
 
   function void build_phase(uvm_phase phase);
     // instantiate all the components through factory method
-    bus_agent = bus_agent::type_id::create("bus_agent", this);
+    bus_agent_agent = bus_agent::type_id::create("bus_agent", this);
     //bus_predictor = bus_predictor::type_id::create("bus_predictor", this);
     //bus_scoreboard = bus_scoreboard::type_id::create("bus_scoreboard", this);
   endfunction

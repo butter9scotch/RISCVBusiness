@@ -3,7 +3,7 @@
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
-`include "bus_ctrl_if.sv"
+`include "bus_ctrl_if.vh"
 /*class ahb_bus_monitor extends uvm_monitor;
   `uvm_component_utils(ahb_bus_monitor)
 

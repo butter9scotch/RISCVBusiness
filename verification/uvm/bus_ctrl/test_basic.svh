@@ -1,7 +1,7 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "environment.svh"
-`include "bus_ctrl_if.sv"
+`include "bus_ctrl_if.vh"
 
 class test_basic extends uvm_test;
   `uvm_component_utils(test_basic)
@@ -33,7 +33,7 @@ class test_basic extends uvm_test;
   task run_phase(uvm_phase phase);
     phase.raise_objection(this, "Starting basic non seq sequence in main phase");
     `uvm_info(this.get_name(), "Starting basic sequence....", UVM_LOW);
-    basicSeq.start(env.ahb_agent.sqr);
+    basicSeq.start(env.bus_agent_agent.sqr);
     `uvm_info(this.get_name(), "Finished basic sequence", UVM_LOW);
     #100ns;
   endtask

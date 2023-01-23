@@ -1,4 +1,4 @@
-RUN_COMMON=tb_ahb -L $(QUESTA_HOME)/uvm-1.2 -novopt -iterationlimit=100k -sv_seed random #2368276518
+RUN_COMMON=tb_bus_ctrl -L $(QUESTA_HOME)/uvm-1.2 -novopt -iterationlimit=100k -sv_seed random #2368276518
 #add in the random seed!, look into the iterationLimit variable 
 targets:
 	@echo "Available Targets:"
@@ -10,7 +10,7 @@ all: build run
 
 build:
 	@echo "Building Project"
-	vlog -L $(QUESTA_HOME)/uvm-1.2 tb_ahb.sv
+	vlog -L $(QUESTA_HOME)/uvm-1.2 tb_bus_ctrl.sv
 
 run:
 	@echo "Running Tests"
