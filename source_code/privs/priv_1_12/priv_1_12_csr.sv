@@ -34,7 +34,8 @@ module priv_1_12_csr #(
   input logic [63:0] mtime,
   priv_1_12_internal_if.csr prv_intern_if,
   priv_ext_if.priv priv_ext_pma_if,
-  priv_ext_if.priv priv_ext_pmp_if
+  priv_ext_if.priv priv_ext_pmp_if,
+  priv_ext_if.priv priv_ext_debugif
   `ifdef RV32F_SUPPORTED
   , priv_ext_if.priv priv_ext_f_if
   `endif // RV32F_SUPPORTED
@@ -104,6 +105,11 @@ module priv_1_12_csr #(
     assign priv_ext_v_if.value_in = nxt_csr_val;
     assign priv_ext_v_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
 `endif // RV32V_SUPPORTED
+
+  assign priv_ext_debug_if.csr_addr = prv_intern_if.csr_addr;
+  assign priv_ext_debug_if.value_in = nxt_csr_val;
+  assign priv_ext_debug_if.csr_active = ~invalid_csr_priv & prv_intern_if.valid_write & (csr_operation);
+
 
   /* Save some logic with this */
   assign mcycle = cycles_full[31:0];
@@ -457,6 +463,9 @@ module priv_1_12_csr #(
           end else if (priv_ext_pmp_if.ack) begin
             prv_intern_if.old_csr_val = priv_ext_pmp_if.value_out;
           end
+          else if (priv_ext_debug_if.ack) begin
+            prv_intern_if.old_csr_val = priv_ext_pmp_if.value_out;
+          end
           `ifdef RV32F_SUPPORTED
             else if (priv_ext_f_if.ack) begin
               prv_intern_if.old_csr_val = priv_ext_f_if.value_out;
@@ -472,6 +481,7 @@ module priv_1_12_csr #(
           invalid_csr_addr = 1'b1
                           & (~priv_ext_pma_if.ack) & (~priv_ext_pma_if.invalid_csr)
                           & (~priv_ext_pmp_if.ack) & (~priv_ext_pmp_if.invalid_csr)
+                          & (~priv_ext_debug_if.ack) & (~priv_ext_debug_if.invalid_csr)
                           `ifdef RV32F_SUPPORTED
                             & (~priv_ext_f_if.ack) & (~priv_ext_f_if.invalid_csr)
                           `endif // RV32F_SUPPORTED
@@ -489,6 +499,8 @@ module priv_1_12_csr #(
   assign prv_intern_if.curr_mie = mie;
   assign prv_intern_if.curr_mcause = mcause;
   assign prv_intern_if.curr_mepc = mepc;
+  // TODOS:
+  // add the mux infront of mstatus so when mprven in mstatus is 0, mprv will be ignored
   assign prv_intern_if.curr_mstatus = mstatus;
   assign prv_intern_if.curr_mtvec = mtvec;
 
