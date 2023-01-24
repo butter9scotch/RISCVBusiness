@@ -159,7 +159,7 @@ module priv_1_12_csr #(
       /* mstatus reset */
       mstatus.mie <= 1'b0;
       mstatus.mpie <= 1'b0;
-      mstatus.mpp <= M_MODE;
+      mstatus.mpp <= U_MODE;
       mstatus.mprv <= 1'b0;
       mstatus.tw <= 1'b1;
       mstatus.reserved_0 <= '0;
@@ -340,11 +340,6 @@ module priv_1_12_csr #(
     if (prv_intern_if.inject_mip) begin
       mip_next = prv_intern_if.next_mip;
     end
-    /*
-    if(prv_intern_if.inject_dpc) begin
-      dpc_next = prv_intern_if.next_dpc;
-    end
-    */
   end
 
   // hw perf mon
@@ -395,6 +390,9 @@ module priv_1_12_csr #(
           if (priv_ext_pmp_if.ack) begin
             prv_intern_if.old_csr_val = priv_ext_pmp_if.value_out;
           end
+          if (priv_ext_debug_if.ack) begin
+            prv_intern_if.old_csr_val = priv_ext_debug_if.value_out;
+          end
           `ifdef RV32F_SUPPORTED
             if (priv_ext_f_if.ack) begin
               prv_intern_if.old_csr_val = priv_ext_f_if.value_out;
@@ -410,6 +408,7 @@ module priv_1_12_csr #(
           invalid_csr_1 = 1'b1
                           & (~priv_ext_pma_if.ack) & (~priv_ext_pma_if.invalid_csr)
                           & (~priv_ext_pmp_if.ack) & (~priv_ext_pmp_if.invalid_csr)
+                          & (~priv_ext_debug_if.ack) & (~priv_ext_debug_if.invalid_csr)
                           `ifdef RV32F_SUPPORTED
                             & (~priv_ext_f_if.ack) & (~priv_ext_f_if.invalid_csr)
                           `endif // RV32F_SUPPORTED

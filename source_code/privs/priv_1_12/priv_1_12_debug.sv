@@ -52,7 +52,6 @@ module priv_1_12_debug (
         //                                         31:28          15    14  13:12  11:9    8:6     5     4     3     2:0
         
         always_comb begin: next_logic
-            priv_ext_if.invalid_csr = 1'b0;
             priv_ext_if.ack = 1'b0;
 
             nxt_dpc = dpc;
@@ -131,6 +130,8 @@ module priv_1_12_debug (
                 2'b11: priv_ext_if.value_out = dscratch1;
             endcase
         end
+
+        assign priv_ext_if.invalid_csr = 1'b0;
 
         assign priv_intern_if.current_dpc = dpc;
     end
