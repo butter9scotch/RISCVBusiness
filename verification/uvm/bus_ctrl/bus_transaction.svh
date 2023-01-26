@@ -31,7 +31,7 @@ class bus_transaction extends uvm_sequence_item;
   // Constraints on the data
   constraint numTransConstraint {numTransactions > 0;}
   constraint busReadX {  // can't have a bus write along with a readX
-    foreach (dWEN[i]) dWEN[i] && readX[i] == 0;
+    foreach (dWEN[i]) (dWEN[i] && readX[i]) == 0;
   }
 
 

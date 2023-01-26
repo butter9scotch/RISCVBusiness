@@ -23,7 +23,7 @@ module tb_bus_ctrl ();
   end
 
   // instantiate the interface
-  bus_ctrl_if bus_ctrl_if ();
+  bus_ctrl_if bus_ctrl_if  ();
 
   assign bus_ctrl_if.clk = clk;
 

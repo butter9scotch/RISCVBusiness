@@ -2,7 +2,7 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /tb_bus_ctrl/bus_ctrl_if/nRST
 add wave -noupdate -color Gold /tb_bus_ctrl/bus_ctrl_if/clk
-add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Violet Red} -subitemconfig {{/tb_bus_ctrl/bus_ctrl_if/dwait[1]} {-color {Violet Red} -height 17} {/tb_bus_ctrl/bus_ctrl_if/dwait[0]} {-color {Violet Red} -height 17}} /tb_bus_ctrl/bus_ctrl_if/dwait
+add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Violet Red} /tb_bus_ctrl/bus_ctrl_if/dwait
 add wave -noupdate -expand -group {Bus_ctrl -> L1} -color Coral /tb_bus_ctrl/bus_ctrl_if/dload
 add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Cadet Blue} /tb_bus_ctrl/bus_ctrl_if/ccexclusive
 add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Medium Spring Green} /tb_bus_ctrl/bus_ctrl_if/ccwait
@@ -10,7 +10,7 @@ add wave -noupdate -expand -group {Bus_ctrl -> L1} -color Coral /tb_bus_ctrl/bus
 add wave -noupdate -expand -group {Bus_ctrl -> L1} -color {Cornflower Blue} /tb_bus_ctrl/bus_ctrl_if/ccinv
 add wave -noupdate -expand -group {L1 -> bus_ctrl} -color Cyan /tb_bus_ctrl/bus_ctrl_if/daddr
 add wave -noupdate -expand -group {L1 -> bus_ctrl} -color Magenta /tb_bus_ctrl/bus_ctrl_if/dWEN
-add wave -noupdate -expand -group {L1 -> bus_ctrl} -color {Light Steel Blue} -subitemconfig {{/tb_bus_ctrl/bus_ctrl_if/dREN[1]} {-color {Light Steel Blue}} {/tb_bus_ctrl/bus_ctrl_if/dREN[0]} {-color {Light Steel Blue}}} /tb_bus_ctrl/bus_ctrl_if/dREN
+add wave -noupdate -expand -group {L1 -> bus_ctrl} -color {Light Steel Blue} /tb_bus_ctrl/bus_ctrl_if/dREN
 add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccwrite
 add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/ccsnoopdone
 add wave -noupdate -expand -group {L1 -> bus_ctrl} /tb_bus_ctrl/bus_ctrl_if/dstore
@@ -40,8 +40,11 @@ add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl
 add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nexclusiveUpdate
 add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/wb_needed
 add wave -noupdate -expand -group {Bus_ctrl internal sigs} /tb_bus_ctrl/bus_ctrl_mod/nwb_needed
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_mod/snoopStatus/snoopStatus
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_mod/snoopStatus/requester_cpu
+add wave -noupdate /tb_bus_ctrl/bus_ctrl_mod/snoopStatus/snoopDone
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {91912 ps} 0}
+WaveRestoreCursors {{Cursor 1} {140171 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -57,4 +60,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {41504 ps} {179872 ps}
+WaveRestoreZoom {0 ps} {1228500 ps}

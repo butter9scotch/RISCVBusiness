@@ -89,9 +89,9 @@ module bus_ctrl #(
             GRANT_RX:           nstate = SNOOP_RX;
             GRANT_EVICT:        nstate = WRITEBACK;
             GRANT_INV:          nstate = SNOOP_INV;
-            SNOOP_R:            nstate = snoopStatus(requester_cpu, ccif.snoopdone) ? (|ccif.ccsnoophit ? TRANSFER_R : READ_L2) : state;
-            SNOOP_RX:           nstate = snoopStatus(requester_cpu, ccif.snoopdone) ? (|ccif.ccsnoophit ? TRANSFER_RX : READ_L2) : state;
-            SNOOP_INV:          nstate = snoopStatus(requester_cpu, ccif.snoopdone) ? INVALIDATE : state;
+            SNOOP_R:            nstate = snoopStatus(requester_cpu, ccif.ccsnoopdone) ? (|ccif.ccsnoophit ? TRANSFER_R : READ_L2) : state;
+            SNOOP_RX:           nstate = snoopStatus(requester_cpu, ccif.ccsnoopdone) ? (|ccif.ccsnoophit ? TRANSFER_RX : READ_L2) : state;
+            SNOOP_INV:          nstate = snoopStatus(requester_cpu, ccif.ccsnoopdone) ? INVALIDATE : state;
             TRANSFER_R:         nstate = TRANSFER_R_FIN;
             TRANSFER_RX:        nstate = BUS_TO_L1;
             TRANSFER_R_FIN:     nstate = wb_needed ? WRITEBACK : IDLE; // note: roughly translates to [I -> S, M -> S] : [I -> S, E -> S]
@@ -212,9 +212,9 @@ module bus_ctrl #(
     endfunction
     
     function logic snoopStatus;
-        input requester_cpu;
-        input snoopDone;
-        snoopStatus = &((1 << requester_cpu) | snoopDone);
+        input logic [CPU_ID_LENGTH-1:0] requester_cpu;
+        input logic [CPUS-1:0] snoopDone;
+        snoopStatus = &(({CPUS{1'b1}} << requester_cpu) | snoopDone);
     endfunction
 
     // task to do priority encoding to determine the requester or supplier
