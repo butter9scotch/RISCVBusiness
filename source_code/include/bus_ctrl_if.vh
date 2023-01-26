@@ -72,7 +72,6 @@ interface bus_ctrl_if;
     transfer_width_t    [CPUS-1:0] dload, dstore;
     word_t              [CPUS-1:0] daddr;
     // L1 coherence INPUTS to bus 
-    logic               [CPUS-1:0] cctrans;     // indicates that the requester is undergoing a miss
     logic               [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
     logic               [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
     logic               [CPUS-1:0] ccsnoopdone;  // indicates that the responder has the data
@@ -92,7 +91,7 @@ interface bus_ctrl_if;
     // modports
     modport cc(
         input   dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
+                ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
                 l2load, l2state, 
         output  dwait, dload, 
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
@@ -104,7 +103,7 @@ interface bus_ctrl_if;
                 ccwait, ccinv, ccsnoopaddr, ccexclusive, 
                 l2addr, l2store, l2REN, l2WEN,
         output  dREN, dWEN, daddr, dstore, 
-                cctrans, ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
+                ccwrite, ccsnoophit, ccIsPresent, ccdirty, ccsnoopdone,
                 l2load, l2state
     ); 
 
