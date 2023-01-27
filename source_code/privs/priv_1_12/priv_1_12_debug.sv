@@ -48,9 +48,9 @@ module priv_1_12_debug (
         end
 
         // for for dcsr WARL check
-        assign dcsr_mask = priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b0, 1'b0, 3'b111};
+        assign dcsr_mask = priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b1, 1'b0, 3'b111};
         //                                         31:28          15    14  13:12  11:9    8:6     5     4     3     2:0
-        
+
         always_comb begin: next_logic
             priv_ext_if.ack = 1'b0;
 
@@ -66,7 +66,6 @@ module priv_1_12_debug (
                     priv_ext_if.ack = 1'b1;
                     if(priv_ext_if.csr_active) begin
                         // WARL check
-                        // assume now all the WARL fields are fixed to reset value
                         nxt_dcsr = dcsr | dcsr_t'(dcsr_mask);
                     end
                 end
@@ -96,6 +95,7 @@ module priv_1_12_debug (
                 nxt_dpc = priv_intern_if.next_dpc;
             end
 
+            // dcsr cause
             if(priv_intern_if.inject_mcause) begin
                 if(priv_intern_if.next_mcause.interrupt) begin
                     if(priv_intern_if.next_mcause.casue == DEBUG_INT_M) begin
@@ -119,6 +119,9 @@ module priv_1_12_debug (
 
                 end
             end
+
+            // dcsr nmip
+            nxt_dcsr.nmip = 1'b0;
         end
 
         always_comb begin: value_out_logic

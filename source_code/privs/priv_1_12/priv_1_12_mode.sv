@@ -36,19 +36,47 @@ module priv_1_12_mode (
     import rv32i_types_pkg::*;
 
     priv_level_t curr_priv_level, next_priv_level;
+    logic curr_priv_dmode, next_priv_dmode;
+
+    logic ebreakm_debug_mode, ebreaku_debug_mode;   // ebreak in M/U will cause hart to enter Debug-Mode instead of M-Mode
+    assign ebreakm_debug_mode = (prv_intern_if.next_mcause.cause == BREAKPOINT && 
+                                curr_priv_level == M_MODE && 
+                                prv_intern_if.ebreakm_debug);
+
+    assign ebreaku_debug_mode = (prv_intern_if.next_mcause.cause == BREAKPOINT &&
+                                curr_priv_level == U_MODE && 
+                                prv_intern_if.ebreaku_debug);
+
+    assign prv_intern_if.curr_priv_dmode = curr_priv_dmode;
 
     always_ff @ (posedge CLK, negedge nRST) begin
         if (~nRST) begin
             curr_priv_level <= M_MODE;
+            curr_priv_dmode <= 1'b0;
         end else begin
             curr_priv_level <= next_priv_level;
+            curr_priv_dmode <= next_priv_dmode;
         end
     end
 
     always_comb begin
         next_priv_level = curr_priv_level;
+        next_priv_dmode = curr_priv_dmode;
+        
         if (prv_intern_if.intr) begin
             next_priv_level = M_MODE;
+            
+            // TODOs:
+            // D_mode -> still set to M_mode, just add a flag
+            // implement the real D_MODE
+            if(ebreakm_debug_mode) begin
+                // set the D_mode flag
+                next_priv_dmode = 1'b1;
+            end
+            else if(ebreaku_debug_mode) begin
+                // set the D_mode flag
+                next_priv_dmode = 1'b1;
+            end
         end else if (prv_intern_if.mret || prv_intern_if.dret) begin
             next_priv_level = prv_intern_if.curr_mstatus.mpp;
         end

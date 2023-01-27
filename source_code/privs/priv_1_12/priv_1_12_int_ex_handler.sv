@@ -157,6 +157,7 @@ module priv_1_12_int_ex_handler (
     end
 
     // TODO: mstatus need to be updated if there is dret
+    // TODO: 
     always_comb begin
         prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret;
         if(priv_intern_if.curr_privilege_level == DEBUG_MODE) begin
@@ -193,6 +194,7 @@ module priv_1_12_int_ex_handler (
 
     // debug*
     // only update dpc UPON entry to the debug mode
+    // Implement it with real Debug Mode
     always_comb begin
         prv_intern_if.inject_dpc = 1'b0;
 
