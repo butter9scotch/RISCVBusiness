@@ -137,6 +137,10 @@ module priv_1_12_debug (
         assign priv_ext_if.invalid_csr = 1'b0;
 
         assign priv_intern_if.current_dpc = dpc;
+
+        assign priv_intern_if.ebreakm_debug = dcsr.ebreakm;
+        assign priv_intern_if.ebreaks_debug = dcsr.ebreaks;
+        assign priv_intern_if.ebreaku_debug = dcsr.ebreaku;
     end
     
 endmodule

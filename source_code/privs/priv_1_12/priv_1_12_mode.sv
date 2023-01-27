@@ -66,8 +66,6 @@ module priv_1_12_mode (
         if (prv_intern_if.intr) begin
             next_priv_level = M_MODE;
             
-            // TODOs:
-            // D_mode -> still set to M_mode, just add a flag
             // implement the real D_MODE
             if(ebreakm_debug_mode) begin
                 // set the D_mode flag
@@ -77,8 +75,17 @@ module priv_1_12_mode (
                 // set the D_mode flag
                 next_priv_dmode = 1'b1;
             end
-        end else if (prv_intern_if.mret || prv_intern_if.dret) begin
+
+            // enter debug mode through interrupt
+            if(prv_intern_if.next_mcause.interrupt == 1'b1 && prv_intern_if.next_mcause.cause == DEBUG_INT_M) begin
+                next_priv_dmode = 1'b1;
+            end
+
+        end else if (prv_intern_if.mret) begin
             next_priv_level = prv_intern_if.curr_mstatus.mpp;
+        end else if (prv_intern_if.dret) begin
+            next_priv_level = prv_intern_if.curr_mstatus.mpp;
+            next_priv_dmode = 1'b0;
         end
     end
 
