@@ -67,6 +67,11 @@ module priv_1_12_debug (
                     if(priv_ext_if.csr_active) begin
                         // WARL check
                         nxt_dcsr = dcsr | dcsr_t'(dcsr_mask);
+
+                        if(nxt_dcsr.prv == 3'b1 || nxt_dcsr.prv == 3'b2) begin
+                            // S, and H modes are not supported
+                            nxt_dcsr.prv = dcsr.prv;
+                        end
                     end
                 end
                 12'h7b1: begin
@@ -122,6 +127,13 @@ module priv_1_12_debug (
 
             // dcsr nmip
             nxt_dcsr.nmip = 1'b0;
+
+            // dcsr prv
+            if (prv_intern_if.intr && prv_intern_if.curr_priv_dmode != 1'b1) begin
+                // this may capture the curr priv level when not debug mode, but it does not matter
+                // when debug mode is entered, .intr will be high, curr_priv_dmode will be low
+                nxt_dcsr.prv = prv_intern_if.curr_privilege_level;
+            end
         end
 
         always_comb begin: value_out_logic
@@ -137,7 +149,7 @@ module priv_1_12_debug (
         assign priv_ext_if.invalid_csr = 1'b0;
 
         assign priv_intern_if.current_dpc = dpc;
-
+        assign priv_intern_if.curr_dcsr = dcsr;
         assign priv_intern_if.ebreakm_debug = dcsr.ebreakm;
         assign priv_intern_if.ebreaks_debug = dcsr.ebreaks;
         assign priv_intern_if.ebreaku_debug = dcsr.ebreaku;

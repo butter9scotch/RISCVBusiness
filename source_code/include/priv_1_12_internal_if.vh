@@ -115,7 +115,7 @@ interface priv_1_12_internal_if;
             clear_timer_int_u, clear_timer_int_s, clear_timer_int_m, clear_soft_int_u, clear_soft_int_s, clear_soft_int_m, clear_debug_int_m,
             clear_ext_int_u, clear_ext_int_s, clear_ext_int_m, mal_insn, fault_insn_access, illegal_insn, breakpoint, fault_l, mal_l, fault_s, mal_s,
             env_u, env_s, env_m, fault_insn_page, fault_load_page, fault_store_page, curr_mcause, curr_mepc, curr_dpc, curr_mie, curr_mip, curr_mstatus, curr_mtval,
-            mret, sret, pipe_clear, ex_rmgmt, ex_rmgmt_cause, epc, curr_privilege_level, curr_priv_dmode,
+            mret, sret, pipe_clear, ex_rmgmt, ex_rmgmt_cause, epc, curr_privilege_level, curr_priv_dmode, dret, 
         output inject_mcause, inject_mepc, inject_mip, inject_mstatus, inject_mtval,
             next_mcause, next_mepc, next_dpc, next_mie, next_mip, next_mstatus, next_mtval, intr
     );
@@ -145,8 +145,8 @@ interface priv_1_12_internal_if;
     // TODO: make sure the pipe_control unit can receive this curr_dpc signal
     modport debug (
         input inject_dpc, inject_mcause,
-              next_dpc, next_mcause,
-        output curr_dpc, mprv_disable, ebreakm_debug, ebreaks_debug, ebreaku_debug
+              next_dpc, next_mcause, curr_priv_dmode, intr, curr_privilege_level, 
+        output curr_dpc, mprv_disable, ebreakm_debug, ebreaks_debug, ebreaku_debug, curr_dcsr
     );
 
 endinterface

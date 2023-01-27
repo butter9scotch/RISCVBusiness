@@ -76,15 +76,11 @@ module priv_1_12_mode (
                 next_priv_dmode = 1'b1;
             end
 
-            // enter debug mode through interrupt
-            if(prv_intern_if.next_mcause.interrupt == 1'b1 && prv_intern_if.next_mcause.cause == DEBUG_INT_M) begin
-                next_priv_dmode = 1'b1;
-            end
-
         end else if (prv_intern_if.mret) begin
             next_priv_level = prv_intern_if.curr_mstatus.mpp;
         end else if (prv_intern_if.dret) begin
-            next_priv_level = prv_intern_if.curr_mstatus.mpp;
+            //next_priv_level = prv_intern_if.curr_mstatus.mpp;
+            next_priv_level = prv_intern_if.curr_dcsr.prv;
             next_priv_dmode = 1'b0;
         end
     end

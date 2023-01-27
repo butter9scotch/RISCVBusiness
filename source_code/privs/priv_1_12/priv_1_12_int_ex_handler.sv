@@ -125,7 +125,13 @@ module priv_1_12_int_ex_handler (
                                     | (prv_intern_if.curr_mie.mdie & prv_intern_if.curr_mip.mdip))); // debug*
 
     // Register updates on Interrupts/Exceptions
-    assign prv_intern_if.inject_mcause = exception | interrupt_fired;
+    always_comb begin
+        prv_intern_if.inject_mcause = exception | interrupt_fired;
+        if(priv_intern_if.curr_priv_dmode == 1'b1) begin
+            // Do NOT update mstatus upon exception during debug mode
+            prv_intern_if.inject_mcause = 1'b0;
+        end
+    end
     assign prv_intern_if.next_mcause.interrupt = ~exception;
     assign prv_intern_if.next_mcause.cause = exception ? ex_src : int_src;
 
@@ -159,9 +165,9 @@ module priv_1_12_int_ex_handler (
     // TODO: mstatus need to be updated if there is dret
     // TODO: 
     always_comb begin
-        prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret;
-        if(priv_intern_if.curr_priv_dmode == 1'b1) begin
-            // Do NOT update mstatus upon exception during debug mode
+        prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret | prv_intern_if.dret;
+        if(priv_intern_if.curr_priv_dmode == 1'b1 && ~prv_intern_if.dret) begin
+            // Do NOT update mstatus upon exception during debug mode, except dret
             prv_intern_if.inject_mstatus = 1'b0;
         end
     end
@@ -173,7 +179,7 @@ module priv_1_12_int_ex_handler (
             // when a trap is taken mpie is set to the current mie
             prv_intern_if.next_mstatus.mpie = prv_intern_if.curr_mstatus.mie;
             prv_intern_if.next_mstatus.mie = 1'b0;
-        end else if (prv_intern_if.mret) begin
+        end else if (prv_intern_if.mret || prv_intern_if.dret) begin
             prv_intern_if.next_mstatus.mpie = 1'b0; // leaving the vector table
             prv_intern_if.next_mstatus.mie = prv_intern_if.curr_mstatus.mpie;
         end
@@ -181,7 +187,7 @@ module priv_1_12_int_ex_handler (
         // We need to change mstatus bits for mode changes
         if (prv_intern_if.intr) begin // If we are receiving an exception or interrupt
             prv_intern_if.next_mstatus.mpp = prv_intern_if.curr_privilege_level;
-        end else if (prv_intern_if.mret) begin // If we are going back from a trap
+        end else if (prv_intern_if.mret || prv_intern_if.dret) begin // If we are going back from a trap
             prv_intern_if.next_mstatus.mpp = U_MODE; // We must set mpp to the least privileged mode possible
             if (prv_intern_if.curr_mstatus.mpp != M_MODE) begin
                 prv_intern_if.next_mstatus.mprv = 1'b0;
