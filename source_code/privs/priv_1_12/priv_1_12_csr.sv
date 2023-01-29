@@ -35,7 +35,7 @@ module priv_1_12_csr #(
   priv_1_12_internal_if.csr prv_intern_if,
   priv_ext_if.priv priv_ext_pma_if,
   priv_ext_if.priv priv_ext_pmp_if,
-  priv_ext_if.priv priv_ext_debugif
+  priv_ext_if.priv priv_ext_debug_if
   `ifdef RV32F_SUPPORTED
   , priv_ext_if.priv priv_ext_f_if
   `endif // RV32F_SUPPORTED

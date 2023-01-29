@@ -127,7 +127,7 @@ module priv_1_12_int_ex_handler (
     // Register updates on Interrupts/Exceptions
     always_comb begin
         prv_intern_if.inject_mcause = exception | interrupt_fired;
-        if(priv_intern_if.curr_priv_dmode == 1'b1) begin
+        if(prv_intern_if.curr_priv_dmode == 1'b1) begin
             // Do NOT update mstatus upon exception during debug mode
             prv_intern_if.inject_mcause = 1'b0;
         end
@@ -166,7 +166,7 @@ module priv_1_12_int_ex_handler (
     // TODO: 
     always_comb begin
         prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret | prv_intern_if.dret;
-        if(priv_intern_if.curr_priv_dmode == 1'b1 && ~prv_intern_if.dret) begin
+        if(prv_intern_if.curr_priv_dmode == 1'b1 && ~prv_intern_if.dret) begin
             // Do NOT update mstatus upon exception during debug mode, except dret
             prv_intern_if.inject_mstatus = 1'b0;
         end
@@ -204,7 +204,7 @@ module priv_1_12_int_ex_handler (
     always_comb begin
         prv_intern_if.inject_dpc = 1'b0;
 
-        if(priv_intern_if.curr_priv_dmode != 1'b1) begin
+        if(prv_intern_if.curr_priv_dmode != 1'b1) begin
             prv_intern_if.inject_dpc = exception | interrupt_fired;
         end
         prv_intern_if.next_dpc = prv_intern_if.epc;
