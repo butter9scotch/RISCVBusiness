@@ -515,7 +515,7 @@ package machine_mode_types_1_12_pkg;
     logic nmip;
     logic step;
     logic [1:0] prv;
-  } dscr_t; 
+  } dcsr_t; 
 
   // General CSR definition
   typedef logic [11:0] csr_addr_t;
