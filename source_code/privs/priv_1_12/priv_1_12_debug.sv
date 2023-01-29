@@ -8,8 +8,8 @@ module priv_1_12_debug (
     csr_reg_t dpc, nxt_dpc;
     //nxt_dpc_int, nxt_dpc_pipe;
     csr_reg_t dscratch0, dscratch1, nxt_dscratch0, nxt_dscratch1;
-    dcsr_t dscr, nxt_dcsr;
-    word_t dcsr_mask;
+    dcsr_t dcsr, nxt_dcsr;
+    dcsr_t dcsr_mask;
     // nxt_dpc_int dpc value obtained from interrupt_exception unit, nxt_dpc_pipe value from pipeline(due to csr instructions)
 
     always_ff @( posedge CLK, negedge nRST ) begin
@@ -49,7 +49,7 @@ module priv_1_12_debug (
     end
 
         // for for dcsr WARL check
-        assign dcsr_mask = priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b1, 1'b0, 3'b111};
+        assign dcsr_mask = dcsr_t'(priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b1, 1'b0, 3'b111});
         //                                         31:28          15    14  13:12  11:9    8:6     5     4     3     2:0
         //                                         xdebugver    ebrkm      ebrks/u stpie  cause        mrpven nmip    prv
         //                                                                        stopc/t 
@@ -69,9 +69,9 @@ module priv_1_12_debug (
                     priv_ext_if.ack = 1'b1;
                     if(priv_ext_if.csr_active) begin
                         // WARL check
-                        nxt_dcsr = dcsr | dcsr_t'(dcsr_mask);
+                        nxt_dcsr = dcsr | dcsr_mask;
 
-                        if(nxt_dcsr.prv == S_MODE || nxt_dcsr.prv == H_MODE) begin
+                        if(nxt_dcsr.prv == S_MODE || nxt_dcsr.prv == RESERVED_MODE) begin
                             // S, and H modes are not supported
                             nxt_dcsr.prv = dcsr.prv;
                         end
@@ -99,14 +99,14 @@ module priv_1_12_debug (
             endcase
 
             // handle inject signal from int_ex_hanlder unit
-            if(priv_intern_if.inject_dpc) begin
-                nxt_dpc = priv_intern_if.next_dpc;
+            if(prv_intern_if.inject_dpc) begin
+                nxt_dpc = prv_intern_if.next_dpc;
             end
 
             // dcsr cause
-            if(priv_intern_if.inject_mcause) begin
-                if(priv_intern_if.next_mcause.interrupt) begin
-                    if(priv_intern_if.next_mcause.casue == DEBUG_INT_M) begin
+            if(prv_intern_if.inject_mcause) begin
+                if(prv_intern_if.next_mcause.interrupt) begin
+                    if(prv_intern_if.next_mcause.cause == DEBUG_INT_M) begin
                         // enter debug due to haltreq was set
                         nxt_dcsr.cause = 3'b001;
                     end
@@ -116,7 +116,7 @@ module priv_1_12_debug (
                         // cause = 2
                 end
                 else begin
-                    if(priv_intern_if.next_mcause.casue == BREAKPOINT) begin
+                    if(prv_intern_if.next_mcause.cause == BREAKPOINT) begin
                         // enter debug due to ebreak
                         nxt_dcsr.cause = 3'b011;
                     end
@@ -151,11 +151,11 @@ module priv_1_12_debug (
 
         assign priv_ext_if.invalid_csr = 1'b0;
 
-        assign priv_intern_if.current_dpc = dpc;
-        assign priv_intern_if.curr_dcsr = dcsr;
-        assign priv_intern_if.ebreakm_debug = dcsr.ebreakm;
-        assign priv_intern_if.ebreaks_debug = dcsr.ebreaks;
-        assign priv_intern_if.ebreaku_debug = dcsr.ebreaku;
+        assign prv_intern_if.curr_dpc = dpc;
+        assign prv_intern_if.curr_dcsr = dcsr;
+        assign prv_intern_if.ebreakm_debug = dcsr.ebreakm;
+        assign prv_intern_if.ebreaks_debug = dcsr.ebreaks;
+        assign prv_intern_if.ebreaku_debug = dcsr.ebreaku;
     
 endmodule
 
