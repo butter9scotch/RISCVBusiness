@@ -1,6 +1,6 @@
 module priv_1_12_debug (
-    input CLK, nRST,
-    priv_1_12_internal_if.debug priv_intern_if,
+    input logic CLK, nRST,
+    priv_1_12_internal_if.debug prv_intern_if,
     priv_ext_if.ext priv_ext_if
 );
     import machine_mode_types_1_12_pkg::*;
