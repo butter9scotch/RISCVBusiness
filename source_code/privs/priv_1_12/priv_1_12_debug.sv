@@ -38,7 +38,7 @@ module priv_1_12_debug (
                 // TODO: this will record the current priv_level when enter the debug mode
                 // A debugger can change this value to change the hart’s privilege level when
                 // exiting Debug Mode.
-            dcsr.prv <= 3'b11;
+            dcsr.prv <= M_MODE;
         end
         else begin
             dpc <= nxt_dpc;
@@ -50,6 +50,8 @@ module priv_1_12_debug (
         // for for dcsr WARL check
         assign dcsr_mask = priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b1, 1'b0, 3'b111};
         //                                         31:28          15    14  13:12  11:9    8:6     5     4     3     2:0
+        //                                         xdebugver    ebrkm      ebrks/u stpie  cause        mrpven nmip    prv
+        //                                                                        stopc/t 
 
         always_comb begin: next_logic
             priv_ext_if.ack = 1'b0;
@@ -68,7 +70,7 @@ module priv_1_12_debug (
                         // WARL check
                         nxt_dcsr = dcsr | dcsr_t'(dcsr_mask);
 
-                        if(nxt_dcsr.prv == 3'b1 || nxt_dcsr.prv == 3'b2) begin
+                        if(nxt_dcsr.prv == S_MODE || nxt_dcsr.prv == H_MODE) begin
                             // S, and H modes are not supported
                             nxt_dcsr.prv = dcsr.prv;
                         end

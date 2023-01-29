@@ -108,7 +108,7 @@ interface priv_1_12_internal_if;
         input csr_addr, curr_privilege_level, csr_write, csr_set, csr_clear, csr_read_only, new_csr_val, inst_ret, valid_write,
             inject_mcause, inject_mepc, inject_mip, inject_mstatus, inject_mtval,
             next_mcause, next_mepc, next_mie, next_mip, next_mstatus, next_mtval,
-            mprv_disable, curr_priv_dmode, 
+            mprv_disable, curr_priv_dmode, curr_dcsr,
         output old_csr_val, invalid_csr,
             curr_mcause, curr_mepc, curr_mie, curr_mip, curr_mstatus, curr_mtvec
     );

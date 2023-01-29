@@ -514,7 +514,7 @@ package machine_mode_types_1_12_pkg;
     logic mprven;
     logic nmip;
     logic step;
-    logic [1:0] prv;
+    priv_level_t prv;
   } dcsr_t; 
 
   // General CSR definition

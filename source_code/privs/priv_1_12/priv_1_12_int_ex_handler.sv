@@ -125,13 +125,9 @@ module priv_1_12_int_ex_handler (
                                     | (prv_intern_if.curr_mie.mdie & prv_intern_if.curr_mip.mdip))); // debug*
 
     // Register updates on Interrupts/Exceptions
-    always_comb begin
-        prv_intern_if.inject_mcause = exception | interrupt_fired;
-        if(prv_intern_if.curr_priv_dmode == 1'b1) begin
-            // Do NOT update mstatus upon exception during debug mode
-            prv_intern_if.inject_mcause = 1'b0;
-        end
-    end
+    // don't update mcause when in debug mode
+    assign prv_intern_if.inject_mcause = (exception | interrupt_fired) & ~(prv_intern_if.curr_priv_dmode);
+    
     assign prv_intern_if.next_mcause.interrupt = ~exception;
     assign prv_intern_if.next_mcause.cause = exception ? ex_src : int_src;
 
@@ -162,8 +158,6 @@ module priv_1_12_int_ex_handler (
         else if (prv_intern_if.clear_debug_int_m) prv_intern_if.next_mip.mdip = 1'b0;
     end
 
-    // TODO: mstatus need to be updated if there is dret
-    // TODO: 
     always_comb begin
         prv_intern_if.inject_mstatus = prv_intern_if.intr | prv_intern_if.mret | prv_intern_if.dret;
         if(prv_intern_if.curr_priv_dmode == 1'b1 && ~prv_intern_if.dret) begin
@@ -194,21 +188,15 @@ module priv_1_12_int_ex_handler (
             end
         end
     end
-
-    assign prv_intern_if.inject_mepc = exception | interrupt_fired;
+    
+    assign prv_intern_if.inject_mepc = (exception | interrupt_fired) & ~(prv_intern_if.curr_priv_dmode);
     assign prv_intern_if.next_mepc = prv_intern_if.epc;
 
     // debug*
     // only update dpc UPON entry to the debug mode
     // Implement it with real Debug Mode
-    always_comb begin
-        prv_intern_if.inject_dpc = 1'b0;
-
-        if(prv_intern_if.curr_priv_dmode != 1'b1) begin
-            prv_intern_if.inject_dpc = exception | interrupt_fired;
-        end
-        prv_intern_if.next_dpc = prv_intern_if.epc;
-    end
+    assign prv_intern_if.inject_dpc = (exception | interrupt_fired) & ~(prv_intern_if.curr_priv_dmode);
+    assign prv_intern_if.next_dpc = prv_intern_if.epc;
     
     // TODO: May need to insert other exception signals
     assign prv_intern_if.inject_mtval = (prv_intern_if.mal_l | prv_intern_if.fault_l
@@ -218,7 +206,7 @@ module priv_1_12_int_ex_handler (
                                         | prv_intern_if.mal_insn
                                         | prv_intern_if.breakpoint
                                         | prv_intern_if.ex_rmgmt)
-                                        & prv_intern_if.pipe_clear;
+                                        & prv_intern_if.pipe_clear & ~(prv_intern_if.curr_priv_dmode);
     assign prv_intern_if.next_mtval = prv_intern_if.curr_mtval;
 
 endmodule
