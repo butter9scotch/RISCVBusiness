@@ -46,6 +46,7 @@ module priv_1_12_debug (
             dscratch1 <= nxt_dscratch1;
             dcsr <= nxt_dcsr;
         end
+    end
 
         // for for dcsr WARL check
         assign dcsr_mask = priv_ext_if.value_in & {4'b0, 12'b0, 1'b1, 1'b0, 2'b11, 3'b0, 3'b000, 1'b0, 1'b1, 1'b0, 3'b111};
@@ -155,7 +156,6 @@ module priv_1_12_debug (
         assign priv_intern_if.ebreakm_debug = dcsr.ebreakm;
         assign priv_intern_if.ebreaks_debug = dcsr.ebreaks;
         assign priv_intern_if.ebreaku_debug = dcsr.ebreaku;
-    end
     
 endmodule
 
