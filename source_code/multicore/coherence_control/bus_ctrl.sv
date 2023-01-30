@@ -26,21 +26,21 @@
 
 module bus_ctrl #( 
     parameter BLOCK_SIZE = 2,
-    parameter CPUS = 4
+    parameter CACHES = 4
 )(  
     input logic CLK, nRST, 
     bus_ctrl_if.cc ccif
 );  
     // localparams/imports
-    localparam CPU_ID_LENGTH = $clog2(CPUS);
+    localparam CACHES_ID_LEN = $clog2(CACHES);
     // states
     bus_state_t state, nstate;
     // requester/supplier
-    logic [CPU_ID_LENGTH-1:0] requester_cpu, nrequester_cpu;
-    logic [CPU_ID_LENGTH-1:0] supplier_cpu, nsupplier_cpu;
+    logic [CACHES_ID_LEN-1:0] requester_cpu, nrequester_cpu;
+    logic [CACHES_ID_LEN-1:0] supplier_cpu, nsupplier_cpu;
     // internal register next signals
-    word_t [CPUS-1:0] nccsnoopaddr, nl2_addr;
-    logic [CPUS-1:0] nccwait, nccinv;
+    word_t [CACHES-1:0] nccsnoopaddr, nl2_addr;
+    logic [CACHES-1:0] nccwait, nccinv;
     transfer_width_t ndload, nl2_store;
     // stores whether we need to update requester to exclusive or if WB is needed after transfer
     logic exclusiveUpdate, nexclusiveUpdate;
@@ -107,10 +107,10 @@ module bus_ctrl #(
 //     INVALIDATE, READ, READ_EXCLUSIVE, EVICTION 
 //     } request_type_t;
     
-//     request_type_t [CPUS-1: 0] request_type;
+//     request_type_t [CACHES-1: 0] request_type;
 //     always_comb begin
 //         request_type = 0;
-//         for (int i = 0; i < CPUS; i++) begin
+//         for (int i = 0; i < CACHES; i++) begin
 //             if (ccif.dWEN[i])
 //                 request_type[I] = EVICTION;
 //             else if (ccif.dREN[i] & ccif.ccwrite[i])                  
@@ -151,7 +151,7 @@ module bus_ctrl #(
                     priorityEncode(ccif.ccwrite, nrequester_cpu);
             end
             GRANT_R, GRANT_RX, GRANT_INV: begin // set the stimulus for snooping
-                for (int i = 0; i < CPUS; i++) begin
+                for (int i = 0; i < CACHES; i++) begin
                     if (requester_cpu != i)
                         nccsnoopaddr[i] = ccif.daddr[requester_cpu] & ~(word_t'(3'b111));
                 end
@@ -206,22 +206,22 @@ module bus_ctrl #(
     end
 
     // function to obtain all non requesters
-    function logic [CPUS-1:0] nonRequesterEnable;
+    function logic [CACHES-1:0] nonRequesterEnable;
         input requester_cpu;
         nonRequesterEnable = '1 & ~(1 << requester_cpu);
     endfunction
     
     function logic snoopStatus;
-        input logic [CPU_ID_LENGTH-1:0] requester_cpu;
-        input logic [CPUS-1:0] snoopDone;
-        snoopStatus = &(({CPUS{1'b1}} << requester_cpu) | snoopDone);
+        input logic [CACHES_ID_LEN-1:0] requester_cpu;
+        input logic [CACHES-1:0] snoopDone;
+        snoopStatus = &(({CACHES{1'b1}} << requester_cpu) | snoopDone);
     endfunction
 
     // task to do priority encoding to determine the requester or supplier
     task priorityEncode;
-        input logic [CPUS-1:0] to_encode;
-        output logic [CPU_ID_LENGTH-1:0] encoded;       
-        for (int i = 0; i < CPUS; i++) begin
+        input logic [CACHES-1:0] to_encode;
+        output logic [CACHES_ID_LEN-1:0] encoded;       
+        for (int i = 0; i < CACHES; i++) begin
             if (to_encode[i])
                 encoded = i;
         end

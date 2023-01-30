@@ -26,10 +26,10 @@
 `define BUS_CTRL_IF_VH
 
 // parameters
-parameter CPUS = 4;
+parameter CACHES = 4;
 parameter BLOCK_SIZE = 2;
 localparam DATA_WIDTH = 32 * BLOCK_SIZE; // 64 bit/clk memory bandwidth
-localparam CPU_ID_LENGTH = $clog2(CPUS);
+localparam CACHE_ID_LENGTH = $clog2(CACHES);
 
 
 // coherence bus controller states
@@ -62,26 +62,26 @@ typedef enum logic [1:0] {
 // taken from coherence_ctrl_if.vh
 typedef logic [31:0] word_t;
 typedef logic [DATA_WIDTH-1:0] transfer_width_t;
-typedef logic [CPUS-1:0] cpus_bitvec_t;
-typedef logic [CPU_ID_LENGTH-1:0] cpuid_t;
+typedef logic [CACHES-1:0] cache_bitvec_t;
+typedef logic [CACHE_ID_LENGTH-1:0] cacheid_t;
 
 // modified from coherence_ctrl_if.vh
 interface bus_ctrl_if;
     // L1 generic control signals
-    logic               [CPUS-1:0] dREN, dWEN, dwait; 
-    transfer_width_t    [CPUS-1:0] dload, dstore;
-    word_t              [CPUS-1:0] daddr;
+    logic               [CACHES-1:0] dREN, dWEN, dwait; 
+    transfer_width_t    [CACHES-1:0] dload, dstore;
+    word_t              [CACHES-1:0] daddr;
     // L1 coherence INPUTS to bus 
-    logic               [CPUS-1:0] ccwrite;     // indicates that the requester is attempting to go to M
-    logic               [CPUS-1:0] ccsnoophit;  // indicates that the responder has the data
-    logic               [CPUS-1:0] ccsnoopdone;  // indicates that the responder has the data
-    logic               [CPUS-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
-    logic               [CPUS-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
+    logic               [CACHES-1:0] ccwrite;     // indicates that the requester is attempting to go to M
+    logic               [CACHES-1:0] ccsnoophit;  // indicates that the responder has the data
+    logic               [CACHES-1:0] ccsnoopdone;  // indicates that the responder has the data
+    logic               [CACHES-1:0] ccIsPresent; // indicates that nonrequesters have the data valid
+    logic               [CACHES-1:0] ccdirty;     // indicates that we have [I -> S, M -> S]
     // L1 coherence OUTPUTS
-    logic               [CPUS-1:0] ccwait;      // indicates a potential snoophit wait request
-    logic               [CPUS-1:0] ccinv;       // indicates an invalidation request
-    logic               [CPUS-1:0] ccexclusive; // indicates an exclusivity update
-    word_t              [CPUS-1:0] ccsnoopaddr; 
+    logic               [CACHES-1:0] ccwait;      // indicates a potential snoophit wait request
+    logic               [CACHES-1:0] ccinv;       // indicates an invalidation request
+    logic               [CACHES-1:0] ccexclusive; // indicates an exclusivity update
+    word_t              [CACHES-1:0] ccsnoopaddr; 
     // L2 signals
     l2_state_t l2state; 
     transfer_width_t l2load, l2store; 

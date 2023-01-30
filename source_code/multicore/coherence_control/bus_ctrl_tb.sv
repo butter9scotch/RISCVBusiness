@@ -28,10 +28,10 @@
 localparam CLK_PERIOD = 10; 
 localparam TB_BLOCK_SIZE = BLOCK_SIZE; 
 localparam L2_LATENCY = 4; 
-localparam TB_CPUS = CPUS;
+localparam TB_CACHES = CACHES;
 localparam OUTPUT_CHECK_COUNT = 1;
 localparam DADDR = 19;
-localparam TB_CPU_ID_LENGTH = $clog2(TB_CPUS);
+localparam TB_CPU_ID_LENGTH = $clog2(TB_CACHES);
 
 module bus_ctrl_tb(); 
 	// CLK/nRST
@@ -49,7 +49,7 @@ module bus_ctrl_tb();
 	bus_ctrl_if ccif(); 
 
 	// DUT instance.
-	bus_ctrl #(.BLOCK_SIZE(TB_BLOCK_SIZE), .CPUS(TB_CPUS)) DUT(
+	bus_ctrl #(.BLOCK_SIZE(TB_BLOCK_SIZE), .CACHES(TB_CACHES)) DUT(
 		.CLK(CLK), 
 		.nRST(nRST), 
 		.ccif(ccif)
@@ -68,7 +68,7 @@ module bus_ctrl_tb();
 		ccif.dWEN = '0; 
 		ccif.daddr = '0;
 		ccif.dstore = 64'hDEADBEEF; 
-		ccif.cctrans = '0; 
+		// ccif.cctrans = '0; 
 		ccif.ccwrite = '0; 
 		ccif.ccsnoophit = '0; 
 		ccif.ccIsPresent = '0;
@@ -128,7 +128,7 @@ module bus_ctrl_tb();
 
 	task ensure_invalidation;
 		#(CLK_PERIOD * 2.5);	// checking in the middle of clk
-		if (ccif.ccinv != ~cpus_bitvec_t'(1)) begin
+		if (ccif.ccinv != ~cache_bitvec_t'(1)) begin
 			$display("E: ccif.ccinv: %8h, but expecting: %8h\n", ccif.ccinv, ~int'(1));
 			tb_err = 1'b1;
 		end
@@ -172,7 +172,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> E, no transition";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
@@ -188,13 +188,13 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> S, E -> S";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
-			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
+			supplier = (!(i % TB_CACHES) ? 1 : (i % TB_CACHES));
 			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(transfer_width_t'(i + 1), supplier, 0);
 			check_dload(transfer_width_t'(i + 1), 0, 0);
@@ -206,13 +206,13 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> S, M -> S";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
 		// go through and check outputs
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
-			supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
+			supplier = (!(i % TB_CACHES) ? 1 : (i % TB_CACHES));
 			ccif.ccdirty[supplier] = 1;
 			ccif.ccIsPresent[supplier] = 1;
 			cachetransfer(transfer_width_t'(i + 1), supplier, 0);
@@ -226,7 +226,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> S, no transition";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.dstore[1] = 5;
@@ -247,7 +247,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> M, no transition";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
@@ -269,7 +269,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> M, E -> I";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
@@ -278,7 +278,7 @@ module bus_ctrl_tb();
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			fork
 				begin
-					supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
+					supplier = (!(i % TB_CACHES) ? 1 : (i % TB_CACHES));
 					ccif.ccIsPresent[supplier] = 1;
 					cachetransfer(transfer_width_t'(i + 1), supplier, 0);
 					check_dload(transfer_width_t'(i + 1), 0, 0);
@@ -292,7 +292,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> M, M -> I";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
@@ -301,7 +301,7 @@ module bus_ctrl_tb();
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
 			fork
 				begin
-					supplier = (!(i % TB_CPUS) ? 1 : (i % TB_CPUS));
+					supplier = (!(i % TB_CACHES) ? 1 : (i % TB_CACHES));
 					ccif.ccsnoophit[supplier] = 1;
 					ccif.ccdirty[supplier] = 1;
 					ccif.ccIsPresent[supplier] = 1;
@@ -318,7 +318,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "I -> M, S -> I";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 1;
 		ccif.ccsnoophit = '0;
 		ccif.daddr[0] = word_t'(DADDR);
@@ -341,7 +341,7 @@ module bus_ctrl_tb();
 		test_case_num++;
 		test_case_info = "S -> M, x -> I";
 		// set stimuli
-		ccif.cctrans[0] = 1;
+		// ccif.cctrans[0] = 1;
 		ccif.dREN[0] = 0;				// indicate that we are going S -> M 
 		ccif.ccsnoophit = '0;			// does not matter
 		ccif.daddr[0] = word_t'(DADDR);
@@ -361,8 +361,8 @@ module bus_ctrl_tb();
 		test_case_info = "cache eviction or flush";
 		// evictions from each cache
 		for (i = 0; i < OUTPUT_CHECK_COUNT; i++) begin
-			supplier = i % CPUS; 	// actually just requester
-			ccif.cctrans[supplier] = 1;
+			supplier = i % CACHES; 	// actually just requester
+			// ccif.cctrans[supplier] = 1;
 			ccif.dWEN[supplier] = 1;				// writeback 
 			ccif.daddr[supplier] = word_t'(DADDR);
 			ccif.dstore[supplier] = word_t'(i + 1);
