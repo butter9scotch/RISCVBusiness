@@ -107,6 +107,8 @@ class bus_driver extends uvm_driver #(bus_transaction);
         zero_all_sigs();
 
       end
+      zero_all_sigs();
+      send_finished_stim();
       seq_item_port.item_done();
 
     end
@@ -246,6 +248,15 @@ class bus_driver extends uvm_driver #(bus_transaction);
       @(posedge vif.clk);
 
       `uvm_info(this.get_name(), "DUT Reset", UVM_LOW);
+    end
+  endtask
+
+  task send_finished_stim();
+    begin
+      for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+        vif.daddr[i] = 32'hdeadbeef;
+      end
+      repeat (5) @(posedge vif.clk);
     end
   endtask
 
