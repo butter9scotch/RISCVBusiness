@@ -1,5 +1,5 @@
-`ifndef BUS_DRIVER_SVH
-`define BUS_DRIVER_SVH
+`ifndef BUS_DRIVER_V2_SVH
+`define BUS_DRIVER_V2_SVH
 
 import uvm_pkg::*;
 `include "uvm_macros.svh"
@@ -8,8 +8,8 @@ import uvm_pkg::*;
 `include "dut_params.svh"
 `include "env_config.svh"
 
-class bus_driver extends uvm_driver #(bus_transaction);
-  `uvm_component_utils(bus_driver)
+class bus_driver_v2 extends uvm_driver #(bus_transaction);
+  `uvm_component_utils(bus_driver_v2)
 
   virtual bus_ctrl_if vif;
   env_config envCfg;
@@ -25,10 +25,10 @@ class bus_driver extends uvm_driver #(bus_transaction);
       // if the interface was not correctly set, raise a fatal message
       `uvm_fatal("Driver", "No virtual interface specified for this test instance");
     end
-    if (!uvm_config_db#(env_config)::get(this, "", "envCfg", envCfg)) begin
+    /*if (!uvm_config_db#(env_config)::get(this, "", "envCfg", envCfg)) begin
       // if the envCfg was not correctly set, raise a fatal message
       `uvm_fatal("Driver", "No env_config passed down through database");
-    end
+    end*/
   endfunction : build_phase
 
   task run_phase(uvm_phase phase);
@@ -36,9 +36,10 @@ class bus_driver extends uvm_driver #(bus_transaction);
     int cpuIndexCounts[dut_params::NUM_CPUS_USED-1:0];
     int snoopCpuIndexs [dut_params::NUM_CPUS_USED-1:0] ; // array of all the cpus that have a snoop request that need to be handled
     int transCpuIndex;
-    int timeoutCount;
+    int timeoutCount [dut_params::NUM_CPUS_USED-1:0];
 
     DUT_reset();  // Power on Reset
+    repeat (20) @(posedge vif.clk)
 
     forever begin
       zero_all_sigs();
@@ -47,86 +48,64 @@ class bus_driver extends uvm_driver #(bus_transaction);
                 UVM_DEBUG);
       `zero_unpckd_array(cpuIndexCounts);
 
-
-      // While there are still some transactions by the CPUs that need to be sent
-      while (allStimNotSent(
-          cpuIndexCounts, currTrans.numTransactions
-      )) begin
-        timeoutCount = 0;
-        `uvm_info(this.get_name(), "Stim not fully sent...", UVM_DEBUG);
-        // Loop through all of the CPUS that we are driving and send out any stim that needs to be sent
-        for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
-          if (cpuIndexCounts[i] < currTrans.numTransactions) begin // if we haven't sent all stim from this particular CPU
-            `uvm_info(this.get_name(), $sformatf("Sending stim from CPU: %d", i), UVM_DEBUG);
-            driveCpuStim(i, currTrans);
-          end else begin
-            `uvm_info(this.get_name(), $sformatf("Sending idle from CPU: %d", i), UVM_DEBUG);
-            driveCpuIdle(i);
-          end
-        end
-
-        @(posedge vif.clk);  // clock in the stimulus
-        `zero_unpckd_array(snoopCpuIndexs);
-        transCpuIndex = 0;
-
-        // The snoop hit and transaction complete ints are passed by reference
-        // TransComplete function checks to see if dwait is low for any of the cpus
-        while (!snoopHit(
-            snoopCpuIndexs
-        ) && !transComplete(
-            transCpuIndex
-        )) begin
-          if (timeoutCount > dut_params::DRVR_TIMEOUT) begin
-            `uvm_fatal("Driver",
-                       "Timeout while waiting for bus to snoop or give low dwait to any cpu");
-          end
-          @(posedge vif.clk);
-          timeoutCount = timeoutCount + 1;
-        end
-
-        timeoutCount = 0;
-        if (snoopHit(snoopCpuIndexs)) begin
-          `uvm_info(this.get_name(), $sformatf("Snoop hits on: %p", snoopCpuIndexs), UVM_DEBUG);
-          driveSnoopResponses(snoopCpuIndexs, currTrans);
-          while (!transComplete(
-              transCpuIndex
-          )) begin
-            if (timeoutCount > dut_params::DRVR_TIMEOUT) begin
-              `uvm_fatal("Driver",
-                         "Timeout while waiting for a low dwait to any cpu after snooping");
-            end
-            @(posedge vif.clk);
-            timeoutCount = timeoutCount + 1;
-          end
-        end
-
-        `uvm_info(this.get_name(), $sformatf("Transaction %0d/%0d complete for CPU: %0d",
-                                             cpuIndexCounts[transCpuIndex] + 1,
-                                             currTrans.numTransactions, transCpuIndex), UVM_DEBUG);
-        cpuIndexCounts[transCpuIndex] = cpuIndexCounts[transCpuIndex] + 1;
-
-        @(posedge vif.clk);
-        if (!allDwaitHigh()) begin
-          `uvm_fatal("Driver", "Not all dwaits high cycle after bus gives response");
-        end
-
-        zero_all_sigs();
-
+      for(int j = 0; j < dut_params::NUM_CPUS_USED; j++) begin
+      fork
+          automatic int i = j;
+          runCpu(i, currTrans, cpuIndexCounts, timeoutCount);
+      join_none
       end
+      wait fork;
+
       zero_all_sigs();
-      send_finished_stim();
       seq_item_port.item_done();
 
     end
   endtask
 
-  function automatic bit allDwaitHigh();
-    foreach (vif.dwait[i]) begin
-      if (vif.dwait[i] != 1'b1) return 1'b0;
-    end
-    return 1'b1;
+  task runCpu;
+    input int i;
+    input bus_transaction currTrans;
+    input int cpuIndexCounts[dut_params::NUM_CPUS_USED-1:0];
+    input int timeoutCount [dut_params::NUM_CPUS_USED-1:0];
 
-  endfunction
+    begin
+    bit [2:0] waitAmount;
+          while (allStimNotSent(
+              cpuIndexCounts[i], currTrans.numTransactions
+          )) begin
+
+          waitAmount = $urandom %5;
+          repeat (waitAmount) @(posedge vif.clk);
+
+            timeoutCount[i] = 0;
+            `uvm_info(this.get_name(), "Stim not fully sent...", UVM_DEBUG);
+            // Loop through all of the CPUS that we are driving and send out any stim that needs to be sent
+                `uvm_info(this.get_name(), $sformatf("Sending stim %0d from CPU: %d", cpuIndexCounts[i], i), UVM_DEBUG);
+                driveCpuStim(i, currTrans);
+
+            @(posedge vif.clk);  // clock in the stimulus
+
+              while (vif.dwait[i]) begin
+                if (timeoutCount[i] > dut_params::DRVR_TIMEOUT) begin
+                  `uvm_fatal("Driver",
+                             "Timeout while waiting for a low dwait");
+                end
+                @(posedge vif.clk);
+                timeoutCount[i] = timeoutCount[i] + 1;
+              end
+            end
+
+            `uvm_info(this.get_name(), $sformatf("Transaction %0d/%0d complete for CPU: %0d",
+                                                 cpuIndexCounts[i] + 1,
+                                                 currTrans.numTransactions, i), UVM_DEBUG);
+            cpuIndexCounts[i] = cpuIndexCounts[i] + 1;
+
+            @(posedge vif.clk);
+            zero_all_sigs();
+    end
+    driveCpuIdle(i);
+  endtask
+
 
   function automatic bit isInside(
       bit [dut_params::DRVR_SNOOP_ARRAY_SIZE-1:0][dut_params::WORD_W - 1:0] checkArray,
@@ -200,12 +179,9 @@ class bus_driver extends uvm_driver #(bus_transaction);
   endfunction
 
 
-  function automatic bit allStimNotSent(int cpuIndexCounts[dut_params::NUM_CPUS_USED-1:0],
+  function automatic bit allStimNotSent(int cpuIndexCount,
                                         int numTrans);
-    for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
-      if (cpuIndexCounts[i] < numTrans) return 1'b1;
-    end
-
+      if (cpuIndexCount < numTrans) return 1'b1;
     return 1'b0;
   endfunction
 
@@ -290,6 +266,6 @@ class bus_driver extends uvm_driver #(bus_transaction);
     end
   endtask
 
-endclass : bus_driver
+endclass : bus_driver_v2
 
 `endif
