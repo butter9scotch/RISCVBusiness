@@ -2,6 +2,7 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 `include "environment.svh"
 `include "bus_ctrl_if.vh"
+`include "env_config.svh"
 
 class test_basic extends uvm_test;
   `uvm_component_utils(test_basic)
@@ -9,6 +10,8 @@ class test_basic extends uvm_test;
   environment env;
   virtual bus_ctrl_if bus_ctrl_if;
   basic_sequence basicSeq;
+  env_config envCfg;
+
 
   function new(string name = "test", uvm_component parent);
     super.new(name, parent);
@@ -18,7 +21,13 @@ class test_basic extends uvm_test;
     super.build_phase(phase);
     env = environment::type_id::create("env", this);
     basicSeq = basic_sequence::type_id::create("basicSeq");
-
+    
+    // Create the env_Config
+    envCfg = env_config::type_id::create("envCfg", this);
+    // Randomize the enviroment_config
+    if(!envCfg.randomize()) begin
+        `uvm_fatal("Randomize Error", "not able to randomize")
+    end
 
     // send the interface down
     if (!uvm_config_db#(virtual bus_ctrl_if)::get(this, "", "bus_ctrl_vif", bus_ctrl_if)) begin
@@ -27,6 +36,7 @@ class test_basic extends uvm_test;
     end
 
     uvm_config_db#(virtual bus_ctrl_if)::set(this, "env.agt*", "bus_ctrl_vif", bus_ctrl_if);
+    uvm_config_db#(env_config)::set(this, "", "envCfg", envCfg);
 
   endfunction : build_phase
 

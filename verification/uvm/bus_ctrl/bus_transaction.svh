@@ -27,6 +27,12 @@ class bus_transaction extends uvm_sequence_item;
 
   rand int numTransactions;
 
+  // Bus monitor side stuff we need
+  bit [dut_params::NUM_CPUS_USED-1:0][1023:0] procReq; // indicates a proc req happened at the given index in time
+  bit [dut_params::NUM_CPUS_USED-1:0][1023:0] snoopReq; // indicated a snoop request happened at the given index in time
+  bit [dut_params::NUM_CPUS_USED-1:0][1023:0] busCtrlResp; // indicates a bus control response to the processors at the given index in time
+  bit [dut_params::NUM_CPUS_USED - 1:0][1023:0][dut_params::WORD_W - 1:0] snoopReqAddr;
+  bit [dut_params::NUM_CPUS_USED - 1:0][1023:0] snoopReqInvalidate;
 
   // Constraints on the data
   constraint numTransConstraint {numTransactions > 0;}
