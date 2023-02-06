@@ -113,8 +113,8 @@ module l1_cache #(
 
      // cache replacement policy variables // Do we need 2 bits for the replacement policy?
     logic ridx;
-    logic MRU [N_SETS - 1:0];
-    logic next_MRU [N_SETS - 1:0];
+    logic last_used [N_SETS - 1:0];
+    logic next_last_used [N_SETS - 1:0];
 
 
     // Read Address
@@ -125,32 +125,54 @@ module l1_cache #(
 
     // Counter always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
-        if(~nRST) begin
-            set_num   <= '0;
-            frame_num <= '0;
-            word_num  <= '0;
-        end
-        else begin
-            set_num   <= next_set_num;
-            frame_num <= next_frame_num;
-            word_num  <= next_word_num;
-        end
+            if(~nRST) begin
+                set_num   <= '0;
+                frame_num <= '0;
+                word_num  <= '0;
+            end
+            else begin
+                set_num   <= next_set_num;
+                frame_num <= next_frame_num;
+                word_num  <= next_word_num;
+            end
     end // always_ff @
 
     // Cache Frame always_ff
     always_ff @ (posedge CLK, negedge nRST) begin
-        if(~nRST)
-            cache <= 0;
-        else
-            cache <= next_cache;
+        if(~nRST) begin
+            for(int i = 0; i < N_SETS; i++) begin
+                for(int j = 0; j < ASSOC; j++) begin
+                    cache[i].frames[j].data  <= '0;
+                    cache[i].frames[j].tag   <= '0;
+                    cache[i].frames[j].valid <= 1'b0;
+                    cache[i].frames[j].dirty <= 1'b0;
+                end
+            end
+	end
+        else begin
+            for(int i = 0; i < N_SETS; i++) begin
+                for(int j = 0; j < ASSOC; j++) begin
+                    cache[i].frames[j].data  <= next_cache[i].frames[j].data;
+                    cache[i].frames[j].tag   <= next_cache[i].frames[j].tag;
+                    cache[i].frames[j].valid <= next_cache[i].frames[j].valid;
+                    cache[i].frames[j].dirty <= next_cache[i].frames[j].dirty;
+                end
+            end
+        end // else: !if(~nRST)
     end // always_ff @
 
 
     always_ff @(posedge CLK, negedge nRST) begin // FF for last used if ASSOC = 1
-        if(~nRST)
-            MRU <= 0;
-        else
-            MRU[i] <= next_MRU;
+        if(~nRST) begin
+            for(integer i = 0; i < N_SETS; i++) begin
+            last_used[i] <= 1'b0;
+            end
+        end
+        else begin
+            for(integer i = 0; i < N_SETS; i++) begin
+            last_used[i] <= next_last_used[i];
+            end
+        end
     end
 
     decoded_addr_t decoded_req_addr;
@@ -259,7 +281,7 @@ module l1_cache #(
     //        ridx  = 1'b0;
     //    end
     //    else if (ASSOC == 2) begin
-    //        ridx  = ~MRU[decoded_addr.set_bits];
+    //        ridx  = ~last_used[decoded_addr.set_bits];
     //    e:nd
     //end
     ///
@@ -291,7 +313,7 @@ module l1_cache #(
 	        ridx  = 1'b0;
 	    end
 	    else if (ASSOC == 2) begin
-	        ridx  = ~MRU[decoded_addr.set_bits];
+	        ridx  = ~last_used[decoded_addr.set_bits];
 	    end
        
         for(int i = 0; i < N_SETS; i++) begin // next = orginal Use blocking to go through array?
@@ -301,7 +323,7 @@ module l1_cache #(
                 next_cache[i].frames[j].valid  = cache[i].frames[j].valid;
                 next_cache[i].frames[j].dirty  = cache[i].frames[j].dirty;
             end // for (int j = 0; j < ASSOC; j++)
-	    next_MRU[i] = MRU[i]; //keep same last used
+	    next_last_used[i] = last_used[i]; //keep same last used
         end
 
         casez(state)
@@ -312,7 +334,7 @@ module l1_cache #(
                 if(proc_gen_bus_if.ren && hit && !flush) begin // if read enable and hit
                     proc_gen_bus_if.busy 		   = 1'b0; // Set bus to not busy
                     proc_gen_bus_if.rdata 		   = hit_data[decoded_addr.block_bits]; //
-		            next_MRU[decoded_addr.set_bits]  = hit_idx;
+		            next_last_used[decoded_addr.set_bits]  = hit_idx;
                 end
                 else if(proc_gen_bus_if.wen && hit && !flush) begin // if write enable and hit
                     proc_gen_bus_if.busy 							     = 1'b0;
@@ -327,7 +349,7 @@ module l1_cache #(
                     endcase														   				   
                     //next_cache[decoded_addr.set_bits].frames[hit_idx].data[decoded_addr.block_bits]  = proc_gen_bus_if.wdata;
 		            next_cache[decoded_addr.set_bits].frames[hit_idx].dirty 	= 1'b1;
-		            next_MRU[decoded_addr.set_bits] 				        = hit_idx;
+		            next_last_used[decoded_addr.set_bits] 				        = hit_idx;
                 end // if (proc_gen_bus_if.wen && hit)
                 else if(pass_through)begin // Passthrough data logic
                     mem_gen_bus_if.wen      = proc_gen_bus_if.wen;
