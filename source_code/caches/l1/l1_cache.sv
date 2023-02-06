@@ -88,7 +88,7 @@ module l1_cache #(
     logic sramREN, sramWEN; 
     logic [N_SET_BITS-1:0] sramSEL;
     sram #(.SRAM_WR_SIZE(SRAM_W), .SRAM_HEIGHT(N_SETS), .IS_BIDIRECTIONAL(BIDIRECTIONAL_SRAM)) 
-        SRAM(CLK, nRST, sramWrite, sramRead, sramREN, sramWEN, sramSEL);
+                                SRAM(CLK, nRST, sramWrite, sramRead, sramREN, sramWEN, sramSEL);
 
     // FSM type
     typedef enum {
@@ -226,7 +226,7 @@ module l1_cache #(
     end
 
     assign sramREN = 1;
-    assign sramSEL = decoded_addr.idx_bits;
+    assign sramSEL = flush ? set_num : decoded_addr.idx_bits;
 
     // Comb. logic for outputs, maybe merging this comb. block with the one above
     // could be an optmization. Hopefully, synthesizer is smart to catch it.
@@ -253,6 +253,7 @@ module l1_cache #(
         clear_done 	            = 1'b0;
         next_decoded_req_addr   = decoded_req_addr;
         // next_cache = cache;
+        sramWrite = sramRead;
         next_last_used = last_used; //keep same last used
 
        	if(ASSOC == 1) begin
@@ -320,15 +321,16 @@ module l1_cache #(
                  if(~abort)begin
                     mem_gen_bus_if.ren   = 1'b1;
                     mem_gen_bus_if.addr  = read_addr;
-                    sramWEN = 1;
 
                     if(finish_word) begin
+                        sramWEN = 1;
                         clr_word_ctr 					        = 1'b1;
                         sramWrite.frames[ridx].valid            = 1'b1;
                         sramWrite.frames[ridx].tag 	            = decoded_req_addr.tag_bits;
                         mem_gen_bus_if.ren 					    = 1'b0;
                     end
                     else if(~mem_gen_bus_if.busy && ~finish_word) begin
+                        sramWEN = 1;
                         en_word_ctr 						   = 1'b1;
                         next_read_addr 						   = read_addr + 4;
                         sramWrite.frames[ridx].data[word_num]  = mem_gen_bus_if.rdata;
@@ -407,16 +409,13 @@ module l1_cache #(
 	    next_state = state;
         abort = 0;
 	    casez(state)
-	        IDLE: begin
-                if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && sramRead.frames[ridx].dirty && ~pass_through) begin
+	        IDLE: begin                    
+                if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && sramRead.frames[ridx].dirty && ~pass_through) 
                     next_state 	= WB;
-                end
-                else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~sramRead.frames[ridx].dirty && ~pass_through) begin
+                else if((proc_gen_bus_if.ren || proc_gen_bus_if.wen) && ~hit && ~sramRead.frames[ridx].dirty && ~pass_through)
                     next_state 	= FETCH;
-                    end
-                else if(flush) begin
+                if(flush)  
                     next_state 	= FLUSH_CACHE;
-                end
 	        end
 	        FETCH: begin
                 if(decoded_addr != decoded_req_addr)begin //ABORT 
