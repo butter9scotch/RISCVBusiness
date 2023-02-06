@@ -57,6 +57,7 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
       wait fork;
 
       zero_all_sigs();
+      send_finished_stim();
       seq_item_port.item_done();
 
     end
@@ -105,79 +106,6 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
     end
     driveCpuIdle(i);
   endtask
-
-
-  function automatic bit isInside(
-      bit [dut_params::DRVR_SNOOP_ARRAY_SIZE-1:0][dut_params::WORD_W - 1:0] checkArray,
-      bit [dut_params::WORD_W - 1:0] checkVal);
-    foreach (checkArray[i]) begin
-      if (checkVal == checkArray[i]) return 1'b1;
-    end
-    return 1'b0;
-
-  endfunction
-  ;
-
-  task driveSnoopResponses;
-    input int snoopCpuIndexs[dut_params::NUM_CPUS_USED-1:0];
-    input bus_transaction currTrans;
-    begin
-      zero_snoop_sigs();
-
-      foreach (snoopCpuIndexs[i]) begin
-        if(snoopCpuIndexs[i] == 1'b1) begin // if we have a snoop hit to the i'th CPU then we need to respond
-          if (isInside(
-                  currTrans.snoopHitAddr[i], vif.ccsnoopaddr[i]
-              )) begin  // if the snoop is a hit
-            vif.ccsnoopdone[i] = 1'b1;
-            vif.ccsnoophit[i] = 1'b1;
-            vif.ccIsPresent[i] = 1'b1;
-            vif.ccdirty[i] = isInside(currTrans.snoopDirty[i], vif.ccsnoopaddr[i]);
-          end else begin
-            vif.ccsnoopdone[i] = 1'b1;
-          end
-        end
-      end
-
-      @(posedge vif.clk);
-
-      zero_snoop_sigs();
-    end
-  endtask
-
-  function automatic bit snoopHit(ref int snoopCpuIndexs[dut_params::NUM_CPUS_USED-1:0]);
-    bit returnVal;
-
-    `zero_unpckd_array(snoopCpuIndexs);
-
-    for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
-      if (vif.ccwait[i]) begin
-        returnVal = 1'b1;
-        snoopCpuIndexs[i] = 1;
-      end
-    end
-
-    return returnVal;
-  endfunction
-
-  function automatic bit transComplete(ref int transCpuIndex);
-    bit returnVal;
-
-    returnVal = 1'b0;
-    transCpuIndex = 0;  // no real need to zero out, just nice to do
-
-    for (int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
-      if (~vif.dwait[i]) begin
-        // Check to make sure that this is the only cpu recieviing information
-        if (returnVal == 1'b1)
-          `uvm_fatal("Driver", "Multiple CPUS see !dwait, cannot continue");
-        returnVal = 1'b1;
-        transCpuIndex = i;
-      end
-    end
-    return returnVal;
-  endfunction
-
 
   function automatic bit allStimNotSent(int cpuIndexCount,
                                         int numTrans);
