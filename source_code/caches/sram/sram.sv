@@ -29,11 +29,11 @@ module sram #(
     parameter IS_BIDIRECTIONAL = 0
 )
 (
-    input logic                         CLK, nRST,
-    input logic [SRAM_WR_SIZE-1:0]      wVal,
-    output logic [SRAM_WR_SIZE-1:0]     rVal,
-    input logic                         REN, WEN,
-    input logic [$clog2(SRAM_HEIGHT):0] SEL
+    input logic                     CLK, nRST,
+    input logic [SRAM_WR_SIZE-1:0]  wVal,
+    output logic [SRAM_WR_SIZE-1:0] rVal,
+    input logic                     REN, WEN,
+    input logic [$clog2(SRAM_HEIGHT)-1:0] SEL
 );
     typedef logic [SRAM_WR_SIZE-1:0] sram_entry_size_t;
     sram_entry_size_t [SRAM_HEIGHT-1:0] sramMemory; 
