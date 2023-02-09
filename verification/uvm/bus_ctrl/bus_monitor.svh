@@ -34,11 +34,11 @@ class bus_monitor extends uvm_monitor;
 //      transaction we have saved (at the txi index) matches the transaction on the interface (at vifi)
 //      returns 1 if they are different, 0 otherwise
 virtual function bit proc_req_different(bus_transaction tx, int txi, int vifi);
-   if(!tx.procReq[txi]) begin
+   if(!tx.procReq[vifi][txi]) begin
      return 1;
-   end else if(tx.dWEN[txi] != vif.dWEN[vifii] || tx.dREN[txi] != !vif.dWEN[vifi]
-                || tx.readX[txi] != vif.ccwrite[vifi] || tx.daddr[txi] != vif.daddr[vifi]
-                || tx.dstore[txi] != vif.dstore[vifi]) begin
+   end else if(tx.dWEN[vifi][txi] != vif.dWEN[vifii] || tx.dRENfi][txi] != !vif.dWEN[vifi]
+                || tx.readX[vifi][txi] != vif.ccwrite[vifi] || tx.daddr[vifi][txi] != vif.daddr[vifi]
+                || tx.dstore[vifi][txi] != vif.dstore[vifi]) begin
      return 1;
    end
 
@@ -103,6 +103,12 @@ endfunction
       int cpuIndx[dut_params::NUM_CPUS_USED-1:0];
       int nonSnoopProc = 0; // this is the processor that should be recieving the data at the end!
 
+      // Since not all of the snoops come at once we need to keep
+      // stored versions of everyone's response until we get all of them
+      bit [dut_params::NUM_CPUS_USED-1:0] snoopRsp;
+      bit [dut_params::NUM_CPUS_USED-1:0] [1:0] snoopRspType;
+      bit [dut_params::NUM_CPUS_USED-1:0] [TRANS_SIZE-1:0] snoopRspData;
+
       // captures activity between the driver and DUT
       tx = bus_transaction::type_id::create("tx");
 
@@ -125,19 +131,19 @@ endfunction
                   `uvm_fatal("Monitor", $sformatf("req not complete before new request! proc %d", i));
                 end
 
-                tx.procReq[cpuIndx[i]] = 1;
-                tx.daddr[cpuIndx[i]] = vif.daddr[i];
-                tx.dWEN[i] = 0;
-                tx.readX[i] = vif.ccwrite;
+                tx.procReq[i][cpuIndx[i]] = 1;
+                tx.daddr[i][cpuIndx[i]] = vif.daddr[i];
+                tx.dWEN[i][cpuIndx[i]]  = 0;
+                tx.readX[i][cpuIndx[i]]  = vif.ccwrite;
              end else if(vif.dWEN[i] && proc_req_different(tx, cpuIndx[i], i)) begin
                 if(tx.procReq[cpuIndx[i]]) begin
                   `uvm_fatal("Monitor", $sformatf("req not complete before new request! proc %d", i));
                 end
 
-                tx.procReq[cpuIndex[i]] = 1;
-                tx.dWEN[cpuIndx[i]] = 1;
-                tx.readX[cpuIndx[i]] = 0;
-                tx.daddr[cpuIndx[i]] = vif.daddr[i];
+                tx.procReq[i][cpuIndex[i]] = 1;
+                tx.dWEN[i][cpuIndx[i]] = 1;
+                tx.readX[i][cpuIndx[i]] = 0;
+                tx.daddr[i][cpuIndx[i]] = vif.daddr[i];
             end
            end
         end
@@ -167,14 +173,93 @@ endfunction
            end
 
            // Now set the signals now that we've checked all of the conditions
-           tx.snoopReq[nonSnoopProc] = 1;
-           snoopReqAddr[nonSnoopProc] = tx.daddr[nonSnoopProc];
-           snoopReqInvalidate[nonSnoopProc] = |vif.ccinv;
+           tx.snoopReq[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 1;
+           tx.snoopReqAddr[nonSnoopProc][cpuIndx[nonSnoopProc]]  = tx.daddr[nonSnoopProc];
+           tx.snoopReqInvalidate[nonSnoopProc][cpuIndx[nonSnoopProc]]  = |vif.ccinv;
            snoopReqPhaseDone = 1;
            end
         end
 
        // Check for new snoop responses 
+       // TODO: is snoop hit E a thing!!!??
+       if((&((1'b1 << nonSnoopProc) | vif.snoopdone)) && !snoopRspPhaseDone) begin // if all of the processors are done being snooped into
+         if(((1'b1 << nonSnoopProc) & vif.snoopDone) != 0) begin // this means the requester is responding, bad!
+           `uvm_fatal("Monitor", "The requester is responding to the snoop!");
+         end
+         if(|vif.ccnoophit || |vif.ccIsPresent) begin // if we have a snoop hit
+           if(|vif.ccdirty && ~(vif.ccdirty & (vif.ccdirty - 1))) begin // check that ccdirty is high and only 1 is set
+             for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+               if(vif.ccdirty[i]) begin
+                 tx.snoopRsp[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 1;
+                 tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 3; // snoop hit dirty
+                 tx.snoopRspData[nonSnoopProc][cpuIndx[nonSnoopProc]]  = vif.dstore[i];
+                 break;
+               end
+             end
+           end else if(|vif.ccdirty) begin // this will happen if multiple say snoop hit dirty
+             `uvm_fatal("Monitor", "Multiple snoop responses say dirty!");
+           end else begin // we have snoop hit but none say dirty
+             tx.snoopRsp[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 1;
+
+             // since we are in S or E then there are no L2 requests that need to be made
+             l2RspPhaseDone = 1;
+             l2ReqPhaseDone = 1;
+
+             if((vif.ccsnoophit & (vif.ccsnoophit - 1)) == 0) begin // we only have a single hit which means this is an exclusive hit
+               tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 2; // snoop hit E
+             end else begin
+               tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 1; // snoop hit S
+               tx.snoopRspData[nonSnoopProc][cpuIndx[nonSnoopProc]]  = vif.dstore[(nonSnoopProc + 1) % dut_params::NUM_CPUS_USED]; // grab any of the data for now
+
+               for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin // check to make sure that everyone agrees on the data
+                 if(i != nonSnoopProc && vif.dstore[i] != tx.snoopRspData[nonSnoopProc][cpuIndx[nonSnoopProc]] ) begin
+                   `uvm_fatal("Monitor", "Snoop response (not dirty) don't all agree on the data!");
+                 end
+               end
+             end
+           end
+         end else begin // if we don't have a snoop hit but the snoop is done with all processors
+           tx.snoopRsp[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 1;
+           tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]]  = 0; // snoop done, no hit type
+         end
+         snoopRspPhaseDone = 1;
+         timeoutCount = 0;
+       end else if(snoopReqPhaseDone && !snoopRspPhaseDone) begin // if we have yet to do the snoop response and we have seen a snoop request
+         timeoutCount = timeoutCount + 1;
+
+         if(timeoutCount == 100) begin
+           `uvm_fatal("Monitor", "Timeout of 100 cycles while waiting for all of the snoop responses");
+         end
+       end
+
+       // Make sure that no L2 requests happen when they shouldn't
+       if((vif.l2WEN || vif.l2REN) && ((tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]] == 1) || (tx.snoopRspType[nonSnoopProc][cpuIndx[nonSnoopProc]]  == 2))) begin
+         `uvm_fatal("Monitor", "L2 request when snoop responses were S or E");
+       end
+
+       // Now check up on the L2 request
+       if((vif.l2WEN || vif.l2REN) && snoopRspPhaseDone && !l2ReqPhaseDone) begin
+         if(vif.l2WEN && vif.l2REN) begin
+           `uvm_fatal("Monitor", "L2 read and write request at the same time!");
+         end
+         tx.l2Req[nonSnoopProc][cpuIndx[nonSnoopProc]] = 1; 
+         tx.l2_rw[nonSnoopProc][cpuIndx[nonSnoopProc]] = vif.l2WEN;
+         tx.l2ReqAddr[nonSnoopProc][cpuIndx[nonSnoopProc]] = vif.l2addr;
+         tx.l2StoreData[nonSnoopProc][cpuIndx[nonSnoopProc]] = vif.l2store;
+         l2ReqPhaseDone = 1;
+       end else if(snoopRspPhaseDone && !l2ReqPhaseDone) begin // if we expect a l2 request
+         timeoutCount = timeoutCount + 1;
+
+         if(timeoutCount == 100) begin
+           `uvm_fatal("Monitor", "Timeout of 100 cycles while waiting for l2 request to happen after snooping");
+         end
+       end
+
+       // Now check up on the L2 response
+
+
+
+
 
         // Remember to set the nonSnoop processor to zero at the end
         // Also remember to update the cpuIndx(s) once the rsp is recieved from the bus controller!
