@@ -82,7 +82,7 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
             `uvm_info(this.get_name(), "Stim not fully sent...", UVM_DEBUG);
             // Loop through all of the CPUS that we are driving and send out any stim that needs to be sent
                 `uvm_info(this.get_name(), $sformatf("Sending stim %0d from CPU: %d", cpuIndexCounts[i], i), UVM_DEBUG);
-                driveCpuStim(i, currTrans);
+                driveCpuStim(i, currTrans, cpuIndexCounts[i]);
 
             @(posedge vif.clk);  // clock in the stimulus
 
@@ -126,17 +126,18 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
   // Also makes sure that only 1 L1 is writing to a given address at a given time!
   task driveCpuStim;
     input int cpuIndex;
+    input int arrayIndex;
     input bus_transaction currTrans;
     begin
       if (currTrans.idle[cpuIndex]) begin
         driveCpuIdle(cpuIndex);
       end else begin
         vif.cctrans[cpuIndex] = 1'b1;
-        vif.daddr[cpuIndex]   = currTrans.daddr[cpuIndex];
-        vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex] && ~(&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex], cpuIndex)); // only do a write if we are the only one writing to this address
-        vif.dREN[cpuIndex]    = ~currTrans.dWEN[cpuIndex] || (&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex], cpuIndex)); // we read if someone else is already writing to this address or if we were supposed to read
-        vif.dstore[cpuIndex]  = currTrans.dstore[cpuIndex];
-        vif.ccwrite[cpuIndex] = currTrans.readX[cpuIndex];
+        vif.daddr[cpuIndex]   = currTrans.daddr[cpuIndex][arrayIndex];
+        vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex][arrayIndex] && ~(&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex][arrayIndex], cpuIndex)); // only do a write if we are the only one writing to this address
+        vif.dREN[cpuIndex]    = ~currTrans.dWEN[cpuIndex][arrayIndex] || (&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex][arrayIndex], cpuIndex)); // we read if someone else is already writing to this address or if we were supposed to read
+        vif.dstore[cpuIndex]  = currTrans.dstore[cpuIndex][arrayIndex];
+        vif.ccwrite[cpuIndex] = currTrans.readX[cpuIndex][arrayIndex];
       end
     end
   endtask
