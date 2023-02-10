@@ -113,7 +113,17 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
     return 1'b0;
   endfunction
 
+  function automatic bit [dut_params::WORD_W-1:0] addrMatch(bit [dut_params::WORD_W-1:0] addr, bit [dut_params::NUM_CPUS_USED-1:0][dut_params::WORD_W-1:0] addrArray, int index);
+    for(int i = 0; i < dut_params::NUM_CPUS_USED; i++) begin
+      if(index != i && addr == addrArray[i]) begin
+        return 1;
+      end
+    end
+    return 0;
+  endfunction
+
   // Task that drives the stim to the correct CPU based off of the data given in the transaction
+  // Also makes sure that only 1 L1 is writing to a given address at a given time!
   task driveCpuStim;
     input int cpuIndex;
     input bus_transaction currTrans;
@@ -123,8 +133,8 @@ class bus_driver_v2 extends uvm_driver #(bus_transaction);
       end else begin
         vif.cctrans[cpuIndex] = 1'b1;
         vif.daddr[cpuIndex]   = currTrans.daddr[cpuIndex];
-        vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex];
-        vif.dREN[cpuIndex]    = ~currTrans.dWEN[cpuIndex];
+        vif.dWEN[cpuIndex]    = currTrans.dWEN[cpuIndex] && ~(&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex], cpuIndex)); // only do a write if we are the only one writing to this address
+        vif.dREN[cpuIndex]    = ~currTrans.dWEN[cpuIndex] || (&(~(1'b1 << cpuIndex) & vif.dWEN) && addrMatch(vif.daddr, currTrans.daddr[cpuIndex], cpuIndex)); // we read if someone else is already writing to this address or if we were supposed to read
         vif.dstore[cpuIndex]  = currTrans.dstore[cpuIndex];
         vif.ccwrite[cpuIndex] = currTrans.readX[cpuIndex];
       end
