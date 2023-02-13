@@ -50,6 +50,7 @@ module bus_ctrl #(
     logic wb_needed, nwb_needed;
     logic [MAX_CONSEC_MISS_LEN-1:0] repeat_count, nrepeat_count;
     logic [CACHES_ID_LEN-1:0] save_id, nsave_id;
+    typedef logic [CACHES_ID_LEN-1:0] caches_id_len_t;
 
     always_ff @(posedge CLK, negedge nRST) begin
         if (!nRST) begin
@@ -228,8 +229,8 @@ module bus_ctrl #(
         output logic [CACHES_ID_LEN-1:0] encoded;
         // adding save_id makes it make the cache that hogged all the misses the least prioritized one
         for (int i = save_id; i < CACHES + save_id; i++) begin
-            if (to_encode[i])
-                encoded = i;
+            if (to_encode[caches_id_len_t'(i)])
+                encoded = caches_id_len_t'(i);
         end
     endtask
 endmodule
