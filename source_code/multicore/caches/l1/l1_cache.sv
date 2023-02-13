@@ -232,7 +232,7 @@ module l1_cache #(
 
     // Comb. output logic for counter finish flags
     assign finish_set = (set_num == N_SETS) ? 1'b1 : 1'b0;
-    assign finish_frame  = (frame_num == ASSOC) ? 1'b1 : 1'b0;
+    assign finish_frame = (frame_num == ASSOC) ? 1'b1 : 1'b0;
     assign finish_word 	= (word_num == BLOCK_SIZE) ? 1'b1 : 1'b0;
 
     	

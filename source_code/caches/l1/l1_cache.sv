@@ -70,7 +70,6 @@ module l1_cache #(
 
     // sram parameters
     localparam SRAM_W = FRAME_SIZE * ASSOC; // add size from the multicore later smile 
-    localparam BIDIRECTIONAL_SRAM = 1;          // true
 
     // cache frame type
     typedef struct packed {
@@ -87,8 +86,8 @@ module l1_cache #(
     cache_set_t sramWrite, sramRead, sramMask;
     logic sramREN, sramWEN; 
     logic [N_SET_BITS-1:0] sramSEL;
-    sram #(.SRAM_WR_SIZE(SRAM_W), .SRAM_HEIGHT(N_SETS), .IS_BIDIRECTIONAL(BIDIRECTIONAL_SRAM)) 
-                                SRAM(CLK, nRST, sramWrite, sramRead, sramREN, sramWEN, sramSEL, sramMask);
+    sram #(.SRAM_WR_SIZE(SRAM_W), .SRAM_HEIGHT(N_SETS)) 
+        SRAM(CLK, nRST, sramWrite, sramRead, sramREN, sramWEN, sramSEL, sramMask);
 
     // FSM type
     typedef enum {
@@ -247,7 +246,6 @@ module l1_cache #(
         flush_done 	            = 1'b0;
         clear_done 	            = 1'b0;
         next_decoded_req_addr   = decoded_req_addr;
-        // next_cache = cache;
         next_last_used = last_used; //keep same last used
 
        	if(ASSOC == 1) begin

@@ -25,8 +25,7 @@
 
 module sram #(
     parameter SRAM_WR_SIZE = 128,
-    parameter SRAM_HEIGHT = 128,
-    parameter IS_BIDIRECTIONAL = 0
+    parameter SRAM_HEIGHT = 128
 )
 (
     input logic                     CLK, nRST,
