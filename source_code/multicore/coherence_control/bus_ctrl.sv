@@ -33,6 +33,9 @@ module bus_ctrl #(
 );  
     // localparams/imports
     localparam CACHES_ID_LEN = $clog2(CACHES);
+    localparam MAX_CONSEC_MISS = 7;
+    localparam MAX_CONSEC_MISS_LEN = $clog2(MAX_CONSEC_MISS);
+
     // states
     bus_state_t state, nstate;
     // requester/supplier
@@ -45,6 +48,8 @@ module bus_ctrl #(
     // stores whether we need to update requester to exclusive or if WB is needed after transfer
     logic exclusiveUpdate, nexclusiveUpdate;
     logic wb_needed, nwb_needed;
+    logic [MAX_CONSEC_MISS_LEN-1:0] repeat_count, nrepeat_count;
+    logic [CACHES_ID_LEN-1:0] save_id, nsave_id;
 
     always_ff @(posedge CLK, negedge nRST) begin
         if (!nRST) begin
@@ -57,6 +62,8 @@ module bus_ctrl #(
             ccif.dload <= '0;
             ccif.l2store <= '0;
             ccif.l2addr <= '0;
+            repeat_count <= 0;
+            save_id <= 0;
         end
         else begin
             requester_cpu <= nrequester_cpu;        // requester
@@ -68,6 +75,24 @@ module bus_ctrl #(
             ccif.dload[requester_cpu] <= ndload;    // bus to requester
             ccif.l2store <= nl2_store;              // l2 store value
             ccif.l2addr <= nl2_addr;                // l2 addr to store at
+            repeat_count <= nrepeat_count;          // repeat counter
+            save_id <= nsave_id;
+        end
+    end
+
+    // logic for miss repeating
+    always_comb begin
+        nrepeat_count = repeat_count;
+        nsave_id = nsave_id;
+        if (state == IDLE) begin
+            if (nrequester_cpu == requester_cpu) begin
+                if(nstate != IDLE)
+                    nrepeat_count = repeat_count + 1;
+                else
+                    nrepeat_count = 0;
+                if (repeat_count == 7)  // may be more intuitive to use nrepeat_count
+                    nsave_id = requester_cpu;
+            end
         end
     end
 
@@ -101,26 +126,6 @@ module bus_ctrl #(
             INVALIDATE:         nstate = IDLE;
         endcase
     end
-    
-//     // requester arbitration
-//     typedef enum logic [1:0] {
-//     INVALIDATE, READ, READ_EXCLUSIVE, EVICTION 
-//     } request_type_t;
-    
-//     request_type_t [CACHES-1: 0] request_type;
-//     always_comb begin
-//         request_type = 0;
-//         for (int i = 0; i < CACHES; i++) begin
-//             if (ccif.dWEN[i])
-//                 request_type[I] = EVICTION;
-//             else if (ccif.dREN[i] & ccif.ccwrite[i])                  
-//                 request_type[i] = READ_EXCLUSIVE;
-//             else if (ccif.dREN[i])                  
-//                 request_type[i] = READ;
-//             else if (ccif.ccwrite[i])
-//                 request_type[i] = INVALIDATE;
-//         end
-//     end
 
     // output logic for bus FSM
     always_comb begin
@@ -214,14 +219,15 @@ module bus_ctrl #(
     function logic snoopStatus;
         input logic [CACHES_ID_LEN-1:0] requester_cpu;
         input logic [CACHES-1:0] snoopDone;
-        snoopStatus = &(({CACHES{1'b1}} << requester_cpu) | snoopDone);
+        snoopStatus = &((1 << requester_cpu) | snoopDone);  // requester cpu is done, wait till the others give the go-ahead
     endfunction
 
     // task to do priority encoding to determine the requester or supplier
     task priorityEncode;
         input logic [CACHES-1:0] to_encode;
-        output logic [CACHES_ID_LEN-1:0] encoded;       
-        for (int i = 0; i < CACHES; i++) begin
+        output logic [CACHES_ID_LEN-1:0] encoded;
+        // adding save_id makes it make the cache that hogged all the misses the least prioritized one
+        for (int i = save_id; i < CACHES + save_id; i++) begin
             if (to_encode[i])
                 encoded = i;
         end
