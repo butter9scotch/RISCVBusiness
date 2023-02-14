@@ -7,24 +7,27 @@ module top_core #(
 ) (
     input CLK,
     nRST,
-    input [63:0] mtime,
     output wfi,
     halt,
-    // generic bus if case
-`ifdef BUS_INTERFACE_GENERIC_BUS
-    input busy,
-    input [31:0] rdata,
-    output ren,
-    wen,
-    output [3:0] byte_en,
-    output [31:0] addr,
-    wdata,
-    // ahb if case
-`elsif BUS_INTERFACE_AHB
-    // TODO
-`else
 
-`endif
+    // I-bus
+    input i_busy,
+    input [31:0] i_rdata,
+    output i_ren,
+    output i_wen,
+    output [3:0] i_byte_en,
+    output [31:0] i_addr,
+    output [31:0] i_wdata,
+
+    // D-bus
+    input d_busy,
+    input [31:0] d_rdata,
+    output d_ren,
+    output d_wen,
+    output [3:0] d_byte_en,
+    output [31:0] d_addr,
+    output [31:0] d_wdata,
+
     // core_interrupt_if
     input ext_int,
     ext_int_clear,
@@ -39,7 +42,6 @@ module top_core #(
         // verilator public
         get_x28 = CORE.pipeline.execute_stage_i.g_rfile_select.rf.registers[28];
     endfunction
-
 
     bind stage3_mem_stage cpu_tracker cpu_track1 (
         .CLK(CLK),
@@ -70,26 +72,27 @@ module top_core #(
     assign interrupt_if.timer_int = timer_int;
     assign interrupt_if.timer_int_clear = timer_int_clear;
 
-`ifdef BUS_INTERFACE_GENERIC_BUS
-    generic_bus_if gen_bus_if ();
-    assign gen_bus_if.busy = busy;
-    assign gen_bus_if.rdata = rdata;
-    assign ren = gen_bus_if.ren;
-    assign wen = gen_bus_if.wen;
-    assign byte_en = gen_bus_if.byte_en;
-    assign addr = gen_bus_if.addr;
-    assign wdata = gen_bus_if.wdata;
-`elsif BUS_INTERFACE_AHB
-    ahb_if ahb_master ();
-    // TODO
 
-`elsif BUS_INTERFACE_APB
-    apb_if apb_requester (CLK, nRST);
-`else
+    generic_bus_if igen_bus_if ();
+    assign igen_bus_if.busy  = i_busy;
+    assign igen_bus_if.rdata = i_rdata;
+    assign i_ren              = igen_bus_if.ren;
+    assign i_wen              = igen_bus_if.wen;
+    assign i_byte_en          = igen_bus_if.byte_en;
+    assign i_addr             = igen_bus_if.addr;
+    assign i_wdata            = igen_bus_if.wdata;
 
-`endif
+    generic_bus_if dgen_bus_if ();
+    assign dgen_bus_if.busy  = d_busy;
+    assign dgen_bus_if.rdata = d_rdata;
+    assign d_ren              = dgen_bus_if.ren;
+    assign d_wen              = dgen_bus_if.wen;
+    assign d_byte_en          = dgen_bus_if.byte_en;
+    assign d_addr             = dgen_bus_if.addr;
+    assign d_wdata            = dgen_bus_if.wdata;
 
 
-    RISCVBusiness #(.RESET_PC(RESET_PC)) CORE (.*);
+
+    RISCVBusiness_no_memory #(.RESET_PC(RESET_PC)) CORE (.*);
 
 endmodule

@@ -32,31 +32,25 @@
 `include "core_interrupt_if.vh"
 `include "rv32c_if.vh"
 
-module RISCVBusiness (
-    input logic CLK, nRST,
-    input logic [63:0] mtime,
+module RISCVBusiness_no_memory (
+    input logic CLK,
+    nRST,
     output logic wfi,
     halt,
     core_interrupt_if.core interrupt_if,
-`ifdef BUS_INTERFACE_GENERIC_BUS
-    generic_bus_if.cpu gen_bus_if
-`elsif BUS_INTERFACE_AHB
-    ahb_if.manager ahb_manager
-`elsif BUS_INTERFACE_APB
-    apb_if.requester apb_requester
-`endif
+    generic_bus_if.cpu igen_bus_if,
+    generic_bus_if.cpu dgen_bus_if
 
 );
 
     parameter logic [31:0] RESET_PC = 32'h80000000;
 
     // Interface instantiations
+    function logic [31:0] get_x28();
+        // verilator public
+        return pipeline.execute_stage_i.g_rfile_select.rf.registers[28];
+    endfunction
 
-    generic_bus_if tspp_icache_gen_bus_if ();
-    generic_bus_if tspp_dcache_gen_bus_if ();
-    generic_bus_if icache_mc_if ();
-    generic_bus_if dcache_mc_if ();
-    generic_bus_if pipeline_trans_if ();
     risc_mgmt_if rm_if ();
     predictor_pipeline_if predict_if ();
     prv_pipeline_if prv_pipe_if ();
@@ -69,10 +63,14 @@ module RISCVBusiness (
     tspp_hazard_unit_if hazard_if ();
 
     stage3 #(.RESET_PC(RESET_PC)) pipeline(
-        .igen_bus_if(tspp_icache_gen_bus_if),
-        .dgen_bus_if(tspp_dcache_gen_bus_if),
         .*
     );
+
+    // hardwire cache control signals
+    assign cc_if.iflush_done = 1'b1;
+    assign cc_if.iclear_done = 1'b1;
+    assign cc_if.dflush_done = 1'b1;
+    assign cc_if.dclear_done = 1'b1;
 
     // Module Instantiations
     /*
@@ -139,17 +137,15 @@ module RISCVBusiness (
         .CLK(CLK),
         .nRST(nRST),
         .prv_pipe_if(prv_pipe_if),
-        .interrupt_if,
-        .mtime(mtime)
+        .interrupt_if
     );
 
-/* TODO: Adding back RISC-MGMT to 3-stage pipeline
     risc_mgmt_wrapper rmgmt (
         .CLK  (CLK),
         .nRST (nRST),
         .rm_if(rm_if)
     );
-*/
+
     /*
   caches_wrapper caches (
     .CLK(CLK),
@@ -161,25 +157,6 @@ module RISCVBusiness (
     .cc_if(cc_if)
   );
 */
-
-    separate_caches sep_caches (
-        .CLK(CLK),
-        .nRST(nRST),
-        .icache_proc_gen_bus_if(tspp_icache_gen_bus_if),
-        .icache_mem_gen_bus_if(icache_mc_if),
-        .dcache_proc_gen_bus_if(tspp_dcache_gen_bus_if),
-        .dcache_mem_gen_bus_if(dcache_mc_if),
-        .cc_if(cc_if)
-    );
-
-    memory_controller mc (
-        .CLK(CLK),
-        .nRST(nRST),
-        .d_gen_bus_if(dcache_mc_if),
-        .i_gen_bus_if(icache_mc_if),
-        .out_gen_bus_if(pipeline_trans_if)
-    );
-
     /*
     sparce_wrapper sparce_wrapper_i (
         .CLK(CLK),
@@ -198,37 +175,5 @@ module RISCVBusiness (
         .nRST(nRST),
         .rv32cif(rv32cif)
     );
-
-    // Instantiate the chosen bus interface
-
-    generate
-        case (BUS_INTERFACE_TYPE)
-            "generic_bus_if": begin : g_generic_bus_if
-                generic_nonpipeline bt (
-                    .CLK(CLK),
-                    .nRST(nRST),
-                    .pipeline_trans_if(pipeline_trans_if),
-                    .out_gen_bus_if(gen_bus_if)
-                );
-            end
-            "ahb_if": begin : g_ahb_if
-                ahb bt (
-                    .CLK(CLK),
-                    .nRST(nRST),
-                    .out_gen_bus_if(pipeline_trans_if),
-                    .ahb_m(ahb_manager)
-                );
-            end
-            "apb_if": begin : g_apb_if
-                apb bt(
-                    .CLK(CLK),
-                    .nRST(nRST),
-                    .out_gen_bus_if(pipeline_trans_if),
-                    .apbif(apb_requester)
-                );
-            end
-        endcase
-
-    endgenerate
 
 endmodule
