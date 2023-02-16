@@ -5,6 +5,7 @@
 #include <sstream>
 #include <map>
 #include <csignal>
+#include <cassert>
 
 #include "verilated.h"
 #include "verilated_fst_c.h"
@@ -24,10 +25,14 @@
 #define MMIO_RANGE_BEGIN (MTIME_ADDR)
 #define MMIO_RANGE_END   (MAGIC_ADDR)
 
+// Predeclare class -- TODO: Move MemoryMap into a header file
+class MemoryMap;
+
 // doubles as mtime counter
 vluint64_t sim_time = 0;
 Vtop_core *dut_ptr;
 VerilatedFstC *trace_ptr;
+MemoryMap *mem_ptr;
 
 /*
  *  Emulate memory-mapped CSRs
@@ -41,7 +46,7 @@ bool ext_int = false;
 void signal_handler(int signum) {
     std::cout << "Got signal " << signum << std::endl;
     dut_ptr->final();
-    trace_ptr->close();
+    trace_ptr->close();    
     exit(1);
 }
 
@@ -177,10 +182,10 @@ public:
         for(auto p : mmap) {
             if(p.second != 0) {
                 char buf[80];
-                snprintf(buf, 80, "%08x : %02x%02x%02x%02x", p.first,
-                        (p.second & 0xFF000000) >> 24,
-                        (p.second & 0x00FF0000) >> 16,
-                        (p.second & 0x0000FF00) >> 8,
+                snprintf(buf, 80, "%08x : %02x%02x%02x%02x", p.first, 
+                        (p.second & 0xFF000000) >> 24, 
+                        (p.second & 0x00FF0000) >> 16, 
+                        (p.second & 0x0000FF00) >> 8, 
                         p.second & 0x000000FF);
                 outfile << buf << std::endl;
             }
@@ -229,7 +234,7 @@ void tick(Vtop_core& dut, VerilatedFstC& trace) {
 }
 
 void reset(Vtop_core& dut, VerilatedFstC& trace) {
-    // Initialize signals
+    // Initialize signals 
     dut.CLK = 0;
     dut.nRST = 0;
     dut.ext_int = 0;
@@ -238,15 +243,41 @@ void reset(Vtop_core& dut, VerilatedFstC& trace) {
     dut.soft_int_clear = 0;
     dut.timer_int = 0;
     dut.timer_int_clear = 0;
-    dut.busy = 1;
-    dut.rdata = 0;
-    dut.mtime = 0;
+    dut.i_busy = 1;
+    dut.i_rdata = 0;
+    dut.d_busy = 1;
+    dut.d_rdata = 1;
 
     tick(dut, trace);
     dut.nRST = 0;
     tick(dut, trace);
     dut.nRST = 1;
     tick(dut, trace);
+}
+
+uint32_t do_memory_txn(uint8_t ren, uint8_t wen, uint32_t addr, uint8_t byte_en, uint32_t wdata) {
+    assert(ren || wen);
+    if(ren) {
+        uint32_t addr_in = addr & 0xFFFFFFFC;
+        if(!MemoryMap::is_mmio_region(addr_in)) {
+            return mem_ptr->read(addr_in);
+        } else {
+            return mem_ptr->mmio_read(addr_in);
+        }
+    } else if(wen) {
+        uint32_t addr_in = addr & 0xFFFFFFFC;
+        uint32_t value = wdata;
+        uint8_t mask = byte_en;
+        if(!MemoryMap::is_mmio_region(addr_in)) {
+            mem_ptr->write(addr_in, value, mask);
+        } else {
+            mem_ptr->mmio_write(addr_in, value, mask);
+        }
+
+        return 0x0;
+    } else {
+        return 0x0;
+    }
 }
 
 
@@ -261,6 +292,8 @@ int main(int argc, char **argv) {
         fname = argv[1];
     }
 
+    std::cout << "Running no-memory controller TB" << std::endl;
+
     MemoryMap memory(fname);
 
     Vtop_core dut;
@@ -270,42 +303,35 @@ int main(int argc, char **argv) {
     dut.trace(&m_trace, 5);
     m_trace.open("waveform.fst");
 
-    mtimecmp = 0xFFFFFFFFFFFFFFFF; // Default to a massive value
-
-
     dut_ptr = &dut;
     trace_ptr = &m_trace;
+    mem_ptr = &memory;
 
     signal(SIGINT, signal_handler);
 
 
     reset(dut, m_trace);
+    
+
     while(!dut.halt && sim_time < 100000) {
         // TODO: Variable latency
-        if((dut.ren || dut.wen) && dut.busy) {
-            dut.busy = 0;
-            if(dut.ren) {
-                uint32_t addr = dut.addr & 0xFFFFFFFC;
-                if(!MemoryMap::is_mmio_region(addr)) {
-                    dut.rdata = memory.read(addr);
-                } else {
-                    dut.rdata = memory.mmio_read(addr);
-                }
-            } else if(dut.wen) {
-                uint32_t addr = dut.addr & 0xFFFFFFFC;
-                uint32_t value = dut.wdata;
-                uint8_t mask = dut.byte_en;
-                if(!MemoryMap::is_mmio_region(addr)) {
-                    memory.write(addr, value, mask);
-                } else {
-                    memory.mmio_write(addr, value, mask);
-                }
-            }
-        } else if(!dut.busy) {
-            dut.busy = 1;
+        // Service data first to simulate forwarding from data write to instruction read (required for fence.i w/o caches)
+        if(dut.d_ren || dut.d_wen) {
+            dut.d_rdata = do_memory_txn(dut.d_ren, dut.d_wen, dut.d_addr, dut.d_byte_en, dut.d_wdata);
+            dut.d_busy = 0;
+        } else {
+            dut.d_rdata = 0xBAD1BAD1;
+            dut.d_busy = 1;
         }
 
-        dut.mtime = sim_time;
+        if(dut.i_ren || dut.i_wen) {
+            dut.i_rdata = do_memory_txn(dut.i_ren, dut.i_wen, dut.i_addr, dut.i_byte_en, dut.i_wdata);
+            dut.i_busy = 0;
+        } else {
+            dut.i_rdata = 0xBAD1BAD1;
+            dut.i_busy = 1;
+        }
+
 
         tick(dut, m_trace);
         update_interrupt_signals(dut);

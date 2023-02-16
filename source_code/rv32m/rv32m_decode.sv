@@ -1,12 +1,12 @@
 /*
 *   Copyright 2016 Purdue University
-*   
+*
 *   Licensed under the Apache License, Version 2.0 (the "License");
 *   you may not use this file except in compliance with the License.
 *   You may obtain a copy of the License at
-*   
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*   
+*
 *   Unless required by applicable law or agreed to in writing, software
 *   distributed under the License is distributed on an "AS IS" BASIS,
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,34 +14,28 @@
 *   limitations under the License.
 *
 *
-*   Filename:     include/rv32i_reg_file_if.vh
+*   Filename:     rv32m_decode.sv
 *
 *   Created by:   John Skubic
 *   Email:        jskubic@purdue.edu
-*   Date Created: 06/14/2016
-*   Description:  Interface for the Register File 
+*   Date Created: 02/07/2017
+*   Description:  Decoding for standard multiply extension
 */
+module rv32m_decode (
+    input [31:0] insn,
+    output logic claim,
+    output rv32m_pkg::rv32m_decode_t rv32m_control
+);
 
-`ifndef RV32I_REG_FILE_IF_VH
-`define RV32I_REG_FILE_IF_VH
+    import rv32m_pkg::*;
 
-interface rv32i_reg_file_if();
+    rv32m_insn_t insn_split;
+    
+    assign insn_split = rv32m_insn_t'(insn);
+    assign claim = (insn_split.opcode_major == RV32M_OPCODE)
+                    && (insn_split.opcode_minor == RV32M_OPCODE_MINOR);
 
-  import rv32i_types_pkg::*;
+    assign rv32m_control.select = claim;
+    assign rv32m_control.op = rv32m_op_t'(insn_split.funct);
 
-  word_t        w_data, rs1_data, rs2_data;
-  logic   [4:0] rs1, rs2, rd;
-  logic         wen;
-
-  modport rf (
-    input w_data, rs1, rs2, rd, wen,
-    output rs1_data, rs2_data
-  );
-
-  modport cu (
-    output rs1, rs2
-  );
-
-endinterface
-
-`endif //RV32I_REG_FILE_IF_VH
+endmodule
