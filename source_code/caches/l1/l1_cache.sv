@@ -28,9 +28,8 @@
 
 `include "generic_bus_if.vh"
 
-parameter SRAM_WR_SIZE = 128;
-parameter SRAM_HEIGHT = 128;
-parameter IS_BIDIRECTIONAL = 0;
+localparam SRAM_WR_SIZE = 128;
+localparam SRAM_HEIGHT = 128;
 
 module l1_cache #(
     parameter CACHE_SIZE          = 1024, // must be power of 2, in bytes, max 4k - 4 * 2^10
